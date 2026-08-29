@@ -15,52 +15,48 @@ source scripts/modules/deployment.sh
 ###########################################
 verify_arguments() {
 
-    header "Arguments"
+  header "Arguments"
 
-    if [ $# -ne 1 ]; then
-        error "Usage: ./scripts/deploy.sh <image-tag>"
-    fi
+  if [ $# -ne 1 ]; then
+    error "Usage: ./scripts/deploy.sh <image-tag>"
+  fi
 
-    DEPLOY_TAG="$1"
+  DEPLOY_TAG="$1"
 
-    success "Deploy tag : $DEPLOY_TAG"
+  success "Deploy tag : $DEPLOY_TAG"
 }
-
-
-
 
 ###########################################
 # Deployment Summary
 ###########################################
 deployment_summary() {
 
-    header "Deployment Summary"
+  header "Deployment Summary"
 
-    echo "Image : $IMAGE_NAME:$DEPLOY_TAG"
-    echo "Site  : $SITE_NAME"
-    echo "URL   : http://localhost:8080"
+  echo "Image : $IMAGE_NAME:$DEPLOY_TAG"
+  echo "Site  : $SITE_NAME"
+  echo "URL   : http://localhost:8080"
 
-    success "Deployment completed successfully"
+  success "Deployment completed successfully"
 }
-
 
 ###########################################
 # Main
 ###########################################
 main() {
 
-    banner "CCPC ERP Deployment"
+  banner "CCPC ERP Deployment"
 
-    verify_project_directory
-    print_configuration
+  verify_project_directory
+  print_configuration
 
-    verify_arguments "$@"
+  verify_arguments "$@"
 
-    verify_image "$DEPLOY_TAG"
+  verify_image "$DEPLOY_TAG"
 
-    deploy_release "$DEPLOY_TAG"
+  deploy_release "$DEPLOY_TAG"
 
-    deployment_summary
+  deployment_summary
 }
 
 main "$@"

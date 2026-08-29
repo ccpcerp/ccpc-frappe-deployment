@@ -1,4 +1,4 @@
-#!/bin/bash
+# shellcheck shell=bash
 
 ###########################################
 # Environment Module
@@ -8,19 +8,17 @@
 ###########################################
 backup_env() {
 
-    header "Backup Configuration"
+  header "Backup Configuration"
 
+  mkdir -p "$BACKUP_DIR"
 
+  BACKUP_FILE="$BACKUP_DIR/env.$(date +%Y%m%d_%H%M%S).bak"
 
-    mkdir -p "$BACKUP_DIR"
+  cp .env "$BACKUP_FILE"
 
-    BACKUP_FILE="$BACKUP_DIR/env.$(date +%Y%m%d_%H%M%S).bak"
+  success "Configuration backed up"
 
-    cp .env "$BACKUP_FILE"
-
-    success "Configuration backed up"
-
-    echo "Backup : $BACKUP_FILE"
+  echo "Backup : $BACKUP_FILE"
 }
 
 ###########################################
@@ -28,33 +26,33 @@ backup_env() {
 ###########################################
 update_env() {
 
-    local IMAGE_TAG="$1"
+  local IMAGE_TAG="$1"
 
-    header "Update Configuration"
+  header "Update Configuration"
 
-    if [ ! -f ".env" ]; then
-        error ".env file not found"
-    fi
+  if [ ! -f ".env" ]; then
+    error ".env file not found"
+  fi
 
-    CURRENT_TAG=$(grep '^CUSTOM_TAG=' .env | cut -d= -f2)
+  CURRENT_TAG=$(grep '^CUSTOM_TAG=' .env | cut -d= -f2)
 
-    if [ -z "$CURRENT_TAG" ]; then
-        error "CUSTOM_TAG not found in .env"
-    fi
+  if [ -z "$CURRENT_TAG" ]; then
+    error "CUSTOM_TAG not found in .env"
+  fi
 
-    echo "Current tag : $CURRENT_TAG"
+  echo "Current tag : $CURRENT_TAG"
 
-    sed -i "s/^CUSTOM_TAG=.*/CUSTOM_TAG=$IMAGE_TAG/" .env
+  sed -i "s/^CUSTOM_TAG=.*/CUSTOM_TAG=$IMAGE_TAG/" .env
 
-    UPDATED_TAG=$(grep '^CUSTOM_TAG=' .env | cut -d= -f2)
+  UPDATED_TAG=$(grep '^CUSTOM_TAG=' .env | cut -d= -f2)
 
-    if [ "$UPDATED_TAG" != "$IMAGE_TAG" ]; then
-        error "Failed to update CUSTOM_TAG"
-    fi
+  if [ "$UPDATED_TAG" != "$IMAGE_TAG" ]; then
+    error "Failed to update CUSTOM_TAG"
+  fi
 
-    success "Configuration updated"
+  success "Configuration updated"
 
-    echo "New tag     : $UPDATED_TAG"
+  echo "New tag     : $UPDATED_TAG"
 }
 
 ###########################################
@@ -62,13 +60,13 @@ update_env() {
 ###########################################
 restore_env() {
 
-    if [ ! -f "$BACKUP_FILE" ]; then
-        error "Backup file not found: $BACKUP_FILE"
-    fi
+  if [ ! -f "$BACKUP_FILE" ]; then
+    error "Backup file not found: $BACKUP_FILE"
+  fi
 
-    if cp "$BACKUP_FILE" .env; then
-        warn "Configuration restored from backup"
-    else
-        error "Failed to restore configuration from backup"
-    fi
+  if cp "$BACKUP_FILE" .env; then
+    warn "Configuration restored from backup"
+  else
+    error "Failed to restore configuration from backup"
+  fi
 }

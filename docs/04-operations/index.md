@@ -93,9 +93,9 @@ Records:
 - Improvements
 - Bug fixes
 - Operational changes---
-title: Operations
----
+  title: Operations
 
+---
 
 ---
 
@@ -149,7 +149,6 @@ Status: Active
 
 Updated for every framework release.
 
-
 ---
 
 # Repository Structure
@@ -184,8 +183,6 @@ frappe_docker/
 │       ├── health.sh
 │       └── version.sh
 ```
-
-
 
 ---
 

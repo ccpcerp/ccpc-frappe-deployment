@@ -16,15 +16,15 @@ source scripts/modules/database.sh
 ###########################################
 verify_arguments() {
 
-    header "Arguments"
+  header "Arguments"
 
-    if [ $# -ne 1 ]; then
-        error "Usage: ./scripts/rollback.sh <image-tag>"
-    fi
+  if [ $# -ne 1 ]; then
+    error "Usage: ./scripts/rollback.sh <image-tag>"
+  fi
 
-    ROLLBACK_TAG="$1"
+  ROLLBACK_TAG="$1"
 
-    success "Rollback tag : $ROLLBACK_TAG"
+  success "Rollback tag : $ROLLBACK_TAG"
 }
 
 ###########################################
@@ -32,27 +32,26 @@ verify_arguments() {
 ###########################################
 rollback_summary() {
 
-    header "Rollback Summary"
+  header "Rollback Summary"
 
-    echo "Image : $IMAGE_NAME:$ROLLBACK_TAG"
-    echo "Site  : $SITE_NAME"
-    echo "URL   : http://localhost:8080"
+  echo "Image : $IMAGE_NAME:$ROLLBACK_TAG"
+  echo "Site  : $SITE_NAME"
+  echo "URL   : http://localhost:8080"
 
-    success "Rollback completed successfully"
+  success "Rollback completed successfully"
 }
 
 main() {
 
-    banner "CCPC ERP Rollback"
+  banner "CCPC ERP Rollback"
 
-    verify_project_directory
-    print_configuration
+  verify_project_directory
+  print_configuration
 
-    verify_arguments "$@"
-    verify_image "$ROLLBACK_TAG"
-    deploy_release "$ROLLBACK_TAG"
-    rollback_summary
-
+  verify_arguments "$@"
+  verify_image "$ROLLBACK_TAG"
+  deploy_release "$ROLLBACK_TAG"
+  rollback_summary
 
 }
 
