@@ -272,17 +272,17 @@ Do not introduce unrelated refactors while implementing a focused change.
 Use:
 
 Issue or requirement
-    -> analysis
-    -> feature branch
-    -> implementation
-    -> validation
-    -> pull request
-    -> review
-    -> merge
-    -> build
-    -> staging verification
-    -> production deployment
-    -> release
+-> analysis
+-> feature branch
+-> implementation
+-> validation
+-> pull request
+-> review
+-> merge
+-> build
+-> staging verification
+-> production deployment
+-> release
 
 Production changes should be traceable and reversible.
 
