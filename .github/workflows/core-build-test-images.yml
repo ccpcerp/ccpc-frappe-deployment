@@ -106,6 +106,9 @@ jobs:
           docker system df
           docker buildx du
 
+      - name: Free Buildx cache before tests
+        run: docker buildx prune --all --force
+
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
