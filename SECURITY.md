@@ -14,9 +14,7 @@ Older releases may require upgrading before a security fix can be applied.
 
 Do not report suspected security vulnerabilities in a public issue.
 
-Use GitHub's private vulnerability reporting or Security Advisory functionality when it is available for this repository.
-
-If private vulnerability reporting is not available, contact the repository owner privately before publishing vulnerability details.
+Email the CCPC ERP maintainer privately at ccpcerp@gmail.com before publishing vulnerability details.
 
 A useful report should include:
 
