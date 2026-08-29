@@ -18,7 +18,6 @@ The framework is designed to achieve the following goals.
 - Recoverability
 - Simplicity
 
-
 ---
 
 # High-Level Architecture
@@ -44,7 +43,6 @@ The top-level scripts coordinate workflows.
 Operational logic is delegated to reusable modules.
 
 This separation minimizes duplication and simplifies future enhancements.
-
 
 ---
 
@@ -99,7 +97,6 @@ Responsibilities:
 - Remain reusable.
 - Avoid dependencies between unrelated modules.
 
-
 ---
 
 # Design Decisions
@@ -147,7 +144,6 @@ Reason:
 
 - Improve maintainability.
 - Support long-term operations.
-
 
 ---
 

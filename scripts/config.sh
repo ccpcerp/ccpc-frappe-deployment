@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2034  # Configuration variables are consumed by sourcing scripts.
 
 ###########################################
 # Framework

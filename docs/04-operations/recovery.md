@@ -28,7 +28,6 @@ Recovery should always follow this order.
 5. Restore uploaded files.
 6. Verify ERPNext operation.
 
-
 ---
 
 ## Recovery Assets
@@ -93,39 +92,35 @@ The following assets are required to fully restore the CCPC ERP environment.
 - MariaDB credentials
 - SSH keys
 
-
-
-
 ---
 
 ## Recovery Locations
 
 The following table identifies the primary and backup locations for all critical assets.
 
-| Asset | Primary Location | Backup Location | Status |
-|--------|------------------|-----------------|--------|
-| Deployment Framework | GitHub (ccpc-frappe-deployment) | Ubuntu Server | Active |
-| ERPNext Application | Git Repository | Ubuntu Server | Active |
-| Docker Configuration | Ubuntu Server | Git Repository | Active |
-| Docker Images | Local Docker | Rebuild from source | Active |
-| MariaDB Database | Ubuntu Server | Synology NAS | Verify Regularly |
-| Public Files | Ubuntu Server | Synology NAS | Verify Regularly |
-| Private Files | Ubuntu Server | Synology NAS | Verify Regularly |
-| Environment Configuration (.env) | Ubuntu Server | Secure Backup | Verify Regularly |
-| SSH Keys | Administrator Workstation | Secure Backup | Verify Regularly |
-| Documentation | GitHub Repository | Ubuntu Server | Active |
-
+| Asset                            | Primary Location                | Backup Location     | Status           |
+| -------------------------------- | ------------------------------- | ------------------- | ---------------- |
+| Deployment Framework             | GitHub (ccpc-frappe-deployment) | Ubuntu Server       | Active           |
+| ERPNext Application              | Git Repository                  | Ubuntu Server       | Active           |
+| Docker Configuration             | Ubuntu Server                   | Git Repository      | Active           |
+| Docker Images                    | Local Docker                    | Rebuild from source | Active           |
+| MariaDB Database                 | Ubuntu Server                   | Synology NAS        | Verify Regularly |
+| Public Files                     | Ubuntu Server                   | Synology NAS        | Verify Regularly |
+| Private Files                    | Ubuntu Server                   | Synology NAS        | Verify Regularly |
+| Environment Configuration (.env) | Ubuntu Server                   | Secure Backup       | Verify Regularly |
+| SSH Keys                         | Administrator Workstation       | Secure Backup       | Verify Regularly |
+| Documentation                    | GitHub Repository               | Ubuntu Server       | Active           |
 
 ---
 
 ## Recovery Time Objectives
 
-| Recovery Scenario | Target Recovery Time |
-|-------------------|---------------------:|
-| Framework Recovery | 30 minutes |
-| Docker Environment Recovery | 1 hour |
-| ERPNext Application Recovery | 1 hour |
-| Database Restore | 30 minutes |
-| Complete Server Recovery | 4 hours |
+| Recovery Scenario            | Target Recovery Time |
+| ---------------------------- | -------------------: |
+| Framework Recovery           |           30 minutes |
+| Docker Environment Recovery  |               1 hour |
+| ERPNext Application Recovery |               1 hour |
+| Database Restore             |           30 minutes |
+| Complete Server Recovery     |              4 hours |
 
 Recovery times are targets and should be reviewed periodically based on operational experience.

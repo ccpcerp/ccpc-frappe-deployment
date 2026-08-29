@@ -8,7 +8,6 @@ The CCPC ERP Deployment Framework provides a structured and repeatable process f
 
 It is designed around reusable modules so that deployment workflows remain simple, maintainable, and easy to extend.
 
-
 ## Directory Structure
 
 ```
@@ -230,7 +229,6 @@ Finish
 10. Build the Docker image.
 11. Verify the newly created image.
 
-
 ## Deployment Workflow
 
 The deployment process installs a selected Docker image into the ERPNext environment.
@@ -285,6 +283,7 @@ Run Database Migrations
     ▼
 Health Check
 ```
+
 ## Rollback Workflow
 
 The rollback process restores a previously built Docker image using the same deployment workflow as a normal deployment.
@@ -338,8 +337,6 @@ Health Check
 
 This design guarantees that deployment and rollback always follow the same operational steps, reducing maintenance effort and eliminating duplicate deployment logic.
 
-
-
 ## Configuration
 
 Framework configuration is centralized in `scripts/config.sh`.
@@ -355,8 +352,6 @@ Configuration includes:
 - Deployment timeouts
 
 Changing framework behavior should normally require updating only this file rather than modifying deployment scripts.
-
-
 
 ## Versioning
 
@@ -376,8 +371,6 @@ During the build process the framework:
 2. Calculates the next release version.
 3. Verifies that the version does not already exist.
 4. Builds the new Docker image.
-
-
 
 ## Framework Roadmap
 

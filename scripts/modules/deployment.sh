@@ -1,4 +1,4 @@
-#!/bin/bash
+# shellcheck shell=bash
 
 ###########################################
 # Deployment Module
@@ -9,20 +9,20 @@
 ###########################################
 deploy_release() {
 
-    local IMAGE_TAG="$1"
+  local IMAGE_TAG="$1"
 
-    backup_env
+  backup_env
 
-    update_env "$IMAGE_TAG"
+  update_env "$IMAGE_TAG"
 
-    deploy_containers
+  deploy_containers
 
-    wait_for_services
+  wait_for_services
 
-    verify_containers
+  verify_containers
 
-    run_migrations
+  run_migrations
 
-    health_check
+  health_check
 
 }

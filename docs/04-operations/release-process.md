@@ -43,7 +43,6 @@ Every release should:
 
 No release should bypass the deployment framework.
 
-
 ---
 
 ## Standard Release Procedure
@@ -118,7 +117,6 @@ If deployment fails, execute rollback.
 ```bash
 ./scripts/rollback.sh <previous-image-tag>
 ```
-
 
 ---
 
