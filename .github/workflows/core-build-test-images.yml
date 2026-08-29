@@ -86,6 +86,12 @@ jobs:
           echo "PYTHON_VERSION=${{ inputs.python_version }}" >> "$GITHUB_ENV"
           echo "NODE_VERSION=${{ inputs.node_version }}" >> "$GITHUB_ENV"
 
+      - name: Disk usage before build
+        run: |
+          df -h
+          docker system df
+          docker buildx du
+
       - name: Build
         uses: docker/bake-action@v7.3.0
         with:
@@ -93,6 +99,12 @@ jobs:
           push: true
         env:
           REGISTRY_USER: localhost:5000/frappe
+
+      - name: Disk usage after build
+        run: |
+          df -h
+          docker system df
+          docker buildx du
 
       - name: Setup Python
         uses: actions/setup-python@v6
@@ -103,6 +115,12 @@ jobs:
         run: |
           python -m venv venv
           venv/bin/pip install -r requirements-test.txt
+
+      - name: Disk usage before tests
+        run: |
+          df -h
+          docker system df
+          docker buildx du
 
       - name: Test
         run: venv/bin/pytest --color=yes
