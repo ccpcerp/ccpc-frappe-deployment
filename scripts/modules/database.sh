@@ -11,7 +11,7 @@ run_migrations() {
 
   header "Run Database Migrations"
 
-  if ! docker compose exec backend \
+  if ! ccpc_compose exec backend \
     bench --site "$SITE_NAME" migrate; then
 
     restore_env

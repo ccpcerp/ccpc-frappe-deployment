@@ -11,12 +11,13 @@ health_check() {
 
   header "Health Check"
 
-  URL="http://localhost:8080"
-
-  if curl -fsS "$URL" >/dev/null; then
+  if curl -fsS \
+    --header "Host: $FRAPPE_SITE_NAME_HEADER" \
+    "$HEALTHCHECK_URL" >/dev/null; then
     success "ERPNext is responding"
 
-    echo "URL : $URL"
+    echo "URL : $HEALTHCHECK_URL"
+    echo "Site: $FRAPPE_SITE_NAME_HEADER"
   else
     error "ERPNext health check failed"
   fi

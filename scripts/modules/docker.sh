@@ -5,6 +5,14 @@
 ###########################################
 
 ###########################################
+# Run Docker Compose
+###########################################
+ccpc_compose() {
+
+  docker compose "${COMPOSE_FILE_ARGS[@]}" "$@"
+}
+
+###########################################
 # Build Image
 ###########################################
 build_image() {
@@ -61,7 +69,7 @@ deploy_containers() {
 
   header "Deploy Containers"
 
-  if ! docker compose up -d; then
+  if ! ccpc_compose up -d; then
     restore_env
     error "Container deployment failed"
   fi
@@ -90,12 +98,12 @@ verify_containers() {
 
   header "Verify Containers"
 
-  if ! docker compose ps --status running >/dev/null; then
+  if ! ccpc_compose ps --status running >/dev/null; then
     restore_env
     error "Unable to verify running containers"
   fi
 
-  docker compose ps
+  ccpc_compose ps
 
   success "Containers are running"
 }
