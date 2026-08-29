@@ -1,7 +1,21 @@
-> Please provide enough information so that others can review your pull request:
+# CCPC ERP Pull Request
 
-<!-- You can skip this if you're fixing a typo or updating existing documentation -->
+## Summary
 
-> Explain the **details** for making this change. What existing problem does the pull request solve?
+<!-- What does this change, and why is it needed? -->
 
-<!-- Example: When "Adding a function to do X", explain why it is necessary to have a way to do X. -->
+## Validation performed
+
+<!-- List the checks or tests run. If none, explain why. -->
+
+## Production impact
+
+<!-- Describe any operational or production impact, or state "None". -->
+
+## Rollback and migration considerations
+
+<!-- Describe rollback implications and database migrations, or state "None". -->
+
+## Documentation updates
+
+<!-- Link or describe documentation updates, or state "Not required". -->

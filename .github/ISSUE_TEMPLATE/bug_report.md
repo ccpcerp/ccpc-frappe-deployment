@@ -1,21 +1,28 @@
 ---
 name: Bug report
-about: Report a bug encountered while using the Frappe_docker
+about: Report a bug in the CCPC ERP deployment repository
 labels: bug
 ---
 
 <!--
-Welcome to the frappe_docker issue tracker! Before creating an issue, please heed the following:
+Use this template for bugs in the CCPC ERP deployment and operations framework.
 
-1. Is your issue relevant to the frappe_docker or the main Frappe framework? https://github.com/frappe/frappe . if It's the latter, publish the issue there.
-2. Use the search function before creating a new issue. Duplicates will be closed and directed to the original discussion.
-3. When making a bug report, make sure you provide all the required information. The easier it is for maintainers to reproduce, the faster it'll be fixed.
-4. If you think you know what the reason for the bug is, share it with us. Maybe put in a PR 😉
+1. For upstream Frappe framework issues, use https://github.com/frappe/frappe/issues.
+2. For upstream ERPNext issues, use https://github.com/frappe/erpnext/issues.
+3. For upstream Frappe Docker issues, use https://github.com/frappe/frappe_docker/issues.
+4. Search existing issues before submitting a duplicate.
+5. Provide enough detail to reproduce the problem safely.
+
+Do not post passwords, API keys, tokens, private keys, database credentials,
+production .env contents, backups, recovery codes, or other secrets.
+
+Report suspected security vulnerabilities privately by following SECURITY.md:
+https://github.com/ccpcerp/ccpc-frappe-deployment/blob/main/SECURITY.md
 -->
 
 ## Description of the issue
 
-## Context information (for bug reports)
+## Context information
 
 ## Steps to reproduce the issue
 
@@ -30,5 +37,5 @@ Welcome to the frappe_docker issue tracker! Before creating an issue, please hee
 ### Stacktrace / full error message if available
 
 ```
-(paste here)
+(remove secrets before pasting here)
 ```

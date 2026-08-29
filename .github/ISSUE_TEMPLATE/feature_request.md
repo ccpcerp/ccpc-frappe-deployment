@@ -1,13 +1,17 @@
 ---
 name: Feature request
-about: Suggest an idea to improve frappe_docker
+about: Suggest an improvement to the CCPC ERP deployment framework
 labels: enhancement
 ---
 
 <!--
-Welcome to the Frappe Framework issue tracker! Before creating an issue, please heed the following:
-1. Use the search function before creating a new issue. Duplicates will be closed and directed to the original discussion.
-2. When making a feature request, make sure to be as verbose as possible. The better you convey your message, the greater the drive to make it happen.
+Use this template for improvements to the CCPC ERP deployment and operations
+framework. Search existing issues before submitting a duplicate.
+
+For upstream requests, use the relevant project:
+- Frappe: https://github.com/frappe/frappe/issues
+- ERPNext: https://github.com/frappe/erpnext/issues
+- Frappe Docker: https://github.com/frappe/frappe_docker/issues
 -->
 
 **Is your feature request related to a problem? Please describe.**

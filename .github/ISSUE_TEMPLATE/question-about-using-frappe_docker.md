@@ -1,12 +1,21 @@
 ---
-name: Question about using Frappe/Frappe Apps
-about: Ask how to do something
+name: Question about CCPC ERP deployment
+about: Ask about using this deployment and operations repository
 labels: question
 ---
 
 <!--
-Welcome to the frappe_docker issue tracker! Before creating an issue, please heed the following:
+Use this template for questions about the CCPC ERP deployment and operations
+framework. Search existing issues and documentation before submitting a question.
 
-1. Use the search function before creating a new issue. Duplicates will be closed and directed to the original discussion.
-2. Please write extensively, clearly and in detail.
+For general or upstream questions, use the relevant project:
+- Frappe: https://github.com/frappe/frappe
+- ERPNext: https://github.com/frappe/erpnext
+- Frappe Docker: https://github.com/frappe/frappe_docker
 -->
+
+## Question
+
+## Context
+
+<!-- Include relevant versions and configuration without posting secrets. -->

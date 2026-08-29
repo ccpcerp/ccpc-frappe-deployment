@@ -1,0 +1,18 @@
+# CCPC ERP Code Owners
+#
+# Changes to this repository should be reviewed by the CCPC ERP maintainer.
+# More specific ownership rules can be added as the team grows.
+
+* @ccpcerp
+
+# Deployment and operations framework
+/scripts/ @ccpcerp
+/docs/ @ccpcerp
+
+# Docker and deployment configuration
+/images/custom/ @ccpcerp
+/compose.yaml @ccpcerp
+
+# Repository governance and automation
+/.github/ @ccpcerp
+/AGENTS.md @ccpcerp
