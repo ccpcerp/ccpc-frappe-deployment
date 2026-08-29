@@ -36,7 +36,7 @@ rollback_summary() {
 
   echo "Image : $IMAGE_NAME:$ROLLBACK_TAG"
   echo "Site  : $SITE_NAME"
-  echo "URL   : http://localhost:8080"
+  echo "URL   : $ERP_ACCESS_URL"
 
   success "Rollback completed successfully"
 }

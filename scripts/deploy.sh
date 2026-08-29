@@ -35,7 +35,7 @@ deployment_summary() {
 
   echo "Image : $IMAGE_NAME:$DEPLOY_TAG"
   echo "Site  : $SITE_NAME"
-  echo "URL   : http://localhost:8080"
+  echo "URL   : $ERP_ACCESS_URL"
 
   success "Deployment completed successfully"
 }
