@@ -1,4 +1,4 @@
-#!/bin/bash
+# shellcheck shell=bash
 
 ###########################################
 # Docker Module
@@ -9,22 +9,22 @@
 ###########################################
 build_image() {
 
-    header "Build Image"
+  header "Build Image"
 
-    CACHE_BUST=$(date +%s)
+  CACHE_BUST=$(date +%s)
 
-    info "Building image: $IMAGE_NAME:$NEXT_TAG"
+  info "Building image: $IMAGE_NAME:$NEXT_TAG"
 
-    docker buildx build \
-        --load \
-        --build-arg CACHE_BUST="$CACHE_BUST" \
-        --build-arg FRAPPE_BRANCH="$APP_BRANCH" \
-        --build-arg ERPNEXT_BRANCH="$APP_BRANCH" \
-        --secret id=apps_json,src=apps.json \
-        --tag "$IMAGE_NAME:$NEXT_TAG" \
-        --file "$DOCKERFILE" .
+  docker buildx build \
+    --load \
+    --build-arg CACHE_BUST="$CACHE_BUST" \
+    --build-arg FRAPPE_BRANCH="$APP_BRANCH" \
+    --build-arg ERPNEXT_BRANCH="$APP_BRANCH" \
+    --secret id=apps_json,src=apps.json \
+    --tag "$IMAGE_NAME:$NEXT_TAG" \
+    --file "$DOCKERFILE" .
 
-    success "Image built successfully"
+  success "Image built successfully"
 }
 
 ###########################################
@@ -32,26 +32,26 @@ build_image() {
 ###########################################
 verify_image() {
 
-    local IMAGE_TAG="$1"
+  local IMAGE_TAG="$1"
 
-    header "Verify Image"
+  header "Verify Image"
 
-    if ! docker image inspect "$IMAGE_NAME:$IMAGE_TAG" >/dev/null 2>&1; then
-        error "Image verification failed: $IMAGE_NAME:$IMAGE_TAG"
-    fi
+  if ! docker image inspect "$IMAGE_NAME:$IMAGE_TAG" >/dev/null 2>&1; then
+    error "Image verification failed: $IMAGE_NAME:$IMAGE_TAG"
+  fi
 
-    IMAGE_ID=$(docker image inspect \
-        --format '{{.Id}}' \
-        "$IMAGE_NAME:$IMAGE_TAG")
+  IMAGE_ID=$(docker image inspect \
+    --format '{{.Id}}' \
+    "$IMAGE_NAME:$IMAGE_TAG")
 
-    IMAGE_SIZE=$(docker image inspect \
-        --format '{{.Size}}' \
-        "$IMAGE_NAME:$IMAGE_TAG")
+  IMAGE_SIZE=$(docker image inspect \
+    --format '{{.Size}}' \
+    "$IMAGE_NAME:$IMAGE_TAG")
 
-    success "Image verified"
+  success "Image verified"
 
-    echo "Image ID : $IMAGE_ID"
-    echo "Size     : $IMAGE_SIZE bytes"
+  echo "Image ID : $IMAGE_ID"
+  echo "Size     : $IMAGE_SIZE bytes"
 }
 
 ###########################################
@@ -59,14 +59,14 @@ verify_image() {
 ###########################################
 deploy_containers() {
 
-    header "Deploy Containers"
+  header "Deploy Containers"
 
-    if ! docker compose up -d; then
-        restore_env
-        error "Container deployment failed"
-    fi
+  if ! docker compose up -d; then
+    restore_env
+    error "Container deployment failed"
+  fi
 
-    success "Containers deployed"
+  success "Containers deployed"
 }
 
 ###########################################
@@ -74,13 +74,13 @@ deploy_containers() {
 ###########################################
 wait_for_services() {
 
-    header "Wait for Services"
+  header "Wait for Services"
 
-    echo "Waiting ${SERVICE_STARTUP_WAIT} seconds..."
+  echo "Waiting ${SERVICE_STARTUP_WAIT} seconds..."
 
-    sleep "$SERVICE_STARTUP_WAIT"
+  sleep "$SERVICE_STARTUP_WAIT"
 
-    success "Services are ready for verification"
+  success "Services are ready for verification"
 }
 
 ###########################################
@@ -88,14 +88,14 @@ wait_for_services() {
 ###########################################
 verify_containers() {
 
-    header "Verify Containers"
+  header "Verify Containers"
 
-    if ! docker compose ps --status running >/dev/null; then
-        restore_env
-        error "Unable to verify running containers"
-    fi
+  if ! docker compose ps --status running >/dev/null; then
+    restore_env
+    error "Unable to verify running containers"
+  fi
 
-    docker compose ps
+  docker compose ps
 
-    success "Containers are running"
+  success "Containers are running"
 }

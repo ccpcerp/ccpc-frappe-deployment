@@ -18,8 +18,6 @@ Build a deployment framework that is:
 
 The framework should reduce operational risk rather than increase it.
 
-
-
 ---
 
 # Engineering Standards
@@ -68,7 +66,6 @@ Every production feature should be documented.
 
 Documentation is part of the framework—not an afterthought.
 
-
 ---
 
 # Operational Standards
@@ -84,7 +81,6 @@ Manual production changes should be avoided whenever possible.
 
 Rollback procedures must always remain available.
 
-
 ---
 
 # Git Standards
@@ -98,7 +94,6 @@ Every framework release should include:
 - Updated change log
 
 Stable releases should always be recoverable from Git.
-
 
 ---
 

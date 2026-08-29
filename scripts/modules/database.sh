@@ -1,25 +1,23 @@
-#!/bin/bash
+# shellcheck shell=bash
 
 ###########################################
 # Database Module
 ###########################################
-
 
 ###########################################
 # Run Database Migrations
 ###########################################
 run_migrations() {
 
-    header "Run Database Migrations"
+  header "Run Database Migrations"
 
-    if ! docker compose exec backend \
-        bench --site "$SITE_NAME" migrate; then
+  if ! docker compose exec backend \
+    bench --site "$SITE_NAME" migrate; then
 
-        restore_env
-        error "Database migration failed"
+    restore_env
+    error "Database migration failed"
 
-    fi
+  fi
 
-    success "Database migration completed"
+  success "Database migration completed"
 }
-

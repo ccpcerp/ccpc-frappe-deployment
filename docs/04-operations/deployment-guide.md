@@ -46,7 +46,6 @@ Before deploying, verify the following.
 - Latest application changes have been committed.
 - Framework version is current.
 
-
 ---
 
 ## Standard Deployment Procedure
@@ -99,7 +98,6 @@ Expected checks include:
 - Database migration completed.
 - ERPNext health check passed.
 - Application is accessible.
-
 
 ---
 

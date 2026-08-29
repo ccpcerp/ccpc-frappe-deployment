@@ -5,31 +5,31 @@
 ###########################################
 
 line() {
-    echo "----------------------------------------"
+  echo "----------------------------------------"
 }
 
 header() {
-    echo
-    line
-    echo "$1"
-    line
+  echo
+  line
+  echo "$1"
+  line
 }
 
 info() {
-    echo "[INFO] $1"
+  echo "[INFO] $1"
 }
 
 success() {
-    echo "[ OK ] $1"
+  echo "[ OK ] $1"
 }
 
 warn() {
-    echo "[WARN] $1"
+  echo "[WARN] $1"
 }
 
 error() {
-    echo "[FAIL] $1"
-    exit 1
+  echo "[FAIL] $1"
+  exit 1
 }
 
 ###########################################
@@ -37,10 +37,10 @@ error() {
 ###########################################
 banner() {
 
-    echo "========================================"
-    echo " $1"
-    echo "========================================"
-    echo
+  echo "========================================"
+  echo " $1"
+  echo "========================================"
+  echo
 }
 
 ###########################################
@@ -48,11 +48,11 @@ banner() {
 ###########################################
 verify_project_directory() {
 
-    if [ ! -f "compose.yaml" ]; then
-        error "Run this script from the frappe_docker directory."
-    fi
+  if [ ! -f "compose.yaml" ]; then
+    error "Run this script from the frappe_docker directory."
+  fi
 
-    success "Project directory verified"
+  success "Project directory verified"
 }
 
 ###########################################
@@ -60,13 +60,13 @@ verify_project_directory() {
 ###########################################
 print_configuration() {
 
-    header "Configuration"
+  header "Configuration"
 
-    echo "Branch     : $APP_BRANCH"
-    echo "App Path   : $APP_PATH"
-    echo "Image      : $IMAGE_NAME"
-    echo "Dockerfile : $DOCKERFILE"
-    echo "Site       : $SITE_NAME"
+  echo "Branch     : $APP_BRANCH"
+  echo "App Path   : $APP_PATH"
+  echo "Image      : $IMAGE_NAME"
+  echo "Dockerfile : $DOCKERFILE"
+  echo "Site       : $SITE_NAME"
 }
 
 ###########################################
@@ -74,17 +74,17 @@ print_configuration() {
 ###########################################
 verify_git_repository() {
 
-    header "Git Verification"
+  header "Git Verification"
 
-    if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-        error "This is not a Git repository."
-    fi
+  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    error "This is not a Git repository."
+  fi
 
-    success "Git repository detected"
+  success "Git repository detected"
 
-    if [ ! -d "$APP_PATH/.git" ]; then
-        error "Cannot find Git repository at $APP_PATH"
-    fi
+  if [ ! -d "$APP_PATH/.git" ]; then
+    error "Cannot find Git repository at $APP_PATH"
+  fi
 
-    success "Development app found"
+  success "Development app found"
 }
