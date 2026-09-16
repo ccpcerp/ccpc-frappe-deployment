@@ -36,6 +36,8 @@ IMAGE_NAME="ccpcerp"
 DOCKERFILE="images/custom/Containerfile"
 COMPOSE_FILE_ARGS=(
   -f compose.yaml
+  -f overrides/compose.mariadb.yaml
+  -f overrides/compose.redis.yaml
   -f overrides/compose.lan-production.yaml
 )
 
