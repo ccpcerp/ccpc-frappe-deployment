@@ -170,7 +170,7 @@ RUN --mount=type=ssh,required=true,uid=1000,gid=1000 \
   pre_overlay_changes="$(git -C apps/erpnext diff --name-only HEAD -- | LC_ALL=C sort)" && \
   if [ -n "${pre_overlay_changes}" ]; then \
     echo "ERPNext tracked changes created during bench init:"; \
-    printf '%s\\n' "${pre_overlay_changes}"; \
+    printf '%s\n' "${pre_overlay_changes}"; \
   fi && \
   for changed_file in ${pre_overlay_changes}; do \
     case "${changed_file}" in \
@@ -200,16 +200,16 @@ RUN --mount=type=ssh,required=true,uid=1000,gid=1000 \
   git -C apps/erpnext apply "${patch_file}" && \
   git -C apps/erpnext diff --check && \
   changed_files="$(git -C apps/erpnext diff --name-only HEAD -- | LC_ALL=C sort)" && \
-  expected_files="$(printf '%s\\n' \
+  expected_files="$(printf '%s\n' \
       banking/yarn.lock \
       erpnext/stock/doctype/item/item.json \
       erpnext/stock/doctype/item/item.py | LC_ALL=C sort)" && \
   if [ "${changed_files}" != "${expected_files}" ]; then \
     echo "ERROR: ERPNext protected-file set does not match the approved overlay" >&2; \
-    printf 'Expected:\\n%s\\nActual:\\n%s\\n' "${expected_files}" "${changed_files}" >&2; \
+    printf 'Expected:\n%s\nActual:\n%s\n' "${expected_files}" "${changed_files}" >&2; \
     exit 1; \
   fi && \
-  actual_overlay_state_sha="$(for overlay_file in ${expected_files}; do file_sha="$(sha256sum "apps/erpnext/${overlay_file}" | awk '{print $1}')"; printf '%s  %s\\n' "${file_sha}" "${overlay_file}"; done | sha256sum | awk '{print $1}')" && \
+  actual_overlay_state_sha="$(for overlay_file in ${expected_files}; do file_sha="$(sha256sum "apps/erpnext/${overlay_file}" | awk '{print $1}')"; printf '%s  %s\n' "${file_sha}" "${overlay_file}"; done | sha256sum | awk '{print $1}')" && \
   echo "Verifying ERPNext applied overlay state: expected=${EXPECTED_ERPNEXT_OVERLAY_STATE_SHA} actual=${actual_overlay_state_sha}" && \
   if [ -z "${EXPECTED_ERPNEXT_OVERLAY_STATE_SHA}" ] || [ "${actual_overlay_state_sha}" != "${EXPECTED_ERPNEXT_OVERLAY_STATE_SHA}" ]; then \
     echo "ERROR: applied ERPNext overlay content does not match the validated state" >&2; \
@@ -220,10 +220,10 @@ RUN --mount=type=ssh,required=true,uid=1000,gid=1000 \
   post_build_changed_files="$(git -C apps/erpnext diff --name-only HEAD -- | LC_ALL=C sort)" && \
   if [ "${post_build_changed_files}" != "${expected_files}" ]; then \
     echo "ERROR: frontend setup changed the approved ERPNext tracked-file set" >&2; \
-    printf 'Expected:\\n%s\\nActual:\\n%s\\n' "${expected_files}" "${post_build_changed_files}" >&2; \
+    printf 'Expected:\n%s\nActual:\n%s\n' "${expected_files}" "${post_build_changed_files}" >&2; \
     exit 1; \
   fi && \
-  post_build_overlay_state_sha="$(for overlay_file in ${expected_files}; do file_sha="$(sha256sum "apps/erpnext/${overlay_file}" | awk '{print $1}')"; printf '%s  %s\\n' "${file_sha}" "${overlay_file}"; done | sha256sum | awk '{print $1}')" && \
+  post_build_overlay_state_sha="$(for overlay_file in ${expected_files}; do file_sha="$(sha256sum "apps/erpnext/${overlay_file}" | awk '{print $1}')"; printf '%s  %s\n' "${file_sha}" "${overlay_file}"; done | sha256sum | awk '{print $1}')" && \
   echo "Verifying ERPNext overlay state after frontend build: expected=${EXPECTED_ERPNEXT_OVERLAY_STATE_SHA} actual=${post_build_overlay_state_sha}" && \
   if [ "${post_build_overlay_state_sha}" != "${EXPECTED_ERPNEXT_OVERLAY_STATE_SHA}" ]; then \
     echo "ERROR: frontend setup changed the approved ERPNext overlay content" >&2; \
