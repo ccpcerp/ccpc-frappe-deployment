@@ -16,11 +16,13 @@ LAN client
 
 ## Compose Override
 
-Use the LAN production override with the base Compose file:
+Use the production service overrides and LAN production override with the base Compose file:
 
 ```bash
 docker compose \
   -f compose.yaml \
+  -f overrides/compose.mariadb.yaml \
+  -f overrides/compose.redis.yaml \
   -f overrides/compose.lan-production.yaml \
   config
 ```
@@ -33,7 +35,7 @@ The internal Frappe site remains `ccpcerp.local`. `FRAPPE_SITE_NAME_HEADER` defa
 
 ## Deployment Framework
 
-The CCPC deployment configuration defines the Compose file arguments once in `scripts/config.sh`. The shared `ccpc_compose` helper applies the base file and LAN production override to deployment, container verification, and migration operations used by both deploy and rollback workflows.
+The CCPC deployment configuration defines the Compose file arguments once in `scripts/config.sh`. The shared `ccpc_compose` helper applies the base file, MariaDB and Redis service overrides, and LAN production override to deployment, container verification, and migration operations used by both deploy and rollback workflows.
 
 Do not call plain `docker compose` for CCPC production operations because that would omit the LAN production override.
 
