@@ -123,7 +123,15 @@ USER frappe
 
 ARG FRAPPE_BRANCH=version-16
 ARG FRAPPE_PATH=https://github.com/frappe/frappe
+ARG EXPECTED_FRAPPE_SHA
+ARG EXPECTED_ERPNEXT_SHA
+ARG EXPECTED_ERPNEXT_PATCH_SHA
+ARG EXPECTED_CCPC_SHA
 ARG CACHE_BUST=""
+
+COPY --chown=frappe:frappe \
+  resources/patches/erpnext-v16.34.2-ccpc.patch \
+  /opt/frappe/erpnext-v16.34.2-ccpc.patch
 
 RUN --mount=type=secret,id=apps_json,target=/opt/frappe/apps.json,uid=1000,gid=1000 \
   : "${CACHE_BUST}" && \
@@ -140,6 +148,53 @@ RUN --mount=type=secret,id=apps_json,target=/opt/frappe/apps.json,uid=1000,gid=1
     --verbose \
     /home/frappe/frappe-bench && \
   cd /home/frappe/frappe-bench && \
+  for app_spec in \
+      "frappe:${EXPECTED_FRAPPE_SHA}" \
+      "erpnext:${EXPECTED_ERPNEXT_SHA}" \
+      "ccpcerp:${EXPECTED_CCPC_SHA}"; do \
+    app_name="${app_spec%%:*}"; \
+    expected_sha="${app_spec#*:}"; \
+    actual_sha="$(git -C "apps/${app_name}" rev-parse HEAD)"; \
+    echo "Verifying ${app_name}: expected=${expected_sha} actual=${actual_sha}"; \
+    if [ -z "${expected_sha}" ] || [ "${actual_sha}" != "${expected_sha}" ]; then \
+      echo "ERROR: ${app_name} does not match the approved release commit" >&2; \
+      exit 1; \
+    fi; \
+  done && \
+  patch_file="/opt/frappe/erpnext-v16.34.2-ccpc.patch" && \
+  actual_patch_file_sha="$(sha256sum "${patch_file}" | awk '{print $1}')" && \
+  echo "Verifying ERPNext patch file: expected=${EXPECTED_ERPNEXT_PATCH_SHA} actual=${actual_patch_file_sha}" && \
+  if [ -z "${EXPECTED_ERPNEXT_PATCH_SHA}" ] || [ "${actual_patch_file_sha}" != "${EXPECTED_ERPNEXT_PATCH_SHA}" ]; then \
+    echo "ERROR: ERPNext CCPC patch file does not match the approved patch" >&2; \
+    exit 1; \
+  fi && \
+  git -C apps/erpnext apply --check "${patch_file}" && \
+  git -C apps/erpnext apply "${patch_file}" && \
+  git -C apps/erpnext diff --check && \
+  changed_files="$(git -C apps/erpnext diff --name-only | LC_ALL=C sort)" && \
+  expected_files="$(printf '%s\\n' \
+      banking/yarn.lock \
+      erpnext/stock/doctype/item/item.json \
+      erpnext/stock/doctype/item/item.py | LC_ALL=C sort)" && \
+  if [ "${changed_files}" != "${expected_files}" ]; then \
+    echo "ERROR: ERPNext protected-file set does not match the approved overlay" >&2; \
+    printf 'Expected:\\n%s\\nActual:\\n%s\\n' "${expected_files}" "${changed_files}" >&2; \
+    exit 1; \
+  fi && \
+  actual_overlay_sha="$(git -C apps/erpnext diff --binary | sha256sum | awk '{print $1}')" && \
+  echo "Verifying ERPNext applied overlay: expected=${EXPECTED_ERPNEXT_PATCH_SHA} actual=${actual_overlay_sha}" && \
+  if [ "${actual_overlay_sha}" != "${EXPECTED_ERPNEXT_PATCH_SHA}" ]; then \
+    echo "ERROR: applied ERPNext overlay does not match the validated state" >&2; \
+    exit 1; \
+  fi && \
+  bench setup requirements --node && \
+  bench build && \
+  post_build_overlay_sha="$(git -C apps/erpnext diff --binary | sha256sum | awk '{print $1}')" && \
+  echo "Verifying ERPNext overlay after frontend build: expected=${EXPECTED_ERPNEXT_PATCH_SHA} actual=${post_build_overlay_sha}" && \
+  if [ "${post_build_overlay_sha}" != "${EXPECTED_ERPNEXT_PATCH_SHA}" ]; then \
+    echo "ERROR: frontend setup changed the approved ERPNext overlay" >&2; \
+    exit 1; \
+  fi && \
   echo "{}" > sites/common_site_config.json && \
   find apps -mindepth 1 -path "*/.git" | xargs rm -fr
 
