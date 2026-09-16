@@ -21,6 +21,21 @@ build_image() {
 
   CACHE_BUST=$(date +%s)
 
+  local BUILD_SSH_KEY="${CCPC_BUILD_SSH_KEY:-$HOME/.ssh/id_ed25519_ccpc_backup}"
+  local BUILD_KNOWN_HOSTS="${CCPC_BUILD_KNOWN_HOSTS:-$HOME/.ssh/known_hosts}"
+
+  if [ ! -r "$BUILD_SSH_KEY" ]; then
+    error "CCPC build SSH key is not readable: $BUILD_SSH_KEY"
+  fi
+
+  if [ ! -r "$BUILD_KNOWN_HOSTS" ]; then
+    error "SSH known_hosts file is not readable: $BUILD_KNOWN_HOSTS"
+  fi
+
+  if ! ssh-keygen -F github.com -f "$BUILD_KNOWN_HOSTS" >/dev/null; then
+    error "github.com is not present in $BUILD_KNOWN_HOSTS"
+  fi
+
   info "Building image: $IMAGE_NAME:$NEXT_TAG"
 
   docker buildx build \
@@ -31,6 +46,8 @@ build_image() {
     --build-arg EXPECTED_ERPNEXT_SHA="$ERPNEXT_SHA" \
     --build-arg EXPECTED_ERPNEXT_PATCH_SHA="$ERPNEXT_PATCH_SHA" \
     --build-arg EXPECTED_CCPC_SHA="$CCPC_SHA" \
+    --ssh "default=$BUILD_SSH_KEY" \
+    --secret "id=github_known_hosts,src=$BUILD_KNOWN_HOSTS" \
     --secret id=apps_json,src=apps.json \
     --tag "$IMAGE_NAME:$NEXT_TAG" \
     --file "$DOCKERFILE" .
