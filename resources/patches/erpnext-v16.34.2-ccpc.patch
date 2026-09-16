@@ -1,0 +1,153 @@
+diff --git a/banking/yarn.lock b/banking/yarn.lock
+index 512ce1fbe5..572545e377 100644
+--- a/banking/yarn.lock
++++ b/banking/yarn.lock
+@@ -1943,10 +1943,10 @@ flatted@^3.2.9:
+   resolved "https://registry.yarnpkg.com/flatted/-/flatted-3.4.2.tgz#f5c23c107f0f37de8dbdf24f13722b3b98d52726"
+   integrity sha512-PjDse7RzhcPkIJwy5t7KPWQSZ9cAbzQXcafsetQoD7sOJRQlGikNbx7yZp2OotDnJyrDcbyRq3Ttb18iYOqkxA==
+ 
+-follow-redirects@^1.15.11:
+-  version "1.15.11"
+-  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.11.tgz#777d73d72a92f8ec4d2e410eb47352a56b8e8340"
+-  integrity sha512-deG2P0JfjrTxl50XGCDyfI97ZGVCxIpfKYmfyrQ54n5FO/0gfIES8C/Psl6kWVDolizcaaxZJnTS0QSMxvnsBQ==
++follow-redirects@^1.16.0:
++  version "1.16.0"
++  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.16.0.tgz#28474a159d3b9d11ef62050a14ed60e4df6d61bc"
++  integrity sha512-y5rN/uOsadFT/JfYwhxRS5R7Qce+g3zG97+JrtFZlC9klX/W5hD7iiLzScI4nZqUS7DNUdhPgw4xI8W2LuXlUw==
+ 
+ form-data@^4.0.5:
+   version "4.0.6"
+@@ -3121,10 +3121,10 @@ property-information@^7.0.0:
+   resolved "https://registry.yarnpkg.com/property-information/-/property-information-7.2.0.tgz#0809b34264e995c0bfcd3227028a1e35210af80a"
+   integrity sha512-IAtzIB6sUiWaJYrX9smp3V46pBGbBeLFRGdh25kg1334VcBlD8HzhPeNIWQH9zhGmo2itIe25EHt9dQP7G5hmg==
+ 
+-proxy-from-env@^1.1.0:
+-  version "1.1.0"
+-  resolved "https://registry.yarnpkg.com/proxy-from-env/-/proxy-from-env-1.1.0.tgz#e102f16ca355424865755d2c9e8ea4f24d58c3e2"
+-  integrity sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==
++proxy-from-env@^2.1.0:
++  version "2.1.0"
++  resolved "https://registry.yarnpkg.com/proxy-from-env/-/proxy-from-env-2.1.0.tgz#a7487568adad577cfaaa7e88c49cab3ab3081aba"
++  integrity sha512-cJ+oHTW1VAEa8cJslgmUZrc+sjRKgAKl3Zyse6+PV38hZe/V6Z14TbCuXcan9F9ghlz4QrFr2c92TNF82UkYHA==
+ 
+ punycode@^2.1.0:
+   version "2.3.1"
+diff --git a/erpnext/stock/doctype/item/item.json b/erpnext/stock/doctype/item/item.json
+index 3f2ae45cd9..a86cbe3b02 100644
+--- a/erpnext/stock/doctype/item/item.json
++++ b/erpnext/stock/doctype/item/item.json
+@@ -1,7 +1,6 @@
+ {
+  "actions": [],
+  "allow_import": 1,
+- "allow_rename": 1,
+  "autoname": "field:item_code",
+  "creation": "2026-02-02 14:41:23.105228",
+  "description": "A Product or a Service that is bought, sold or kept in stock.",
+@@ -148,7 +147,7 @@
+    "fieldname": "naming_series",
+    "fieldtype": "Select",
+    "label": "Series",
+-   "options": "STO-ITEM-.YYYY.-",
++   "options": "ITEM-.#####",
+    "set_only_once": 1
+   },
+   {
+@@ -185,7 +184,8 @@
+    "label": "Item Name",
+    "oldfieldname": "item_name",
+    "oldfieldtype": "Data",
+-   "search_index": 1
++   "reqd": 1,
++   "unique": 1
+   },
+   {
+    "fieldname": "item_group",
+@@ -240,7 +240,6 @@
+    "description": "ERPNext will make a stock ledger entry for each transaction of this item. Keep unchecked for non-stock or service items.",
+    "fieldname": "is_stock_item",
+    "fieldtype": "Check",
+-   "in_list_view": 0,
+    "label": "Maintain Stock",
+    "oldfieldname": "is_stock_item",
+    "oldfieldtype": "Select",
+@@ -283,9 +282,9 @@
+    "description": "Enable if this item is a company asset like machinery or furniture.",
+    "fieldname": "is_fixed_asset",
+    "fieldtype": "Check",
++   "in_list_view": 1,
+    "label": "Is Fixed Asset",
+-   "read_only_depends_on": "eval:doc.is_stock_item",
+-   "in_list_view": 1
++   "read_only_depends_on": "eval:doc.is_stock_item"
+   },
+   {
+    "allow_in_quick_entry": 1,
+@@ -598,7 +597,7 @@
+    "oldfieldtype": "Currency"
+   },
+   {
+-   "description": "Minimum stock level to maintain as a buffer. Used to calculate recommended reorder level: Reorder Level = Safety Stock + (Average Daily Consumption × Lead Time).",
++   "description": "Minimum stock level to maintain as a buffer. Used to calculate recommended reorder level: Reorder Level = Safety Stock + (Average Daily Consumption \u00d7 Lead Time).",
+    "fieldname": "safety_stock",
+    "fieldtype": "Float",
+    "label": "Safety Stock",
+@@ -701,9 +700,9 @@
+    "description": "Allow this item to be used in sales transactions.",
+    "fieldname": "is_sales_item",
+    "fieldtype": "Check",
++   "in_list_view": 1,
+    "label": "Allow Sales",
+-   "show_description_on_click": 1,
+-   "in_list_view": 1
++   "show_description_on_click": 1
+   },
+   {
+    "fieldname": "column_break3",
+diff --git a/erpnext/stock/doctype/item/item.py b/erpnext/stock/doctype/item/item.py
+index 03197ca411..67dbd4ebaf 100644
+--- a/erpnext/stock/doctype/item/item.py
++++ b/erpnext/stock/doctype/item/item.py
+@@ -60,8 +60,6 @@ class Item(Document):
+ 	from typing import TYPE_CHECKING
+ 
+ 	if TYPE_CHECKING:
+-		from frappe.types import DF
+-
+ 		from erpnext.stock.doctype.item_barcode.item_barcode import ItemBarcode
+ 		from erpnext.stock.doctype.item_customer_detail.item_customer_detail import ItemCustomerDetail
+ 		from erpnext.stock.doctype.item_default.item_default import ItemDefault
+@@ -70,6 +68,7 @@ class Item(Document):
+ 		from erpnext.stock.doctype.item_tax.item_tax import ItemTax
+ 		from erpnext.stock.doctype.item_variant_attribute.item_variant_attribute import ItemVariantAttribute
+ 		from erpnext.stock.doctype.uom_conversion_detail.uom_conversion_detail import UOMConversionDetail
++		from frappe.types import DF
+ 
+ 		allow_alternative_item: DF.Check
+ 		allow_negative_stock: DF.Check
+@@ -88,9 +87,7 @@ class Item(Document):
+ 		default_bom: DF.Link | None
+ 		default_item_manufacturer: DF.Link | None
+ 		default_manufacturer_part_no: DF.Data | None
+-		default_material_request_type: DF.Literal[
+-			"Purchase", "Material Transfer", "Material Issue", "Manufacture", "Customer Provided"
+-		]
++		default_material_request_type: DF.Literal["Purchase", "Material Transfer", "Material Issue", "Manufacture", "Customer Provided"]
+ 		delivered_by_supplier: DF.Check
+ 		description: DF.TextEditor | None
+ 		disabled: DF.Check
+@@ -116,12 +113,12 @@ class Item(Document):
+ 		item_code: DF.Data
+ 		item_defaults: DF.Table[ItemDefault]
+ 		item_group: DF.Link
+-		item_name: DF.Data | None
++		item_name: DF.Data
+ 		last_purchase_rate: DF.Float
+ 		lead_time_days: DF.Int
+ 		max_discount: DF.Float
+ 		min_order_qty: DF.Float
+-		naming_series: DF.Literal["STO-ITEM-.YYYY.-"]
++		naming_series: DF.Literal["ITEM-.#####"]
+ 		no_of_months: DF.Int
+ 		no_of_months_exp: DF.Int
+ 		opening_stock: DF.Float

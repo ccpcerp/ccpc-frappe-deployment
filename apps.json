@@ -1,10 +1,10 @@
 [
   {
     "url": "https://github.com/frappe/erpnext.git",
-    "branch": "version-16"
+    "branch": "v16.34.2"
   },
   {
-    "url": "https://github.com/isagane/ccpcerp.git",
-    "branch": "version-16"
+    "url": "https://github.com/ccpcerp/ccpcerp.git",
+    "branch": "release-2026-09-16"
   }
 ]

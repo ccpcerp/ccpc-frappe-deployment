@@ -67,6 +67,12 @@ print_configuration() {
   echo "Image      : $IMAGE_NAME"
   echo "Dockerfile : $DOCKERFILE"
   echo "Site       : $SITE_NAME"
+  echo
+  echo "Frozen Release Inputs"
+  echo "Frappe     : $FRAPPE_REF @ $FRAPPE_SHA"
+  echo "ERPNext    : $ERPNEXT_REF @ $ERPNEXT_SHA"
+  echo "ERPNext CCPC patch SHA256: $ERPNEXT_PATCH_SHA"
+  echo "CCPC       : $CCPC_REF @ $CCPC_SHA"
 }
 
 ###########################################

@@ -26,8 +26,11 @@ build_image() {
   docker buildx build \
     --load \
     --build-arg CACHE_BUST="$CACHE_BUST" \
-    --build-arg FRAPPE_BRANCH="$APP_BRANCH" \
-    --build-arg ERPNEXT_BRANCH="$APP_BRANCH" \
+    --build-arg FRAPPE_BRANCH="$FRAPPE_REF" \
+    --build-arg EXPECTED_FRAPPE_SHA="$FRAPPE_SHA" \
+    --build-arg EXPECTED_ERPNEXT_SHA="$ERPNEXT_SHA" \
+    --build-arg EXPECTED_ERPNEXT_PATCH_SHA="$ERPNEXT_PATCH_SHA" \
+    --build-arg EXPECTED_CCPC_SHA="$CCPC_SHA" \
     --secret id=apps_json,src=apps.json \
     --tag "$IMAGE_NAME:$NEXT_TAG" \
     --file "$DOCKERFILE" .
