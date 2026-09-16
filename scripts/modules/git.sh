@@ -19,24 +19,33 @@ verify_git_status() {
 
   success "Working tree is clean"
 
-  CURRENT_BRANCH=$(git branch --show-current)
-
-  if [ "$CURRENT_BRANCH" != "$APP_BRANCH" ]; then
-    error "Current branch is '$CURRENT_BRANCH'. Expected '$APP_BRANCH'."
+  if ! REMOTE_TAG_REFS="$(
+    git ls-remote origin "refs/tags/$CCPC_REF" "refs/tags/$CCPC_REF^{}"
+  )"; then
+    error "Unable to query origin for frozen CCPC release $CCPC_REF"
   fi
 
-  success "Branch verified ($CURRENT_BRANCH)"
+  REMOTE_CCPC_SHA="$(
+    printf '%s\n' "$REMOTE_TAG_REFS" |
+      awk '/\^\{\}$/ {print $1; exit}'
+  )"
 
-  git fetch origin >/dev/null 2>&1
-
-  LOCAL=$(git rev-parse HEAD)
-  REMOTE=$(git rev-parse "origin/$APP_BRANCH")
-
-  if [ "$LOCAL" != "$REMOTE" ]; then
-    error "Local branch is not synchronized with origin/$APP_BRANCH"
+  if [ -z "$REMOTE_CCPC_SHA" ]; then
+    REMOTE_CCPC_SHA="$(
+      printf '%s\n' "$REMOTE_TAG_REFS" |
+        awk 'NR == 1 {print $1}'
+    )"
   fi
 
-  success "GitHub is up to date"
+  if [ -z "$REMOTE_CCPC_SHA" ]; then
+    error "Frozen CCPC release $CCPC_REF was not found on origin"
+  fi
+
+  if [ "$REMOTE_CCPC_SHA" != "$CCPC_SHA" ]; then
+    error "Frozen CCPC release $CCPC_REF does not match approved commit $CCPC_SHA"
+  fi
+
+  success "Frozen CCPC release verified ($CCPC_REF @ $CCPC_SHA)"
 
   # shellcheck disable=SC2103  # Restore the caller's directory in this sourced module.
   cd - >/dev/null || return 1
