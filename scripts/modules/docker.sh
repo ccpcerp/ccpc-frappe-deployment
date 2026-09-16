@@ -45,6 +45,7 @@ build_image() {
     --build-arg EXPECTED_FRAPPE_SHA="$FRAPPE_SHA" \
     --build-arg EXPECTED_ERPNEXT_SHA="$ERPNEXT_SHA" \
     --build-arg EXPECTED_ERPNEXT_PATCH_SHA="$ERPNEXT_PATCH_SHA" \
+    --build-arg EXPECTED_ERPNEXT_OVERLAY_STATE_SHA="$ERPNEXT_OVERLAY_STATE_SHA" \
     --build-arg EXPECTED_CCPC_SHA="$CCPC_SHA" \
     --ssh "default=$BUILD_SSH_KEY" \
     --secret "id=github_known_hosts,src=$BUILD_KNOWN_HOSTS" \
