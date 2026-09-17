@@ -110,7 +110,7 @@ jobs:
         run: docker buildx prune --all --force
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.10"
 
