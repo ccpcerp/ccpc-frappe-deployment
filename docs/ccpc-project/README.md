@@ -6,6 +6,7 @@ This directory preserves CCPC-specific ERPNext deployment and DEVELOPMENT engine
 
 - [P20 conversation handoff](P20-HANDOFF-2026-10-10.md) — current milestone and next safe step (P20A-3).
 - [Project context](ccpc-project-context.md) — architecture, boundaries, and known issues.
+- [Docker DEVELOPMENT / PRODUCTION architecture](DOCKER-DEV-PROD-ARCHITECTURE.md) — verified separation, volumes, ports, backup dependencies, and safe change boundaries.
 - [Roadmap](roadmap.md) — planned DEVELOPMENT reporting and AI review work.
 - [Changelog](changelog.md) — milestone history.
 - [Operations manual](operations.md) — operational runbooks and safeguards.
