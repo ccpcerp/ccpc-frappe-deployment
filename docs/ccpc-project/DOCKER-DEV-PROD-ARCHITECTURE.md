@@ -94,6 +94,14 @@ The separate `ccpc-reporter` system account was tested with the outbox bind-moun
 
 The DEV container previously exposed SSH material through its bind mounts. Do not put new GitHub API credentials, ERPNext production secrets, or NAS credentials inside the Codex workspace.
 
+### P20A-3J SSH exposure audit — 2026-10-10
+
+A read-only host/Docker audit verified that the running DEVELOPMENT container has a **direct bind mount at** `/home/frappe/.ssh`. As the `frappe` user (UID 1000), the SSH directory was accessible and **six regular files were readable**; no file content, key material, or file names were collected. The Docker socket was not visible in the preceding P20A-3I preflight. These facts were observed in the **running** DEV container, not merely inferred from a Compose template.
+
+**Safety decision:** do not execute unattended or experimental Codex tasks in that existing container, even with `--sandbox read-only`, until effective isolation from SSH and other credentials is verified. The Codex nested sandbox previously failed inside this Docker environment, so a flag alone is insufficient assurance. Prefer planning a separate ephemeral execution container with no SSH or production mounts and no Docker socket. Do not remove or alter the operator's existing keys or restart containers solely for this investigation.
+
+P20A-3B through P20A-3H passed offline schema, bridge, collector, and host validation tests; P20A-3I verified CLI option availability; **no real Codex task or automatic GitHub publication was performed**. The automatic publisher and AI reviewer remain disabled. Next: a non-mutating image/CLI availability preflight for an isolated runner before any Codex API call.
+
 ## 5. PRODUCTION Compose project
 
 Tracked sources:
