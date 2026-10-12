@@ -214,3 +214,6 @@ Do **not** paste full `docker inspect` output, environment variables, `.env` fil
 - [Production LAN PR #7](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/7).
 
 **Last documentation consolidation:** 2026-10-10. Refresh claims against live Docker state before using this page as an operational baseline.
+
+
+**VS Code terminal confirmation (2026-10-12):** Operator ran `hostname` and tested `/.dockerenv` after `docker exec -it frappe_docker_devcontainer-frappe-1 bash`: hostname `48a951912597`, Docker marker present, prompt `/workspace/development`. Separately the Codex 0.161.0 terminal UI displayed `/workspace/development/frappe-bench`. This confirms the checked shell runs inside the DEV container and strongly suggests the CLI session launched there; it does **not** independently locate the VS Code extension host. Do **not** run Codex analysis from the existing credential-mounted DEV container. For manual code investigation, use a vetted credential-free local Windows checkout or another isolated environment, and note that remote Git may not include uncommitted DEV work. No extra API billing authorized. Do not restart PROD or remove SSH mounts without an explicit maintenance plan.
