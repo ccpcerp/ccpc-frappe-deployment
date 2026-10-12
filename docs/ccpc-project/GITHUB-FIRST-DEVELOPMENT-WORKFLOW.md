@@ -2,6 +2,16 @@
 
 **Adopted 2026-10-12 by the project owner.** This is the current default working rule for the **CCPC custom ERPNext application** and supersedes older proposals to develop primarily inside the Docker DEVELOPMENT container or to restart automatic Codex-reporting work.
 
+## Standing decision: manual ChatGPT-to-GitHub updates (2026-10-12)
+
+The owner explicitly **cancelled the automatic Codex report-to-GitHub effort**. Codex findings can be **copied/pasted manually** into chat when necessary; there is no background reporter, scheduled publisher, new API key, paid API requirement, or automatic PR commentary. Do not resume that effort without new explicit instruction.
+
+For all meaningful CCPC coding milestones **during active conversations**, ChatGPT should **use the connected GitHub tools directly** to inspect code, implement specifically approved changes on reviewed feature/review branches, and update the relevant project documentation/handoff **in the same work session**. Confirm the resulting branch, commit, test status and any outstanding DEV-only discrepancies. Do not just say "documented" or "updated GitHub" without a successful connector write and verification. No need for redundant commits for chat-only discussions or unchanged files.
+
+**Important limit:** ChatGPT cannot silently monitor DEV or make commits while no chat/task is running. GitHub becomes current **only when changes are committed/pushed**. The DEVELOPMENT server's uncommitted files still require a **one-time safe transfer and review**; user participation is necessary to make those files available. Application merges, DEV migrations and any PRODUCTION release are **separate decisions**; the standing preference to update GitHub does not grant approval for secrets, unsafe files, production changes, or destructive operations.
+
+**Review checkpoint branch created in GitHub:** [`review/intercompany-dev-checkpoint-2026-10-12`](https://github.com/ccpcerp/ccpcerp/tree/review/intercompany-dev-checkpoint-2026-10-12), initialized from feature commit `7ac238e` on 2026-10-12. **Only the empty branch pointer has been created; none of the eight DEV-only changed files have been transferred to GitHub yet.** The next task is to review the DEV diff and transfer the eight files, keeping untracked `AGENTS.md` separate.
+
 ## Standing rule — start here in every new chat
 
 **GitHub first → DEVELOPMENT pulls a reviewed commit → run DEVELOPMENT tests → send fixes to GitHub → PRODUCTION only after separate explicit approval.**
