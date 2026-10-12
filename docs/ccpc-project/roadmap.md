@@ -1,6 +1,10 @@
 # CCPC ERP Deployment Framework Roadmap
 
-*Last updated: 2026-10-10*
+*Last updated: 2026-10-12 (current priority override)*
+
+## Current priority override — 2026-10-12
+
+The owner has **stopped extra Codex reporting/API automation work** and adopted the [GitHub-first CCPC custom-app workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md). The detailed historical P20 plans below are not active next steps. **Next:** inspect and preserve eight uncommitted DEV files + separately review `AGENTS.md` on a GitHub checkpoint branch; then complete Withdrawal Slip → Material Issue → Intercompany Billing concurrency/idempotency testing on DEV, with all subsequent app code changes reviewed in GitHub first. Production remains out of scope absent explicit approval.
 
 ## Purpose
 
