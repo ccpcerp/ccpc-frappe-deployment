@@ -1,6 +1,12 @@
 # CCPC ERP Operations Manual
 
-*Last updated: 2026-10-10*
+*Last updated: 2026-10-12 (GitHub-first custom-app workflow)*
+
+## Current custom-app development rule (2026-10-12)
+
+The CCPC owner adopted a **GitHub-first workflow**; read the [authoritative runbook](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) before any new DEVELOPMENT code synchronization, especially in a fresh ChatGPT thread. Custom-app code lives in `ccpcerp/ccpcerp` (billing feature branch `feature/intercompany-material-billing`), **not** the deployment framework repository. The first transition is **not yet complete**: DEVELOPMENT currently has eight uncommitted app code/test/patch files and a separate untracked `AGENTS.md`. Inspect/preserve them on a reviewed checkpoint branch before pulling or replacing code.
+
+After reconciliation: prepare/review code in GitHub → pull reviewed commits into DEVELOPMENT on a verified clean worktree → validate on DEV → commit any DEV test fixes back to GitHub. GitHub is source of truth for **pushed committed app code**, not Frappe site/database state. PRODUCTION remains independently controlled, with explicit operator approval and verified recovery preparation. No automated Codex reporting, new paid API key, or experimental Codex execution inside the DEV container.
 
 ## Purpose
 
