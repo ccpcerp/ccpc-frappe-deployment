@@ -4,11 +4,12 @@ This directory preserves CCPC-specific ERPNext deployment and DEVELOPMENT engine
 
 ## Start here
 
-- **[GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) — CURRENT RULE, 2026-10-12.** Recover existing DEV-only changes, then make GitHub the custom-app source of truth. Start every new thread here; keep PRODUCTION separate.
+- **[GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) — permanent development rules.** Start every new thread here; keep PRODUCTION separate.
+- **[CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) — single rolling GitHub checkpoint.** Always read after the workflow; updated at meaningful milestones rather than depending on the chat thread length or new Project Source files.
 - [P20 conversation handoff](P20-HANDOFF-2026-10-10.md) — historical continuity log; newer GitHub-first section supersedes its P20A next-step proposals.
 - [Project context](ccpc-project-context.md) — architecture, boundaries, and known issues.
 - [Docker DEVELOPMENT / PRODUCTION architecture](DOCKER-DEV-PROD-ARCHITECTURE.md) — verified separation, volumes, ports, backup dependencies, and safe change boundaries.
-- [Roadmap](roadmap.md) — planned DEVELOPMENT reporting and AI review work.
+- [Roadmap](roadmap.md) — historical plans and current priority overrides; cancelled Codex automation is not active.
 - [Changelog](changelog.md) — milestone history.
 - [Operations manual](operations.md) — operational runbooks and safeguards.
 - [Deployment framework](framework.md) and [Recovery guide](recovery.md) — retained unchanged from the previous approved snapshots.
