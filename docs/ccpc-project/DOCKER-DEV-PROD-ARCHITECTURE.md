@@ -101,6 +101,12 @@ A read-only host/Docker audit verified that the running DEVELOPMENT container ha
 **Safety decision:** do not execute unattended or experimental Codex tasks in that existing container, even with `--sandbox read-only`, until effective isolation from SSH and other credentials is verified. The Codex nested sandbox previously failed inside this Docker environment, so a flag alone is insufficient assurance. Prefer planning a separate ephemeral execution container with no SSH or production mounts and no Docker socket. Do not remove or alter the operator's existing keys or restart containers solely for this investigation.
 
 P20A-3B through P20A-3H passed offline schema, bridge, collector, and host validation tests; P20A-3I verified CLI option availability; **no real Codex task or automatic GitHub publication was performed**. The automatic publisher and AI reviewer remain disabled. Next: a non-mutating image/CLI availability preflight for an isolated runner before any Codex API call.
+### VS Code Codex manual investigation — location to verify
+
+The operator reports the Codex extension is open in VS Code. **Its extension-host location is not yet verified** (Windows local, remote SSH host, or DEV container). Merely opening VS Code does not prove isolation. In VS Code use **Ctrl+Shift+P -> Developer: Show Running Extensions**, find the Codex extension and record whether it runs **Local** or **Remote**; also check the bottom-left remote-window indicator. Share only this information, never credentials.
+
+**Manual-only workflow:** The user declined any additional paid OpenAI API billing. Do not provision API keys or credits. Existing ChatGPT/Codex subscription access is subject to plan limits and does not guarantee unattended automation. Prefer a local Windows checkout free of secrets for initial code-only analysis. If Codex actually runs in the existing DEV container, stop before task execution: /home/frappe/.ssh is bind-mounted and readable, and nested sandbox failures were observed. Remote SSH sessions need separate exposure review. Review Withdrawal Slip -> Material Issue -> Intercompany Billing Batch code read-only for isolation, duplicate invoices, idempotency and tests; do not execute migrations, live ERPNext transactions, Git operations or arbitrary shell actions without review. CLI preflights do not prove the VS Code extension was tested.
+
 
 ## 5. PRODUCTION Compose project
 
