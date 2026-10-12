@@ -1,6 +1,17 @@
 # CCPC ERP Project Context
 
-_Last updated: 2026-10-10_
+_Last updated: 2026-10-12 (GitHub-first decision; older sections are historical)_
+
+## CURRENT RULE — 2026-10-12: GitHub-first CCPC custom-app development
+
+This block **supersedes older P20 Codex automation priorities and DEV-first editing habits**. Full source of truth: [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md).
+
+- **Default:** GitHub change/review first, controlled pull of reviewed commit into persistent DEVELOPMENT for testing, then push any test fixes back to GitHub. A merged code change does not authorize PRODUCTION deployment; PRODUCTION requires separate explicit approval and backup/recovery review.
+- App repo: `ccpcerp/ccpcerp`. **Correct active billing feature branch** `feature/intercompany-material-billing` at confirmed pushed commit `7ac238e`, not default `version-16` at `cfcc193`. The Windows clone remains clean at the latter commit and **should be kept for now**; deleting it is unnecessary.
+- At last operator check, DEVELOPMENT app `/workspace/development/frappe-bench/apps/ccpcerp` tracked the feature branch at `7ac238e` with **eight uncommitted app/patch/test changes, plus untracked `AGENTS.md`**. **Before any new pull, branch switch, reset or GitHub-first implementation, inspect and preserve this DEV-only work** on a reviewed separate checkpoint branch. No staging/commit/push of those changes has been verified.
+- ChatGPT can inspect code via the connected GitHub tools; **Codex is optional**, not required for GitHub inspection. No additional paid OpenAI API key or revival of unattended reporting. Avoid Codex inside existing DEV container because its SSH material is mounted/readable and its nested sandbox was previously unreliable.
+- Priority feature: Withdrawal Slip → Material Issue → Intercompany Billing, especially transaction locking and duplicate invoice protection. Pushed code's concurrent approval safety is **not proven**; DEV-only diffs may include the fix. No automatic migrations, transaction testing, PROD operations, or destructive Git commands without review.
+- Documentation remains on a **draft documentation branch PR #24**, not merged to main or automatically synced into ChatGPT Project Sources. Fresh chats should open this workflow link explicitly.
 
 ## 2026-10-10 continuity update — Codex DEVELOPMENT reporting (P19G complete; P20A in progress)
 
