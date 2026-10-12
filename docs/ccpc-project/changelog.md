@@ -1,12 +1,20 @@
 # CCPC ERP Change Log
 
-*Last updated: 2026-10-10*
+*Last updated: 2026-10-12*
 
 This document records significant completed changes to the CCPC ERP
 Deployment Framework, custom application, and operational environment.
 
 Current verified state belongs in `ccpc-project-context.md`. Planned
 work belongs in `roadmap.md`.
+
+## 2026-10-12 — GitHub-first custom-app workflow adopted (documentation only)
+
+- Owner decided GitHub should be the authoritative source of committed/pushed CCPC custom application code, with DEVELOPMENT pulling reviewed commits for testing and any DEV fixes returned to GitHub. PRODUCTION execution requires separate approval.
+- Verified default app branch `version-16` at `cfcc193` lacks the billing implementation; real pushed feature branch is `feature/intercompany-material-billing` at `7ac238e`. Preliminary static review found potential concurrent approval / invoice duplication risk in pushed code; not reproduced.
+- Operator reported eight uncommitted application/test/patch files in the DEV app working tree, plus untracked `AGENTS.md`; **not yet verified staged, committed or pushed**. First transition must preserve/review these changes safely.
+- Created [workflow and handoff runbook](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) on draft docs PR #24. This is documentation, **not** a code change to the running servers. Windows VS Code clone retained; no cleanup required.
+- Automatic reporting and paid API setup are not part of the new priority; GitHub code inspection through connected ChatGPT is available.
 
 ## 2026-10-10 — P19G controlled GitHub publishing completed; P20A begun
 
