@@ -5,6 +5,28 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Read-only DEVELOPMENT effective database endpoint — 2026-10-13
+
+**Operator-provided output** from a read-only merge of `sites/common_site_config.json` with `sites/development.localhost/site_config.json` inside `frappe_docker_devcontainer-frappe-1`. Command printed ONLY endpoint metadata, no config secrets:
+
+```text
+DEVELOPMENT DB host: mariadb
+DEVELOPMENT DB port: [default]
+```
+
+This is consistent with Docker DNS/service-name lookup to a MariaDB service on the DEVELOPMENT container's network. The default MariaDB/MySQL TCP port is generally 3306, but that was **not explicitly configured** in the files checked. **Database network identity/isolation has not yet been independently confirmed** by live Docker networking inspection. Previously verified DEV and PROD containers have separate named MariaDB data volumes; they still share the Ubuntu host and Docker daemon. Persistent DEV `development.localhost` is the only configured site found, and its fresh Oct 13 backup passed nonempty/gzip/tar/JSON format checks but has not been restore-tested. 155/155 mock tests passed together on review commit `806fa23`.
+
+**Next one-step read-only operator action:** On Ubuntu host, inspect just network names/aliases for the DEVELOPMENT Frappe app container, DEVELOPMENT MariaDB and PRODUCTION MariaDB, **without opening environment variables, site configs or credentials**:
+
+```bash
+docker inspect --format '{{.Name}}{{range $name, $net := .NetworkSettings.Networks}}{{printf "\n  network=%s aliases=%v" $name $net.Aliases}}{{end}}' \
+  frappe_docker_devcontainer-frappe-1 \
+  frappe_docker_devcontainer-mariadb-1 \
+  frappe_docker-db-1
+```
+
+Confirm DEV Frappe and DEV MariaDB share the relevant network and `mariadb` alias, while PROD MariaDB is on a separate network. Distinct networks and volumes lower risk but are **not complete protection** against host-level effects or privileged access. Do **not** yet create a new site/database, run database-changing integration tests, migrate, restore or touch production. An isolated site-and-database test plan requires explicit approval after further review.
+
 ## DEVELOPMENT site inventory — only persistent site exists (2026-10-13)
 
 **Operator-provided read-only output:** A command in `frappe_docker_devcontainer-frappe-1` enumerated site directories containing `site_config.json` in `/workspace/development/frappe-bench/sites`. Its **only result** was:
