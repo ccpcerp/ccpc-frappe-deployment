@@ -5,6 +5,24 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Isolated DEVELOPMENT pre-setup snapshot verified and relocated — 2026-10-13
+
+User approved taking a fresh pre-wizard snapshot of **`ccpc-integration2.localhost`** and running initial ERPNext setup for fictional issuer `Integration Test Issuer (TISS)`, Philippines/PHP, 2026-01-01 through 2026-12-31, ERPNext Standard chart, no demo data. During the first backup command Frappe's `--backup-path` interpreted a relative `sites/...` beneath the bench `sites` directory, creating a `sites/sites/...` path and causing the wrapper's immediate verification to fail (not a reported backup failure). Subsequent guarded command validated backup database identity and `gzip -t` / `tar -tf` / JSON, preserved older `20261013_102539` backup, and moved only the new snapshot to the intended site directory. Operator output:
+```text
+Backup database identity: VERIFIED
+Previous backup: PRESERVED
+Backup archive integrity: PASSED
+20261013_104420-ccpc-integration2_localhost-database.sql.gz | 899304 bytes
+20261013_104420-ccpc-integration2_localhost-files.tar | 10240 bytes
+20261013_104420-ccpc-integration2_localhost-private-files.tar | 10240 bytes
+20261013_104420-ccpc-integration2_localhost-site_config_backup.json | 212 bytes
+Backup relocated to: /workspace/development/frappe-bench/sites/ccpc-integration2.localhost/private/ccpc-test-snapshots/pre-setup-20261013
+PRE-SETUP BACKUP: VERIFIED AND SECURED
+```
+Archive validation is **not** a full test restore. No ERPNext wizard or synthetic company/data writes yet reported. Preserve both snapshots and never commit their contents. User authorization covers site-scoped initial ERPNext wizard setup and backup only; **not** stock entries, purchase/sales invoices, persistent `development.localhost`, or PRODUCTION.
+
+Source review `frappe/version-16` and `erpnext/version-16` shows authoritative wizard function `frappe.desk.page.setup_wizard.setup_wizard.setup_complete(args)` dispatches ERPNext stages. ERPNext `stage_fixtures`, `setup_company` and `setup_defaults` provision baseline records. The ERPNext Standard chart argument is `"Standard"`; no demo data when `setup_demo=0`. CCPC hooks branch contains no active `setup_wizard_stages` or `setup_wizard_complete` hook; therefore after success **Frappe and ERPNext flags** should be 1 while CCPC may remain 0. Initial setup also changes site system settings and may enable the site scheduler. Next step: run guarded one-site official setup entrypoint (never broad `bench migrate`), report postconditions and any exceptions without rerun, and document actual result.
+
 ## Isolated DEVELOPMENT Setup Wizard completion flags verified — 2026-10-13
 
 Operator ran a read-only parameterized `MySQLdb` query of `tabInstalled Application` on **`ccpc-integration2.localhost`**. Results: `ccpcerp setup_complete = 0`, `erpnext setup_complete = 0`, `frappe setup_complete = 0`. This is consistent with no initial setup wizard yet completed and the documented zero UOM / Item Group / Fiscal Year / Account / Cost Center / parties / Warehouse / Company records. Frappe, ERPNext and CCPC apps remain installed, two billing composite indexes independently verified, and pre-index archive-verified backup preserved.
