@@ -5,6 +5,14 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Independent rollback audit confirms SQL comparison defect — 2026-10-13
+
+Owner ran the separate read-only verification after the first narrow Workflow setup command stopped before invoking its setup function. Audit reported `WORKFLOW ATTEMPT ROLLBACK: VERIFIED`, `OPENING STOCK AND GL: PRESERVED`, `NO DATABASE CHANGES MADE`. The exact Stock Reconciliation row `MAT-RECO-2026-00001` is correct; Frappe SQL returned a tuple of tuples. Comparison against a list of tuples incorrectly failed (`Old list comparison: False`; `Normalized comparison: True`). This confirms the error was in the verification script, not the persisted Opening Stock.
+
+The isolated site retains one submitted Stock Reconciliation, one Bin (10 Nos, PHP100 rate and PHP1000 stock value), one Stock Ledger Entry with quantity after 10, balanced two GL entries at PHP1000 each, zero Withdrawal Slips/Stock Entries/invoices/billing batches; no Withdrawal Slip Workflow, only pre-existing Approved state, none of the four Workflow Action Masters. Ninth checkpoint remains verified. No setup function was run, no workflow transaction committed.
+
+Correct *all* row-container comparisons before retry; do not change the stock baseline. The previously approved workflow-only operation on `ccpc-integration2.localhost` remains authorized. The guarded retry should run only `ccpcerp.setup.ensure_withdrawal_slip_workflow()` after proving site isolation and unchanged records, check one active workflow, eight Workflow Document State rows, four transitions, seven new Workflow State master records, four new action masters, no other database changes, then single commit. Independently audit postcommit. No broader migration, user/role/configuration/schema or business transaction changes, and no persistent DEVELOPMENT or PRODUCTION modifications.
+
 ## First scoped Workflow setup attempt stopped at Python SQL row-container mismatch — 2026-10-13
 
 The owner ran the previously approved, guarded, isolated-site-only `ccpcerp.setup.ensure_withdrawal_slip_workflow()` command and pasted terminal output. The preflight printed:
