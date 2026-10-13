@@ -5,6 +5,14 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Isolated DEVELOPMENT billing tables confirmed; new-install patch-log semantics reviewed — 2026-10-13
+
+Operator read-only MySQLdb `information_schema.TABLES` checks against `ccpc-integration2.localhost` reported **both** `tabIntercompany Material Billing Batch: PRESENT` and `tabIntercompany Material Billing Item: PRESENT`. Earlier checks found `idx_icmb_scope` and `idx_icmbi_source_parent` absent but the named index patch logged in `tabPatch Log`.
+
+**New source finding:** In GitHub Frappe `version-16` `frappe/installer.py`, `install_app(name, ..., set_as_patched=True)` defaults to marking app patches completed; `set_all_patches_as_completed(app)` inserts Patch Log entries without invoking the patch `execute()`. `frappe/commands/site.py` routes `bench install-app` through that installer. This behavior **plausibly explains** a patch logged on fresh install while two custom indexes remain absent; installed Frappe 16.33.1's exact local source for this function has not yet been read to confirm identical behavior. Avoid describing these logged patches as successfully executed or declaring database corruption.
+
+**Next safe operator action:** read-only inspect `information_schema.STATISTICS` of the two new-site tables for equivalent composite non-unique BTREE indexes under different names, then decide separately whether a backed-up, explicitly approved site-scoped index patch is warranted. No `bench migrate`, patch-log edits, DDL, financial test transactions, or PRODUCTION changes were performed.
+
 ## DEVELOPMENT billing index patch inconsistency — 2026-10-13
 
 Operator's read-only MySQLdb queries against **only** `ccpc-integration2.localhost` showed `idx_icmb_scope: MISSING` and `idx_icmbi_source_parent: MISSING`, while a subsequent parameterized query showed `Patch Log table: PRESENT` and `Index patch recorded as executed: True` for `ccpcerp.patches.v1_0.add_intercompany_material_billing_indexes`. The query does not yet prove why patch log and index state differ. Do not treat patch-log presence as evidence that DDL ran, especially on a newly installed site. No migration, patch re-execution, or table/index mutation authorized. Previous standalone `frappe.init` attempt failed due to incorrect sites path, followed by logging path failure; neither reached index query. Direct MySQLdb checks are read-only and succeeded.
