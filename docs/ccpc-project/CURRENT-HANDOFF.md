@@ -5,6 +5,12 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Ninth test-site backup approved after independent opening-stock audit — 2026-10-13
+
+The owner explicitly approved the **ninth recovery checkpoint only** on `ccpc-integration2.localhost`. It must capture the post-opening-stock baseline independently verified earlier (submitted `MAT-RECO-2026-00001`, 10 Nos of `CCPC-INT-TEST-CONSUMABLE-001` in `Stores - TISS` at PHP 100 each, inventory value PHP 1,000, one Stock Ledger Entry at qty after 10 and two opening GL rows balancing PHP 1,000 each). The Item still inherits Moving Average, and prior audit found no unrelated transactions.
+
+Next: use site-only guarded backup after independent baseline checks and eight predecessor artifact checks; save four files in `private/ccpc-test-snapshots/post-opening-stock-pre-withdrawal-slip-20261013/`; verify archives and correct test database identity; keep all prior backups. Owner has **not** authorized new stock or billing documents, persistent DEVELOPMENT or PRODUCTION changes. Ninth backup not yet executed or confirmed.
+
 ## Opening Stock integration milestone independently verified after commit — 2026-10-13
 
 Operator completed the separate read-only MySQLdb post-commit audit of **isolated ccpc-integration2.localhost**, verified DB identity distinct from persistent `development.localhost`, following successful standard Frappe insert/submit of the sole authorized synthetic opening-stock reconciliation. Final operator result: `OPENING STOCK POST-COMMIT AUDIT: VERIFIED`.
