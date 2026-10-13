@@ -5,6 +5,35 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Isolated Withdrawal Slip workflow setup incomplete despite matching setup code — 2026-10-13
+
+Owner completed independent READ-ONLY diagnostic on `ccpc-integration2.localhost`, after ninth backup, with no database writes. Output:
+
+```text
+ISOLATED SITE: VERIFIED
+INSTALLED WORKFLOW SETUP CODE
+apps/ccpcerp/ccpcerp/setup.py MATCH
+apps/ccpcerp/ccpcerp/hooks.py MATCH
+CONFIGURED WORKFLOWS
+[none for Withdrawal Slip, MRS, Purchase Order]
+WITHDRAWAL SLIP WORKFLOW STATES
+('Approved',)
+WITHDRAWAL SLIP WORKFLOW ACTIONS
+[none]
+STOCK ENTRY INTEGRATION FIELDS
+[none]
+WITHDRAWAL SLIP STATUS METADATA
+('status', 'Select', 1)
+WORKFLOW SETUP DIAGNOSTIC: COMPLETED
+NO DATABASE CHANGES MADE
+```
+
+**Conclusion:** installed setup and hooks files match GitHub review branch `review/intercompany-approval-failure-tests` HEAD `806fa23516490ec7beefcff03a1baa09d722120e`, but their intended setup effects are **absent in test-site database**. In `ccpcerp/setup.py`, `ensure_withdrawal_slip_workflow()` (called by `after_migrate()`) creates Workflow master, Workflow State, Workflow Action Master rows and transitions. `ensure_withdrawal_slip_stock_entry_fields()` creates `Stock Entry.withdrawal_slip`, `Stock Entry.withdrawal_slip_issued_by` and `Stock Entry Detail.withdrawal_slip_item` fields. All three fields missing. Current `Withdrawal Slip.status` is a read-only Select, so absence of active workflow blocks intended UI state transitions. No Workflow for MRS or Purchase Order either, so likely broader partial setup; reason not yet proven. Full `bench migrate` or entire `after_migrate()` is **not** authorized and can produce many unrelated writes.
+
+Prior audit also found 0 non-Administrator Users, 0 role assignments for Withdrawal Slip Requestor, Maintenance Supervisor, Stockroom Personnel, 0 CCPC Personnel, 0 sections under Operations - TREQ; four role definitions enabled. Ninth protected pre-Withdrawal Slip backup archived with prefix `20261013_171109-ccpc-integration2_localhost` and earlier eight preserved. Posted stock baseline 10 Nos × PHP100 with one opening reconciliation and two balanced GL entries remains protected.
+
+**Owner decision required before targeted workflow provisioning or user creation:** existing GitHub `WORKFLOW_TRANSITIONS` permits requestor self-approval on Draft → Approved (`allow_self_approval=1`, `allowed=Withdrawal Slip Requestor`), with Stockroom Personnel completing Approved → Stockroom Review. `approving_supervisor` is labeled `Prepared By` and automatically set to creating session user, not independent supervisor approval. Should intended CCPC controls permit requestor self-approval or require a **different supervisor**? Once policy is clarified, review/modify authorized GitHub code first if necessary, and separately obtain explicit approval for narrowly scoped isolated setup writes (workflow, integration fields, test users/roles). No changes to persistent DEVELOPMENT or PRODUCTION, no Stock Entry/Withdrawal Slip/financial transaction yet.
+
 ## Withdrawal Slip role preflight: no test users and missing expected Workflow — 2026-10-13
 
 The operator completed read-only isolated test site role and workflow audit, `WITHDRAWAL SLIP ROLE READINESS: AUDIT COMPLETED` and `NO DATABASE CHANGES MADE`. Site `ccpc-integration2.localhost` and ninth post-opening-stock checkpoint verified. All four roles exist and are enabled (`Withdrawal Slip Requestor`, `Maintenance Supervisor`, `Stockroom Personnel`, `System Manager`). Role assignments: **0, 0, 0, 1** respectively. There are **zero non-Administrator users**, zero active `CCPC Personnel`, zero enabled `CCPC Section` for `Operations - TREQ`, and **no `tabWorkflow` document for Withdrawal Slip**. `tabDocPerm` provides Withdrawal Slip Requestor/Maintenance Supervisor/System Manager read/write/create, Stockroom Personnel read/write only. The Bin remains 10 Nos / PHP 100 / PHP 1000 and Withdrawal Slip, Stock Entry, Purchase/Sales Invoice and Billing Batch counts remain zero.
