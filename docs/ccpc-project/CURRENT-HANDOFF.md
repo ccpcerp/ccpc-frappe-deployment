@@ -5,6 +5,34 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Tenth post-Workflow recovery checkpoint completed and verified — 2026-10-13
+
+Owner ran the explicitly authorized **backup-only** command on **isolated `ccpc-integration2.localhost`** and reported a successful and independently checked in-command tenth site-private backup. Exact operator output includes:
+
+```text
+/home/gani/ccpc_tenth_backup_check.py: OK
+ISOLATED SITE: VERIFIED
+NINE EARLIER CHECKPOINTS: VERIFIED (36 FILES)
+ACTIVE WITHDRAWAL SLIP WORKFLOW: VERIFIED
+REQUESTOR SELF-APPROVAL: VERIFIED
+OPENING STOCK 10 NOS / PHP 1,000 AND BALANCED GL: VERIFIED
+NO UNRELATED TRANSACTIONS: VERIFIED
+Backup Summary for ccpc-integration2.localhost at 2026-10-13 18:15:34.980785
+Tenth snapshot prefix: 20261013_181534
+All nine earlier checkpoints: PRESERVED
+Database archive: PASSED
+Public/private archives: PASSED
+Database identity: VERIFIED
+Post-backup Workflow, Opening Stock and GL baseline: VERIFIED
+TENTH RECOVERY CHECKPOINT: VERIFIED AND SECURED
+```
+
+**Path:** `/workspace/development/frappe-bench/sites/ccpc-integration2.localhost/private/ccpc-test-snapshots/post-withdrawal-workflow-pre-stock-entry-fields-20261013/`. **Artifact prefix:** `20261013_181534-ccpc-integration2_localhost-`. **Verified file sizes:** `database.sql.gz` 984402 bytes, `files.tar` 10240 bytes, `private-files.tar` 10240 bytes, `site_config_backup.json` 212 bytes. The operator command checked database gzip and tar archive structures, backed-up site database identity, all 36 predecessor checkpoint file hashes preserved, and reaudited stock/GL and active Withdrawal Slip Workflow. Ten distinct site-private recovery sets are now preserved. **Archive-integrity and identity verification are not a restore drill; restoration remains untested.** All earlier checkpoints remain retained; no deletion/restoration.
+
+**Preserved isolated baseline:** submitted synthetic Opening Stock `MAT-RECO-2026-00001`, stock Bin 10 Nos at PHP100 = PHP1000, one Stock Ledger Entry, two balanced GL Entries; active `CCPC Withdrawal Slip Workflow` with eight states/four transitions and the owner-approved requestor self-approval; no new business transactions, users or roles. All three Withdrawal Slip–Stock Entry provenance Custom Fields remain **not installed**. Stockroom Personnel still lacks independent Stock Entry create/submit permission, a separate security/code item for GitHub-first review.
+
+**Next gated milestone:** design/inspect only the three Stock Entry/Detail provenance custom fields in `ccpcerp.setup.ensure_withdrawal_slip_stock_entry_fields()`, then seek **new explicit site-specific authorization** before any Frappe custom-field/schema operation. In MariaDB, schema DDL can implicitly commit, so guard site isolation and backed-up state, prepare recovery plan, and independently audit after. No full `bench migrate` or `after_migrate`; no persistent DEVELOPMENT or PRODUCTION operations. No test-user/role, Withdrawal Slip/Stock Entry, invoicing or billing write is authorized by tenth-backup approval. Current app review branch `review/intercompany-approval-failure-tests` verified HEAD `806fa23516490ec7beefcff03a1baa09d722120e`.
+
 ## Tenth protected isolated recovery checkpoint explicitly approved — 2026-10-13
 
 Project owner **explicitly approved creation of a tenth recovery checkpoint only** on the isolated site `ccpc-integration2.localhost` after independent post-commit validation of the active self-approval `CCPC Withdrawal Slip Workflow`. This approval **does not authorize** schema changes, creating/editing users or roles, new Withdrawal Slips/Stock Entries/invoices/billing, any change to persistent `development.localhost` or PRODUCTION, `bench migrate`, full `after_migrate`, or restoring/deleting previous backups.
