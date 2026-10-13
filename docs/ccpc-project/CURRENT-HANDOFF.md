@@ -5,6 +5,18 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Isolated DEVELOPMENT pre-index backup archive integrity verified — 2026-10-13
+
+Operator ran read-only archive/config checks on the four full-site backup files under `sites/ccpc-integration2.localhost/private/backups/`, prefix `20261013_102539-ccpc-integration2_localhost`. Reported:
+```text
+Database gzip integrity: PASSED
+Public files archive: PASSED
+Private files archive: PASSED
+Site configuration JSON: PASSED
+BACKUP ARCHIVE CHECKS: PASSED
+```
+Site config JSON was parsed without displaying secrets. Four nonempty files and basic archive integrity have been verified, **but no restoration test** has been performed. Both requested non-unique composite billing indexes are still absent. Next gate is **distinct user approval** for index DDL on this isolated site only, after backups and checks, using reviewed code and postconditions. DDL has implicit commit/metadata-lock risks. No broad migration, patch-log edit, persistent DEVELOPMENT modification, or PRODUCTION action.
+
 ## Isolated DEVELOPMENT full-site backup completed — 2026-10-13
 
 Operator reported successful **site-scoped** `bench --site ccpc-integration2.localhost backup --with-files --ignore-backup-conf --backup-path ...` run at server timestamp `2026-10-13 10:25:40` in the DEVELOPMENT Frappe container, exit success, followed by a four-file non-empty verification printed `BACKUP FILE VERIFICATION: PASSED`. Artifacts under `/workspace/development/frappe-bench/sites/ccpc-integration2.localhost/private/backups/`:
