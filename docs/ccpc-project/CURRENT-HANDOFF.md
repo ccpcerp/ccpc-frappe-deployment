@@ -5,6 +5,22 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Moving Average update interrupted by installed ERPNext helper import — 2026-10-13
+
+Operator executed the **already authorized** three-field Moving Average change script on the isolated `ccpc-integration2.localhost` site, following the verified seventh pre-change protected backup (prefix `20261013_161234-ccpc-integration2_localhost`). Operator pasted:
+```text
+Isolated site: VERIFIED
+Seventh recovery checkpoint: VERIFIED
+FIFO valuation baseline: VERIFIED
+No stock or financial transactions: VERIFIED
+Changing three valuation settings...
+VALUATION UPDATE STOPPED: ImportError cannot import name 'clear_valuation_method_cache' from 'erpnext.stock.utils' (/workspace/development/frappe-bench/apps/erpnext/erpnext/stock/utils.py)
+Do not rerun until database state is inspected.
+```
+**Why:** script wrote two `Company.valuation_method` fields and isolated `Stock Settings.valuation_method` using targeted Frappe DB APIs but then imported `clear_valuation_method_cache` which is not available in the **installed ERPNext** `erpnext.stock.utils`. The originally consulted upstream `version-16` GitHub helper differs from installed site code. Import error occurred **before** any `frappe.db.commit()` and was caught by the script, which called `frappe.db.rollback()`; likely all three changes were reverted, but **persisted database state has NOT yet been independently verified**. Import error is a script compatibility issue, not proof a transaction posted or that valuation setting changes persisted. Do NOT rerun unchanged failed script and do NOT restore backup without verifying state.
+
+**Next step (read-only only):** direct SQL with independent connection and distinct target/development DB check: select both test Companies' `valuation_method`, global `tabSingles` Stock Settings method, single Item `valuation_method` and master record counts, zero stock/GL/financial document counts. Print observed values even if they show partial changes and classify them; no SQL writes or Frappe mutating API calls. Then adapt script to the **installed ERPNext** API, avoiding missing helper and verifying via a fresh Frappe process / DB reads after commit (no assumed upstream-only functions), under **existing narrowly scoped owner approval** if the read-only check proves normal rolled-back baseline. Any unexpected partial state requires further investigation before another write. Seventh private archive remains preserved, six predecessors preserved and no restoration test. Opening-stock posting, financial transactions, persistent DEVELOPMENT and PRODUCTION are still outside authorization.
+
 ## Seventh isolated full checkpoint verified before Moving Average switch — 2026-10-13
 
 The owner completed the authorized seventh protected full backup on **only** isolated `ccpc-integration2.localhost`, before changing three valuation settings. Guarded SQL preflight independently confirmed two Companies both `FIFO`, isolated `Stock Settings.valuation_method=FIFO`, one synthetic Item `CCPC-INT-TEST-CONSUMABLE-001` with blank method override, 198 Accounts, internal parties and mappings unchanged, zero Bin/Stock Reconciliation/Stock Entry/Stock Ledger/GL/Withdrawal Slip/Invoices/Billing Batch, and six existing protected checkpoints preserved.
