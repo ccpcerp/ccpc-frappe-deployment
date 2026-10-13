@@ -5,6 +5,12 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Seventh snapshot and Moving Average settings: owner approval — 2026-10-13
+
+The owner explicitly approved a seventh site-private full checkpoint on isolated `ccpc-integration2.localhost`, followed by exactly three valuation settings changes: `Integration Test Issuer` Company FIFO -> Moving Average, `Integration Test Requester` Company FIFO -> Moving Average, and isolated-site global Stock Settings FIFO -> Moving Average. Keep Item `CCPC-INT-TEST-CONSUMABLE-001` valuation override blank. This approval does not include Stock Reconciliation, opening stock, Stock Entry, GL, Withdrawal Slip, invoice, batch, migrations, persistent DEVELOPMENT or PRODUCTION changes.
+
+The last independent audit confirmed both Company valuations FIFO, Stock Settings FIFO, Item valuation override empty, and zero Stock Reconciliation/Entry/Ledger/GL records. Do the approved protected full site backup first; verify preservation of all six earlier checkpoints and recovery artifact integrity. Only after operator confirms it, perform Frappe document-based valuation updates with test DB isolation guards, then an independent read-only audit of persisted fields and effective valuation method. The proposed 10 Nos at PHP 100 opening-stock transaction remains unapproved.
+
 ## Valuation inheritance independently audited: all isolated defaults FIFO, no Item override — 2026-10-13
 
 Operator returned **read-only test-site MySQLdb** result for `ccpc-integration2.localhost` (target DB identity checked against persistent `development.localhost`):
