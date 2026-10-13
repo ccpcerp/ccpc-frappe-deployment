@@ -5,6 +5,34 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Isolated Moving Average update committed; independent SQL audit pending — 2026-10-13
+
+Under the previously granted **three-field valuation settings authorization** on isolated `ccpc-integration2.localhost`, operator successfully executed the revised guarded Frappe DB API script, after a separate direct-SQL read-only audit verified the earlier failed update fully rolled back. The seventh private archive-verified pre-change recovery checkpoint (`20261013_161234-ccpc-integration2_localhost`) was verified before writes. Input site was confirmed distinct from persistent `development.localhost`. Revised script specifically avoided importing the helper `clear_valuation_method_cache` that does not exist in installed ERPNext, and tested exact values using direct SQL within its own transaction before one commit. Operator supplied successful output:
+
+```text
+Isolated test site: VERIFIED
+Seventh recovery checkpoint: VERIFIED
+Original FIFO settings: VERIFIED
+Synthetic Item override blank: VERIFIED
+No stock or accounting transactions: VERIFIED
+Applying three approved valuation changes...
+Three valuation fields: VERIFIED BEFORE COMMIT
+Item override: UNCHANGED
+Stock and accounting records: UNCHANGED
+
+Integration Test Issuer: Moving Average
+Integration Test Requester: Moving Average
+Global Stock Settings: Moving Average
+Item valuation override: BLANK
+Stock and financial transactions: NONE
+
+MOVING AVERAGE SETTINGS: COMMITTED
+```
+
+**State of evidence:** operator's just-executed script reports successful `frappe.db.commit()` after checking TISS/TREQ `Company.valuation_method` and isolated global `Stock Settings.valuation_method` were all Moving Average, and single Item override remained blank. It verified no Bin, Item Price, Stock Reconciliation/Entry/Ledger, GL, Withdrawal Slip, invoices or Billing Batch in that session. **Independent persisted read-only SQL audit in a separate process is pending**, so do not yet claim externally persisted values verified. Standard Item/Company valuation method inheritance will then be tested against the actual installed API if possible; avoid reliance on upstream-only helper names. Previous FIFO update failed due to installed-version import incompatibility and was separately proven rolled back, not an unverified in-flight failure. No inventory quantity, opening-stock transaction or GL posting authorized; seven protected snapshots archive-verified but no restoration drill. Persistent DEVELOPMENT and PRODUCTION must not be modified.
+
+**Next one safe operator step:** read-only independent MySQLdb transaction on `ccpc-integration2.localhost`, guard database name against `development.localhost`, assert two Company valuation values `Moving Average`, global `tabSingles` value `Moving Average`, Item `valuation_method` blank, exact two Companies and one Item/master counts unchanged, and zero Bin/Stock Reconciliation/Stock Entry/Stock Ledger/GL/Withdrawal Slip/invoices/Billing Batch. If audit succeeds record verified result in handoff; propose further seventh/post-change backup strategy and obtain **separate** owner approval for a synthetic `Opening Stock` reconciliation (tentative 10 Nos at PHP 100 each, 1,000 PHP, `Stores - TISS`, `Temporary Opening - TISS`, `Main - TISS`) only after checks.
+
 ## Isolated valuation update rollback independently verified; safe retry authorized — 2026-10-13
 
 Operator independently checked actual persisted DB values **after** the prior failed Moving Average update (ImportError from missing installed ERPNext `erpnext.stock.utils.clear_valuation_method_cache`). The independent MySQLdb read-only SQL check explicitly verified target `ccpc-integration2.localhost` versus separate persistent `development.localhost` DB identity. Exact operator output:
