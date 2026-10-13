@@ -5,6 +5,53 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Independent post-commit audit confirms Moving Average inheritance baseline — 2026-10-13
+
+Operator performed the separate **read-only MySQLdb post-commit audit** after changing exactly two isolated Companies' valuation methods plus one isolated Stock Settings value using the authorized, corrected narrow Frappe DB API script. Output independently persisted in **ccpc-integration2.localhost** with target database identity guarded against persistent `development.localhost`:
+
+```text
+ISOLATED SITE: VERIFIED
+
+PERSISTED COMPANY VALUATION METHODS
+('Integration Test Issuer', 'Moving Average')
+('Integration Test Requester', 'Moving Average')
+
+GLOBAL STOCK SETTINGS
+(('Moving Average',),)
+
+SYNTHETIC ITEM VALUATION
+(('CCPC-INT-TEST-CONSUMABLE-001', '', 1, 0),)
+
+MASTER DATA COUNTS
+tabCompany 2
+tabAccount 198
+tabCustomer 1
+tabSupplier 1
+tabItem 1
+tabParty Account 2
+tabAllowed To Transact With 2
+
+STOCK AND FINANCIAL TRANSACTIONS
+tabBin 0
+tabItem Price 0
+tabStock Reconciliation 0
+tabStock Entry 0
+tabStock Ledger Entry 0
+tabGL Entry 0
+tabWithdrawal Slip 0
+tabSales Invoice 0
+tabPurchase Invoice 0
+tabIntercompany Material Billing Batch 0
+
+MOVING AVERAGE POST-COMMIT CHECK: VERIFIED
+```
+
+**Milestone independently verified**: Company TISS and TREQ `valuation_method=Moving Average` and Stock Settings global method `Moving Average` are now committed and persisted. The one synthetic stock Item remains enabled, `valuation_method` override blank, hence according to ERPNext's documented valuation-precedence code it inherits Company method. Exact counts of companies, 198 accounts, internal Customer/Supplier mappings by count and single Item are preserved. No Bin or Item Price or any inventory or accounting postings. The installed ERPNext's runtime `get_valuation_method()` has **not** been separately called since a prior optional helper import proved absent; don't equate code inspection with live function execution. Earlier failed attempt was proven rolled back before the successful retry.
+
+Seven archive-verified snapshots exist (latest seventh pre-valuation update `sites/ccpc-integration2.localhost/private/ccpc-test-snapshots/post-item-pre-moving-average-20261013/` with prefix `20261013_161234-ccpc-integration2_localhost`); none is a **post-Moving Average** recovery checkpoint yet; none restore-tested.
+
+**Next approval gate:** recommend an eighth protected full site snapshot **post-Moving Average/pre-opening-stock**, preserving all seven prior snapshots, archive-verifying the new one with DB identity guards. After separately authorized snapshot, one supported ERPNext `Stock Reconciliation` `purpose=Opening Stock` on isolated site only, issuer `Integration Test Issuer`, `Stores - TISS`, synthetic Item `CCPC-INT-TEST-CONSUMABLE-001`, proposal 10 Nos at PHP 100/each = PHP 1,000, explicit `expense_account=Temporary Opening - TISS` (eligible Balance Sheet/Temporary), `cost_center=Main - TISS`, positive valuation, company Moving Average. Review exact installed ERPNext validations/version, posting time and GL treatment before actual insert/submit. Validate one Bin with 10 actual quantity, SLE, and expected balanced GL (inventory asset debit versus opening account credit) through the supported workflow and a separate independent read-only postcommit check. **No approval yet to create stock, GL postings or any inventory transaction; the previously approved step only authorized the valuation configuration correction.** Do not create Withdrawal Slips, Stock Entries, intercompany billing, invoices, or touch persistent DEVELOPMENT/PRODUCTION.
+
 ## Isolated Moving Average update committed; independent SQL audit pending — 2026-10-13
 
 Under the previously granted **three-field valuation settings authorization** on isolated `ccpc-integration2.localhost`, operator successfully executed the revised guarded Frappe DB API script, after a separate direct-SQL read-only audit verified the earlier failed update fully rolled back. The seventh private archive-verified pre-change recovery checkpoint (`20261013_161234-ccpc-integration2_localhost`) was verified before writes. Input site was confirmed distinct from persistent `development.localhost`. Revised script specifically avoided importing the helper `clear_valuation_method_cache` that does not exist in installed ERPNext, and tested exact values using direct SQL within its own transaction before one commit. Operator supplied successful output:
