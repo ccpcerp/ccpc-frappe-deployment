@@ -5,6 +5,21 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## DEVELOPMENT backup-destination capacity preflight — 2026-10-13
+
+**Operator-reported read-only Docker container filesystem check** on Ubuntu host:
+
+```bash
+docker exec frappe_docker_devcontainer-frappe-1 \
+  bash -lc 'df -h /workspace/development/frappe-bench/sites && df -i /workspace/development/frappe-bench/sites'
+```
+
+Result for filesystem `/dev/nvme0n1p2` mounted at `/workspace`: **915G total, 182G used, 687G available, 21% utilization**. Inodes: **60,981,248 total; 7,574,738 used; 53,406,510 free; 13% usage**. Capacity is ample relative to the known October 9 DEV archive sizes, but this is host-shared storage and free space alone does not prove successful backup or guarantee no host resource contention.
+
+**Backup readiness checkpoint:** Site `development.localhost` listed Frappe 16.33.1, ERPNext 16.34.2 and CCPC 0.0.1; 155 combined isolated Python mock tests passed; DEV and PROD use separate named MariaDB Docker volumes; Oct 9 four-part DEV backup archives passed gzip/tar/JSON syntax checks but were not restore-tested and are four days old. Live DEV backup freshness, successful restoration, DB transactional/concurrency correctness and independent off-host recovery remain **unverified**.
+
+**Next operator decision (do not execute without approval):** Obtain explicit agreement to create a **new DEVELOPMENT-only four-part site backup** from within `frappe_docker_devcontainer-frappe-1`, bench directory `/workspace/development/frappe-bench`, targeting **only** `development.localhost` using `bench --site development.localhost backup --with-files`. This reads the DEV database and writes new backup artifacts to the DEV site's local backups directory; it may consume shared host disk and I/O but does not intentionally mutate business records. Do not use `--site ccpcerp.local` or any production container. After approval, run safely and verify four new matching-prefix files, syntax and integrity, and consider separate recovery or off-host strategy before database-changing tests. No `bench migrate`, `run-tests`, ERPNext transactions, database restore or PRODUCTION operations authorized.
+
 ## Verified distinct live DEV and PROD MariaDB storage volumes — 2026-10-13
 
 **Operator-provided read-only host Docker inspection:** On `gani@ccpcerpserver`, inspecting the `/var/lib/mysql` mounts for both running database containers returned:
