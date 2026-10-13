@@ -5,6 +5,31 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Read-only DEVELOPMENT backup inventory — 2026-10-13
+
+**Operator-provided listing, not archive integrity or restore verification.** From the DEVELOPMENT container in `/workspace/development/frappe-bench`, listing `sites/development.localhost/private/backups` showed the following four file artifacts with filesystem mtime **2026-10-09 00:46**:
+
+- `20261009_061614-development_localhost-database.sql.gz` — **1,646,365 bytes**
+- `20261009_061614-development_localhost-private-files.tgz` — **9,599 bytes**
+- `20261009_061614-development_localhost-site_config_backup.json` — **234 bytes**
+- `20261009_061614-development_localhost-files.tgz` — **141 bytes**
+
+The file-name timestamp and mtime display differ; do not assume the time zone without checking. There is one four-part matching-prefix backup set in the 20-entry output. Presence of files **does not establish gzip/tar integrity, DB completeness, database origin, restore usability or recovery time**. On 2026-10-13 this backup is roughly four days old and may not contain recent DEVELOPMENT changes. Never expose site-config JSON contents; it can contain passwords and other sensitive values. Do not use production backups for DEV integration tests.
+
+**Next one-step operator preflight (read-only, no extraction or DB access):** Validate archive compression and site_config JSON structure without printing contents, from the DEVELOPMENT bench:
+
+```bash
+cd /workspace/development/frappe-bench
+B=sites/development.localhost/private/backups/20261009_061614-development_localhost
+gzip -t "${B}-database.sql.gz" &&
+tar -tzf "${B}-private-files.tgz" >/dev/null &&
+tar -tzf "${B}-files.tgz" >/dev/null &&
+./env/bin/python -m json.tool "${B}-site_config_backup.json" >/dev/null &&
+echo "DEV backup files: compression and JSON syntax checks passed"
+```
+
+This checks readable archive structure only, **not** restored database correctness or recovery viability. Subsequently verify DEV/PROD database boundaries and free space; require a new, complete DEV backup and explicit authorization/safe rollback plan before any database-changing integration tests. Preserve DEV persistent state and all production services; no migration, restore, deletion or production access authorized.
+
 ## Read-only DEVELOPMENT site installed-app preflight — 2026-10-13
 
 **Operator-provided DEVELOPMENT terminal output:** At `/workspace/development/frappe-bench`, the operator ran `bench --site development.localhost list-apps`; it completed successfully and reported:
