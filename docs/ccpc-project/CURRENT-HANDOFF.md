@@ -5,6 +5,33 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## DEVELOPMENT partial integration-site directory observed — 2026-10-13
+
+**Operator-reported results after failed approved site creation:** The terminal returned `Aborted!` and prompt `gani@ccpcerpserver` after declining Frappe's rollback, then a read-only `find` of `sites/ccpc-integration.localhost` inside `frappe_docker_devcontainer-frappe-1` reported that the site path **exists** and contains **`logs`, `locks`, `private`, `site_config.json`, `public`**. Do not print/read that JSON raw because it can contain credentials; no secrets are reproduced in this handoff. Successful site creation, separate DB creation, or app installation **NOT verified**. Preserve any partial files; **no `rm`, rollback, `--force`, re-run of `new-site`, migrations, or PROD changes** are authorized at this moment.
+
+**Source check:** Frappe version-16 GitHub `frappe/installer.py` first creates site directories and calls `make_conf` before `setup_database`. MariaDB `setup_database` calls `create_user` before `create_database`. The actual traceback occurred in `DbManager.create_user -> get_current_host -> self.db.sql("select user()")` at MySQL authentication. This strongly suggests **the database creation step was not reached**; it is nevertheless unsafe to assert there are no partial DB artifacts without an independent check.
+
+**Next safe one-step read-only inspection** for operator on Ubuntu host: compare only whether `db_name` is configured for partial site and whether it matches the existing site, without printing names or passwords:
+
+```bash
+docker exec --user frappe frappe_docker_devcontainer-frappe-1 bash -lc '
+cd /workspace/development/frappe-bench || exit 1
+./env/bin/python -c "
+import json
+from pathlib import Path
+root = Path(\"sites\")
+old = json.loads((root / \"development.localhost\" / \"site_config.json\").read_text())
+partial = json.loads((root / \"ccpc-integration.localhost\" / \"site_config.json\").read_text())
+name = partial.get(\"db_name\")
+print(\"Partial site has DB name:\", bool(name))
+print(\"DB name differs from existing DEVELOPMENT:\", bool(name) and name != old.get(\"db_name\"))
+print(\"Partial site has DB user:\", bool(partial.get(\"db_user\")))
+"
+'
+```
+
+Only boolean results are displayed. If the partial DB name unexpectedly matches the persistent site, STOP; if it differs, proceed with separately planned **read-only existence check** of MariaDB objects in the DEVELOPMENT DB service. Never include passwords in shell history/chat. Determine a safe, exact plan for either restoring a known empty test-site creation or renaming to a new unique test site; any partial artifact deletion needs specific review/authorization. If credential entered as DB username was a real secret, treat it as exposed and arrange safe rotation, preferably not during testing setup.
+
 ## DEVELOPMENT integration site creation halted on MariaDB authentication — 2026-10-13
 
 **Operator-reported failed interactive setup** using the previously approved new-site command **only in DEVELOPMENT**: `docker exec -it --user frappe frappe_docker_devcontainer-frappe-1 bash -lc '... bench new-site ccpc-integration.localhost --db-host mariadb --db-type mariadb'`. The Frappe CLI prompted `Enter mysql super user [root]:`. **A value other than `root` was entered at the username prompt**. **Do not copy that value here or into GitHub**, as it resembles a credential and was included in user-shared terminal output. Subsequent password prompt and trace reported `MySQLdb.OperationalError: (1045, "Access denied for user [REDACTED] from DEV-container network")`. Frappe then displayed the interactive prompt `Site creation failed, do you want to rollback the site? [y/N]:`.
