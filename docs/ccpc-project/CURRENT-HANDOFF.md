@@ -5,6 +5,36 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Isolated DEVELOPMENT ERPNext initial setup verified — 2026-10-13
+
+Operator completed previously approved **one-time Frappe/ERPNext version-16 initial setup** exclusively on isolated `ccpc-integration2.localhost`, using the official `frappe.desk.page.setup_wizard.setup_wizard.setup_complete(args)` entrypoint called once from the site context rather than `bench execute`. Inputs were `Integration Test Issuer` (abbreviation `TISS`), `Philippines`, `PHP`, `Asia/Manila`, `2026-01-01` through `2026-12-31`, chart template `Standard`, `setup_demo=0`, `enable_telemetry=0`. Preflight confirmed distinct target DB versus persistent `development.localhost`, four archive-verified pre-setup snapshot files in `sites/ccpc-integration2.localhost/private/ccpc-test-snapshots/pre-setup-20261013` and an initially uninitialized/empty master-data baseline.
+
+Operator terminal output (reported, not independently queried by connector):
+```text
+Site isolation: VERIFIED
+Pre-setup recovery snapshot: VERIFIED
+Initial setup preconditions: VERIFIED
+Initializing Integration Test Issuer (TISS)
+Updating Dashboard for frappe
+Updating Dashboard for erpnext
+Updating Dashboard for ccpcerp
+Setup wizard returned: SUCCESS
+frappe setup_complete = 1
+erpnext setup_complete = 1
+ccpcerp setup_complete = 0
+Test company abbreviation: TISS
+Fiscal Year: 1 records
+Account: 95 records
+Cost Center: 2 records
+Warehouse: 5 records
+UOM: 239 records
+Item Group: 6 records
+INITIAL ERPNEXT SETUP: VERIFIED
+```
+Python produced nonfatal warnings because interpreter was invoked with `../env/bin/python` while inside `sites`; command completed successfully. The CCPC flag remains 0 as app has no active wizard setup-complete hook; Frappe and ERPNext 1 signify base wizard completion. Only one fictional Company was created, **not** the second `Integration Test Requester`. Do **not** infer default chart is compatible with the custom billing code's exact accounts `1312`, `2121`, `5150`, `6050`; source review found these must be provisioned intentionally for each test Company. Do not run real-group-only historical intercompany account/party patches with fictional firms. Existing two composite intercompany billing indexes were separately verified before wizard, but **should be checked read-only afterward**. No Stock Entries, Sales/Purchase Invoices or real DB integration/rollback/concurrency tests performed. Do not touch persistent `development.localhost` or PRODUCTION. Pre-setup backup is archive verified, not restoration tested.
+
+**Next:** read-only post-wizard verification of `Company`, `Global Defaults`/`System Settings`, `Fiscal Year`, `Account` / `Cost Center` / `Warehouse` essentials, and retained billing index definitions. Then plan a post-setup checkpoint and request separate user approval for creating the second fictional Company and scoped test fixtures; do not make unintended transactions.
+
 ## Isolated DEVELOPMENT pre-setup snapshot verified and relocated — 2026-10-13
 
 User approved taking a fresh pre-wizard snapshot of **`ccpc-integration2.localhost`** and running initial ERPNext setup for fictional issuer `Integration Test Issuer (TISS)`, Philippines/PHP, 2026-01-01 through 2026-12-31, ERPNext Standard chart, no demo data. During the first backup command Frappe's `--backup-path` interpreted a relative `sites/...` beneath the bench `sites` directory, creating a `sites/sites/...` path and causing the wrapper's immediate verification to fail (not a reported backup failure). Subsequent guarded command validated backup database identity and `gzip -t` / `tar -tf` / JSON, preserved older `20261013_102539` backup, and moved only the new snapshot to the intended site directory. Operator output:
