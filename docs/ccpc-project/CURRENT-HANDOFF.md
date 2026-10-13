@@ -5,6 +5,24 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Synthetic TISS-to-TREQ stock item prerequisite validation — 2026-10-13
+
+Operator completed the **requested read-only** test-site SQL prerequisites check on isolated `ccpc-integration2.localhost`. Output:
+```text
+REQUESTING DEPARTMENT: (('Operations - TREQ', 'Integration Test Requester', 0, 0),)
+ISSUING WAREHOUSE: (('Stores - TISS', 'Integration Test Issuer', 0, 0),)
+STOCK UOM: (('Nos',), ('Unit',))
+ITEM GROUP: (('Consumable', 0),)
+ISSUER INVENTORY SETTINGS: (('Integration Test Issuer', 1, 'PHP'),)
+EXISTING STOCK RECONCILIATIONS: ((0,),)
+ITEM AND DEPARTMENT READINESS AUDIT: COMPLETED
+```
+This confirms `Operations - TREQ` is enabled/non-group and belongs to requester, `Stores - TISS` is enabled/non-group and belongs to issuer, `Nos` and `Unit` UOMs exist, `Consumable` is a leaf group, TISS has perpetual inventory enabled and PHP currency, with no Stock Reconciliation documents. Previous inventory audit: zero `Item`, `Bin`, `Stock Entry`, `Stock Ledger Entry`, `GL Entry`, `Withdrawal Slip`, `Sales Invoice`, `Purchase Invoice` and billing batch. All read-only; **no synthetic item or stock quantity has yet been created**.
+
+Current `ccpcerp` source on verified `review/intercompany-approval-failure-tests` branch requires stocked Item with `requested_qty <= actual_qty` from issuer `Stores - TISS` and eligible TREQ Department before saving a Withdrawal Slip. No `CCPC Section` exists, so section is not currently mandatory. ERPNext v16 `erpnext/stock/doctype/item/item.json` specifies `item_code` as autoname, required `item_group`/`stock_uom`, default `is_stock_item=1` and `opening_stock` optional; its Item controller performs additional stock UOM/item default validations.
+
+**Next authorization request (not yet given):** create a **sixth** guarded full site snapshot **after parties but before item**, with preserved five previous archive-verified checkpoints and matching site DB identity, then create **one** explicitly synthetic stock Item using the standard Frappe `Item.insert()` API. Suggested fixture identity `CCPC-INT-TEST-CONSUMABLE-001`, name `Synthetic Integration Test Consumable`, `item_group=Consumable`, `stock_uom=Nos`, `is_stock_item=1`, `disabled=0`, **opening_stock=0**, no serial/batch rules, no price, item warehouse defaults or valuation transaction. Before writes verify no duplicate Item and party/account/transaction baseline; postverify and commit single transaction. **Do not create opening stock, Stock Reconciliation, Stock Entry, Withdrawal Slip, Billing Batch, invoices or GL/Stock Ledger records under this approval**; these must be reviewed and separately approved with backups because perpetual inventory posting has financial consequences. Persistent DEVELOPMENT `development.localhost` and PRODUCTION excluded. No new backup or item insert has happened yet.
+
 ## Isolated inventory master/readiness SQL audit; stock prerequisites absent — 2026-10-13
 
 Operator ran isolated-site read-only SQL inventory prerequisites audit on `ccpc-integration2.localhost` (site-specific DB identity separately checked against persistent `development.localhost`; exact TISS/TREQ company pair verified). Output confirms exactly 5 warehouses per company: root `All Warehouses - TISS/TREQ` (group), leaf `Finished Goods`, `Goods In Transit`, `Stores`, and `Work In Progress` in each, all enabled. Key possible issue location: `Stores - TISS` is a verified enabled leaf warehouse owned by issuer. Each Company has 13 standard leaf Departments including `Operations - TREQ`; audit did **not** include Department `disabled` flag. Zero `CCPC Section` records. Exactly 6 item groups `All Item Groups` (group), `Consumable`, `Products`, `Raw Material`, `Services`, `Sub Assemblies` (leaf). **No `Item` records, no `Bin` records.** `tabWithdrawal Slip`, `tabStock Entry`, `tabStock Ledger Entry`, `tabSales Invoice`, `tabPurchase Invoice`, `tabGL Entry`, `tabIntercompany Material Billing Batch` all zero at this read-only checkpoint. `INVENTORY PREREQUISITES AUDIT: COMPLETED`.
