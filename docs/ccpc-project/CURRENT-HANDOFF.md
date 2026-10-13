@@ -5,6 +5,28 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Post-wizard isolated integration baseline independently checked — 2026-10-13
+
+User pasted read-only `MySQLdb` result for `ccpc-integration2.localhost`, confirming site database remains different from persistent `development.localhost` (command would stop otherwise). Verified exact values:
+```text
+Companies: (('Integration Test Issuer', 'TISS', 'PHP', 'Philippines', 'Main - TISS'),)
+Fiscal years: (('2026', datetime.date(2026, 1, 1), datetime.date(2026, 12, 31)),)
+Billing indexes:
+idx_icmb_scope VERIFIED
+idx_icmbi_source_parent VERIFIED
+Transaction baseline:
+tabStock Entry: 0
+tabSales Invoice: 0
+tabPurchase Invoice: 0
+tabIntercompany Material Billing Batch: 0
+POST-SETUP READ-ONLY CHECK: COMPLETED
+```
+Both composite indexes retain full ordered nonunique BTREE definitions without prefixes after wizard, and the four tested transaction DocTypes remain empty. **No Purchase or Sales Invoices, Stock Entries, or Billing Batches have been created.** One Company is present, with issuer default enabled-leaf Cost Center not independently checked yet. No tests of actual accounting/inventory operations, deadlocks or transaction rollback yet.
+
+Reviewed relevant source on verified `ccpcerp/ccpcerp` branch `review/intercompany-approval-failure-tests`: `_validate_companies` in batch DocType only rejects identical issuing/requesting company (it does not restrict to the four actual-group-name constants of historical seed patches). `_get_company_invoice_defaults` requires exact non-group receivable/payable/expense/income accounts `1312`, `2121`, `5150`, `6050` with names suffixed by test-company abbreviations, plus valid Cost Centers. In ERPNext v16 `Company` document insertion can create default COA, cost centers and warehouses; new test requester should use standard Frappe document API, not direct SQL or re-run setup wizard.
+
+**Next approval gate:** take distinct **post-wizard pre-second-company** site-scoped full backup in a unique protected location, verify archives and preserve older snapshots; then create one additional fictional `Integration Test Requester` (suggest abbreviation `TREQ`, country Philippines, PHP, Standard COA) on `ccpc-integration2.localhost` only. User's prior approval covered the first issuer company setup, not the second company or synthetic financial transactions. Seek their separate approval for backup + second Company before any write. Use site-scoped permissions and preflight. Do not invoke historic real-company party/account patches automatically; plan separate test-fixture account/party and synthetic transaction steps. No PRODUCTION action.
+
 ## Isolated DEVELOPMENT ERPNext initial setup verified — 2026-10-13
 
 Operator completed previously approved **one-time Frappe/ERPNext version-16 initial setup** exclusively on isolated `ccpc-integration2.localhost`, using the official `frappe.desk.page.setup_wizard.setup_wizard.setup_complete(args)` entrypoint called once from the site context rather than `bench execute`. Inputs were `Integration Test Issuer` (abbreviation `TISS`), `Philippines`, `PHP`, `Asia/Manila`, `2026-01-01` through `2026-12-31`, chart template `Standard`, `setup_demo=0`, `enable_telemetry=0`. Preflight confirmed distinct target DB versus persistent `development.localhost`, four archive-verified pre-setup snapshot files in `sites/ccpc-integration2.localhost/private/ccpc-test-snapshots/pre-setup-20261013` and an initially uninitialized/empty master-data baseline.
