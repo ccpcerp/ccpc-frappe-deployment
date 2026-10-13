@@ -5,6 +5,17 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Isolated DEVELOPMENT full-site backup completed — 2026-10-13
+
+Operator reported successful **site-scoped** `bench --site ccpc-integration2.localhost backup --with-files --ignore-backup-conf --backup-path ...` run at server timestamp `2026-10-13 10:25:40` in the DEVELOPMENT Frappe container, exit success, followed by a four-file non-empty verification printed `BACKUP FILE VERIFICATION: PASSED`. Artifacts under `/workspace/development/frappe-bench/sites/ccpc-integration2.localhost/private/backups/`:
+
+- `20261013_102539-ccpc-integration2_localhost-database.sql.gz` — 899266 bytes
+- `20261013_102539-ccpc-integration2_localhost-files.tar` — 10240 bytes
+- `20261013_102539-ccpc-integration2_localhost-private-files.tar` — 10240 bytes
+- `20261013_102539-ccpc-integration2_localhost-site_config_backup.json` — 212 bytes
+
+Preflight stopped if site config missing, backup path symlink, custom backup destination, existing files in backup directory, or low host free space; `umask 077`, directory permissions `700`, and backup output verified four nonempty artifacts. Backup is **not yet archive-integrity-tested or restore-tested**. The site config backup includes secrets; never copy backup files, database contents, or config JSON to GitHub. Next: read-only integrity verification `gzip -t`, `tar -tf`, JSON parse without printing sensitive content. After that, obtain distinct explicit authorization before any DDL to create two known missing composite indexes exclusively on the isolated site. No `bench migrate`, patch-log edit, existing `development.localhost` changes or PRODUCTION operations authorized.
+
 ## Isolated DEVELOPMENT billing index column preflight verified — 2026-10-13
 
 Operator read-only `information_schema.COLUMNS` query against `ccpc-integration2.localhost` confirmed all five requested index columns: `tabIntercompany Material Billing Batch` has `issuing_company varchar(140)`, `requesting_company varchar(140)`, and `billing_month date`; `tabIntercompany Material Billing Item` has `stock_entry_detail varchar(140)` and `parent varchar(140)`. Earlier check established both tables exist, neither requested named index exists, and no equivalent matching non-unique BTREE composite index is present. This satisfies basic column-presence/type preflight; it does not mean indexes have been created or tested under concurrency.
