@@ -5,6 +5,65 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Installed ERPNext 16.34.2 Opening Stock posting preflight passed — 2026-10-13
+
+Operator completed separately requested **read-only** Frappe runtime stock-posting readiness inspection on isolated `ccpc-integration2.localhost` before the one **already-approved** PHP 1,000 Opening Stock reconciliation. The eighth private, verified backup with prefix `20261013_163228-ccpc-integration2_localhost` and distinct target/persistent-development database identity were checked.
+
+Operator output:
+```text
+ISOLATED SITE: VERIFIED
+EIGHTH RECOVERY CHECKPOINT: VERIFIED
+INSTALLED SOFTWARE
+Frappe: 16.33.1
+ERPNext: 16.34.2
+Site date: 2026-10-13
+Site time: 16:35:52.396060
+VALUATION METHODS
+Integration Test Issuer : Moving Average
+Integration Test Requester : Moving Average
+OPENING STOCK CONFIGURATION
+Company Integration Test Issuer {'default_currency': 'PHP', 'default_inventory_account': 'Stock In Hand - TISS', 'stock_adjustment_account': 'Stock Adjustment - TISS', 'cost_center': 'Main - TISS'}
+Warehouse Stores - TISS {'company': 'Integration Test Issuer', 'is_group': 0, 'disabled': 0, 'account': None}
+Account Temporary Opening - TISS {'company': 'Integration Test Issuer', 'report_type': 'Balance Sheet', 'is_group': 0, 'disabled': 0}
+Account Stock In Hand - TISS {'company': 'Integration Test Issuer', 'report_type': 'Balance Sheet', 'is_group': 0, 'disabled': 0}
+Cost Center Main - TISS {'company': 'Integration Test Issuer', 'is_group': 0, 'disabled': 0}
+INSTALLED RECONCILIATION FIELDS
+Header: company Link required: 1
+Header: purpose Select required: 1
+Header: posting_date Date required: 1
+Header: posting_time Time required: 1
+Header: expense_account Link required: 0
+Header: cost_center Link required: 0
+Header: items Table required: 1
+Item: item_code Link required: 1
+Item: warehouse Link required: 1
+Item: qty Float required: 0
+Item: valuation_rate Currency required: 0
+INSTALLED POSTING CONTROLLER
+validate: True
+on_submit: True
+validate_expense_account: True
+update_stock_ledger: True
+make_gl_entries: True
+OPENING ACCOUNT VALIDATION SOURCE
+validate_expense_account: perennial perpetual inventory opening-stock difference account must not be Profit and Loss
+CURRENT TRANSACTION BASELINE
+Bin 0
+Stock Reconciliation 0
+Stock Entry 0
+Stock Ledger Entry 0
+GL Entry 0
+Withdrawal Slip 0
+Sales Invoice 0
+Purchase Invoice 0
+Intercompany Material Billing Batch 0
+INSTALLED STOCK POSTING READINESS: VERIFIED
+```
+
+Also consulted exact upstream **ERPNext `v16.34.2` tag** via GitHub, consistent with observed installed version, rather than newer `version-16`. `StockReconciliation.validate` retains explicitly supplied `expense_account`, `on_submit` invokes `update_stock_ledger()` then `make_gl_entries()` then repost assessment, and `validate_expense_account` rejects P&L differences on `Opening Stock`. `StockController.get_voucher_details` marks resulting GL `is_opening=Yes` when reconciliation purpose is `Opening Stock`. `StockController.get_gl_entries` accounts each stock value difference through inventory account versus supplied difference account. `erpnext.stock.utils.get_valuation_method(item, company)` exists in v16.34.2; previously unavailable `clear_valuation_method_cache` exists in newer branches only. `Stock Reconciliation` has `set_posting_time` to respect explicit posting date/time.
+
+**Next authorized action, NOT yet executed:** One safe, guarded `Stock Reconciliation` `purpose=Opening Stock` (only `Integration Test Issuer`, `Stores - TISS`, single nonserial `CCPC-INT-TEST-CONSUMABLE-001`, 10 Nos × PHP 100 = PHP 1,000, Moving Average, cost center `Main - TISS`, explicit `expense_account=Temporary Opening - TISS`, current site-local posting date/time). Assert verified eighth backup, exact site-vs-persistent-development DB isolation, Company/Item/Stock Settings method, existing master/Party Accounts and stock zero baseline before write; create through normal `frappe.get_doc(...).insert(ignore_permissions=True)` followed by `submit()`; assert document submitted, exactly one current Bin 10/100/1000, one submitted SLE 10/100/1000 and two balanced GL entries (Dr `Stock In Hand - TISS` PHP 1,000; Cr `Temporary Opening - TISS` PHP 1,000, opening flags), no other Stock Entry/Withdrawal Slip/Invoice/Billing Batch. Commit **once** only after all checks; rollback on error and operator must independently check persistence before any retry. After confirmed success independently re-audit committed DB records in a new read-only session. No permission for other stock flows or PRODUCTION/persistent DEVELOPMENT modification. Eight checkpoints archive-verified, not restore-tested.
+
 ## Eighth archive-verified isolated pre-opening-stock recovery checkpoint — 2026-10-13
 
 Operator completed the **owner-approved eighth** site-private recovery checkpoint on **only** isolated `ccpc-integration2.localhost`, following independently verified `Moving Average` method configuration and **before** any inventory or accounting transactions. Command preflight verified: target DB isolation, TISS/TREQ both Moving Average, global Stock Settings Moving Average, synthetic stock Item `CCPC-INT-TEST-CONSUMABLE-001` enabled with blank method override, `Stores - TISS`, `Stock In Hand - TISS`, `Temporary Opening - TISS`, `Main - TISS`, unchanged two-company master and party/account mapping counts, zero prior stock/GL/invoice/billing records; **seven previous protected checkpoint archives preserved**.
