@@ -5,6 +5,26 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## First approved opening-stock attempt stopped at incorrect Stock Ledger actual_qty assertion — 2026-10-13
+
+The owner pasted the entire terminal transcript of their first **already approved** `Stock Reconciliation` attempt on isolated `ccpc-integration2.localhost` (see user-provided `Pasted text.txt` in conversation). The guarded script's preflight printed `Isolated site: VERIFIED`, `Eighth recovery checkpoint: VERIFIED`, `Moving Average valuation: VERIFIED`, `Opening accounts: VERIFIED`, and `No previous stock or accounting entries: VERIFIED`; posting time `2026-10-13 16:43:10`. It created and submitted the single reconciliation **within the uncommitted transaction**, and passed the script's reconciliation header/item and Bin validation, then failed during the Stock Ledger assertion before checking GL or executing `db.commit()`:
+
+```text
+Posting date: 2026-10-13
+Posting time: 16:43:10
+Creating one approved opening-stock reconciliation...
+
+OPENING STOCK STOPPED: RuntimeError Stock Ledger quantity or value mismatch.
+Database rollback requested.
+Inspect persisted state before any retry.
+```
+
+**Root cause supported by exact ERPNext v16.34.2 upstream source:** in `erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py::StockReconciliation.get_sle_for_items`, for a standard non-serial/non-batch row with no inventory dimensions the Stock Ledger Entry is **initialized with `actual_qty=0`**, and separately sets **`qty_after_transaction=row.qty`** (expected 10 Nos). The verification script **incorrectly required `entry.actual_qty==10`**, making the SLE assertion invalid for this entry type. This is a **verification bug**, not yet evidence of a wrong ERPNext posting. The script's exception handler called `frappe.db.rollback()`; no commit success line. **Do not declare rollback independently verified until separately checking persisted test DB.** The exact SLE value of other fields (value, rate, difference) was never printed and must be verified on retry, not assumed. The first attempt's GL checks were **not reached**; do not claim they passed.
+
+**Next one safe action:** independent read-only MySQLdb connection to exact isolated target after checking DB identity != persistent `development.localhost`. Inspect and assert two Companies' Moving Average methods, global Stock Settings method, one Item blank valuation override, exact master counts, and zero persisted Bin, Stock Reconciliation/Item, Stock Entry, SLE, GL, Withdrawal Slip, invoices, billing batch and Repost Item Valuation. Report all results and don't rerun until operator supplies verified rollback output. Preserve all eight protected site-private backups (latest pre-opening-stock prefix `20261013_163228-ccpc-integration2_localhost`, archive-verified but not restore tested).
+
+**Subsequent retry only after verified rollback:** construct guarded standard insert/submit in same approved scope (TISS, Stores - TISS, 10 Nos × PHP 100 = PHP 1,000, Temporary Opening - TISS, Main - TISS, Moving Average), but correct the SLE check: `actual_qty=0` is normal for a non-serialized reconciliation, `qty_after_transaction=10`, `valuation_rate=100`, `stock_value=1000`, `stock_value_difference=1000` subject to real results, exactly one Bin 10/100/1000, two posted balanced GL entries against exact approved accounts/amounts. Single `db.commit()` after all checks, then independent postcommit SQL audit. No permission for other transactions, persistent DEVELOPMENT, or PRODUCTION.
+
 ## Installed ERPNext 16.34.2 Opening Stock posting preflight passed — 2026-10-13
 
 Operator completed separately requested **read-only** Frappe runtime stock-posting readiness inspection on isolated `ccpc-integration2.localhost` before the one **already-approved** PHP 1,000 Opening Stock reconciliation. The eighth private, verified backup with prefix `20261013_163228-ccpc-integration2_localhost` and distinct target/persistent-development database identity were checked.
