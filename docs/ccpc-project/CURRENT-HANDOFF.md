@@ -5,6 +5,19 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## DEVELOPMENT partial integration-site database and user confirmed absent — 2026-10-13
+
+**Operator terminal evidence:** Following a successful DEV MariaDB local-root authentication using the container's configured `MYSQL_ROOT_PASSWORD` and a successful read-only `SHOW DATABASES`, the operator ran a piped Python/SQL query. The Frappe container read `db_name` and `db_user` from the partial `ccpc-integration.localhost/site_config.json` without printing the identifiers, and the separate **DEVELOPMENT** MariaDB container queried `information_schema.SCHEMATA` and `mysql.user`. Actual reported results:
+
+```text
+Partial database exists: False
+Partial database user exists: False
+```
+
+These checks establish absence of the **configured identifiers** in the DEV MariaDB server at the time of the query; they do not prove there are no unrelated orphan objects. The prior TCP root authentication failure (1045) did not prevent local socket authentication with the configured container root password. The partial site directory remains on disk. No database write, user creation, site deletion, restart, retry, or PRODUCTION operation occurred.
+
+**Next safe decision:** Preserve the partial directory while planning controlled new-site recovery. Do not run `bench new-site --force`, remove files, or overwrite the existing DEVELOPMENT site. Consider choosing a *new, unique* test-site name and new DB identifiers rather than deleting the partial site, after a read-only collision check. Any actual new-site command requires a reviewed, prompt-safe credential procedure; ensure the administrator secret used is accepted from the DEV Frappe network, not merely through the local MariaDB socket. No financial integration tests or PRODUCTION changes authorized.
+
 ## DEVELOPMENT MariaDB root login from Frappe container rejected — 2026-10-13
 
 **Operator-reported read-only authentication test:** The operator executed the approved interactive Python `MySQLdb.connect(host="mariadb", user="root", passwd=getpass.getpass(...))` from the **DEVELOPMENT Frappe** container. It returned `Database connection failed. Error code: 1045` (MariaDB access denied), before either `information_schema.SCHEMATA` or `mysql.user` SELECT could run. **Partial test database/user existence remains unverified**. The root password was not shown in the terminal transcript and must not be requested, printed, logged or committed. A 1045 can reflect wrong credentials **or** a root-account host/login restriction, so do not assume the operator entered the wrong secret.
