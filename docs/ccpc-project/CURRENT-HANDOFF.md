@@ -5,6 +5,50 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Eight isolated intercompany ledger accounts created and verified — 2026-10-13
+
+Operator ran the previously approved single-shot Frappe/ERPNext Account fixture insertion **only on isolated `ccpc-integration2.localhost`**. Before writes, script rechecked target-vs-persistent-`development.localhost` database isolation; fourth snapshot `sites/ccpc-integration2.localhost/private/ccpc-test-snapshots/post-requester-pre-accounts-20261013/20261013_135316-ccpc-integration2_localhost-*` (four nonempty files, matching DB identity, archive checks documented separately); exactly two test companies `Integration Test Issuer (TISS)` and `Integration Test Requester (TREQ)`; complete Frappe/ERPNext setup; valid PHP/Philippines Company settings and enabled non-group Cost Centers; 95 Standard CoA accounts per company; eight suitable enabled parent groups; no name/number conflicts, and no Stock Entries, Sales Invoices, Purchase Invoices, Billing Batches, GL Entries, Customers, Suppliers or Party Account rows.
+
+Using `frappe.get_doc({"doctype":"Account", ...}).insert()` (no SQL INSERT, no historical real-company patches), it created and checked **exactly four non-group PHP ledger accounts for each company**:
+
+| Account number | Account name | Parent group | Root / account type |
+|---|---|---|---|
+| `1312` | `Intercompany Receivable` | `Accounts Receivable - <abbr>` | Asset / Receivable |
+| `2121` | `Intercompany Payable` | `Accounts Payable - <abbr>` | Liability / Payable |
+| `5150` | `Intercompany Materials Expense` | `Indirect Expenses - <abbr>` | Expense / blank |
+| `6050` | `Intercompany Material Charges` | `Indirect Income - <abbr>` | Income / blank |
+
+Full account names are `<number> - <account_name> - TISS` and `<number> - <account_name> - TREQ`, matching `ccpcerp` billing-code string requirements. The command postchecked each account's saved `company`, number, account name, expected parent, root type, account type, ledger/non-group, enabled status and PHP currency; exactly 99 Account rows per company; exactly two Companies; unchanged empty transaction and party baseline. It performed **one `frappe.db.commit()` only after these checks**. User-reported terminal end:
+```text
+Isolated site: VERIFIED
+Fourth recovery checkpoint: VERIFIED
+Both company configurations: VERIFIED
+All eight parent accounts: VERIFIED
+No account name/number conflicts: VERIFIED
+Transaction and party baseline: VERIFIED
+Creating eight dedicated accounts...
+
+COMPANY: Integration Test Issuer (TISS)
+VERIFIED: 1312 - Intercompany Receivable - TISS
+VERIFIED: 2121 - Intercompany Payable - TISS
+VERIFIED: 5150 - Intercompany Materials Expense - TISS
+VERIFIED: 6050 - Intercompany Material Charges - TISS
+Total company accounts: 99
+
+COMPANY: Integration Test Requester (TREQ)
+VERIFIED: 1312 - Intercompany Receivable - TREQ
+VERIFIED: 2121 - Intercompany Payable - TREQ
+VERIFIED: 5150 - Intercompany Materials Expense - TREQ
+VERIFIED: 6050 - Intercompany Material Charges - TREQ
+Total company accounts: 99
+
+Total companies: 2
+EIGHT INTERCOMPANY ACCOUNTS: CREATED AND VERIFIED
+```
+**Completion boundary:** Account fixtures and pre-account archive verified, but no separate post-commit SQL confirmation yet, no restoration drill, no real database integration/rollback/concurrency tests, no internal Customer/Supplier or Party Account fixtures, and **no inventory or financial transactions**. Existing historical patches hardcode real CCPC business companies and must not be run on TISS/TREQ.
+
+**Next:** read-only checks on Customer Group/Supplier Group/Territory defaults, Company ledger Cost Centers, exact eight account records and current empty-party/transaction baseline, then plan scoped internal test Customer representing TREQ for TISS and internal test Supplier representing TISS for TREQ, with company allowlist and dedicated Party Account mapping. Obtain explicit separate operator permission before creating party fixtures; present prior archive-verified snapshot situation and consider a new post-account/pre-party snapshot. Do not change persistent `development.localhost` or PRODUCTION.
+
 ## Fourth isolated recovery snapshot verified before intercompany-account inserts — 2026-10-13
 
 Operator executed the **approved** pre-account site-scoped backup on isolated `ccpc-integration2.localhost` after synthetic `TISS` and `TREQ` Companies were created. Read-only safety checks passed: target DB isolated from `development.localhost`, exact two-company names and abbreviations, 95 existing Standard CoA accounts in each Company, verified company-specific enabled parent Account groups `Accounts Receivable`, `Accounts Payable`, `Indirect Expenses`, `Indirect Income`, no dedicated account numbers 1312/2121/5150/6050, no Stock Entries, Sales/Purchase Invoices, billing batches, Customers or Suppliers; prior three backup checkpoints preserved.
