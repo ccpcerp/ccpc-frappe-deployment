@@ -5,6 +5,25 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Approved three-field install stopped before Frappe connection: incorrect sites_path — 2026-10-14
+
+Owner ran first narrowly approved Stock Entry provenance Custom Field install on isolated `ccpc-integration2.localhost` via `/home/gani/ccpc_stock_entry_fields_setup.py`, with SHA-256 `1c9b2a55cd3126781c247167802ff8569789bd39072a7959d2779e8706716ed5`; script integrity passed. Output:
+
+```text
+ISOLATED SITE: VERIFIED
+ALL TEN EXISTING CHECKPOINTS: VERIFIED (40 FILES)
+REVIEWED SETUP CODE: VERIFIED
+WORKFLOW / SELF-APPROVAL / OPENING STOCK / BALANCED GL: VERIFIED
+NO USERS, STOCK ENTRIES OR UNRELATED TRANSACTIONS: VERIFIED
+STOP: IncorrectSitePath 404 Not Found: ccpc-integration2.localhost does not exist.
+Database DDL might have committed partial schema changes even if rollback was requested.
+DO NOT rerun or restore. Run an independent read-only audit first.
+```
+
+**Defect confirmed by inspection of submitted script:** command runs `cd /workspace/development/frappe-bench`, the script uses `SITES = Path('sites')` for successful direct MySQLdb preflight, but calls `frappe.init(site=SITE)` without `sites_path='sites'`. Frappe v16.33.1's `frappe.init(site, sites_path='.')` defaults to current working directory, so it looked for `/workspace/development/frappe-bench/ccpc-integration2.localhost` instead of `.../frappe-bench/sites/ccpc-integration2.localhost`. Failure arose at **`frappe.init` before `frappe.connect()` and before `setup.ensure_withdrawal_slip_stock_entry_fields()`** (the 'Installing exactly three approved...' banner was not printed), and thus **no DDL was attempted by this script**. The generic failure message about DDL was unconditional and should not be interpreted as proof of partial schema mutation. Still conduct a separate **read-only MySQLdb audit** of the isolated DB, confirm all three `tabCustom Field` rows and corresponding `information_schema.COLUMNS` absent, Workflow intact, same 10 Nos/PHP1000 opening-stock ledger and balanced GL, zero Stock Entry/Withdrawal Slip/invoices, tenth backed-up DB identity. Do not rerun or restore before independent audit.
+
+**If audit passes**, fix solely Frappe initialization to `frappe.init(site=SITE, sites_path='sites')` while keeping exact same bench cwd, and reverify preflight and all 40 protected backup hashes; no extra scope. Consider preparing corrected script and checksum, then continue the already-approved field-only operation. Frappe's `create_custom_fields` may perform DDL/implicit commits once actually invoked; ensure independent postcommit verification. No `bench migrate`, no entire `after_migrate`, no user/role changes, Stock Entry postings, persistent DEVELOPMENT or PRODUCTION operations.
+
 ## Isolated Stock Entry provenance field installation explicitly approved — 2026-10-13
 
 The owner **explicitly approved installation of only three Withdrawal Slip–Stock Entry provenance Custom Fields** on isolated `ccpc-integration2.localhost`: `Stock Entry.withdrawal_slip` (Link → Withdrawal Slip), `Stock Entry.withdrawal_slip_issued_by` (Link → User), and `Stock Entry Detail.withdrawal_slip_item` (Data). These are already defined by `ccpcerp.setup.ensure_withdrawal_slip_stock_entry_fields()` in app review branch `review/intercompany-approval-failure-tests`, last verified HEAD `806fa23516490ec7beefcff03a1baa09d722120e` (`setup.py` Git blob `915e0109a508d503384b227de864ef318fa6ed8c`). No application-code change is needed for this narrowly approved step.
