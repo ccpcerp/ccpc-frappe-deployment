@@ -5,6 +5,37 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Fifth recovery checkpoint independently archive-verified before synthetic internal parties — 2026-10-13
+
+After explicit owner approval, operator ran the **guarded fifth full site backup only** on `ccpc-integration2.localhost` and provided command output. Pre-backup read-only preconditions passed: isolation from persistent `development.localhost`, exactly two test companies with 198 accounts total and eight exact intercompany ledger accounts, intended customer/supplier group parents, leaf `Philippines` Territory, zero internal Customer/Supplier/Party Account/Stock Entry/Stock Ledger Entry/Sales Invoice/Purchase Invoice/GL Entry/Billing Batch records, and four earlier full snapshot artifacts preserved. No synthetic party writes were performed by this backup command.
+
+Official `bench --site ccpc-integration2.localhost backup --with-files --ignore-backup-conf --backup-path "$DEST"` wrote into the protected **absolute directory** `/workspace/development/frappe-bench/sites/ccpc-integration2.localhost/private/ccpc-test-snapshots/post-accounts-pre-parties-20261013` with prefix `20261013_151050-ccpc-integration2_localhost`. Operator's verification:
+```text
+Isolated site: VERIFIED
+Both companies and 198 accounts: VERIFIED
+Eight dedicated intercompany accounts: VERIFIED
+Customer/Supplier group prerequisites: VERIFIED
+Territory: VERIFIED
+Party and transaction baseline: VERIFIED
+Four earlier recovery checkpoints: PRESERVED
+Creating fifth recovery checkpoint...
+Backup for Site ccpc-integration2.localhost has been successfully completed with files
+Verifying fifth recovery checkpoint...
+database.sql.gz | 980410 bytes
+files.tar | 10240 bytes
+private-files.tar | 10240 bytes
+site_config_backup.json | 212 bytes
+Database archive: PASSED
+Public/private archives: PASSED
+Database identity: VERIFIED
+FIFTH RECOVERY CHECKPOINT: VERIFIED AND SECURED
+```
+This confirms **five distinct archive-verified recovery checkpoints**. The new files contain site configuration secrets, remain restricted to protected private directory, and must never be committed to GitHub. No recovery restore test has been performed.
+
+Reviewed current authoritative `ccpcerp` application branch `review/intercompany-approval-failure-tests` at `806fa23516490ec7beefcff03a1baa09d722120e`, especially batch `_get_internal_party` and historical real-CCPC-only party patch. Reviewed ERPNext v16 `Customer`, `Supplier`, `Customer Group`, `Supplier Group` controllers and `erpnext.accounts.party.validate_party_accounts`: Customer/Supplier identity may be by name or naming series; each document supports child tables `companies` (Allowed To Transact With) and `accounts` (Party Account), which validates account belongs to expected company. Customer/Supplier group parent records `All Customer Groups`/`All Supplier Groups` are groups; `Intercompany` should be leaf. `Customer` should represent TREQ and only be allowed under TISS with TISS `1312` receivable; `Supplier` should represent TISS and only allowed under TREQ with TREQ `2121` payable. The other direction is not yet being tested.
+
+**Next authorized action:** one guarded, test-site-only standard-ERPNext document insert of exactly two `Intercompany` group masters plus one internal Customer and one internal Supplier with a single allowed-company row and a single Party Account row apiece; check fifth snapshot identity first, absence of all parties, intact eight dedicated accounts and empty transaction baseline, verify all created fields and counts before a single commit, on error rollback and do **not** blindly rerun. No invoice, billing batch, GL, stock, migration or PRODUCTION scope. Current documentation records verified backup only, **not** that internal party creation succeeded.
+
 ## Owner approved fifth snapshot and minimal TISS-to-TREQ internal parties — 2026-10-13
 
 Operator explicitly replied **Approved** to a scoped plan for (1) a new **post-eight-accounts, pre-internal-parties** full recovery snapshot and (2) only the test-site `Intercompany` Customer Group and Supplier Group, internal Customer representing `Integration Test Requester (TREQ)` allowed to transact only with `Integration Test Issuer (TISS)` and linked to issuer receivable `1312 - Intercompany Receivable - TISS`, and internal Supplier representing `Integration Test Issuer (TISS)` allowed only with `Integration Test Requester (TREQ)` and linked to requester payable `2121 - Intercompany Payable - TREQ`.
