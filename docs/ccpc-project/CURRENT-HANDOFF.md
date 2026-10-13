@@ -5,6 +5,36 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Live DEVELOPMENT/PRODUCTION Docker network boundaries verified — 2026-10-13
+
+**Operator-provided Docker host read-only inspection** of network names and aliases (no environment variables or secrets):
+
+```text
+/frappe_docker_devcontainer-frappe-1
+  network=frappe_docker_devcontainer_default aliases=[frappe_docker_devcontainer-frappe-1 frappe]
+/frappe_docker_devcontainer-mariadb-1
+  network=frappe_docker_devcontainer_default aliases=[frappe_docker_devcontainer-mariadb-1 mariadb]
+/frappe_docker-db-1
+  network=frappe_docker_default aliases=[frappe_docker-db-1 db]
+```
+
+**Confirmed:** The DEVELOPMENT Frappe container and its MariaDB share `frappe_docker_devcontainer_default`, with the MariaDB alias `mariadb` matching effective `development.localhost` DB host. The checked PRODUCTION MariaDB container is on separate `frappe_docker_default`, without an observed connection to the DEV network. Separate live MariaDB storage volumes were previously verified (`frappe_docker_devcontainer_mariadb-data` vs `frappe_docker_db-data`). This **does not guarantee full host-level, credential, or network segmentation**: Docker host/kernel/storage are shared and privileged processes can affect both stacks.
+
+**Readiness:** Persistent `development.localhost` was the only configured site found in the DEV bench. Fresh, explicitly approved DEVELOPMENT four-part backup `20261013_083457-development_localhost` was completed and passed four-file nonzero, gzip, tar and JSON format checks; **no restore rehearsal** has occurred. Combined 155/155 mocked Python tests passed on application review branch `review/intercompany-approval-failure-tests` at `806fa23`. No real MariaDB invoice rollback, transaction, concurrency or schema integration test has run.
+
+**Proposed test isolation plan — not approved/executed:** Create a distinctly named **DEVELOPMENT-only disposable test site** (e.g. `ccpc-integration.localhost`) with **its own new MariaDB database**, reusing only the DEVELOPMENT Frappe bench and MariaDB service. Do not copy persistent DEV or PRODUCTION business data, do not change bench default site or existing `development.localhost` DB, and do not perform migrations on the persistent site. Use synthetic fixtures. Review permissions, storage overhead, Frappe installation/bootstrap requirements, test runner behavior, cleanup, and restoration/recovery strategy. A site within the same DEV bench/database server is **logical isolation only**, not a separate physical server or dedicated MariaDB daemon; broader isolation would require a separate Docker project and DB volume. Request explicit owner approval for new-site/DB creation and separately review/approve any database-changing integration tests, with stop-on-error and no destructive cleanup.
+
+**Next safe read-only step to verify command flags before a site creation proposal:** Run `bench new-site --help` **only** in the DEVELOPMENT container, filtering output for database and administrative options; do not provide or print passwords:
+
+```bash
+docker exec --user frappe frappe_docker_devcontainer-frappe-1 bash -lc '
+cd /workspace/development/frappe-bench || exit 1
+bench new-site --help | grep -Ei -- "db-|database|mariadb|admin|install" | head -n 35
+'
+```
+
+After reviewing available options, propose the precise site-creation command and seek separate approval. Do not create site/DB now or touch PRODUCTION.
+
 ## Read-only DEVELOPMENT effective database endpoint — 2026-10-13
 
 **Operator-provided output** from a read-only merge of `sites/common_site_config.json` with `sites/development.localhost/site_config.json` inside `frappe_docker_devcontainer-frappe-1`. Command printed ONLY endpoint metadata, no config secrets:
