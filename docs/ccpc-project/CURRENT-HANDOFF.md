@@ -5,6 +5,27 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Targeted Withdrawal Slip Workflow successfully committed; independent DB audit pending — 2026-10-13
+
+Owner executed the corrected, previously authorized workflow-only Frappe setup command on isolated `ccpc-integration2.localhost`. Operator reported site/backup/code verified, opening-stock and GL baseline verified, existing Workflow baseline verified, and requestor self-approval policy verified. It called only `ccpcerp.setup.ensure_withdrawal_slip_workflow()` and printed:
+
+```text
+WORKFLOW: CCPC Withdrawal Slip Workflow
+Workflow status: ACTIVE
+Workflow states: 8
+Workflow transitions: 4
+Requestor self-approval: VERIFIED
+Users and role assignments: UNCHANGED
+Stock Entry integration fields: UNCHANGED
+Opening Stock and GL: UNCHANGED
+WORKFLOW PRE-COMMIT CHECKS: PASSED
+WITHDRAWAL SLIP WORKFLOW: COMMITTED AND VERIFIED
+```
+
+**Status:** owner-reported successful committed transaction with in-session pre-commit validation; **separate independent post-commit database audit still pending**. Current reviewed app branch remains `review/intercompany-approval-failure-tests`, at inspected HEAD `806fa23516490ec7beefcff03a1baa09d722120e` (verified `setup.py` Git blob `915e0109a508d503384b227de864ef318fa6ed8c`). The earlier first attempt failed before setup due to `frappe.db.sql()` tuple/list mismatch; independent DB audit verified no changes from that attempt. Corrected script normalized SQL rows and passed.
+
+**Next authorized read-only step:** separately query isolated persisted DB using `MySQLdb` in `START TRANSACTION READ ONLY`, revalidate target vs persistent DEVELOPMENT DB identity and ninth snapshot path, verify exactly one active Withdrawal Slip Workflow, eight child states and four child transitions matching approved self-approval policy, all eight expected Workflow State masters/four Action Masters, untouched user/role and Stock Entry custom fields, and persisted single opening reconciliation, 10 Nos at PHP100 in Bin, SLE and two balanced GL entries, no Withdrawal Slip, Stock Entry, invoice or billing transactions. Update GitHub with exact independent audit result. Do **not** rerun the now-committed workflow creation command. No authorization exists to provision stock-entry schema fields, users, additional permissions, business transactions or other site operations. Full `bench migrate`, `after_migrate()`, persistent `development.localhost`, and PRODUCTION remain out of scope.
+
 ## Independent rollback audit confirms SQL comparison defect — 2026-10-13
 
 Owner ran the separate read-only verification after the first narrow Workflow setup command stopped before invoking its setup function. Audit reported `WORKFLOW ATTEMPT ROLLBACK: VERIFIED`, `OPENING STOCK AND GL: PRESERVED`, `NO DATABASE CHANGES MADE`. The exact Stock Reconciliation row `MAT-RECO-2026-00001` is correct; Frappe SQL returned a tuple of tuples. Comparison against a list of tuples incorrectly failed (`Old list comparison: False`; `Normalized comparison: True`). This confirms the error was in the verification script, not the persisted Opening Stock.
