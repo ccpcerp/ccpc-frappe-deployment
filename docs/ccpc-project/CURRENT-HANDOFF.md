@@ -5,6 +5,31 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Fresh DEVELOPMENT backup files verified — 2026-10-13
+
+**Operator-reported validation run** from the Ubuntu host against the approved October 13 **DEVELOPMENT-only** site backup `20261013_083457-development_localhost`, via `docker exec --user frappe frappe_docker_devcontainer-frappe-1`. The shell command checked that each of four expected files is nonempty, then ran `gzip -t` on `-database.sql.gz`, `tar -tf` on **uncompressed** `-files.tar` and `-private-files.tar`, and `python -m json.tool` on `-site_config_backup.json`; it did not print secrets or extract files. The observed output was:
+
+```text
+DEVELOPMENT fresh backup format checks: PASS
+```
+
+**Verified scope:** existence/nonzero size, gzip integrity, tar archive readability, JSON syntax for all four artifacts in the fresh DEV backup set. This does **not** prove a valid full SQL restoration, database transactional consistency, off-host availability or recovery viability. The backup is on the shared physical server. No PRODUCTION change, migrations, Docker recreation, or database-changing integration tests were executed.
+
+**Current milestone:** Application review branch `review/intercompany-approval-failure-tests`, commit `806fa23`, previously passed **155/155 mocked Python unit tests in one combined run**. DEV and PROD MariaDB volumes were independently distinguished by read-only live Docker inspect. Before any **real** Frappe/MariaDB transactional/concurrency tests, plan and authorize a **separate test site/database** and independent fixtures/rollback; do not run `bench run-tests` directly against persistent `development.localhost` or use production business data.
+
+**Next low-risk read-only operator step:** Enumerate the existing site directories in the DEVELOPMENT bench **without reading site config contents**, so a unique isolation plan can be designed without colliding with existing sites:
+
+```bash
+docker exec --user frappe frappe_docker_devcontainer-frappe-1 bash -lc '
+cd /workspace/development/frappe-bench || exit
+for d in sites/*/; do
+  [ -f "${d}site_config.json" ] && printf "%s\n" "${d#sites/}"
+done
+'
+```
+
+The results list site names only (no database passwords). Decide whether any site is available for isolated testing from explicit ownership/usage evidence; **do not assume a site is disposable**. Then document/review the new test site's database connection, backups, fixtures, migration and rollback procedure and request explicit operator approval before creating or modifying anything.
+
 ## Approved fresh DEVELOPMENT backup completed — 2026-10-13
 
 **Explicit operator approval** was obtained in chat to create a fresh backup **only** for the persistent DEVELOPMENT Frappe site `development.localhost`. The operator ran on Ubuntu:
