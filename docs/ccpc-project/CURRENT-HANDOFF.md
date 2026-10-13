@@ -5,6 +5,37 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Sixth recovery checkpoint archive-verified, before synthetic Item master — 2026-10-13
+
+Operator completed the separately authorized **sixth** full snapshot on isolated `ccpc-integration2.localhost`, with **no Item insert yet**. Guard preflight output confirmed test site isolation, exact two fictional Companies and **198 Accounts**, correct internal-party mappings, warehouse/department/Item Group/UOM master readiness, zero existing Items and transactional records, and all **five earlier** protected checkpoints preserved.
+
+Full `bench --site ccpc-integration2.localhost backup --with-files --ignore-backup-conf --backup-path "$DEST"` succeeded at 2026-10-13 15:43:30 Asia/Manila, writing prefix `20261013_154329-ccpc-integration2_localhost` inside `/workspace/development/frappe-bench/sites/ccpc-integration2.localhost/private/ccpc-test-snapshots/post-parties-pre-item-20261013/`. Operator supplied checksum/integrity-stage readout:
+```text
+Isolated site: VERIFIED
+Two companies and 198 accounts: VERIFIED
+Internal party mappings: VERIFIED
+Item prerequisites: VERIFIED
+No existing items or transactions: VERIFIED
+Five earlier recovery checkpoints: PRESERVED
+Creating sixth recovery checkpoint...
+Backup for Site ccpc-integration2.localhost has been successfully completed with files
+Verifying sixth recovery checkpoint...
+database.sql.gz | 980906 bytes
+files.tar | 10240 bytes
+private-files.tar | 10240 bytes
+site_config_backup.json | 212 bytes
+Database archive: PASSED
+Public/private archives: PASSED
+Database identity: VERIFIED
+SIXTH RECOVERY CHECKPOINT: VERIFIED AND SECURED
+```
+
+All six checkpoints are archive-verified, **not fully restore-tested**. They remain site-private; database credentials must not be printed or committed.
+
+**Next already-approved action** (one guarded test-site-only command): create exactly one `Item` document `CCPC-INT-TEST-CONSUMABLE-001`, name `Synthetic Integration Test Consumable`, group `Consumable`, UOM `Nos`, `is_stock_item=1`, enabled, with explicitly **zero `opening_stock` and zero `standard_rate`** and no serial/batch handling. Use standard `Item.insert()`, do not use real-company-specific patches, check named snapshot and DB identity, party/account baseline, Item uniqueness and absence of ledger/stock transaction records before write, and post-verify exact Item fields/stock and no Item Price/Stock Reconciliation/Stock Entry/GL before single `frappe.db.commit()`. ERPNext v16 `Item.after_insert` only generates Item Prices on nonzero `standard_rate` or opening reconciliation on nonzero `opening_stock`, so leaving both at explicit zero is important. If error, roll back and inspect rather than blindly rerun. No Item has been created so far by this report.
+
+Opening stock quantity and valuation, Stock Reconciliation/Entry/Ledger postings, Withdrawal Slip, Billing Batch, invoices, accounting entries, broader DEVELOPMENT or PRODUCTION actions all **remain outside the user's current authorization**.
+
 ## Owner authorized sixth isolated backup and one zero-stock synthetic Item — 2026-10-13
 
 Operator explicitly answered **Approved** to creating a sixth **post-internal-parties/pre-item** full recovery snapshot and then **one fictional stocked Item** on isolated `ccpc-integration2.localhost` only. The planned Item has `item_code=CCPC-INT-TEST-CONSUMABLE-001`, `item_name=Synthetic Integration Test Consumable`, `item_group=Consumable`, `stock_uom=Nos`, `is_stock_item=1`, `disabled=0`, `opening_stock=0`, no item price/valuation/serial/batch fixture or warehouse account override. The user **did not approve creating actual stock quantity**, Stock Reconciliation/Entry/Ledger/GL postings, Withdrawal Slip, invoices, billing batches, migrations, or changes to persistent `development.localhost` or PRODUCTION.
