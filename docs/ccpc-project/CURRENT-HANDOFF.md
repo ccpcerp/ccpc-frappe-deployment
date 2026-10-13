@@ -5,6 +5,32 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Isolated DEVELOPMENT post-setup/pre-requester backup verified — 2026-10-13
+
+User explicitly **approved creating a new post-setup backup and second fictional test Company** `Integration Test Requester` (`TREQ`, Philippines/PHP, ERPNext Standard CoA), exclusively on `ccpc-integration2.localhost`, after `Integration Test Issuer` (`TISS`) completed its wizard. No authorization for stock moves, invoice creation, historical real-company patches, persistent `development.localhost`, or PRODUCTION.
+
+Operator ran guarded full-site `bench --site ccpc-integration2.localhost backup --with-files --ignore-backup-conf --backup-path "$DEST"`, using an **absolute** path to avoid the earlier accidental `sites/sites` duplication. All post-setup/pre-requester baseline checks and archive integrity succeeded:
+```text
+Isolated site: VERIFIED
+Initial ERPNext setup: VERIFIED
+Previous recovery backups: PRESERVED
+Pre-requester transaction baseline: VERIFIED
+Backup for Site ccpc-integration2.localhost has been successfully completed with files
+database.sql.gz | 973014 bytes
+files.tar | 10240 bytes
+private-files.tar | 10240 bytes
+site_config_backup.json | 212 bytes
+Database gzip integrity: PASSED
+Public and private archives: PASSED
+Database identity: VERIFIED
+POST-SETUP BACKUP: VERIFIED AND SECURED
+```
+Protected backup location within bench:
+`sites/ccpc-integration2.localhost/private/ccpc-test-snapshots/post-setup-pre-requester-20261013/`
+Four files have common filename prefix `20261013_133756-ccpc-integration2_localhost`. This is the **third** preserved checkpoint, after the pre-index and pre-wizard backups. Gzip/TAR/JSON verification and live DB name identity checks passed; **no full restore test** performed. No second Company has yet been created, no transaction records created.
+
+Source-reviewed `erpnext/version-16/erpnext/setup/doctype/company/company.py`: new `frappe.get_doc({"doctype":"Company",...}).insert()` invokes standard `on_update` routines creating chart of accounts, default warehouses, default cost center, and company departments. Use ERPNext standard chart name `Standard`; do not rerun setup wizard nor run `bench migrate`. Require a one-site preflight showing `TISS` only, valid post-setup snapshot, isolated DB, zero transactional records, existing 2026 fiscal year, company abbreviations, and previously verified indexes before the **one-time** insertion. Then verify TREQ’s exactly matching Company fields, default leaf cost center, nonzero chart of accounts and warehouses, and issuer preservation; stop and inspect on any failure. Frappe Company hooks may make broader fixture/config changes; do not blindly retry. Do not run old CCPC account/customer/supplier patches hardcoded for real group entities, and dedicated billing accounts/parties are not yet created.
+
 ## Post-wizard isolated integration baseline independently checked — 2026-10-13
 
 User pasted read-only `MySQLdb` result for `ccpc-integration2.localhost`, confirming site database remains different from persistent `development.localhost` (command would stop otherwise). Verified exact values:
