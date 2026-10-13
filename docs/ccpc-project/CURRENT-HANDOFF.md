@@ -5,6 +5,12 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## DEVELOPMENT billing index patch inconsistency — 2026-10-13
+
+Operator's read-only MySQLdb queries against **only** `ccpc-integration2.localhost` showed `idx_icmb_scope: MISSING` and `idx_icmbi_source_parent: MISSING`, while a subsequent parameterized query showed `Patch Log table: PRESENT` and `Index patch recorded as executed: True` for `ccpcerp.patches.v1_0.add_intercompany_material_billing_indexes`. The query does not yet prove why patch log and index state differ. Do not treat patch-log presence as evidence that DDL ran, especially on a newly installed site. No migration, patch re-execution, or table/index mutation authorized. Previous standalone `frappe.init` attempt failed due to incorrect sites path, followed by logging path failure; neither reached index query. Direct MySQLdb checks are read-only and succeeded.
+
+**Next:** verify the billing tables actually exist and inspect matching/equivalent index metadata read-only; review installer patch-marking semantics before any site-scoped migration or DDL. Keep DEVELOPMENT persistent site and PRODUCTION untouched.
+
 ## Isolated DEVELOPMENT full application registration verified — 2026-10-13
 
 Operator executed read-only `bench --site ccpc-integration2.localhost list-apps` following the successful site and app installation. Output:
