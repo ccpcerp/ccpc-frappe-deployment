@@ -5,6 +5,30 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## DEVELOPMENT integration site creation halted on MariaDB authentication — 2026-10-13
+
+**Operator-reported failed interactive setup** using the previously approved new-site command **only in DEVELOPMENT**: `docker exec -it --user frappe frappe_docker_devcontainer-frappe-1 bash -lc '... bench new-site ccpc-integration.localhost --db-host mariadb --db-type mariadb'`. The Frappe CLI prompted `Enter mysql super user [root]:`. **A value other than `root` was entered at the username prompt**. **Do not copy that value here or into GitHub**, as it resembles a credential and was included in user-shared terminal output. Subsequent password prompt and trace reported `MySQLdb.OperationalError: (1045, "Access denied for user [REDACTED] from DEV-container network")`. Frappe then displayed the interactive prompt `Site creation failed, do you want to rollback the site? [y/N]:`.
+
+**Immediate safety response:** Instruct operator to press **Enter** to choose the default **No**, avoiding automatic rollback/cleanup before inspecting possible partial site artifacts. Do **not** retry or run `--force`; do not assume the failed attempt left nothing. The normal MariaDB administrator username is `root`, with its password entered separately and privately. If the accidentally entered username was a real password, it is exposed in chat transcript and requires **carefully planned credential rotation**, without printing it again.
+
+**Current status:** New site and its DB/app installation **NOT verified as successful**. No further database changes, site rollback, cleanup or real integration tests authorized pending operator report of prompt completion, read-only inspection of `sites/ccpc-integration.localhost` artifacts, and cautious handling of possible partial DB objects. The last successful preflight was an October 13 four-file DEV backup with format checks; `development.localhost` and all PRODUCTION data must be preserved. Approval to create a new DEV site did not grant approval to delete ambiguous partial artifacts or change production.
+
+**Next operator step after returning to shell:** run a read-only presence check **within the DEV Frappe container**, showing only directory existence and filenames, not any site-config contents or passwords:
+
+```bash
+docker exec --user frappe frappe_docker_devcontainer-frappe-1 bash -lc '
+cd /workspace/development/frappe-bench || exit 1
+if [ -e sites/ccpc-integration.localhost ] || [ -L sites/ccpc-integration.localhost ]; then
+  echo "Integration site path exists (partial setup possible)"
+  find sites/ccpc-integration.localhost -maxdepth 1 -mindepth 1 -printf "%f\n"
+else
+  echo "Integration site path absent"
+fi
+'
+```
+
+Then review Frappe installer state/rollback semantics before issuing any recovery or repeat creation command. Site creation may have generated a configuration file containing secrets; never print it. **PRODUCTION untouched in reported operation.**
+
 ## Operator approved isolated DEVELOPMENT integration site setup — 2026-10-13
 
 **Explicit operator approval:** User replied **"Approved"** after being asked: "Do you approve creating `ccpc-integration.localhost`, with its own new DEVELOPMENT database and Frappe, ERPNext, and CCPC applications?" This approval covers **test-site/database creation and installing these applications in the existing DEVELOPMENT bench only**. It **does not authorize** financial transaction tests, modifying the persistent `development.localhost`, a `bench migrate` on that existing site, deletion/cleanup of existing sites or data, Docker restarts, copying production records, or **any PRODUCTION changes**.
