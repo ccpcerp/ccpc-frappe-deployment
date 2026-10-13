@@ -5,6 +5,24 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Opening Stock integration milestone independently verified after commit — 2026-10-13
+
+Operator completed the separate read-only MySQLdb post-commit audit of **isolated ccpc-integration2.localhost**, verified DB identity distinct from persistent `development.localhost`, following successful standard Frappe insert/submit of the sole authorized synthetic opening-stock reconciliation. Final operator result: `OPENING STOCK POST-COMMIT AUDIT: VERIFIED`.
+
+**Persisted records independently verified**:
+- `Stock Reconciliation` **MAT-RECO-2026-00001**, `docstatus=1`, purpose `Opening Stock`, company `Integration Test Issuer`, posting date **2026-10-13**, posting time **16:59:56**, difference account `Temporary Opening - TISS`, cost center `Main - TISS`.
+- Exactly one `Stock Reconciliation Item` child, name `vjpl3g6kjf`, item `CCPC-INT-TEST-CONSUMABLE-001`, warehouse `Stores - TISS`, quantity **10 Nos**, valuation rate **PHP 100**.
+- Exactly one `Bin`: `Stores - TISS`, item, `actual_qty=10`, `valuation_rate=100`, `stock_value=1000`.
+- Exactly one active `Stock Ledger Entry` for this voucher/child item, `actual_qty=0` (normal ERPNext 16.34.2 reconciliation behavior), `qty_after_transaction=10`, `valuation_rate=100`, `stock_value=1000`, `stock_value_difference=1000`, `is_cancelled=0`.
+- Exactly two uncancelled `GL Entry` rows with `is_opening=Yes`, company TISS, cost center Main - TISS: **Debit `Stock In Hand - TISS` PHP 1,000** and **Credit `Temporary Opening - TISS` PHP 1,000**. Total debit equals total credit, PHP 1,000 each.
+- Test Companies `Integration Test Issuer` and `Integration Test Requester`, plus global Stock Settings, persist **Moving Average**; synthetic Item valuation override blank.
+- Master count invariants: 2 Companies, 198 Accounts, 1 Customer, 1 Supplier, 1 Item, 2 Party Accounts, 2 Allowed To Transact With.
+- **Zero unrelated transactions**: Item Price, Stock Entry, Repost Item Valuation, Withdrawal Slip, Sales Invoice, Purchase Invoice, Intercompany Material Billing Batch. No duplicate reconciliation / SLE / GL records.
+
+**Milestone status:** The synthetic opening-stock inventory-plus-perpetual-GL scenario is **independently database-integration verified**, NOT a full approval/material issue/intercompany billing test nor a PRODUCTION-readiness claim. Both prior failed attempts were correctly isolated and separately verified rolled back before this successful posting. ERPNext/Frappe installed versions last verified ERPNext **16.34.2**, Frappe **16.33.1**. The eighth protected recovery checkpoint `sites/ccpc-integration2.localhost/private/ccpc-test-snapshots/post-moving-average-pre-opening-stock-20261013/20261013_163228-ccpc-integration2_localhost-*` remains a **pre-stock** checkpoint; the prior seven archives are also preserved. Archive structure/database identity verified for all eight, **no restoration drill**, and **no post-stock checkpoint yet**.
+
+**Next recommended gated work:** seek explicit owner approval to create a ninth *site-private post-opening-stock/pre-Withdrawal Slip* recovery checkpoint, preserve eight earlier sets, validate site isolation, existing single submitted reconciliation, Bin 10, one SLE, balanced two-entry GL, no subsequent transaction. Before a synthetic Withdrawal Slip test review current custom app review-branch code, installed app alignment, permission gates, department/requestor/supervisor fields, cross-company state transitions, stockroom role; use safe isolated test only, approvals and subsequent Stock Entry/Billing Batch each remain separately gated. Do not alter persistent `development.localhost` or PRODUCTION. No new code changes were made.
+
 ## First opening stock posted successfully; separate persistence audit pending — 2026-10-13
 
 Owner executed the corrected guarded ERPNext Stock Reconciliation posting command on isolated `ccpc-integration2.localhost` after independently verifying rollback of an earlier assertion-only failure, and verified the eighth private pre-stock backup. The script validated identical Company/Item/warehouse/accounts, `Moving Average` for TISS and TREQ, and zero initial stock/financial entries, then inserted and submitted **exactly one** synthetic `Opening Stock` document through standard Frappe APIs.
