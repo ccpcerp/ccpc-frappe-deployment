@@ -5,6 +5,53 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Read-only Withdrawal Slip preflight: code matches, required test roles unassigned — 2026-10-13
+
+Owner ran the requested read-only test-site inspection after ninth protected backup. Output on **isolated ccpc-integration2.localhost**:
+
+```text
+ISOLATED SITE: VERIFIED
+NINTH RECOVERY CHECKPOINT: VERIFIED
+CUSTOM APPLICATION CODE COMPARISON
+doctype/withdrawal_slip/withdrawal_slip.py : MATCH
+withdrawal_slip_stock.py : MATCH
+WITHDRAWAL SLIP METADATA
+('Withdrawal Slip', 0)
+('Withdrawal Slip Item', 0)
+REQUEST CONTEXT
+Requesting Department: (('Operations - TREQ', 'Integration Test Requester', 0, 0),)
+Issuing Warehouse: (('Stores - TISS', 'Integration Test Issuer', 0, 0),)
+REQUIRED WITHDRAWAL SLIP FIELDS
+('requestor', 1)
+('required_by', 1)
+('approving_supervisor', 1)
+('company', 1)
+('source_warehouse', 1)
+('requesting_company', 1)
+('department', 1)
+('physical_location', 1)
+('purpose', 1)
+('items', 1)
+USER ROLE ASSIGNMENT COUNTS
+[no rows]
+INVENTORY AVAILABLE FOR FUTURE TEST
+('CCPC-INT-TEST-CONSUMABLE-001', 'Stores - TISS', 10, 100, 1000)
+EXISTING WORKFLOW DOCUMENT COUNTS
+tabWithdrawal Slip 0
+tabStock Entry 0
+tabIntercompany Material Billing Batch 0
+tabSales Invoice 0
+tabPurchase Invoice 0
+INSTALLED APPLICATION MATCH: YES
+WITHDRAWAL SLIP READ-ONLY PREFLIGHT: COMPLETED
+```
+
+Files were compared by installed Git blob hashes with app review branch `review/intercompany-approval-failure-tests` commit `806fa23516490ec7beefcff03a1baa09d722120e`, and **both match**. `Withdrawal Slip` and `Withdrawal Slip Item` installed as non-custom doctypes, correct issuing/requesting company reference fixtures. Empty role-assignment result means **no `tabHas Role` User assignment for `Withdrawal Slip Requestor`, `Maintenance Supervisor`, or `Stockroom Personnel`**, not proof the `tabRole` definitions are absent. Inventory still 10 Nos and no new transactional documents.
+
+Github source inspection: `WithdrawalSlip.before_validate` sets `approving_supervisor` from current session user upon new request and defaults request context as appropriate. Document required fields include requester, supervisor, required-by, company, source warehouse, requesting company, department, physical location, purpose, items. `_validate_section_requirement` requires section only when active CCPC Sections exist under the department. `_validate_requested_quantities` rejects total draft requested quantity greater than current Bin availability. `withdrawal_slip_stock.make_material_issue` accepts only `Stockroom Review` and requires `received_by` plus stockroom role (or privileged Administrator/System Manager); separately authorized stock issuance needed. Creating using Administrator would bypass a meaningful permission test.
+
+**Next step only READ-ONLY:** inspect presence of Role definitions, enabled non-Administrator user counts and assignments, Supervisor/Requestor/Stockroom DocPerm rows, active CCPC Personnel and CCPC Sections, Workflow records/transition availability, and current snapshot/item count without outputting user identities or credentials. Then agree on controlled isolated test-user/role fixture and draft Withdrawal Slip scope and obtain separate owner approval before any mutation. Ninth archive-verified snapshot `post-opening-stock-pre-withdrawal-slip-20261013/20261013_171109-ccpc-integration2_localhost-*` preserved; no restore drill. No authorization to create users, roles, Withdrawal Slip, Stock Entry, invoice, or change persistent DEVELOPMENT/PRODUCTION.
+
 ## Ninth isolated post-opening-stock checkpoint completed and verified — 2026-10-13
 
 Operator completed the **owner-authorized ninth backup-only checkpoint** for isolated `ccpc-integration2.localhost`. Output confirms preflight: `Isolated test site: VERIFIED`, `Eight previous recovery checkpoints: VERIFIED`, TISS/TREQ Moving Average, submitted first Opening Stock `MAT-RECO-2026-00001`, stock Bin **10 Nos / PHP 1,000**, one Stock Ledger, and balanced opening GL, with no unrelated transactions. All eight predecessors were SHA-256 hashed and verified unchanged again after the backup.
