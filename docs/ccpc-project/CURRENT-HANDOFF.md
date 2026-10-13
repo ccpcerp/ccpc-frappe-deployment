@@ -5,6 +5,31 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Post-commit synthetic ledger and internal-party prerequisites audit verified — 2026-10-13
+
+Operator ran a **read-only post-commit** MySQL audit on isolated `ccpc-integration2.localhost` after the fourth snapshot and eight account insertions. Readout confirms eight exact-account records persisted:
+```text
+Integration Test Issuer | 1312 | 1312 - Intercompany Receivable - TISS | Receivable
+Integration Test Issuer | 2121 | 2121 - Intercompany Payable - TISS | Payable
+Integration Test Issuer | 5150 | 5150 - Intercompany Materials Expense - TISS | [blank]
+Integration Test Issuer | 6050 | 6050 - Intercompany Material Charges - TISS | [blank]
+Integration Test Requester | 1312 | 1312 - Intercompany Receivable - TREQ | Receivable
+Integration Test Requester | 2121 | 2121 - Intercompany Payable - TREQ | Payable
+Integration Test Requester | 5150 | 5150 - Intercompany Materials Expense - TREQ | [blank]
+Integration Test Requester | 6050 | 6050 - Intercompany Material Charges - TREQ | [blank]
+Dedicated account count: 8
+```
+Customer Group master has `All Customer Groups` (is_group=1) and non-group `Commercial`, `Government`, `Individual`, `Non Profit` (no `Intercompany`). Supplier Group has `All Supplier Groups` (is_group=1) and non-group `Distributor`, `Electrical`, `Hardware`, `Local`, `Pharmaceutical`, `Raw Material`, `Services` (no `Intercompany`). Territory `Philippines` (leaf) exists under `All Territories`. `tabCustomer`, `tabSupplier`, `tabParty Account`, `tabStock Entry`, `tabSales Invoice`, `tabPurchase Invoice`, `tabIntercompany Material Billing Batch` all remain count 0 at audit.
+
+Further reviewed `ccpcerp/ccpc_erp/doctype/intercompany_material_billing_batch/intercompany_material_billing_batch.py` on verified `review/intercompany-approval-failure-tests` app branch: `approve_and_create_invoices` obtains exactly one enabled **Customer representing requesting company** and exactly one enabled **Supplier representing issuing company**. For **one-direction integration test only**, minimum synthetic party design (not yet authorized/executed):
+1. `Customer Group` `Intercompany` as leaf under `All Customer Groups`; `Supplier Group` `Intercompany` leaf under `All Supplier Groups`.
+2. One Customer named in `customer_name` field `Integration Test Requester` (actual document identifier may follow naming series), `customer_type=Company`, `territory=Philippines`, `is_internal_customer=1`, `represents_company=Integration Test Requester`, `disabled=0`, with sole `Allowed To Transact With` company `Integration Test Issuer` and one Party Account row for issuer `1312 - Intercompany Receivable - TISS`.
+3. One Supplier named in `supplier_name` field `Integration Test Issuer` (actual document identifier may use naming series), `supplier_type=Company`, `is_internal_supplier=1`, `represents_company=Integration Test Issuer`, `disabled=0`, sole allowed company `Integration Test Requester` and Party Account row for requester `2121 - Intercompany Payable - TREQ`.
+4. No self-trading links or own-company Party Account rows. Company and account scope must be validated. This minimal two-party configuration only supports `TISS` -> `TREQ` billing; reverse direction would require two additional parties later.
+5. ERPNext version-16 Customer/Supplier controllers run `validate_party_accounts` plus internal uniqueness checks and may generate naming series IDs. Use supported document inserts, preflight table schema/defaults and naming, followed by postcommit read-only validation. Existing `ccpcerp/patches/v1_0/create_intercompany_parties.py` is **not applicable** because it targets actual CCPC-company names.
+
+**Next approval gate**: obtain explicit operator authorization for taking a **new post-account/pre-party recovery snapshot** and creating only two `Intercompany` group records + exactly one internal Customer, one internal Supplier, each with one allowed-companies row and one Party Account row. Preserve prior four snapshots; archive verification != tested restore. No additional data was written by the audit, and no party fixtures have yet been created. Invoice submission, stock movements, GL entries, persistent `development.localhost`, or PRODUCTION are outside scope.
+
 ## Eight isolated intercompany ledger accounts created and verified — 2026-10-13
 
 Operator ran the previously approved single-shot Frappe/ERPNext Account fixture insertion **only on isolated `ccpc-integration2.localhost`**. Before writes, script rechecked target-vs-persistent-`development.localhost` database isolation; fourth snapshot `sites/ccpc-integration2.localhost/private/ccpc-test-snapshots/post-requester-pre-accounts-20261013/20261013_135316-ccpc-integration2_localhost-*` (four nonempty files, matching DB identity, archive checks documented separately); exactly two test companies `Integration Test Issuer (TISS)` and `Integration Test Requester (TREQ)`; complete Frappe/ERPNext setup; valid PHP/Philippines Company settings and enabled non-group Cost Centers; 95 Standard CoA accounts per company; eight suitable enabled parent groups; no name/number conflicts, and no Stock Entries, Sales Invoices, Purchase Invoices, Billing Batches, GL Entries, Customers, Suppliers or Party Account rows.
