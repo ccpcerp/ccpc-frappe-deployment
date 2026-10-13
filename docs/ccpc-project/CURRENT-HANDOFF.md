@@ -5,6 +5,28 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Eighth archive-verified isolated pre-opening-stock recovery checkpoint — 2026-10-13
+
+Operator completed the **owner-approved eighth** site-private recovery checkpoint on **only** isolated `ccpc-integration2.localhost`, following independently verified `Moving Average` method configuration and **before** any inventory or accounting transactions. Command preflight verified: target DB isolation, TISS/TREQ both Moving Average, global Stock Settings Moving Average, synthetic stock Item `CCPC-INT-TEST-CONSUMABLE-001` enabled with blank method override, `Stores - TISS`, `Stock In Hand - TISS`, `Temporary Opening - TISS`, `Main - TISS`, unchanged two-company master and party/account mapping counts, zero prior stock/GL/invoice/billing records; **seven previous protected checkpoint archives preserved**.
+
+Eighth successful full `bench backup --with-files --ignore-backup-conf --backup-path` output from operator at **2026-10-13 16:32:28 Asia/Manila**:
+```text
+Backup Summary for ccpc-integration2.localhost at 2026-10-13 16:32:28.947256
+Backup for Site ccpc-integration2.localhost has been successfully completed with files
+Verifying eighth recovery checkpoint...
+database.sql.gz | 982189 bytes
+files.tar | 10240 bytes
+private-files.tar | 10240 bytes
+site_config_backup.json | 212 bytes
+Database archive: PASSED
+Public/private archives: PASSED
+Database identity: VERIFIED
+EIGHTH RECOVERY CHECKPOINT: VERIFIED AND SECURED
+```
+The site-private directory is `/workspace/development/frappe-bench/sites/ccpc-integration2.localhost/private/ccpc-test-snapshots/post-moving-average-pre-opening-stock-20261013/`, prefix `20261013_163228-ccpc-integration2_localhost`. **All eight** protected archive sets preserve distinct tested milestones and passed archive format/DB-identity checks; still **no actual restore drill**.
+
+**Next authorized write, NOT YET EXECUTED:** exactly one synthetic Opening Stock `Stock Reconciliation` on that site, Company TISS, item `CCPC-INT-TEST-CONSUMABLE-001`, warehouse `Stores - TISS`, **10 Nos × PHP 100 = PHP 1,000**, `expense_account=Temporary Opening - TISS`, `cost_center=Main - TISS`, effective Moving Average. Because a previous isolated settings script failed due to API mismatch between upstream source and **installed** ERPNext, first do **read-only inspection using the actual installed ERPNext controller/DocType and runtime**, including actual site-local clock/posting field behavior, current Company accounts, account/warehouse validation, version, and empty transaction baseline, before constructing the posting script. Single guarded commit should follow only after submitted reconciliation has coherent Bin, SLE, and balanced GL 1,000 debit to Stock In Hand and credit to Temporary Opening; independently verify persisted state in new SQL session. Never use direct SQL to modify ledgers; rollback on errors and inspect before rerun. Approval does **not** extend to Withdrawal Slip, Material Issue, invoices, intercompany billing, other master changes, persistent DEVELOPMENT `development.localhost`, or PRODUCTION.
+
 ## Owner approved eighth isolated recovery checkpoint and one PHP 1,000 opening-stock posting — 2026-10-13
 
 Owner explicitly replied **Approved** to the proposal: create an **eighth** protected full checkpoint of isolated `ccpc-integration2.localhost` **after** independently verified Moving Average alignment, then exactly **one** controlled ERPNext `Stock Reconciliation`, purpose `Opening Stock`, Company `Integration Test Issuer` (TISS), Warehouse `Stores - TISS`, Item `CCPC-INT-TEST-CONSUMABLE-001`, **10 Nos at PHP 100/each = PHP 1,000**, difference/expense account **`Temporary Opening - TISS`**, cost center **`Main - TISS`** and effective **Moving Average** valuation. Expected posted GL is inventory asset debit (`Stock In Hand - TISS`) and temporary opening account credit, PHP 1,000 each, **subject to real ERPNext postcommit verification**, together with Stock Ledger and Bin balance. This authorization is site-specific and transaction-limited.
