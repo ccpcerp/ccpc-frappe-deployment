@@ -5,6 +5,36 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## DEVELOPMENT site inventory — only persistent site exists (2026-10-13)
+
+**Operator-provided read-only output:** A command in `frappe_docker_devcontainer-frappe-1` enumerated site directories containing `site_config.json` in `/workspace/development/frappe-bench/sites`. Its **only result** was:
+
+```text
+development.localhost/
+```
+
+This confirms there is **no preexisting second Frappe site in this DEVELOPMENT bench** based on the on-disk site directory check. `development.localhost` contains persistent DEV data and **must not be regarded as disposable**. To validate actual MariaDB invoice rollback and concurrency safely, first design a dedicated **new isolated integration-test site and distinct DEV test database**, review connectivity, fixtures and cleanup/rollback procedures, and request explicit user approval before creating any site/database or running tests. Do not use production databases or copies of production data. The fresh four-part October 13 DEV backup successfully passed gzip/tar/JSON syntax checks but is not restore-proven.
+
+**Next one-step read-only preflight:** Review the **effective DEVELOPMENT site DB host/port only**, merging common and site JSON configuration, without printing database name, passwords or other configuration. Execute on the Ubuntu host:
+
+```bash
+docker exec --user frappe frappe_docker_devcontainer-frappe-1 bash -lc '
+cd /workspace/development/frappe-bench || exit 1
+./env/bin/python -c "
+import json
+from pathlib import Path
+base = Path(\"sites\")
+common = json.loads((base / \"common_site_config.json\").read_text())
+site = json.loads((base / \"development.localhost\" / \"site_config.json\").read_text())
+effective = {**common, **site}
+print(\"DEVELOPMENT DB host:\", effective.get(\"db_host\", \"[not set]\"))
+print(\"DEVELOPMENT DB port:\", effective.get(\"db_port\", \"[default]\"))
+"
+'
+```
+
+A successful result identifies the configured endpoint only, **not guaranteed isolation**; separately check the Docker networks before site creation. This operation reads two DEV JSON files and prints only non-secret endpoint metadata. No DB or PROD modifications authorized. App review branch remains at verified commit `806fa23516490ec7beefcff03a1baa09d722120e` with 155 combined mocked unit tests passing.
+
 ## Fresh DEVELOPMENT backup files verified — 2026-10-13
 
 **Operator-reported validation run** from the Ubuntu host against the approved October 13 **DEVELOPMENT-only** site backup `20261013_083457-development_localhost`, via `docker exec --user frappe frappe_docker_devcontainer-frappe-1`. The shell command checked that each of four expected files is nonempty, then ran `gzip -t` on `-database.sql.gz`, `tar -tf` on **uncompressed** `-files.tar` and `-private-files.tar`, and `python -m json.tool` on `-site_config_backup.json`; it did not print secrets or extract files. The observed output was:
