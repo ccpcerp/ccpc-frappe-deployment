@@ -5,6 +5,41 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Isolated valuation update rollback independently verified; safe retry authorized — 2026-10-13
+
+Operator independently checked actual persisted DB values **after** the prior failed Moving Average update (ImportError from missing installed ERPNext `erpnext.stock.utils.clear_valuation_method_cache`). The independent MySQLdb read-only SQL check explicitly verified target `ccpc-integration2.localhost` versus separate persistent `development.localhost` DB identity. Exact operator output:
+
+```text
+ISOLATED SITE: VERIFIED
+
+PERSISTED COMPANY VALUATION METHODS
+('Integration Test Issuer', 'FIFO')
+('Integration Test Requester', 'FIFO')
+
+PERSISTED GLOBAL STOCK SETTINGS
+(('FIFO',),)
+
+PERSISTED ITEM VALUATION OVERRIDE
+(('CCPC-INT-TEST-CONSUMABLE-001', ''),)
+
+STOCK AND FINANCIAL TRANSACTION COUNTS
+tabBin 0
+tabStock Reconciliation 0
+tabStock Entry 0
+tabStock Ledger Entry 0
+tabGL Entry 0
+tabWithdrawal Slip 0
+tabSales Invoice 0
+tabPurchase Invoice 0
+tabIntercompany Material Billing Batch 0
+
+ROLLBACK VERIFIED: ORIGINAL FIFO STATE PRESERVED
+```
+
+**Conclusion:** the failed attempt's `frappe.db.rollback()` worked; all three valuation methods persisted as FIFO, item override blank, zero stock/accounting documents. No restoration necessary; seventh protected full site backup remains archive-verified, site-private and pre-change (`private/ccpc-test-snapshots/post-item-pre-moving-average-20261013/20261013_161234-ccpc-integration2_localhost-*`). Prior six checkpoints remain preserved, none restore-tested.
+
+**Next action is permitted under existing explicit owner approval**: retry changing exactly two isolated test `Company.valuation_method` and `Stock Settings.valuation_method` using targeted Frappe DB APIs; **do not import optional helper `clear_valuation_method_cache`** from installed app (confirmed unavailable), and avoid relying on assumptions about upstream release helper names. After verifying preflight/backup and original FIFO, make three writes, check the updated fields with **direct SQL in the same transaction** (avoids stale Frappe caches), ensure Item override remains blank, other masters/financial/stock counts unchanged, then commit once; rollback on any error. Independently verify persisted SQL **in a new separate session after commit** and effective Item method from installed API after version compatibility is inspected. Do not rerun previous failed script or blindly retry on a mismatch. Opening-stock reconciliation and all material/financial postings remain unapproved, as do changes to persistent DEVELOPMENT or PRODUCTION.
+
 ## Moving Average update interrupted by installed ERPNext helper import — 2026-10-13
 
 Operator executed the **already authorized** three-field Moving Average change script on the isolated `ccpc-integration2.localhost` site, following the verified seventh pre-change protected backup (prefix `20261013_161234-ccpc-integration2_localhost`). Operator pasted:
