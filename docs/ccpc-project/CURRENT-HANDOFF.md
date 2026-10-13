@@ -5,6 +5,29 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Live DEVELOPMENT and PRODUCTION database container discovery — 2026-10-13
+
+**Operator-provided read-only Docker host output** from `gani@ccpcerpserver`:
+
+```text
+docker ps --format 'table {{.Names}}\t{{.Status}}' | grep -Ei 'NAMES|mariadb|db-'
+NAMES                                      STATUS
+frappe_docker_devcontainer-mariadb-1       Up 23 hours
+frappe_docker-db-1                         Up 24 hours (healthy)
+```
+
+Confirms two **distinct running MariaDB containers**, first under the DEVELOPMENT Compose project and second under the PRODUCTION project. **It does not yet establish separate Docker database volume mounts or independent physical storage**; both share the Ubuntu host and Docker daemon. Do not infer "healthy" status for DEV, as its output only says Up.
+
+**Next one-step read-only Docker mount verification** to run on the Ubuntu **host**, with no environment/config secrets printed:
+
+```bash
+docker inspect --format '{{.Name}}:{{range .Mounts}}{{if eq .Destination "/var/lib/mysql"}} {{.Type}} {{.Name}} {{.Source}} -> {{.Destination}}{{end}}{{end}}' \
+  frappe_docker_devcontainer-mariadb-1 \
+  frappe_docker-db-1
+```
+
+Compare DEV vs PROD mounts. No DB integration tests, fresh backup, schema changes, restore or PRODUCTION actions have been authorized. October 9 DEV four-file archive validation passed only compression/JSON syntax checks, not restore. The 155 combined mocked unit tests passed on app review commit `806fa23`.
+
 ## DEVELOPMENT Oct 9 backup archive syntax verification — 2026-10-13
 
 **Operator-provided terminal output:** From `/workspace/development/frappe-bench` inside DEVELOPMENT, the operator ran read-only validation against the four `sites/development.localhost/private/backups/20261009_061614-development_localhost-*` backup artifacts:
