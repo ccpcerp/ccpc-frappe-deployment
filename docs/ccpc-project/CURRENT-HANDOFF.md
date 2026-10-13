@@ -5,6 +5,27 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Verified distinct live DEV and PROD MariaDB storage volumes — 2026-10-13
+
+**Operator-provided read-only host Docker inspection:** On `gani@ccpcerpserver`, inspecting the `/var/lib/mysql` mounts for both running database containers returned:
+
+```text
+/frappe_docker_devcontainer-mariadb-1: volume frappe_docker_devcontainer_mariadb-data /var/lib/docker/volumes/frappe_docker_devcontainer_mariadb-data/_data -> /var/lib/mysql
+/frappe_docker-db-1: volume frappe_docker_db-data /var/lib/docker/volumes/frappe_docker_db-data/_data -> /var/lib/mysql
+```
+
+**Conclusion:** Verified **separate named Docker volumes and separate host source paths** for DEV and PROD MariaDB data directories, matching the intended Compose project separation. This establishes database *storage directory* separation, **not independent physical servers**, full network/credential segregation, database/schema completeness or restore viability. The environments share the physical Ubuntu host and Docker daemon; direct Docker privileges can affect both. No production mutation occurred from this read-only inspect.
+
+**Safety status:** 155/155 mocked Python tests passed in one combined DEVELOPMENT run at app review commit `806fa23`. The October 9 four-part DEV backup passed gzip/tar/JSON syntax checks but is stale for Oct 13 and has not been restored. Actual MariaDB rollback/durability, locking/concurrency, Frappe integration and indexed schema tests remain pending; no migrations or database-changing tests approved.
+
+**Next safe operator action:** Check the filesystem's available space/inodes for the *DEV site backup destination only*, from the Ubuntu host without opening credentials or touching production:
+
+```bash
+docker exec frappe_docker_devcontainer-frappe-1 bash -lc 'df -h /workspace/development/frappe-bench/sites && df -i /workspace/development/frappe-bench/sites'
+```
+
+Use the output to plan a new complete `development.localhost` backup and eventual separated restoration rehearsal/rollback review. Do **not** execute a fresh backup, database-integrated test, `bench migrate`, restore, or prod action until its precise scope/safety plan is agreed with the operator.
+
 ## Live DEVELOPMENT and PRODUCTION database container discovery — 2026-10-13
 
 **Operator-provided read-only Docker host output** from `gani@ccpcerpserver`:
