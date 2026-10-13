@@ -5,6 +5,16 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Isolated DEVELOPMENT full application registration verified — 2026-10-13
+
+Operator executed read-only `bench --site ccpc-integration2.localhost list-apps` following the successful site and app installation. Output:
+```text
+frappe  16.33.1 version-16
+erpnext 16.34.2 version-16
+ccpcerp 0.0.1   review/intercompany-approval-failure-tests
+```
+All three applications are registered on the isolated site. This does **not** prove the intercompany billing schema indexes/patches, hooks, transaction integrity, permissions, or concurrent operations function correctly. No data-changing integration tests or PRODUCTION actions performed. Next step is read-only checks of applicable index and patch state, then plan synthetic tests with explicit approval and preserved backups.
+
 ## Isolated DEVELOPMENT CCPC app installation completed — 2026-10-13
 
 Operator reported `bench --site ccpc-integration2.localhost install-app ccpcerp` completed with `Updating DocTypes for ccpcerp: 100%` and `CCPC installation exit code: 0`. Previous terminal verification established the new site's separate functioning MariaDB schema, Frappe 16.33.1 and ERPNext 16.34.2 installed. Prior to installation, DEVELOPMENT custom-app checkout was `review/intercompany-approval-failure-tests` at `806fa23` with untracked `AGENTS.md` deliberately preserved; the guarded installation command checked the exact full commit `806fa23516490ec7beefcff03a1baa09d722120e` and would stop if mismatched. Installer success is operator-provided output; post-install `list-apps`, schema/migration status, live hooks and integration tests have **not** yet been verified. No financial workflow tests or PRODUCTION operations reported.
