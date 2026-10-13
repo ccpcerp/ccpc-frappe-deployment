@@ -5,6 +5,20 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## DEVELOPMENT partial site DB identifiers checked without disclosure — 2026-10-13
+
+**Operator-provided read-only results:** Within the DEVELOPMENT Frappe container, read (but did **not** print) `db_name` and `db_user` fields in the partial `sites/ccpc-integration.localhost/site_config.json`; compared its database name to persistent `development.localhost`. Results:
+
+```text
+1. Partial site has DB name: True
+2. Different from existing DEVELOPMENT DB: True
+3. Partial site has DB user: True
+```
+
+The partial site has its own *configured* DB name/user, distinct from the persistent site's DB name; **none of these booleans proves that a database or user was actually created**. The original creation failed on MariaDB authentication during Frappe's `create_user -> get_current_host`, before the ordinary database-creation step, making absence plausible but not yet independently verified. Neither partial files nor existing site data were deleted or modified by this check; PRODUCTION untouched.
+
+**Next read-only preflight proposal:** Query **only** the DEVELOPMENT MariaDB service `mariadb` via an interactive Python helper in `frappe_docker_devcontainer-frappe-1`, reading partial config names privately, prompting with `getpass` for MariaDB DEV root password (never in command/history/chat), and querying `information_schema.SCHEMATA` for the partial DB's existence without printing any schema names. If authenticated, optionally query `mysql.user` for the partial DB user's existence; both are SELECT only. Stop on auth error; no password logging, privilege changes, forced site recreation, rollback, or cleanup. This will enable a separately authorized safe partial-site recovery plan. If earlier user-entered SQL-username value was a real password, treat as disclosed and plan rotation separately, not in GitHub.
+
 ## DEVELOPMENT partial integration-site directory observed — 2026-10-13
 
 **Operator-reported results after failed approved site creation:** The terminal returned `Aborted!` and prompt `gani@ccpcerpserver` after declining Frappe's rollback, then a read-only `find` of `sites/ccpc-integration.localhost` inside `frappe_docker_devcontainer-frappe-1` reported that the site path **exists** and contains **`logs`, `locks`, `private`, `site_config.json`, `public`**. Do not print/read that JSON raw because it can contain credentials; no secrets are reproduced in this handoff. Successful site creation, separate DB creation, or app installation **NOT verified**. Preserve any partial files; **no `rm`, rollback, `--force`, re-run of `new-site`, migrations, or PROD changes** are authorized at this moment.
