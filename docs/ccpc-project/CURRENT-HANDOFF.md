@@ -5,6 +5,12 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Isolated DEVELOPMENT equivalent-index inspection — 2026-10-13
+
+The operator ran a read-only metadata query using MySQLdb on `ccpc-integration2.localhost`. The **only reported secondary indexes** are `creation` on `tabIntercompany Material Billing Batch` and `parent` on `tabIntercompany Material Billing Item`; **no equivalent composite indexes** for either CCPC-defined target were found. Missing named targets `idx_icmb_scope` and `idx_icmbi_source_parent` were separately confirmed earlier. Both tables exist. This is an expected possible fresh-install discrepancy because Frappe v16 `install_app(..., set_as_patched=True)` marks historical patches as completed by inserting Patch Log rows, not calling their `execute()` functions. No conclusion of DB corruption or confirmed runtime error should be made.
+
+GitHub review branch `review/intercompany-approval-failure-tests` still points to `806fa23516490ec7beefcff03a1baa09d722120e`. Its index patch defines two NON-UNIQUE BTREE composite indexes, checks for equivalent/conflicting definitions, and creates indexes using `frappe.db.add_index`; it does not provide database-level uniqueness. No index DDL or patch re-execution has been approved or performed yet. **Next:** read-only check target columns' availability/types and table sizes, then independently approved backup and isolated-site-only index creation with exact schema/postcondition checks; no broad `bench migrate`, no Patch Log editing, no PRODUCTION actions.
+
 ## Isolated DEVELOPMENT billing tables confirmed; new-install patch-log semantics reviewed — 2026-10-13
 
 Operator read-only MySQLdb `information_schema.TABLES` checks against `ccpc-integration2.localhost` reported **both** `tabIntercompany Material Billing Batch: PRESENT` and `tabIntercompany Material Billing Item: PRESENT`. Earlier checks found `idx_icmb_scope` and `idx_icmbi_source_parent` absent but the named index patch logged in `tabPatch Log`.
