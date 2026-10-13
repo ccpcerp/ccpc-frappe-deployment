@@ -5,6 +5,22 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## First scoped Workflow setup attempt stopped at Python SQL row-container mismatch — 2026-10-13
+
+The owner ran the previously approved, guarded, isolated-site-only `ccpcerp.setup.ensure_withdrawal_slip_workflow()` command and pasted terminal output. The preflight printed:
+```text
+ISOLATED SITE: VERIFIED
+NINTH RECOVERY CHECKPOINT: VERIFIED
+GITHUB-REVIEWED SETUP CODE: VERIFIED
+WORKFLOW SETUP STOPPED: RuntimeError Opening Stock document baseline changed.
+Database rollback requested.
+Independently inspect persisted state before any retry.
+```
+
+The failure occurred **BEFORE** the code path invoking `setup.ensure_withdrawal_slip_workflow()`, at `require(db.sql("SELECT ... FROM tabStock Reconciliation") == [(expected_row)], "Opening Stock document baseline changed.")`. The baseline was independently verified in the preceding milestone and no alteration to the reconciliation has been shown. **Most likely root cause is verification code using list-of-tuples equality for Frappe `frappe.db.sql()` default output, which is normally a tuple of tuples** (the previous succeeding preflight explicitly applied `tuple(db.sql(...))`). Frappe `v16.33.1` `frappe/database/database.py::Database.sql` returns its cursor's `fetchall()` output unchanged by default (unless `as_list` or `as_dict` requested); a tuple of tuples never equals `[(...)]`, even if values are correct. Other later comparisons in this same script have the same bug; correct ALL SQL row comparisons before retry. There was no `WORKFLOW: ...` or `WORKFLOW ... COMMITTED` output; the exception handler invoked `frappe.db.rollback()`. **Do not claim independent rollback/database state verified until a separate read-only audit is run.** No rollback or restore action is authorized.
+
+**Next action: read-only isolated DB audit** with DB identity check against `development.localhost` and ninth backed-up config identity, show the exact `Stock Reconciliation` row and `frappe.db.sql()` returned Python row-container type, assert expected stock reconciliation, Bin 10/100/1000, SLE, balanced two-row GL, and **zero Workflow document for Withdrawal Slip, no new Workflow State/Action Master rows, zero Withdrawal Slip/Stock Entry and absent provenance custom fields**. If confirmed no writes persisted, repair the script's row-container comparisons (use `tuple(db.sql(...)) == (expected_row,)` or `as_dict=True`) and review whether `db.sql(FOR UPDATE)` comparisons require same correction. Only then run the previously authorized narrow workflow setup; post-commit independently audit. Never run `after_migrate` or `bench migrate`. Ninth checkpoint `20261013_171109-ccpc-integration2_localhost-*` must remain protected, and no transaction/user/role/other-schema write authorized.
+
 ## Owner authorizes only targeted isolated Withdrawal Slip Workflow provisioning — 2026-10-13
 
 The owner **explicitly approved only** provisioning the existing `CCPC Withdrawal Slip Workflow` on isolated `ccpc-integration2.localhost`; permission scope excludes broad migrations, user creation, stock-entry permissions or custom schema fields, Withdrawal Slips, Stock Entries, invoices, billing, changes to persistent `development.localhost` and any PRODUCTION changes. Current policy **requestor self-approval permitted** per existing reviewed `ccpcerp.setup.WORKFLOW_TRANSITIONS` (Draft → Approved by Withdrawal Slip Requestor; Approved → Stockroom Review by Stockroom Personnel). No custom app code changes requested.
