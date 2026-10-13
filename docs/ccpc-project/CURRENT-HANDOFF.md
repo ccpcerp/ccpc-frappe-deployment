@@ -5,6 +5,44 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Independent committed synthetic Item and zero-stock/GL baseline confirmed — 2026-10-13
+
+Operator ran a **separate read-only post-commit MySQLdb audit** against isolated `ccpc-integration2.localhost` after the one previously authorized Item insertion. The audit checked site DB identity distinct from persistent `development.localhost`, selected the **only** Item row and asserted exact identity/configuration, asserted opening stock, valuation rate and standard rate all zero, and asserted no Bin or stock/accounting/billing documents. Complete supplied output:
+
+```text
+ISOLATED SITE: VERIFIED
+
+SYNTHETIC ITEM
+('CCPC-INT-TEST-CONSUMABLE-001', 'CCPC-INT-TEST-CONSUMABLE-001', 'Synthetic Integration Test Consumable', 'Consumable', 'Nos', 1, 0, 0, 0, Decimal('0E-9'), Decimal('0E-9'), Decimal('0E-9'))
+
+STOCK AND ACCOUNTING BASELINE
+tabBin 0
+tabItem Price 0
+tabStock Reconciliation 0
+tabStock Entry 0
+tabStock Ledger Entry 0
+tabGL Entry 0
+tabWithdrawal Slip 0
+tabSales Invoice 0
+tabPurchase Invoice 0
+tabIntercompany Material Billing Batch 0
+
+MASTER DATA COUNTS
+tabCompany 2
+tabAccount 198
+tabCustomer 1
+tabSupplier 1
+tabItem 1
+tabParty Account 2
+tabAllowed To Transact With 2
+
+SYNTHETIC ITEM POST-COMMIT CHECK: VERIFIED
+```
+
+**Verified:** one committed synthetic stocked and enabled `CCPC-INT-TEST-CONSUMABLE-001` Item, `Consumable` group, `Nos` UOM, no serial/batch tracking, zero opening stock/standard selling rate/valuation, no Item Price/Bin/Stock Reconciliation/Stock Entry/Stock Ledger/GL/Withdrawal Slip/Invoices/Billing Batch, and baseline two Companies/198 Accounts/internal trading parties unchanged. Sixth full private checkpoint `sites/ccpc-integration2.localhost/private/ccpc-test-snapshots/post-parties-pre-item-20261013/20261013_154329-ccpc-integration2_localhost-*` was taken **before Item insert**; six archives checked but no restore trial.
+
+**Next action is read-only stock-accounting readiness investigation**: inspect TISS stock/reconciliation Company defaults (`stock_adjustment_account`, `cost_center`, perpetual flag/PHP), candidate enabled leaf expense or temporary equity account as appropriate, required Warehouse and item/group defaults, existing ledger and zero-quantity checks. Consult matching installed ERPNext version Stock Reconciliation validations before choosing quantity, PHP valuation rate, posting date, expense account, cost center. Do **not** create stock quantity, Stock Reconciliation/Stock Entry/GL, Withdrawal Slip or invoices under existing Item authorization. Obtain separate explicit approval and recommend protected post-item/pre-stock seventh snapshot. Any genuine stock valuation operation must use standard ERPNext document posting and verify SLE/GL balance and rollback/test environment confinement. Persistent `development.localhost` and PRODUCTION out of scope.
+
 ## One zero-opening-stock synthetic Item created and verified in isolated site — 2026-10-13
 
 Operator ran the **previously authorized** guarded Frappe Item insertion on **only** isolated `ccpc-integration2.localhost` after verifying the sixth site-private backup artifacts with prefix `20261013_154329-ccpc-integration2_localhost` and matching target database identity distinct from persistent `development.localhost`. Initial preflight checks passed: exact TISS and TREQ pair, 99 Account rows each, correct internal Customer/Supplier and company allowlists/Party Accounts, eligible `Operations - TREQ` and `Stores - TISS`, available `Consumable` group and `Nos` UOM, PHP/perpetual inventory Company settings, zero Item rows and zero transaction/price/bin documents.
