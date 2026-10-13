@@ -5,6 +5,30 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## First opening stock posted successfully; separate persistence audit pending — 2026-10-13
+
+Owner executed the corrected guarded ERPNext Stock Reconciliation posting command on isolated `ccpc-integration2.localhost` after independently verifying rollback of an earlier assertion-only failure, and verified the eighth private pre-stock backup. The script validated identical Company/Item/warehouse/accounts, `Moving Average` for TISS and TREQ, and zero initial stock/financial entries, then inserted and submitted **exactly one** synthetic `Opening Stock` document through standard Frappe APIs.
+
+**Operator-reported successful result (in-session checks before one database commit):**
+```text
+Posting date: 2026-10-13
+Posting time: 16:59:56
+Reconciliation: MAT-RECO-2026-00001
+Document Status: SUBMITTED
+Bin: CCPC-INT-TEST-CONSUMABLE-001 / Stores - TISS / actual_qty 10 / valuation_rate 100 / stock_value 1000
+SLE: company Integration Test Issuer; voucher_detail_no vjpl3g6kjf; actual_qty 0; qty_after_transaction 10; valuation_rate 100; stock_value 1000; stock_value_difference 1000; is_cancelled 0
+GL: Stock In Hand - TISS (Main - TISS) debit 1000 credit 0 is_opening Yes is_cancelled 0
+GL: Temporary Opening - TISS (Main - TISS) debit 0 credit 1000 is_opening Yes is_cancelled 0
+GL Balance: VERIFIED
+Unrelated documents: NONE
+ALL PRE-COMMIT CHECKS: PASSED
+OPENING STOCK: COMMITTED AND VERIFIED
+```
+
+The operator output reports **successful `frappe.db.commit()`**, with 10 Nos × PHP 100 = PHP 1,000 synthetic inventory. Distinguish this from **independent persistence audit, still pending**. Crucial ERPNext 16.34.2 reconciliation behavior: SLE `actual_qty=0` is expected while `qty_after_transaction=10` reflects the updated balance; previous script incorrectly checked `actual_qty==10` and rolled back.
+
+**Next safe step:** independent read-only MySQLdb session with target DB-identity guard vs persistent `development.localhost`, check the one submitted `MAT-RECO-2026-00001` and exact Item row, one Bin at 10/100/1000, one active SLE at 0/10/100/1000/1000, exactly two active opening GL entries for only that voucher and exact 1000 inventory debit/temporary credit, all master counts unchanged, TISS/TREQ/global Moving Average, item override blank, no unrelated Stock Entry/Withdrawal Slip/invoices/batch/repost. Do not recreate or rerun the opening reconciliation now that the script reports committed. After independently confirmed persistence, update the same GitHub handoff with actual audit outcome and next milestone. All eight private checkpoints were archive-verified, last one captured **pre-stock**; no restoration drill and no post-stock checkpoint. PRODUCTION and persistent DEVELOPMENT untouched.
+
 ## Opening-stock rollback independently verified; retry remains within approval — 2026-10-13
 
 Owner ran the independent, read-only post-failure audit of isolated ccpc-integration2.localhost and reported **ROLLBACK VERIFIED: NO STOCK POSTING PERSISTED**. TISS and TREQ persisted Moving Average; global Stock Settings Moving Average; synthetic Item CCPC-INT-TEST-CONSUMABLE-001 override blank, is_stock_item=1 and disabled=0. Master counts remain two Companies, 198 Accounts, one Customer, one Supplier, one Item, two Party Accounts and two Allowed To Transact With rows. All inspected transactions persisted zero: Bin, Item Price, Stock Reconciliation, Stock Reconciliation Item, Stock Entry, Stock Ledger Entry, GL Entry, Repost Item Valuation, Withdrawal Slip, Sales Invoice, Purchase Invoice, Intercompany Material Billing Batch. There is no need to restore the eighth private recovery checkpoint.
