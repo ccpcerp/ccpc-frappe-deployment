@@ -5,6 +5,23 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Isolated DEVELOPMENT billing indexes created and independently verified — 2026-10-13
+
+**Operator-approved schema operation completed successfully** on `ccpc-integration2.localhost` only. Operator submitted terminal output for guarded command executed inside `frappe_docker_devcontainer-frappe-1` as `frappe` user. Preconditions checked `review/intercompany-approval-failure-tests` at exact commit `806fa23516490ec7beefcff03a1baa09d722120e` with no tracked modifications, four pre-change backup artifacts existed, and new site had a different DB name from persistent `development.localhost`. The command used `bench --site ccpc-integration2.localhost execute ccpcerp.patches.v1_0.add_intercompany_material_billing_indexes.execute` (not `bench migrate` or Patch Log change). Output:
+```text
+Isolated DEVELOPMENT database: VERIFIED
+Executing approved index patch on ccpc-integration2.localhost only
+Index patch command completed.
+idx_icmb_scope: VERIFIED
+idx_icmbi_source_parent: VERIFIED
+BOTH INDEX DEFINITIONS VERIFIED
+```
+Independent parameterized `information_schema.STATISTICS` queries on the new site's own DB credentials confirmed the full ordered columns, NON_UNIQUE=1, BTREE index type, no prefix lengths for:
+- `idx_icmb_scope` on `tabIntercompany Material Billing Batch` (`issuing_company`, `requesting_company`, `billing_month`)
+- `idx_icmbi_source_parent` on `tabIntercompany Material Billing Item` (`stock_entry_detail`, `parent`)
+
+**Status now: indexes are present and verified**; historical notes below that say 'missing' reflect earlier pre-correction observations, not the current state. Pre-change backup dated `20261013_102539` passed gzip/TAR/JSON archive checks; a restoration test was NOT performed. No evidence of changes to persistent `development.localhost` or PRODUCTION, and no general migration was invoked. **Not yet tested:** database integration, financial correctness, idempotency, rollback, concurrency, permissions and actual end-to-end transaction behavior. Proceed with a **read-only** test-fixture readiness check, then separately authorize synthetic test data/transactions (isolation, clean rollback/cleanup strategy, and snapshots) before writes. Do not assume production readiness.
+
 ## Isolated DEVELOPMENT pre-index backup archive integrity verified — 2026-10-13
 
 Operator ran read-only archive/config checks on the four full-site backup files under `sites/ccpc-integration2.localhost/private/backups/`, prefix `20261013_102539-ccpc-integration2_localhost`. Reported:
