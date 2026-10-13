@@ -5,6 +5,39 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## One zero-opening-stock synthetic Item created and verified in isolated site — 2026-10-13
+
+Operator ran the **previously authorized** guarded Frappe Item insertion on **only** isolated `ccpc-integration2.localhost` after verifying the sixth site-private backup artifacts with prefix `20261013_154329-ccpc-integration2_localhost` and matching target database identity distinct from persistent `development.localhost`. Initial preflight checks passed: exact TISS and TREQ pair, 99 Account rows each, correct internal Customer/Supplier and company allowlists/Party Accounts, eligible `Operations - TREQ` and `Stores - TISS`, available `Consumable` group and `Nos` UOM, PHP/perpetual inventory Company settings, zero Item rows and zero transaction/price/bin documents.
+
+The script used normal `frappe.get_doc({"doctype":"Item",...}).insert(ignore_permissions=True)` with `opening_stock=0` and `standard_rate=0` (prevents ERPNext `Item.after_insert` auto-opening reconciliation and auto Item Price), then verified saved Item fields, exactly one Item, unchanged Company/Account/Customer/Supplier master counts, empty `Item Price`, `Bin`, `Withdrawal Slip`, `Stock Reconciliation`, `Stock Entry`, `Stock Ledger Entry`, `Sales Invoice`, `Purchase Invoice`, `GL Entry` and `Intercompany Material Billing Batch`; **one `frappe.db.commit()` after all checks**. Operator pasted:
+
+```text
+Isolated site: VERIFIED
+Sixth recovery checkpoint: VERIFIED
+Two-company accounting baseline: VERIFIED
+Internal Customer/Supplier mappings: VERIFIED
+Item Group and UOM: VERIFIED
+Warehouse and Department: VERIFIED
+No Items or transactions: VERIFIED
+Creating one fictional stock Item...
+
+Item Code: CCPC-INT-TEST-CONSUMABLE-001
+Item Name: Synthetic Integration Test Consumable
+Item Group: Consumable
+Stock UOM: Nos
+Maintain Stock: 1
+Opening Stock: 0.0
+Standard Rate: 0.0
+Total Items: 1
+Stock and financial transactions: NONE
+
+SYNTHETIC STOCK ITEM: CREATED AND VERIFIED
+```
+
+The single test Item now exists: `CCPC-INT-TEST-CONSUMABLE-001`, name `Synthetic Integration Test Consumable`, `item_group=Consumable`, `stock_uom=Nos`, `is_stock_item=1`, `disabled=0`, `has_serial_no=0`, `has_batch_no=0`, `opening_stock=0`, `standard_rate=0`; also `valuation_rate=0` requested by script. **No inventory quantity, valuation, Stock Reconciliation, Stock Entry, GL Entry, invoice, Withdrawal Slip or Billing Batch has been authorized or created by this action**. Six archive-verified snapshots survive; sixth was created **before Item** and no restore drill yet.
+
+**Next step:** run a separate read-only post-commit SQL audit of the Item master, no Item Price, no Bin, no Stock Reconciliation/Entry/Ledger/GL transactions, and persistence of exact party mappings, enforcing target-vs-persistent-Development DB isolation; do not rerun the successful insert. After confirmation, research safe Stock Reconciliation opening inventory setup and accounting safeguards (stock adjustment account, cost center, valuation, posting date and inventory/GL reconciliation) and request **separate explicit operator approval** for any opening quantity/valuation or stock transaction; consider a seventh snapshot post-Item/pre-stock. This test does not prove billing flow integration or restoration behavior.
+
 ## Sixth recovery checkpoint archive-verified, before synthetic Item master — 2026-10-13
 
 Operator completed the separately authorized **sixth** full snapshot on isolated `ccpc-integration2.localhost`, with **no Item insert yet**. Guard preflight output confirmed test site isolation, exact two fictional Companies and **198 Accounts**, correct internal-party mappings, warehouse/department/Item Group/UOM master readiness, zero existing Items and transactional records, and all **five earlier** protected checkpoints preserved.
