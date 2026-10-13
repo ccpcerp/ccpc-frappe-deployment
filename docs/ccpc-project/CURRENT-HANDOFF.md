@@ -5,6 +5,51 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Fifth-checkpoint protected; TISS-to-TREQ internal parties created and verified — 2026-10-13
+
+Operator ran the **already approved** single guarded insert command on isolated DEVELOPMENT site `ccpc-integration2.localhost` only, after confirming the fifth recovery snapshot at `sites/ccpc-integration2.localhost/private/ccpc-test-snapshots/post-accounts-pre-parties-20261013` with artifact prefix `20261013_151050-ccpc-integration2_localhost` and matching database identity. Script preflight confirmed two company accounting configurations, eight correct intercompany accounts, parent party groups and Philippines Territory, no existing party/transaction records, then used normal `frappe.get_doc(...).insert(ignore_permissions=True)` APIs to create **exactly four** parent/party master records (plus corresponding child rows), verified everything before a single `frappe.db.commit()`, and printed:
+
+```text
+Isolated site: VERIFIED
+Fifth recovery checkpoint: VERIFIED
+Two-company accounting configuration: VERIFIED
+Party groups and Territory: VERIFIED
+No existing party records or transactions: VERIFIED
+Creating approved internal trading parties...
+
+Customer Group: Intercompany VERIFIED
+Supplier Group: Intercompany VERIFIED
+
+Internal Customer: Integration Test Requester
+Represents: Integration Test Requester
+Allowed company: Integration Test Issuer
+Receivable account: 1312 - Intercompany Receivable - TISS
+
+Internal Supplier: Integration Test Issuer
+Represents: Integration Test Issuer
+Allowed company: Integration Test Requester
+Payable account: 2121 - Intercompany Payable - TREQ
+
+Customer count: 1
+Supplier count: 1
+Party Account rows: 2
+Allowed company rows: 2
+Financial transaction baseline: EMPTY
+
+INTERNAL TRADING PARTIES: CREATED AND VERIFIED
+```
+
+Specific new records:
+- `Customer Group` **Intercompany** (leaf under `All Customer Groups`).
+- `Supplier Group` **Intercompany** (leaf under `All Supplier Groups`).
+- Internal `Customer` name **Integration Test Requester**, `customer_name=Integration Test Requester`, `customer_type=Company`, `customer_group=Intercompany`, `territory=Philippines`, `is_internal_customer=1`, `represents_company=Integration Test Requester`, `disabled=0`, sole `Allowed To Transact With` **Integration Test Issuer**, sole `Party Account` **1312 - Intercompany Receivable - TISS** owned by issuer.
+- Internal `Supplier` name **Integration Test Issuer**, `supplier_name=Integration Test Issuer`, `supplier_type=Company`, `supplier_group=Intercompany`, `is_internal_supplier=1`, `represents_company=Integration Test Issuer`, `disabled=0`, sole allowed company **Integration Test Requester**, sole `Party Account` **2121 - Intercompany Payable - TREQ** owned by requester.
+- Explicit non-self-company mappings; `tabCustomer` 1, `tabSupplier` 1, `tabParty Account` 2, `tabAllowed To Transact With` 2. Company count 2, account count 198. Empty `Stock Entry`, `Stock Ledger Entry`, `Sales Invoice`, `Purchase Invoice`, `GL Entry`, `Intercompany Material Billing Batch` checked before and immediately prior to commit.
+
+**Verification status:** Results from operator-pasted terminal output, including normal Frappe DocType reads immediately before commit. Separate **post-commit independent read-only SQL validation is still outstanding**. Backup archive integrity checked, **not** full restoration. These parties support **TISS issuing to TREQ only**, not reverse direction. No material-issue Stock Entries, withdrawal slip records, submitted transaction, billing batch, finance-approval, or actual DB integration tests yet. Persistent `development.localhost` and PRODUCTION untouched by authorized procedure.
+
+**Next step:** one read-only independent SQL inspection of the persisted Customer/Supplier parent fields, both exact `Allowed To Transact With` child rows and `Party Account` child rows, the two Intercompany groups, and all transaction tables. Confirm separate site database identity before connecting. If verified, plan the next synthetic document fixtures by reviewing GitHub current CCPC withdrawal slip, stock issue and billing code/DocTypes, requirements and account correctness. **Request fresh explicit approval before any synthetic Stock Entry, withdrawal slip, invoice, billing batch or other substantive data writes**. Do not rerun already-successful party creation or historical real-company patches.
+
 ## Fifth recovery checkpoint independently archive-verified before synthetic internal parties — 2026-10-13
 
 After explicit owner approval, operator ran the **guarded fifth full site backup only** on `ccpc-integration2.localhost` and provided command output. Pre-backup read-only preconditions passed: isolation from persistent `development.localhost`, exactly two test companies with 198 accounts total and eight exact intercompany ledger accounts, intended customer/supplier group parents, leaf `Philippines` Territory, zero internal Customer/Supplier/Party Account/Stock Entry/Stock Ledger Entry/Sales Invoice/Purchase Invoice/GL Entry/Billing Batch records, and four earlier full snapshot artifacts preserved. No synthetic party writes were performed by this backup command.
