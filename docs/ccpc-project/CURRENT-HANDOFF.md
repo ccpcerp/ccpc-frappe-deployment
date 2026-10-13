@@ -5,6 +5,44 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Approved fresh DEVELOPMENT backup completed — 2026-10-13
+
+**Explicit operator approval** was obtained in chat to create a fresh backup **only** for the persistent DEVELOPMENT Frappe site `development.localhost`. The operator ran on Ubuntu:
+
+```bash
+docker exec -it --user frappe \
+  frappe_docker_devcontainer-frappe-1 \
+  bash -lc 'cd /workspace/development/frappe-bench && bench --site development.localhost backup --with-files'
+```
+
+**Operator-provided successful output**, reporting backup summary at `2026-10-13 08:34:58.481811` and final `Backup for Site development.localhost has been successfully completed with files`:
+
+- `sites/development.localhost/private/backups/20261013_083457-development_localhost-site_config_backup.json` — **234 B**
+- `sites/development.localhost/private/backups/20261013_083457-development_localhost-database.sql.gz` — **1.6 MiB**
+- `sites/development.localhost/private/backups/20261013_083457-development_localhost-files.tar` — **10.0 KiB**
+- `sites/development.localhost/private/backups/20261013_083457-development_localhost-private-files.tar` — **20.0 KiB**
+
+Unlike the October 9 `.tgz` file archives, this fresh October 13 backup has **uncompressed `.tar` public/private file archives**; therefore validate with `tar -tf` (no gzip flag). **Actual existence, compression/readability, complete database contents, and restore usability have not yet been independently verified after the completed backup command**. Backup is in local DEV site backup directory on host-shared storage, not demonstrated off-host. No database-changing tests, migrations, restore operations, or PROD actions were requested or reported.
+
+**Next one safe, read-only operator action** on the Ubuntu host: validate all four new DEV backup artifacts inside the DEVELOPMENT Frappe container, checking nonzero files, gzip CRC, tar listings and config JSON syntax without printing config:
+
+```bash
+docker exec --user frappe frappe_docker_devcontainer-frappe-1 bash -lc '
+cd /workspace/development/frappe-bench || exit
+B=sites/development.localhost/private/backups/20261013_083457-development_localhost
+for suffix in database.sql.gz files.tar private-files.tar site_config_backup.json; do
+  test -s "${B}-${suffix}" || exit 1
+done
+gzip -t "${B}-database.sql.gz" &&
+tar -tf "${B}-files.tar" >/dev/null &&
+tar -tf "${B}-private-files.tar" >/dev/null &&
+./env/bin/python -m json.tool "${B}-site_config_backup.json" >/dev/null &&
+echo "DEVELOPMENT fresh backup format checks: PASS"
+'
+```
+
+Even when these checks pass, do **not** represent them as a tested restore or database transaction-consistency verification. Before real concurrent billing approval/rollback experiments, review isolated test data and recovery/isolation plan, confirm that backup can be restored to an isolated environment, and obtain separate explicit operator approval. The last verified application review branch tip was `806fa23516490ec7beefcff03a1baa09d722120e`, with 155/155 combined mocked Python unit tests passing in DEVELOPMENT.
+
 ## DEVELOPMENT backup-destination capacity preflight — 2026-10-13
 
 **Operator-reported read-only Docker container filesystem check** on Ubuntu host:
