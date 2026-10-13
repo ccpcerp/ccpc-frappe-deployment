@@ -5,6 +5,32 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Fourth isolated recovery snapshot verified before intercompany-account inserts — 2026-10-13
+
+Operator executed the **approved** pre-account site-scoped backup on isolated `ccpc-integration2.localhost` after synthetic `TISS` and `TREQ` Companies were created. Read-only safety checks passed: target DB isolated from `development.localhost`, exact two-company names and abbreviations, 95 existing Standard CoA accounts in each Company, verified company-specific enabled parent Account groups `Accounts Receivable`, `Accounts Payable`, `Indirect Expenses`, `Indirect Income`, no dedicated account numbers 1312/2121/5150/6050, no Stock Entries, Sales/Purchase Invoices, billing batches, Customers or Suppliers; prior three backup checkpoints preserved.
+
+Backup command used **absolute path** `/workspace/development/frappe-bench/sites/ccpc-integration2.localhost/private/ccpc-test-snapshots/post-requester-pre-accounts-20261013` with `bench --site ccpc-integration2.localhost backup --with-files --ignore-backup-conf --backup-path "$DEST"`. Operator output:
+```text
+Site isolation: VERIFIED
+Two-company baseline: VERIFIED
+Standard account parent groups: VERIFIED
+No dedicated intercompany accounts: VERIFIED
+Transaction and internal party baseline: VERIFIED
+Three earlier recovery snapshots: PRESERVED
+Backup for Site ccpc-integration2.localhost has been successfully completed with files
+database.sql.gz | 979004 bytes
+files.tar | 10240 bytes
+private-files.tar | 10240 bytes
+site_config_backup.json | 212 bytes
+Database archive: PASSED
+Public/private archives: PASSED
+Database identity: VERIFIED
+POST-TREQ BACKUP: VERIFIED AND SECURED
+```
+New snapshot filename prefix `20261013_135316-ccpc-integration2_localhost`. **This is the fourth** archive-verified recovery checkpoint (no full restore drill yet). No intercompany accounts have been inserted yet.
+
+As explicitly approved, next authorized step is **one guarded creation of exactly eight standard-ERPNext Account ledger records**, four numbers `1312`, `2121`, `5150`, `6050` in each of `TISS` and `TREQ`, with exact names and valid parent groups matching the Standard CoA. Use Frappe `Account.insert()` and a single `frappe.db.commit()` only after verifying all eight account records; stop and inspect rather than rerun if exceptions occur. ERPNext v16 source confirms `get_autoname_with_number` returns `<number> - <account_name> - <company_abbr>`, enforces nonduplicate number/company and parent groups, derives account currency from Company, and runs nested-set update on save. Do not execute real-company-specific historical patches. Current operator approval does not include internal Customers/Suppliers, Stock Entries, invoices, or other sites/production. GitHub documentation update is not evidence that those eight accounts have been created.
+
 ## Approved isolated post-TREQ backup and eight intercompany ledger fixtures — 2026-10-13
 
 Operator explicitly **approved** creating another full, site-scoped backup and adding the **eight** test-only `Account` ledger rows (four each, two fictional test companies) on isolated `ccpc-integration2.localhost`: `1312 - Intercompany Receivable` (Asset/Receivable, under existing Accounts Receivable group), `2121 - Intercompany Payable` (Liability/Payable, under existing Accounts Payable group), `5150 - Intercompany Materials Expense` (Expense, under existing Indirect Expenses group), `6050 - Intercompany Material Charges` (Income, under existing Indirect Income group), each suffixed by `TISS` or `TREQ`. Scope **excludes** internal party creation, Stock Entries, Sales/Purchase Invoices, broad site migrate, persistent `development.localhost`, PRODUCTION, and historical real-business company patches. Request remains one verified step at a time.
