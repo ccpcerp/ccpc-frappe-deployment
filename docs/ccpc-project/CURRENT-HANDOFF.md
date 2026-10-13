@@ -5,6 +5,30 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Isolated DEVELOPMENT second synthetic company created and verified — 2026-10-13
+
+Operator completed the **explicitly approved** single Frappe/ERPNext Company document insert on isolated `ccpc-integration2.localhost`, after verifying the full `20261013_133756` post-wizard/pre-requester recovery snapshot, correct 2026 fiscal year, both composite indexes and zero transaction baseline. Operator terminal output:
+```text
+Isolated site: VERIFIED
+Post-setup recovery snapshot: VERIFIED
+Company, fiscal year, indexes, and transaction baseline: VERIFIED
+Creating Integration Test Requester (TREQ)
+Requester: Integration Test Requester
+Abbreviation: TREQ
+Country: Philippines
+Currency: PHP
+Default cost center: Main - TREQ
+Requester accounts: 95
+Requester warehouses: 5
+Total companies: 2
+SECOND TEST COMPANY: CREATED AND VERIFIED
+```
+The script used `frappe.get_doc({"doctype":"Company", "company_name":"Integration Test Requester", "abbr":"TREQ", "country":"Philippines", "default_currency":"PHP", "enable_perpetual_inventory":1, "create_chart_of_accounts_based_on":"Standard Template", "chart_of_accounts":"Standard"}).insert()` and committed after verifying the returned Company fields, non-group enabled requester Cost Center belonging to TREQ, nonzero chart and warehouses, and exactly two companies. Previously verified issuer is `Integration Test Issuer` (`TISS`, PHP, Philippines, `Main - TISS`). No stock entries, sales invoices, purchase invoices, or billing batches were created by the submitted company-create script; transaction counts were checked before the insert, not rechecked afterward. **No real DB billing workflow, rollback, or concurrency tests executed.**
+
+**GitHub code review**: `ccpcerp/ccpc_erp/doctype/intercompany_material_billing_batch/intercompany_material_billing_batch.py` requires exact ledger accounts `1312 - Intercompany Receivable - {abbr}`, `2121 - Intercompany Payable - {abbr}`, `5150 - Intercompany Materials Expense - {abbr}`, `6050 - Intercompany Material Charges - {abbr}` and enabled leaf Cost Centers, plus internal Customer representing requester and internal Supplier representing issuer for invoice creation. `ccpcerp/patches/v1_0/create_intercompany_material_accounts.py` expects parent accounts tailored to real CCPC chart (`1310`, `2001`, `5100`, `6000`); `create_intercompany_parties.py` targets four actual CCPC-group companies. Neither patch should run blindly on fictional TISS/TREQ standard charts. Do not assume dedicated accounts/parties exist.
+
+**Next safely authorized action:** read-only inspection of TISS/TREQ default accounts, available account parent hierarchies, existing internal Customers/Suppliers/Party Account rows and current transaction baseline. Then design a scoped synthetic account/party fixture plan in GitHub and request explicit permission for master-data writes (current approval covered second Company only). All backup archives remain private with pre-index, pre-wizard and post-wizard/pre-requester snapshots; archive checks are not full restore tests. No modifications to `development.localhost` or PRODUCTION.
+
 ## Isolated DEVELOPMENT post-setup/pre-requester backup verified — 2026-10-13
 
 User explicitly **approved creating a new post-setup backup and second fictional test Company** `Integration Test Requester` (`TREQ`, Philippines/PHP, ERPNext Standard CoA), exclusively on `ccpc-integration2.localhost`, after `Integration Test Issuer` (`TISS`) completed its wizard. No authorization for stock moves, invoice creation, historical real-company patches, persistent `development.localhost`, or PRODUCTION.
