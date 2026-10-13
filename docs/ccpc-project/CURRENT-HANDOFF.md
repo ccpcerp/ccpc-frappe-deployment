@@ -5,6 +5,29 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Valuation inheritance independently audited: all isolated defaults FIFO, no Item override — 2026-10-13
+
+Operator returned **read-only test-site MySQLdb** result for `ccpc-integration2.localhost` (target DB identity checked against persistent `development.localhost`):
+```text
+COMPANY VALUATION METHODS
+('Integration Test Issuer', 'FIFO')
+('Integration Test Requester', 'FIFO')
+ITEM VALUATION METHOD
+('CCPC-INT-TEST-CONSUMABLE-001', '')
+GLOBAL STOCK VALUATION METHOD
+(('FIFO',),)
+STOCK TRANSACTION COUNTS
+tabStock Reconciliation 0
+tabStock Entry 0
+tabStock Ledger Entry 0
+tabGL Entry 0
+VALUATION CONFIGURATION AUDIT: COMPLETED
+```
+
+**Verified fact:** BOTH isolated test Companies have `valuation_method=FIFO`; global Stock Settings is `FIFO`; the one Item has an **empty valuation_method override**, so ERPNext v16 `get_valuation_method(item_code, company)` currently inherits the relevant company `FIFO` for TISS/TREQ stock transactions. Verified that function again from upstream `erpnext/stock/utils.py` version-16 in GitHub. Owner's intended actual CCPC method is **Moving Average** (owner statement; no read of PRODUCTION needed). This is a test-fidelity problem, not merely a cosmetic setting.
+
+No previous authorization to alter valuation settings or post opening stock. Suggested separate scoped authorization for (1) **seventh private post-Item/pre-change site backup** with six prior snapshots preserved and archive/DB-identity integrity checks; (2) standard supported Frappe API update to valuation method **Moving Average** for exact two isolated synthetic Companies TISS/TREQ and isolated `Stock Settings` global default; leave Item override blank to inherit Company value (no need to set explicit Item override) after checking no stock/GL/Stock Reconciliation, no changed Company baseline, item unaffected; (3) independent postcommit read-only verification of all three defaults plus `get_valuation_method` for the single Item under both Companies. Before the first new stock posting, take separately scoped **post-valuation / pre-stock** snapshot if necessary. Do not touch persistent `development.localhost` or PRODUCTION. Do not yet create Stock Reconciliation, Stock Entry, GL, Withdrawal Slip, Billing Batch or invoices. Opening stock 10 Nos at PHP 100 is a **proposal on hold** and requires separate authorization after alignment.
+
 ## Moving Average alignment required before first synthetic inventory posting — 2026-10-13
 
 **Owner raised an important mismatch**: CCPC's **actual intended inventory valuation method is Moving Average**, while the isolated TISS test site's last verified `Company.valuation_method` and `Stock Settings.valuation_method` both read **FIFO**. Production method is **user-reported**, not independently audited on PRODUCTION (and no PRODUCTION access/change is authorized). The owner asked whether proceeding with FIFO is appropriate.
