@@ -5,6 +5,71 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Isolated TISS opening-stock account, valuation, and warehouse readiness verified — 2026-10-13
+
+Operator ran previously requested read-only MySQLdb accounting-readiness audit on isolated `ccpc-integration2.localhost`, proving DB identity distinct from persistent `development.localhost` and exact TISS/TREQ Company pair. The output:
+
+```text
+ISOLATED SITE: VERIFIED
+ISSUER COMPANY SETTINGS
+name : Integration Test Issuer
+default_currency : PHP
+enable_perpetual_inventory : 1
+valuation_method : FIFO
+stock_adjustment_account : Stock Adjustment - TISS
+default_inventory_account : Stock In Hand - TISS
+default_expense_account : Cost of Goods Sold - TISS
+cost_center : Main - TISS
+
+ISSUER WAREHOUSE
+('Stores - TISS', 'Integration Test Issuer', 0, 0, account=None)
+
+OPENING / STOCK ACCOUNT CANDIDATES
+Capital Stock - TISS | Equity | Balance Sheet | Equity | leaf, enabled
+Cost of Goods Sold - TISS | Expense | Profit and Loss | COGS | leaf, enabled
+Opening Balance Equity - TISS | Equity | Balance Sheet | Equity | leaf, enabled
+Stock Adjustment - TISS | Expense | Profit and Loss | Stock Adjustment | leaf, enabled
+Stock Assets - TISS | Asset | Balance Sheet | Stock | group
+Stock Expenses - TISS | Expense | Profit and Loss | [blank] | group
+Stock In Hand - TISS | Asset | Balance Sheet | Stock | leaf, enabled
+Stock Liabilities - TISS | Liability | Balance Sheet | [blank] | group
+Stock Received But Not Billed - TISS | Liability | Balance Sheet | Stock Received But Not Billed | leaf, enabled
+Temporary Opening - TISS | Asset | Balance Sheet | Temporary | leaf, enabled
+
+ISSUER COST CENTERS
+Integration Test Issuer - TISS | group, enabled
+Main - TISS | leaf, enabled
+
+STOCK SETTINGS
+allow_negative_stock = 0
+default_warehouse = Stores - TISS
+valuation_method = FIFO
+
+SYNTHETIC ITEM
+CCPC-INT-TEST-CONSUMABLE-001 | Consumable | Nos | stock item, enabled
+
+TRANSACTION BASELINE
+tabBin 0
+tabStock Reconciliation 0
+tabStock Entry 0
+tabStock Ledger Entry 0
+tabGL Entry 0
+tabWithdrawal Slip 0
+tabSales Invoice 0
+tabPurchase Invoice 0
+tabIntercompany Material Billing Batch 0
+
+STOCK ACCOUNTING READINESS AUDIT: COMPLETED
+```
+
+Assessment: `Temporary Opening - TISS` is an appropriate **candidate** difference account for `Stock Reconciliation` with `purpose="Opening Stock"`, unlike the P&L `Stock Adjustment - TISS`. `Stock In Hand - TISS` is the issuer Company's asset account and `Stores - TISS` is its enabled leaf Warehouse (no direct warehouse account override). `Main - TISS` is valid leaf cost center; FIFO, PHP and perpetual inventory enabled; no prior stock/GL entries.
+
+Inspected upstream **ERPNext v16** `erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py` and JSON: `validate()` defaults difference account to Company `stock_adjustment_account`, so **explicitly override it with `Temporary Opening - TISS`** for an opening entry. `validate_expense_account` rejects P&L difference accounts for `Opening Stock` or first stock ledger entry. `on_submit` creates Stock Ledger Entries and GL Entries through supported ERPNext methods. Reconciliation Item requires warehouse, item, quantity and positive valuation rate (normal nonzero stock valuation); `update_stock_ledger` rejects nonzero quantity without valuation rate unless special zero-valuation allowance. Positive valuation must be specified even though Item's stored valuation_rate=0. Test Item nonserial/nonbatch. ERPNext v16 `Stock Reconciliation` DocType supports `Opening Stock` purpose and cost center, and `Stock Reconciliation Item` supports `qty` and `valuation_rate`.
+
+**No new data was written by audit.** Current verified state is **one Item, zero stock, zero GL**. Six protected archives survive; sixth captured pre-Item state, not restoration-tested.
+
+**Next approval gate (not yet obtained)**: recommend seventh guarded protected full test-site snapshot after Item and before posting inventory. Then one synthetic `Stock Reconciliation` `purpose=Opening Stock`, only company `Integration Test Issuer`, only Item `CCPC-INT-TEST-CONSUMABLE-001`, only warehouse `Stores - TISS`, explicit difference account `Temporary Opening - TISS`, cost center `Main - TISS`, and an agreed small qty/rate (suggest **10 Nos at PHP 100 each**, stock value PHP 1,000). Confirm explicit posting date/time before execution and inspect installed ERPNext release/code and real site safety preconditions. Use standard `insert()` + `submit()`, perform guarded SLE and GL checks including expected inventory debit and opening account credit, and single commit only after valid results; on errors rollback/inspect. This is a **real inventory and accounting posting** even with fictional data, and warrants separate owner authorization. No Stock Entry/Withdrawal Slip/Billing Batch/invoices or any persistent DEVELOPMENT/PRODUCTION change under this authorization.
+
 ## Independent committed synthetic Item and zero-stock/GL baseline confirmed — 2026-10-13
 
 Operator ran a **separate read-only post-commit MySQLdb audit** against isolated `ccpc-integration2.localhost` after the one previously authorized Item insertion. The audit checked site DB identity distinct from persistent `development.localhost`, selected the **only** Item row and asserted exact identity/configuration, asserted opening stock, valuation rate and standard rate all zero, and asserted no Bin or stock/accounting/billing documents. Complete supplied output:
