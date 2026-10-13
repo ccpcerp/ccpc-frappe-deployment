@@ -5,6 +5,27 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Seventh isolated full checkpoint verified before Moving Average switch — 2026-10-13
+
+The owner completed the authorized seventh protected full backup on **only** isolated `ccpc-integration2.localhost`, before changing three valuation settings. Guarded SQL preflight independently confirmed two Companies both `FIFO`, isolated `Stock Settings.valuation_method=FIFO`, one synthetic Item `CCPC-INT-TEST-CONSUMABLE-001` with blank method override, 198 Accounts, internal parties and mappings unchanged, zero Bin/Stock Reconciliation/Stock Entry/Stock Ledger/GL/Withdrawal Slip/Invoices/Billing Batch, and six existing protected checkpoints preserved.
+
+Backup successfully completed at **2026-10-13 16:12:35 Asia/Manila** in `/workspace/development/frappe-bench/sites/ccpc-integration2.localhost/private/ccpc-test-snapshots/post-item-pre-moving-average-20261013/`, prefix `20261013_161234-ccpc-integration2_localhost`. Operator-verified artifacts:
+```text
+database.sql.gz | 982177 bytes
+files.tar | 10240 bytes
+private-files.tar | 10240 bytes
+site_config_backup.json | 212 bytes
+Database archive: PASSED
+Public/private archives: PASSED
+Database identity: VERIFIED
+SEVENTH RECOVERY CHECKPOINT: VERIFIED AND SECURED
+```
+Seven recovery checkpoints are archive-verified and preserved, not full restoration-tested. No stock or GL postings and no valuation setting changes yet by this milestone.
+
+**Next already-authorized action:** update `Company.valuation_method` for exact `Integration Test Issuer` and `Integration Test Requester` from `FIFO` to `Moving Average` and isolated `Stock Settings.valuation_method` from `FIFO` to `Moving Average`, while leaving Item valuation override blank and all stock, GL and transactions at zero. Enforce test/persistent-development DB distinction, exact prior baseline and seventh backup identity; avoid unintended global Stock Settings save side effects: ERPNext v16 Stock Settings controller `validate()` can change unrelated defaults and Property Setters even when modifying only valuation_method. Prefer **targeted supported Frappe DB setting APIs** to change exactly the three authorized valuation fields only, after reproducing the key documented `cant_change_valuation_method` restriction (no stock ledger entries with Item override blank) and pre/post change checks. Single DB commit only after all assertions; rollback on any exception and do not blindly rerun. Clear cached docs and use live `erpnext.stock.utils.get_valuation_method` to verify method inherited for the synthetic Item under both Companies plus global case. Independently verify persisted state after commit via a second read-only SQL audit.
+
+No new approval for stock quantity or valuation entries; proposed PHP 1,000 Opening Stock reconciliation remains **on hold**. No operations on `development.localhost` or PRODUCTION.
+
 ## Seventh snapshot and Moving Average settings: owner approval — 2026-10-13
 
 The owner explicitly approved a seventh site-private full checkpoint on isolated `ccpc-integration2.localhost`, followed by exactly three valuation settings changes: `Integration Test Issuer` Company FIFO -> Moving Average, `Integration Test Requester` Company FIFO -> Moving Average, and isolated-site global Stock Settings FIFO -> Moving Average. Keep Item `CCPC-INT-TEST-CONSUMABLE-001` valuation override blank. This approval does not include Stock Reconciliation, opening stock, Stock Entry, GL, Withdrawal Slip, invoice, batch, migrations, persistent DEVELOPMENT or PRODUCTION changes.
