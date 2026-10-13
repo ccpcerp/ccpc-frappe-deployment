@@ -5,6 +5,24 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## DEVELOPMENT MariaDB root login from Frappe container rejected — 2026-10-13
+
+**Operator-reported read-only authentication test:** The operator executed the approved interactive Python `MySQLdb.connect(host="mariadb", user="root", passwd=getpass.getpass(...))` from the **DEVELOPMENT Frappe** container. It returned `Database connection failed. Error code: 1045` (MariaDB access denied), before either `information_schema.SCHEMATA` or `mysql.user` SELECT could run. **Partial test database/user existence remains unverified**. The root password was not shown in the terminal transcript and must not be requested, printed, logged or committed. A 1045 can reflect wrong credentials **or** a root-account host/login restriction, so do not assume the operator entered the wrong secret.
+
+**Next one read-only diagnostic:** On the Ubuntu host, check if the **DEVELOPMENT MariaDB container's local Unix socket** permits OS root to connect as MariaDB root without supplying or printing a password. Use only `frappe_docker_devcontainer-mariadb-1` and a harmless `SELECT 1`, suppressing any auth/error details:
+
+```bash
+docker exec --user root frappe_docker_devcontainer-mariadb-1 sh -lc '
+if mariadb --protocol=socket --user=root --batch --skip-column-names --execute="SELECT 1" >/dev/null 2>&1; then
+  echo "DEV MariaDB local socket root login: available"
+else
+  echo "DEV MariaDB local socket root login: unavailable"
+fi
+'
+```
+
+This does not modify databases or use production containers; if unavailable, stop and verify the **DEV-only** MariaDB administrator credential source and host-access policy through sanitized inspection, never dumping env vars/secret contents. No new-site retry, `--force`, deletion, password reset, rollback, migrations or real financial integration tests approved. Partial `ccpc-integration.localhost` site directory and config remain present, distinct configured DB name/user from `development.localhost`; no successful MariaDB object creation verified. Earlier approved DEV four-part backup format checked, not restore-tested. If the mistakenly entered superuser name was a real password, treat as exposed and plan controlled rotation after proper credential ownership identification, without repeating it.
+
 ## DEVELOPMENT partial site DB identifiers checked without disclosure — 2026-10-13
 
 **Operator-provided read-only results:** Within the DEVELOPMENT Frappe container, read (but did **not** print) `db_name` and `db_user` fields in the partial `sites/ccpc-integration.localhost/site_config.json`; compared its database name to persistent `development.localhost`. Results:
