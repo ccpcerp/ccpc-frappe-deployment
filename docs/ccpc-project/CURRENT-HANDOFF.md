@@ -5,6 +5,21 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## DEVELOPMENT working-tree preflight for draft Material Issue PR — 2026-10-14
+
+**Operator-provided read-only Docker Git status:** In `frappe_docker_devcontainer-frappe-1`, user `frappe`, `/workspace/development/frappe-bench/apps/ccpcerp`, command `git status --short --branch; git rev-parse HEAD; git branch --show-current` yielded:
+
+```text
+## review/intercompany-approval-failure-tests...origin/review/intercompany-approval-failure-tests
+?? AGENTS.md
+806fa23516490ec7beefcff03a1baa09d722120e
+review/intercompany-approval-failure-tests
+```
+
+Thus no tracked local code modifications appeared in this inspection; **untracked AGENTS.md exists and must be preserved / never blindly staged or overwritten**. Installed application matches the base review commit from which PR #7 was branched. GitHub independently verified draft PR #7's feature branch remains at `9570ddcd4eccff5110b2c25e8baac24e51e23f1a`. Nothing was fetched/pulled/checked out/deployed.
+
+**Deployment boundary:** The app directory belongs to a shared DEVELOPMENT Frappe bench hosting the persistent `development.localhost` site as well as isolated `ccpc-integration2.localhost`. Switching or pulling the app worktree may affect Python code served by both sites even without database writes; the prior owner's approval was **GitHub code + tests only, explicitly without deployment**. Do not switch the shared app branch, pull, migrate, restart services, apply permission changes, or create stock transactions under that approval. Before tests, plan an independent/non-live test checkout and identify how it will run without touching the shared bench or protected snapshots; obtain explicit authorization before staging any code in the live app or running test code that modifies site state.
+
 ## Approved scoped Stockroom Material Issue safeguard developed on GitHub, draft PR — 2026-10-14
 
 **Owner explicitly authorized GitHub code and focused test changes only, without deployment.** Work performed directly through connected GitHub on new feature branch feature/withdrawal-material-issue-safety from verified app review branch review/intercompany-approval-failure-tests at base 806fa23516490ec7beefcff03a1baa09d722120e. **HEAD 9570ddcd4eccff5110b2c25e8baac24e51e23f1a**; draft pull request [ccpcerp/ccpcerp#7](https://github.com/ccpcerp/ccpcerp/pull/7), targeting the existing review branch; NOT merged or deployed. Connected GitHub compare verified six new commits and exactly four changed files.
