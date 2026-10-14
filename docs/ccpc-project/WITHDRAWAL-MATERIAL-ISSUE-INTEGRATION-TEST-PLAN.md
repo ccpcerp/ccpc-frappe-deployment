@@ -23,6 +23,14 @@
 
 ## 3. Code-import isolation gate (mandatory before any site writes)
 
+### Completed read-only import gate (2026-10-14)
+
+Operator supplied output from a short-lived Docker-hosted `FRAPPE_STREAM_LOGGING=1` Python process: `FEATURE MODULE VERIFIED` for all four modules (`ccpcerp`, `ccpcerp.hooks`, the Withdrawal Slip controller and `ccpcerp.ccpc_erp.withdrawal_slip_stock`); `FEATURE HOOK REGISTRATIONS: VERIFIED`; `FEATURE ENDPOINT IMPORT: VERIFIED`; `SHARED APPLICATION: UNCHANGED`; `SITE INITIALIZATION: NOT PERFORMED`; `DATABASE ACCESS: NOT PERFORMED`; `SITE-FREE FEATURE IMPORT CHECK: PASSED`. The command asserted the active shared checkout was the expected base SHA with only the protected untracked `AGENTS.md`, identified exactly one detached feature Git worktree at the expected feature commit with no tracked modifications, prepended its root to a fresh `sys.path`, imported all modules, asserted each `__file__` resolved inside the detached root, inspected the registered Stock Entry validate, before_submit, on_submit and on_cancel hooks and verified each callable endpoint/handler. The command also verified `frappe.local.initialised` false after imports.
+
+**Gate passed only for site-free module import**. Not proven: live site hook dispatch/import-map correctness once initialized, real Frappe DocPerm under non-Administrator users, transaction scope, concurrent SQL parent locking, accounting outcomes. The next task is a **read-only isolated-database fixture/finance preflight**; no write, site migration or material issue posting approved.
+
+
+
 1. Operator first runs **read-only**, site-free inspection of installed app Git state, `git worktree list --porcelain`, detached feature checkout and pinned commit, and source paths. Detached worktree may be stale or missing; **do not switch shared branch, pull, reset or recreate automatically**.
 2. Prepare a **short-lived independent Python process** (not web workers, not scheduler, no shared app rewrite) to resolve imports of `ccpcerp`, `ccpcerp.ccpc_erp.withdrawal_slip_stock` and source-hook modules from the exact pinned feature tree. Verify resolved package/module paths and the single-endpoint/hook registrations before invocation, and compare them with the intended GitHub SHA. If editable packaging/import cache/site module map defeats the override, **STOP**, redesign with fully isolated bench/container; do not monkeypatch a long-running server.
 3. Scope all Frappe sessions/connections to `ccpc-integration2.localhost` and assert `db_name` differs from `development.localhost`. Process-only `FRAPPE_STREAM_LOGGING=1` avoids the previously observed missing parent log directory. No blanket `bench migrate`, branch switch, service restart or shared worker configuration change.
