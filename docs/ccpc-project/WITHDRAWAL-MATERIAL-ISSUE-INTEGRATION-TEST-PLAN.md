@@ -39,6 +39,22 @@ Operator supplied a direct, **READ ONLY** isolated MySQLdb audit that ended `REA
 
 **Segregation-of-duties decision gate:** A Stockroom System User will likely possess combined Requestor+Stockroom privileges. Read-only verify actual isolated-site Withdrawal Slip Workflow transitions, `allow_self_approval` flags/conditions and DocPerm `if_owner` to bound how far this could go. Do not claim live exploit or effective user action before a real user test. Seek owner decision whether a single Stockroom user may create, self-approve, and issue their own Withdrawal Slip or must be prohibited. Do not create fictional users or issue stock before explicit scoped approval. Site-free module imports passed; 11/44 recovery checkpoints preserved.
 
+### Configured isolated-site Workflow and ownership restrictions confirmed (2026-10-14)
+
+Operator-provided isolated, read-only SQL returned `READ-ONLY WORKFLOW AUDIT: COMPLETED`. Active `CCPC Withdrawal Slip Workflow` uses `status`, with all **eight** `doc_status = 0` states: Draft (editable Withdrawal Slip Requestor), Approved / Stockroom Review / Fully Issued / Issued with Shortage (editable Stockroom Personnel), Returned for Correction (editable Withdrawal Slip Requestor), Cancelled / Closed (editable System Manager).
+
+Four verified transitions (all `allow_self_approval = 1`):
+1. `Draft → Approved`, action **Approve & Send to Stockroom**, allowed Withdrawal Slip Requestor, **no condition**.
+2. `Approved → Stockroom Review`, action **Start Review**, allowed Stockroom Personnel, **no condition**.
+3. `Stockroom Review → Returned for Correction`, action **Return for Correction**, allowed Stockroom Personnel, **no condition**.
+4. `Returned for Correction → Approved`, action **Re-Approve**, allowed Withdrawal Slip Requestor, condition `frappe.session.user == doc.approving_supervisor`.
+
+`tabDocPerm` for Withdrawal Slip at permlevel 0: Stockroom Personnel `read=1, write=1, create=0, submit=0, if_owner=0`; Withdrawal Slip Requestor `read=1, write=1, create=1, submit=0, if_owner=1`. `tabCustom DocPerm` produced no matching rows. A new normal Stockroom System User is expected from installed `User.before_save` source/config to receive the existing Withdrawal Slip Requestor role in addition to Stockroom Personnel; the other two role names (`MRS Requestor`, `CCPC Stock Inquiry User`) are absent from this isolated DB so cannot be auto-added now.
+
+**Security interpretation, limited to verified configuration and code (NOT tested exploitation):** The combined role grants an apparent path to create an owned Slip, self-approve it in Draft as Requestor, Start Review as Stockroom, and then call the issue endpoint (which checks Stockroom role and Slip write but currently lacks an explicit creator/approver-versus-issuer separation rule). Actual effective user permission/hook/UI/transaction path is untested. No independent supervisor approval is required for the initial Draft→Approved transition, even though the document calls its auto-assigned creator field `approving_supervisor`.
+
+**Required policy decision before creating test users or executing positive stock issue:** Recommend distinct human identities for request/preparation and physical issue; do **not** permit a single account to both originate/approve and issue the same Slip. If selected, plan a separate, reviewed GitHub feature change enforcing this restriction on the **server** (not just a button), and separately review the `User.before_save` role auto-grant behavior so excessive unrelated requester rights are not silently provisioned. A different choice (intentionally allowing stockroom self-issue) must be explicit and documented. No authorization currently exists for either code change or identity/transaction creation; next message should ask one direct owner policy question rather than run another test.
+
 ## 3. Code-import isolation gate (mandatory before any site writes)
 
 ### Completed read-only import gate (2026-10-14)
