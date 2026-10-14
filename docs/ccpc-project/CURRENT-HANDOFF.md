@@ -1,9 +1,23 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
-**Last verified update:** 2026-10-13 (GitHub connector, test output attachment, and operator terminal reports).  
+**Last verified update:** 2026-10-14 (GitHub connector and operator terminal reports).  
 **Purpose:** This is the **single rolling GitHub handoff** for CCPC ERPNext. Maintain **this same path** at meaningful milestones, during longer conversations before a thread limit is reached, and when the operator requests a handoff. Do not create a new dated Project Source attachment every time.
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
+
+## Corrected Stock Entry field installation halted on bench database-log path; independent audit clean — 2026-10-14
+
+**Operator-reported execution:** The SHA-256-verified `/home/gani/ccpc_stock_entry_fields_setup_v2.py` (`e27386879c02f3f98c76ed4489474255e882b3f0664a84c6ec70c578f6477660`) ran via `docker exec -i --user frappe frappe_docker_devcontainer-frappe-1` from `/workspace/development/frappe-bench`, with intended site `ccpc-integration2.localhost`. Guarded preflight passed site isolation, all ten existing recovery checkpoints (40 artifacts), reviewed setup code, active Workflow / self-approval, opening stock 10 Nos/PHP1,000, balanced GL and no user/Stock Entry/unrelated transactions. The process then stopped:
+
+```text
+STOP: FileNotFoundError [Errno 2] No such file or directory: '/workspace/development/logs/database.log'
+Database DDL might have committed partial schema changes even if rollback was requested.
+DO NOT rerun or restore. Run an independent read-only audit first.
+```
+
+**Independent audit completed and reported by operator:** Direct `MySQLdb` connection in `START TRANSACTION READ ONLY` verified target DB identity distinct from `development.localhost`; `tabCustom Field` rows and `information_schema.COLUMNS` for each of `Stock Entry.withdrawal_slip`, `Stock Entry.withdrawal_slip_issued_by`, and `Stock Entry Detail.withdrawal_slip_item` all **0**. Withdrawal Slip Workflow verified (active with eight states/four transitions in the audit's assertions); opening stock Bin **10 Nos / PHP1,000**, two GL entries balanced **PHP1,000 each**, and **zero** Withdrawal Slips, Stock Entries, Sales Invoices, Purchase Invoices and Intercompany Material Billing Batches. Output ended `THREE FIELDS: NO PERSISTED SCHEMA CHANGES` and `INDEPENDENT READ-ONLY AUDIT: COMPLETED`. No restoration or new transactions performed. The independent audit did not re-hash backup archives, but the failing installer preflight reported all ten checkpoints verified.
+
+**Status:** Targeted Custom Field installation still **NOT completed**; nothing to claim as persisted, migrated or integration tested. The `/workspace/development/logs/database.log` exception is a **new unresolved Frappe logging/bench-path problem**; the exact cause and point of failure relative to the guarded install function need inspection. Avoid assuming the missing directory merely needs creating. **Next safe one-step action:** read-only inspect within the existing DEV container of `os.getcwd()`, Frappe's computed bench path, the *nonsecret* `FRAPPE_BENCH_ROOT` path setting, and existence/permissions of `/workspace/development/logs` versus `/workspace/development/frappe-bench/logs`. Do not call `frappe.init`, `frappe.connect`, `bench migrate`, run installer again, make new directories or permission changes, or restore backups until inspected. Review and checksum any focused correction before a subsequent already-scoped attempt; perform independent postcommit SQL audit after actual installation. Authorization remains exactly the same three Custom Fields on `ccpc-integration2.localhost` only. Persistent DEVELOPMENT and PRODUCTION untouched.
 
 ## Approved three-field install stopped before Frappe connection: incorrect sites_path — 2026-10-14
 
