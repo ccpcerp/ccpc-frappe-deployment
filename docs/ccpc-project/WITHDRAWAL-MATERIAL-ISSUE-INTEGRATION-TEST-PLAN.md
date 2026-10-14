@@ -1,8 +1,16 @@
 # CCPC Withdrawal Slip → Material Issue: isolated integration-test plan
 
-**Status:** proposed / design only — no live integration tests or fixture writes authorized as of 2026-10-14.  
+**Status:** peer-issuer control implemented in draft GitHub feature branch on 2026-10-14; mock tests committed but not executed; no live integration tests or fixture writes authorized.  
 **Authoritative app source:** `ccpcerp/ccpcerp` feature branch `feature/withdrawal-material-issue-safety`, verified SHA `85d129e193b32cc229de2e30145359bb3979c257`, draft PR [#7](https://github.com/ccpcerp/ccpcerp/pull/7), based on `review/intercompany-approval-failure-tests` SHA `806fa23516490ec7beefcff03a1baa09d722120e`.  
 **Target:** isolated `ccpc-integration2.localhost` only. Shared Frappe bench also serves persistent `development.localhost`. PRODUCTION is out of scope.
+
+## Peer-issuer server guard committed on GitHub (2026-10-14; no site test)
+
+At owner's later explicit **"Approved, Continue"**, the narrow server-side Option A implementation was authorized **on GitHub only**. Verified app branch `feature/withdrawal-material-issue-safety` now at `2f846a75dc7f1b9e6eb20bed38a1ae3433571ad6`, draft unmerged PR [#7](https://github.com/ccpcerp/ccpcerp/pull/7). Six new code/test commits modified exactly five paths: `withdrawal_slip_stock.py`, Withdrawal Slip controller, two pre-existing mocked test files and new `test_withdrawal_peer_issuance.py` with **18 test methods**. Existing transaction lock now fetches `owner`/Prepared By, requires consistent identities and independent authenticated Stockroom issuer, rejects Guest and Administrator, and checks before direct issue, legacy draft creation and linked Stock Entry submit. No new schema, users, stock permissions or records.
+
+**Verification distinction:** GitHub commit/PR head and file presence confirmed; static source checks confirmed role and issuer hooks. **The 18 new tests have not yet been run in a real Frappe Python environment**; prior 47/47 mocked tests refer to older pre-policy code, not the updated commit. No Frappe integration, permission, actual material issuance, SLE/GL, concurrency, rollback or restore drill tests after the new commit. GitHub reported zero workflow runs at inspected branch head. Do not call this production-ready.
+
+**Safe testing sequence awaiting owner authorization:** First read-only preflight of active shared DEVELOPMENT checkout, detached worktree status and isolated synthetic site's baseline; do **not** switch/pull shared worktree or modify protected `AGENTS.md`. With separate approval for a **temporary isolated source checkout** at exact new feature SHA, run site-free focused and wider Frappe mocked tests (no site initialization or database), inspect failures and commit any fixes to GitHub. Only then seek separate explicit consent for isolated DB user fixtures and inventory/ledger integration tests. Shared DEVELOPMENT and PRODUCTION remain untouched by GitHub code commits.
 
 ## Approved Stockroom peer-issuer policy (2026-10-14; planning only)
 
