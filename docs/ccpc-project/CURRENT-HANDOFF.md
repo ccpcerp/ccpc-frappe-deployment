@@ -5,6 +5,29 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Isolated Stock Entry provenance fields independently database-verified — 2026-10-14
+
+**Milestone COMPLETE within approved limited scope:** On `ccpc-integration2.localhost`, the operator executed SHA-256-verified v3 guarded installer (`/home/gani/ccpc_stock_entry_fields_setup_v3.py`, SHA-256 `309fe219cc3f806b475de9f2b004af7f22cb8d75d6f3c33f04dad32922d8698c`), and the script reported all three approved Custom Fields persisted/committed and all ten protected existing checkpoints (40 files) intact. The operator then ran a **separate, direct `MySQLdb` read-only audit** using `START TRANSACTION READ ONLY` and provided the complete success summary:
+
+```text
+ISOLATED DATABASE: VERIFIED
+Stock Entry.withdrawal_slip: METADATA AND SQL COLUMN VERIFIED
+Stock Entry.withdrawal_slip_issued_by: METADATA AND SQL COLUMN VERIFIED
+Stock Entry Detail.withdrawal_slip_item: METADATA AND SQL COLUMN VERIFIED
+ACTIVE WORKFLOW AND SELF-APPROVAL: VERIFIED
+OPENING STOCK: 10 NOS / PHP 1,000 VERIFIED
+STOCK LEDGER AND BALANCED GL: VERIFIED
+UNRELATED BUSINESS DOCUMENTS / USERS: NONE
+THREE STOCK ENTRY INTEGRATION FIELDS: INDEPENDENTLY VERIFIED
+READ-ONLY DATABASE AUDIT: PASSED
+```
+
+**Scope and checks:** The independent audit directly compared isolated database identity with `development.localhost` (different DB), confirmed precisely one `tabCustom Field` row and one corresponding physical `information_schema.COLUMNS` record for each of the three fields, and asserted metadata labels, field types, options, insert positions, `read_only`, `hidden`, `no_copy` match reviewed `ccpcerp.setup.ensure_withdrawal_slip_stock_entry_fields()`: `Stock Entry.withdrawal_slip` Link → Withdrawal Slip after purchase_order (read-only, no_copy), `Stock Entry.withdrawal_slip_issued_by` Link → User after withdrawal_slip (read-only, hidden, no_copy), and `Stock Entry Detail.withdrawal_slip_item` Data after material_request_item (read-only, hidden, no_copy). It asserted active Workflow with eight states/four transitions and expected Draft→Approved self-approval action; Bin at 10 Nos/PHP1,000; one submitted opening Stock Reconciliation, one Stock Ledger Entry and two balanced GL Entries of PHP1,000 debit/credit; zero Withdrawal Slips, Stock Entries, Sales Invoices, Purchase Invoices, Intercompany Material Billing Batches and non-Administrator/Guest users. Read-only transaction rolled back/connection closed. The exact audit command was provided in chat before operator reported success. **No further installation is needed.**
+
+**Verification boundaries:** This proves persisted fields and the enumerated database invariants, **not** end-to-end withdrawal issuing, role-based posting access, concurrency/duplicate-issue controls, posting or billing integration, recovery restore drill, or an independent second archive checksum pass after installation. The installer itself reported pre-/post-install recovery checkpoint preservation; no backups were restored. Persistent DEVELOPMENT and PRODUCTION have not been changed as part of this milestone. Do not rerun v3, `bench migrate`, create test users/Stock Entries, adjust permissions, post inventory/GL, or deploy without separate reviewed scope/authorization.
+
+**Next milestone to plan separately (not yet authorized for mutation):** GitHub-first review of the existing Withdrawal Slip → Stock Entry Material Issue integration logic and planned limited isolated-site test cases. Identify the separate Stockroom Personnel Create/Submit permissions gap, duplicate-operation prevention, audit trail, concurrency, failure/rollback, and initial integration steps. Safeguard isolation and protected checkpoints, seek explicit approval before executing any additional schema/roles/users/business-document changes. Record test outputs in GitHub; PRODUCTION deployment always needs separate approval.
+
 ## Approved three Stock Entry provenance fields installed and committed on isolated site; independent audit pending — 2026-10-14
 
 **Actual operator-provided terminal execution, after SHA-256 guard:** `/home/gani/ccpc_stock_entry_fields_setup_v3.py` checksum matched `309fe219cc3f806b475de9f2b004af7f22cb8d75d6f3c33f04dad32922d8698c`. Command ran once as user `frappe` inside existing `frappe_docker_devcontainer-frappe-1` from `/workspace/development/frappe-bench`, with input redirected to Python via stdin. The script reported `ISOLATED SITE: VERIFIED`, `ALL TEN EXISTING CHECKPOINTS: VERIFIED (40 FILES)`, `REVIEWED SETUP CODE: VERIFIED`, active Withdrawal Slip Workflow/self-approval and 10 Nos / PHP1,000 opening stock/balanced GL verified, and no users, Stock Entries or unrelated transactions. It printed `Installing exactly three approved provenance Custom Fields...`, `ALL THREE FIELD DEFINITIONS: VERIFIED IN FRAPPE`, `FIELD INSTALLATION: FUNCTION RETURNED AND COMMITTED`, each target field `VERIFIED`, `Metadata and physical SQL columns: VERIFIED`, ten checkpoints preserved and Workflow/stock/GL/users/permissions/business documents unchanged. Terminal finished `STOCK ENTRY INTEGRATION FIELDS: PERSISTED AND VERIFIED` with no traceback.
