@@ -1,5 +1,29 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## One-shot DEV Redis JSON-format diagnostic: five stages PASS; trailing STOP explained by script exit bug — 2026-10-16
+
+**Operator-approved scope, now consumed:** The owner separately approved **one** manual read-only execution of the already staged new `ccpc_material_issue_redis_json_shape_readonly_candidate_20261015.sh`. Provided wrapper validated staging directory/script ownership and strict modes, required exact pinned SHA256 `b88dadc10cac64c5b6f48a695fbf506b046613cbe4db192da440227934b212b0`, passed `bash -n`, and invoked the new script once with its distinct one-shot environment gate. The complete **operator-reported** output was:
+
+```text
+VERIFIED: STARTING ONE READ-ONLY DEVELOPMENT DIAGNOSTIC
+COMMON: JSON_OK
+ISOLATED: JSON_OK
+SHARED: JSON_OK
+ISOLATED_REDIS: FORMAT_OK
+SHARED_REDIS: FORMAT_OK
+CONFIG SHAPE: COMPLETE; ENDPOINTS/ISOLATION: UNVERIFIED; POSTING: NO-GO
+CONFIG SHAPE: STOP; POSTING: NO-GO
+ONE-SHOT REDACTED FORMAT CHECK: STOPPED; POSTING: NO-GO
+```
+
+**Five stage checks passed** (common, isolated and shared JSON structure; isolated/shared Redis URL formats). These are configuration-only checks for short-lived exec-child context; **not proof of Redis connections, actual overlapping endpoints, physical/worker/pubsub isolation or posting safety**.
+
+**Explained erroneous trailing STOP:** GitHub verified the exact new-script blob remains `fc5617117806b8cd19586ae3c7bf530dab21d632` and its bottom-level Python is `try: sys.exit(main())` / `except BaseException: ... sys.exit(1)`. A normal `main()` return of `0` triggers `SystemExit(0)`; it is captured by `BaseException`, producing the spurious `CONFIG SHAPE: STOP`, nonzero Python/Docker exit and outer `ONE-SHOT REDACTED FORMAT CHECK: STOPPED`. A separate local credential-free Python *minimal reproduction* confirmed the mechanism with process status 1, no Docker. The original 25/25 offline suite exercises functions with `__name__ != '__main__'`, so it did not test this entrypoint/exit path. **Do not call the final process status a passed integration test**, and do not present the trailing STOP as evidence of bad JSON or Redis URL. Both findings must be distinguished.
+
+**Review/documentation update:** [JSON-shape security review](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/review/material-issue-first-commit-preparation-2026-10-15/docs/ccpc-project/MATERIAL-ISSUE-REDIS-JSON-SHAPE-READONLY-CANDIDATE-2026-10-15.md) updated on review branch commit **`4df0fa157cad91fc1e98953a48de10a89058264f`**, document blob **`75536716dfd1df7c816ccc3258f8810da3268aca`**. The GitHub script and staged host file were **not modified**. The **old, separately consumed Redis endpoint overlap preflight** remains an *unexplained original STOP*, unrelated to the proved success-exit bug in the new format diagnostic.
+
+**Next safe scope:** Do not rerun the consumed one-shot script or grant a new execution based on its successful inner stage labels. If requested, review a **distinct GitHub-only fixed candidate** and add full `__main__` subprocess regression coverage of success/failure/exception status before considering any separate staging/execution approvals. Never replace the already-staged file without review or override past one-shot approval. App feature branch stays unchanged at last verified `2f846a75dc7f1b9e6eb20bed38a1ae3433571ad6`. No writes, stock/GL posting, Redis modification, DEVELOPMENT pull or PRODUCTION operation authorized. **Persistent Material Issue Stock Entry/SLE/GL: NO-GO.**
+
 ## New Redis JSON/format diagnostic staged with operator-reported checksum verification; NOT EXECUTED — 2026-10-16
 
 **Owner-authorized staging only, permission consumed.** After GitHub re-verification of the reviewed deployment branch `review/material-issue-first-commit-preparation-2026-10-15` at `21756ddf639eea0a7f6d83331e8476515c871aba` and the new JSON/URL-format diagnostic blob `fc5617117806b8cd19586ae3c7bf530dab21d632` (SHA256 `b88dadc10cac64c5b6f48a695fbf506b046613cbe4db192da440227934b212b0`), the assistant provided a staging-only command using the approved pinned `git fetch`, exact commit/file-mode/SHA256 comparison and private staging directory with no existing-file overwrite. **No command inside the staged script was executed by that staging block.**
