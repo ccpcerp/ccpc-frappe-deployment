@@ -1,5 +1,25 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## Owner-approved DEV config metadata check PASS, original Redis preflight still unclassified — 2026-10-15
+
+**Separate limited approval consumed:** The owner explicitly authorized **one** metadata-only `docker exec` of the known DEVELOPMENT container, after separate GitHub review and previous successful Python stdin tests. The command checked exact Compose project/service/running identity and as `frappe` performed only file-type/readability and symlink checks on the known DEVELOPMENT `sites` directory, common site config, isolated test site config, and shared development site config. No file content opens, SQL, Redis, Frappe init, data writes or PRODUCTION access were included.
+
+**Exact complete operator-reported output:**
+
+```text
+COMMON: PRESENT AND READABLE
+ISOLATED: PRESENT AND READABLE
+SHARED: PRESENT AND READABLE
+METADATA-ONLY FILE CHECK: COMPLETED
+READ-ONLY DEVELOPMENT INSPECTION: PASSED
+```
+
+**Interpretation:** The parent directory and all three expected config paths satisfied the restricted no-symlink, regular-file and read-permission checks at that time. This is a successful **metadata-only** check, not an independently witnessed host run, not proof JSON can be parsed, and not proof of effective Redis configuration or physical Redis, workers, pubsub or site isolation. Earlier original one-time Redis preflight remains an **unclassified STOP** with only `ONE-SHOT READ-ONLY PREFLIGHT: STOPPED OR FAILED` available; neither the later exit 127 nor successful Python execution identifies its failure branch. No re-run is authorized.
+
+**GitHub review documentation updated** in `review/material-issue-first-commit-preparation-2026-10-15`: [MATERIAL-ISSUE-REDIS-STOP-TRIAGE-PLAN-2026-10-15.md](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/review/material-issue-first-commit-preparation-2026-10-15/docs/ccpc-project/MATERIAL-ISSUE-REDIS-STOP-TRIAGE-PLAN-2026-10-15.md), update commit `91cfa5bbfb3d9c03dea5d6d44ce0ef28d35c5245`, blob `9acd2dd6acf78118d9571c0c52eded36e7bca086`. App feature branch at last verified `2f846a75dc7f1b9e6eb20bed38a1ae3433571ad6` remains unmodified; original Redis operator script blob unchanged `85123cd4d487110d01cdc375ad7e6969035bdc34`.
+
+**Next safe decision:** Request earlier original terminal lines if available, without disclosing config contents or secrets. If none, prepare a *distinct* bounded, redacted site-configuration shape/Redis URL parser as a GitHub-only candidate with offline source/security tests first; staging and actual DEVELOPMENT execution need separate new approvals. Do not repeat any consumed one-shot operation. No permanent Material Issue Stock Entry/SLE/GL COMMIT, rollback-only rehearsal, Redis reconfiguration, or PRODUCTION operation authorized. **NO-GO for posting.**
+
 ## Redis original STOP source-triage review; metadata-only alternative prepared, not authorized — 2026-10-15
 
 **Scope of owner “Continue”:** GitHub-only review of the existing Redis preflight source and operator-reported diagnostics, credential-free offline shell syntax checking of a planned command, and GitHub project documentation. No further Ubuntu, Docker, Frappe, Redis, SQL, DEVELOPMENT execution, production access, staging or operator script execution was approved or performed.
