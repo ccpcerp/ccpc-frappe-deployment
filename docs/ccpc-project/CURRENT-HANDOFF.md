@@ -1,5 +1,21 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## First GitHub-to-Ubuntu script delivery and read-only execution PASSED — 2026-10-15
+
+**Operator terminal evidence:** After the previously verified isolated staging step, the operator ran the pinned `ccpc_material_issue_delivery_readonly_check_20261015.sh` from `$HOME/ccpc-reviewed-scripts` with a fresh `test -f` / reject-symlink / `sha256sum --check --status` gate. The exact output was:
+```text
+PRIVATE GITHUB READ: PASSED
+PINNED MATERIAL ISSUE SOURCE BRANCH: VERIFIED
+DELIVERY PREPARATION READ-ONLY CHECK: PASSED
+NO ERPNext SITE, DATABASE, DOCKER, BACKUP OR PRODUCTION OPERATION PERFORMED
+```
+
+The script was sourced from separate private deployment review branch `review/material-issue-first-commit-preparation-2026-10-15` at immutable Git commit `d7e1d0361c14b7ea406479271fb15377ec7b94cd`, file path `scripts/development/operator/ccpc_material_issue_delivery_readonly_check_20261015.sh`, SHA256 `d81fa05afdef07bf059ccc21c6e9a9bea2eb77195b1a542cd1b95841ddbfd9a6`. Source and relevant branch tip were independently reconfirmed through the GitHub connector. This completes one **manual pinned GitHub → isolated Ubuntu staging → checksum → read-only script execution** cycle, as reported by the operator. It is **not** proof ChatGPT has server access or that all future scripts are safe; each future artifact must still be reviewed, independently pinned and approved. No GitHub-triggered execution, scheduler, SSH credential exposure or server agent was installed.
+
+**Financial/ERPNext state:** This smoke test called only strict-host-key `git ls-remote` for the private repositories and did not itself access ERPNext, MariaDB, Docker, backups or PRODUCTION. The last audited isolated `ccpc-integration2.localhost` business state remains historical: one `WS-2026-00001` in Stockroom Review, Bin 10 Nos/PHP1,000, zero linked Stock Entries, one historical SLE and two historical GL entries, with 12 protected recovery sets / 48 files. No new database audit was done by this transport test. The prior Material Issue path ran **rollback-only** and its one-shot script is consumed. No committed Material Issue exists in the last independently reported readback.
+
+**Next preparation gate:** Locate/retrieve for **read-only source review only** the consumed `ccpc_material_issue_identity_safe_rollback_diagnostic.sh` (known SHA256 `951ff6be3ae561b21fe86bd5b62b708d672b7e2166d5995d518914a11b9af996`) from the operator's existing private script files if still available. Do not execute, rerun, overwrite, stage as reusable, publish to GitHub or send any embedded credentials/config/DB data. First do a safe filename-and-SHA256 lookup only in the operator's own home (no production trees). If unavailable, develop a separate and fully reviewed new commit-capable harness rather than guessing missing safety guards. The `MATERIAL-ISSUE-FIRST-COMMIT-PREPARATION-2026-10-15.md` plan is design-only; **no commit-capable script is prepared or approved to execute**. A one-unit actual stock/GL COMMIT would require a fresh, narrowly scoped owner approval and a current isolated-site recovery/baseline review.
+
 ## First GitHub-to-Ubuntu reviewed script staging — OPERATOR REPORTED PASS, NOT EXECUTED — 2026-10-15
 
 **Operator terminal output:** `STAGED AND VERIFIED, NOT EXECUTED: /home/gani/ccpc-reviewed-scripts/ccpc_material_issue_delivery_readonly_check_20261015.sh`. This was the pre-approved manual staging procedure using isolated `git fetch`, exact review branch HEAD `d7e1d0361c14b7ea406479271fb15377ec7b94cd`, expected file under `scripts/development/operator/`, and SHA256 `d81fa05afdef07bf059ccc21c6e9a9bea2eb77195b1a542cd1b95841ddbfd9a6`. The procedure checks a Git blob mode, commit and sha256, then creates the private staged file with fail-if-exists behavior. The **GitHub connector independently rechecked** the review branch still at the pinned commit and the script blob at `c95fc0a9526dc827d8fc00103b0b10067898516f`. The operator's terminal output supports successful staging and checks; ChatGPT has **no shell access to the user's actual server**, so cannot independently inspect its staged file.
