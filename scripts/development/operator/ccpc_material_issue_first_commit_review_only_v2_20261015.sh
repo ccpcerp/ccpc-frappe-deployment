@@ -476,6 +476,34 @@ try:
             return None   # no Redis, no callback scheduled for synthetic update
         stop('Unexpected realtime event or outbound side effect')
 
+    # Provisional REVIEW-ONLY DML target gate. Deliberately denies tabSeries and
+    # unexpected child/auxiliary tables until the specific synthetic SQL path is
+    # traced and separately authorized. This is NOT a full SQL parser, cannot
+    # scope all values/rows or intercept raw driver cursors, and is NOT runnable.
+    REVIEW_INSERT_TARGETS = frozenset({
+        'tabStock Entry', 'tabStock Entry Detail',
+        'tabStock Ledger Entry', 'tabGL Entry', 'tabVersion',
+    })
+    REVIEW_UPDATE_TARGETS = frozenset({
+        'tabWithdrawal Slip', 'tabWithdrawal Slip Item',
+        'tabStock Entry', 'tabStock Entry Detail',
+        'tabStock Ledger Entry', 'tabGL Entry', 'tabBin',
+    })
+    def review_dml_scope(query):
+        text = str(query).strip()
+        if re.match(r'^INSERT\b', text, re.IGNORECASE):
+            matched = re.match(r'^INSERT\s+INTO\s+`([^`]+)`\s*\(', text, re.IGNORECASE)
+            if not matched or matched.group(1) not in REVIEW_INSERT_TARGETS:
+                stop('Unreviewed INSERT target, naming-series write or SQL form')
+        elif re.match(r'^UPDATE\b', text, re.IGNORECASE):
+            matched = re.match(r'^UPDATE\s+`([^`]+)`\s+SET\s+', text, re.IGNORECASE)
+            if (not matched or matched.group(1) not in REVIEW_UPDATE_TARGETS
+                    or not re.search(r'\bWHERE\b', text, re.IGNORECASE)):
+                stop('Unreviewed UPDATE target or unscoped UPDATE')
+        elif re.match(r'^DELETE\b', text, re.IGNORECASE):
+            stop('DELETE not authorized for one-unit synthetic issue')
+        return None
+
     # Block unreviewed SQL transaction-control/DDL through normal Frappe SQL
     # interface. NOT a comprehensive DML allowlist: direct driver paths,
     # child tables, and ancillary mutations require separate full tracing.
@@ -493,6 +521,7 @@ try:
         # allowlist: full trace and schema delta review remain mandatory.
         if not re.match(r'^(SELECT|INSERT|UPDATE|DELETE|SHOW|DESCRIBE|EXPLAIN|COMMIT|START\s+TRANSACTION)\b',q):
             stop('Unreviewed SQL command category blocked')
+        review_dml_scope(query)
         if re.match(r'^(COMMIT|START\s+TRANSACTION)\b',q):
             if q == 'COMMIT' and sql_commit_phase == 'one_commit':
                 sql_commit_phase = 'committed_sql'
