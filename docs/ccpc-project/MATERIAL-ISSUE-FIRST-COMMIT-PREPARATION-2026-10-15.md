@@ -1,5 +1,18 @@
 # CCPC ERPNext — First committed one-unit Material Issue: preparation and execution gates
 
+## Review-only v2 hardening prepared — execution still forbidden (2026-10-15)
+
+The owner said “Continue” after the source-only **NO-GO** security review, permitting GitHub review-branch improvements and offline negative tests only. No live financial or ERPNext operation was authorized.
+
+- **Original commit-capable script** remains unchanged and **NO-GO**: `scripts/development/operator/ccpc_material_issue_first_commit_guarded_candidate_20261015.sh`, blob `323967737cd762f7018a739fc7d67d1b25520259`.
+- **New source-only, unconditionally inert v2 draft**: `scripts/development/operator/ccpc_material_issue_first_commit_review_only_v2_20261015.sh`, blob `1d75461ec5bcb22e3e67f2ebfb503b79b3606243`. An early `exit 1` prevents **any** Docker/SQL execution, independently of environment variables. Hardened pinned DEV SQL host checks, revised SQL/callback guards, post-/pre-commit phase checks, improved staging-dir validation and lower-latency in-lock snapshot metadata gate. These are **partial security improvements**, not posting readiness.
+- **New source-aware offline regression suite:** `tests/offline/test_material_issue_v2_guards.py`, blob `772abee3e57eb844deee1bcd2f40df67d0bebf71`. Seven unittest methods passed against a locally reconstructed mock source in a private offline container; the exact v2 source **has not yet been compiled/test-run as a complete file** or executed on DEVELOPMENT. Actual signed-off tests against the exact reviewed GitHub checkout remain pending.
+- **Security review record** `docs/ccpc-project/MATERIAL-ISSUE-FIRST-COMMIT-SECURITY-REVIEW-2026-10-15.md` updated on this review branch at `d0999018cbffd48176bddfa4f655c9c41a7c1846` with blocker-by-blocker remediation evidence and unresolved cases.
+
+**Remaining critical blockers:** v2's SQL prefix/phase filter is not a complete child-table/raw-driver DML whitelist and may reject legitimate ERPNext paths; conditional Version/serial/reservation/repost documents and after-COMMIT Redis/cache/file effects are not independently traced; abort/callback failure outcomes lack on-site rollback-only tests; backup archives have not been restore-tested nor independently verified off-host; exact v2 syntax and source-extracted fixture tests against a pinned credential-free checkout remain unrun. The user's previous authorized test/site/backup audits do NOT imply permission for an actual one-Nos persistent stock/GL COMMIT.
+
+**Next:** Run the checked-in offline unit tests against the pinned GitHub review branch in a credential-free environment, investigate any failures, then continue GitHub-only scope tracing/hardening. Do **not** stage or run either candidate on Ubuntu, repeat the consumed diagnostic, restore backups, restart Docker, merge/deploy or touch PRODUCTION. Separate owner approval required for any future isolated rollback rehearsal or permanent posting.
+
 ## Security / transaction safety final source review — NO-GO FOR COMMIT CANDIDATE, 2026-10-15
 
 The owner authorized a **GitHub-only code and transaction-safety review** following the successful read-only isolated SQL/Bin/GL/recovery audit; owner did **not** approve code changes to the runnable candidate, staging, stock/GL posting, SQL COMMIT, DEVELOPMENT mutations or PRODUCTION operations.
