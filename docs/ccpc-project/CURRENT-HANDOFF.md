@@ -5,6 +5,11 @@
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
 
+## Account-path follow-up SQL diagnostic prepared; NOT EXECUTED — 2026-10-15
+
+**Operator-only artifact:** `ccpc_material_issue_account_path_readonly.sh` SHA256 `204a1bed155bcb5cb35a3c5f86fc01ea069d3a3cb0076515f67a10c4f176044a` passed Bash `bash -n` and embedded Python AST parse locally. No user-side execution yet. It creates no records and uses separate isolated DB `START TRANSACTION READ ONLY` / rollback, does not call `frappe.init`, and prints installed ERPNext/Frappe Git SHAs, Item Group `Consumable` expense/cost center defaults, Stock Settings from `tabSingles`, Warehouse parent account inheritance and resolved asset/expense Account status. Fail closed on changed one-Slip/zero-Stock-Entry/one-SLE/two-GL baseline or 10 Nos/PHP1,000 Bin. **Passing output is account-path prerequisite evidence, not an authorization for stock or GL posting.**
+
+
 ## Read-only pre-posting accounting audit PASSED; Material Issue account fallback requires Item Group check — 2026-10-15
 
 **Operator supplied complete terminal output** from previously prepared SHA256-pinned `ccpc_material_issue_accounting_readonly_audit.sh`, `17aca52d156d596607a67483d39f6e33d78e16b2239b4671dd8d5cfd4e9abca6`. Output passed protected Git source checkouts, existence of earlier recovery checkpoints (**not** a restore drill), isolated DB read-only transaction, and the existing single test Slip, roles, stock and GL baseline. It ended **`PRE-POSTING ACCOUNTING READ-ONLY REVIEW: COMPLETED — AWAITING CONFIGURATION REVIEW`**, **`DATABASE WRITES: NONE`**, protected checkouts unchanged. The audit does not authorize a posting or prove eventual GL booking.
