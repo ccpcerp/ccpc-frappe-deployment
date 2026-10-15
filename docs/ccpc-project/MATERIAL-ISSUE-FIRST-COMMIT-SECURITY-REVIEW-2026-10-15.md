@@ -1,5 +1,13 @@
 # CCPC ERPNext — First committed Material Issue candidate: source-level transaction safety review
 
+## B2 partial remediation: table-target guard and exact-source offline tests — NO-GO, 2026-10-15
+
+**Read-only / GitHub-only continuation:** A new table-target helper was added to the previously unconditionally inert v2, **not** to the original guarded commit candidate. Final v2 GitHub blob `0a17d53cc0badac1de05745ef9edfb60d342ed89` (41,591 bytes) contains `review_dml_scope` called by `limited_sql`, with restricted, provisional INSERT/UPDATE table-name sets and all DELETE disallowed. Unknown `tabSeries` naming-counter INSERT/UPDATE remains blocked rather than broadly enabled. This is deliberately conservative and may block the valid ERPNext path: it does not prove readiness to post. There is **still** an unconditional pre-Docker `exit 1`.
+
+**Exact-source tests:** Existing seven-method suite updated to supply the DML helper dependency (`tests/offline/test_material_issue_v2_guards.py` GitHub blob `6469997eb93efb523a308ca015c755902132764d`) and five new pure-AST DML tests added (`tests/offline/test_material_issue_v2_dml_surface.py` GitHub blob `29fbbd8c3603b24488d4bc8e2ad671b667536edf`). Local test files' `git hash-object` matched these blobs; similarly the v2 source matched GitHub. **12 of 12** offline tests passed with Bash/Python syntax, synthetic SQL negative examples, and the early inertness exit check. See [exact-source evidence and limitations](MATERIAL-ISSUE-V2-EXACT-SOURCE-OFFLINE-TEST-EVIDENCE-2026-10-15.md), updated at commit `077f9f870f5a50a395b802ab5557369e4b692a80`.
+
+**B2 remains open, not downgraded:** The regex gate neither parses arbitrary SQL fully nor restricts record-level WHERE targets; direct driver calls, naming counters, child table DML, ERPNext auxiliary DocTypes and callback/Redis/cache/file side effects remain unmapped. A `WHERE 1` update against an allowlisted table is a concrete counterexample to comprehensive row-level safety. Do **not** make this script runnable or widen `tabSeries` permission without exact fixture metadata, a table-delta trace and separate owner-scoped, rollback-only test approval. B3/B5/B6/B7/B8 similarly remain open; prior live read-only baseline does not prove POST/COMMIT safety. The original candidate is unchanged at blob `323967737cd762f7018a739fc7d67d1b25520259`. **Final decision remains NO-GO for any durable Material Issue COMMIT.**
+
 ## Exact v2 GitHub-source offline regression PASS (no ERPNext execution) — 2026-10-15
 
 **Evidence:** [MATERIAL-ISSUE-V2-EXACT-SOURCE-OFFLINE-TEST-EVIDENCE-2026-10-15.md](MATERIAL-ISSUE-V2-EXACT-SOURCE-OFFLINE-TEST-EVIDENCE-2026-10-15.md), created at GitHub review commit `a1fc13815c387f6cd964d83c3a3d085e3e872cd0`.
