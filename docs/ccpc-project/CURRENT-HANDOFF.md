@@ -1,5 +1,24 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## Read-only live DEV / PRODUCTION configured database isolation preflight PASSED — 2026-10-15
+
+**Owner specifically approved once-only execution** of the newly SHA-pinned read-only `ccpc_material_issue_db_isolation_readonly_20261015.sh`, including bounded inspection of the configured `db_name` value in the running PRODUCTION backend container. The owner/operator then supplied the following **complete successful terminal output**:
+```text
+FOUR DISTINCT RUNNING DEV/PROD COMPOSE SERVICE ROLES: VERIFIED
+SEPARATE DEV/PROD MARIADB STORAGE MOUNTS: VERIFIED
+PRODUCTION SITES MOUNT DISTINCT FROM DEV WORKSPACE: VERIFIED
+ISOLATED TEST, SHARED DEVELOPMENT AND PRODUCTION DB NAMES: DISTINCT
+ONLY SITE CONFIG DATABASE NAMES WERE READ; NO VALUES OR SECRETS PRINTED
+NO SQL, FRAPPE, STOCK, GL, BACKUP, DOCKER LIFECYCLE OR PRODUCTION DATA WRITE
+DATABASE CONFIGURATION ISOLATION READ-ONLY PREFLIGHT: PASSED
+```
+
+**Evidence distinction:** GitHub connector independently reverified the read-only script source at blob `29d2a64c7ca179732029597be1ff93b61ea1604b`, SHA256 `a376a6fd3e6e6fd363ee6fd711154159737ac73ff5f7bacc4eb5714755b85a52`, on review branch `review/material-issue-first-commit-preparation-2026-10-15` (source/staging HEAD originally `d1bf86ae7170a6b7401d513d97f0a00174de3348`). The actual runtime PASS is **operator-reported terminal evidence**; ChatGPT did not connect to Docker or read PRODUCTION configuration. The approved script's source checks four distinct Compose service roles, separately backed DEV/PROD MariaDB mounts, PROD sites mount outside DEV workspace, and different configured database-name HMAC digests for isolated test `ccpc-integration2.localhost`, shared DEV `development.localhost`, and live PROD `ccpcerp.local`. Script executes no SQL or Frappe transactions and only reads the PRODUCTION config database-name key in a short-lived `docker exec` Python process. No PRODUCTION data write, restart, migration, inventory posting, GL, backup or other site mutation occurred under the reviewed command.
+
+**What is NOW PASSED:** manual GitHub-to-Ubuntu staging/checksum and separately authorized read-only Docker and configured DB-name identity checks. **Not yet verified:** isolated site's live SQL `SELECT DATABASE()` and connection endpoint, latest stock/Bin/Slip/GL baseline, current 12 backup sets/48 fingerprints and recoverability, protections for possible SQL/Redis/out-of-band commit hooks, actual committed stock/GL side effects, HTTP/CSRF/concurrency and duplicate prevention under load. Configured separate names/mounts are strong bounded evidence, not end-to-end actual DB access isolation.
+
+**Next narrow preparation task:** design a *new distinct isolated-only, read-only* direct SQL readback + recovery-fingerprint/current baseline check using GitHub-first review, then stage and execute only after its exact scope is reviewed. The previously prepared **commit-capable Material Issue script is NOT STAGED, ARMED, EXECUTED OR APPROVED FOR ACTUAL COMMIT**. Original one-shot rollback diagnostic remains consumed and prohibited from replay. Shared DEVELOPMENT and PRODUCTION remain protected; no production changes are authorized. The updated detailed preparation plan was committed on review branch at `60c63818aaaa3af4db40c972c91aaafc08ec0b35`.
+
 ## DEV/PROD database isolation preflight staged and checksum-verified, NOT executed — 2026-10-15
 
 **Operator terminal report:** `STAGED AND VERIFIED, NOT EXECUTED: /home/gani/ccpc-reviewed-scripts/ccpc_material_issue_db_isolation_readonly_20261015.sh`. This followed the previously supplied isolated Git fetch procedure: pinned private review branch commit `d1bf86ae7170a6b7401d513d97f0a00174de3348`, repo path `scripts/development/operator/ccpc_material_issue_db_isolation_readonly_20261015.sh`, and SHA256 `a376a6fd3e6e6fd363ee6fd711154159737ac73ff5f7bacc4eb5714755b85a52`. Its final printed line is evidence, from the operator's console, that the checks completed and a separate private `$HOME/ccpc-reviewed-scripts` staging file was created. Connected GitHub independently reverified that the review branch still points to `d1bf86ae7170a6b7401d513d97f0a00174de3348` and the file blob SHA remains `29d2a64c7ca179732029597be1ff93b61ea1604b`; ChatGPT cannot independently read the operator's actual staged bytes.
