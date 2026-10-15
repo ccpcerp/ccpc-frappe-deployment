@@ -32,6 +32,15 @@ The handoff lives in deployment documentation branch `docs/ccpc-checkpoint-2026-
 - PRODUCTION is a separate Docker Compose project on the **same Ubuntu host**. A GitHub edit, pull request, merge or DEV test **never authorizes PRODUCTION deployment, migration, restart, restore, backup/retention change or Docker cleanup**. Explicit operator approval and backup/recovery review are prerequisites.
 - No new paid OpenAI API key, unattended Codex auto-reporting or GitHub publishing automation as part of this workflow. User prefers **one safe, verified step at a time** rather than repetitive infrastructure preflights. The running DEV Codex environment has readable mounted SSH materials and a previously unreliable nested sandbox: do not launch agentic Codex there.
 
+## Reviewed operator-script delivery — owner approved 2026-10-15
+
+The owner approved a simpler, **manual GitHub-to-DEVELOPMENT script-transfer workflow** to avoid repeated Windows download/PowerShell SCP steps. The authoritative detailed procedure is [REVIEWED-SCRIPT-DELIVERY-TO-DEVELOPMENT.md](REVIEWED-SCRIPT-DELIVERY-TO-DEVELOPMENT.md).
+
+The existing GitHub connector may commit **reviewed, sanitized, newly approved operator scripts** to the private deployment/docs repository, but commits never auto-execute on Ubuntu. Check the **full pinned commit SHA and script SHA256**, stage only into a separate owner-private directory outside DEVELOPMENT's protected Git checkout, and require the operator's explicit one-operation approval and manual execution. Never pipe a GitHub URL into `bash`, disable SSH host-key checks, create a self-hosted auto-runner, store secrets/dumps, or touch PRODUCTION. One-shot scripts already consumed must not be republished for replay.
+
+**Initial rollout is pending:** Ubuntu's private-GitHub authentication is *not yet verified*. First obtain an operator-run, read-only `git ls-remote` result using noninteractive SSH with strict host-key checking, as specified in the runbook. Do not assume a GitHub connector implies authenticated server access. No new stock/GL posting, restoration, branch switch or automated job is authorized by adopting this delivery procedure.
+
+
 ## Verified checkpoint from operator/GitHub — 2026-10-12
 
 ### Actual repositories and branches
