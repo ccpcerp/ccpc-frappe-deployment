@@ -1,5 +1,30 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## Authorized isolated DEV metadata READ-ONLY audit PASS; site customizations + search flags require review — 2026-10-15
+
+**Owner authorization:** A fresh explicit approval was granted for **one execution of the previously staged, SHA256-pinned, isolated DEVELOPMENT-only read-only metadata probe**, not for stock/GL posting, rollback-only Frappe execution, PRODUCTION access or any future run of the same script. Previously operator reported successful *staging-only* and `bash -n`/Python syntax checks. **Following execution, operator reported all eight lines**:
+
+```text
+ISOLATED DEV METADATA CONNECTION CONFIG: VERIFIED
+ACTUAL ISOLATED DEV DATABASE: VERIFIED
+DOCTYPE NAMING AND CHILD GLOBAL SEARCH METADATA: READ
+STOCK ENTRY DETAIL SEARCH FIELDS: PRESENT
+RELEVANT SITE CUSTOMIZATIONS: PRESENT - REQUIRE REVIEW
+STOCK ENTRY NAMING SERIES COUNTER: COUNTED (VALUE NOT PRINTED)
+NO FRAPPE INIT, SQL WRITES, STOCK/GL, BACKUP OR PRODUCTION ACCESS
+ISOLATED METADATA READ-ONLY AUDIT: PASSED
+```
+
+**Script and source identity:** `scripts/development/operator/ccpc_material_issue_isolated_metadata_readonly_review_20261015.sh` (deployment review branch `review/material-issue-first-commit-preparation-2026-10-15`, pinned pre-staging HEAD `4af5c269e20dbf490fb0390e9e109167147d6286`, unchanged Git blob **`3dd860d6e254ee361b8f61769fe72ac9dc6a3854`**, exact SHA256 **`d38a617a23a91bb008a1f794ac5f9f179097e9b98ea3b1f54fc4109cda56aa32`**). Earlier 5/5 exact-source metadata contract tests and on-Ubuntu stage/syntax report remain documented. One live runtime PASS is **operator-reported**, not directly observed by ChatGPT.
+
+**Precisely what PASS means:** Actual MariaDB `SELECT DATABASE()` matched configured isolated `ccpc-integration2.localhost` database, at expected DEV `mariadb:3306`; shared DEVELOPMENT configured database name was distinct, but no SQL connection to shared DEV was made. All six relevant `tabDocType` records and Stock Entry base `naming_series` DocField record were present; at least one Stock Entry Detail base DocField has `in_global_search=1`. At least one `tabProperty Setter` or `tabCustom Field` row exists for **Stock Entry, Stock Entry Detail, Withdrawal Slip or Withdrawal Slip Item**. The script counted records in `tabSeries` whose names matched `MAT-STE-%`, **but it did not print whether the count was zero/nonzero or the series key/value**. It did not print actual autoname value, enabled/disabled global search state, or the customization DocType, target field or setting. No evidence of a specific custom field changing accounting or inventory was obtained, nor of an actual Redis mutation. The probe uses `START TRANSACTION READ ONLY`, SELECT-only queries and rollback; it did not initialize Frappe or write SQL, stock/GL, backups or PRODUCTION.
+
+**Significance:** Site customization presence makes a source-default-only posting guard unsafe. Searchable Stock Entry Detail metadata makes the pinned `Document.run_post_save_methods` -> `update_global_search` -> Redis `global_search_queue` code path worth specifically investigating; the effective `disable_global_search` option and conditional data contents remain unverified. Stock Entry's naming-series behavior and potential `tabSeries` writes still require exact site information. Frappe child table synchronization can issue DELETE and update commands; inert v2 presently rejects all DELETE and `tabSeries` DML, while generic SQL wrapper lacks a complete record-level policy. All these remain blockers to a permanent transaction.
+
+**GitHub records updated:** [Naming/child-write/Redis review](MATERIAL-ISSUE-WRITE-PATH-NAMING-SEARCH-2026-10-15.md) at review commit **`3bf1add538188e9b3099db5b6e54427459100a51`**; [first commit preparation](MATERIAL-ISSUE-FIRST-COMMIT-PREPARATION-2026-10-15.md) at **`b99af73ff9950bbfb5f0126ea738be6249248dde`**. This rolling handoff records the execution milestone.
+
+**Next recommended scope, NOT yet authorized:** Plan a **new** explicitly reviewed isolated-DEV metadata-only read probe that reveals safe, non-sensitive *identity/field names* for the relevant Property Setters and Custom Fields and effective naming/global-search settings, without exposing credentials or transactional data; do not run existing one-time probe again. New script requires source review, offline tests, fresh owner staging permission and fresh owner one-run execution approval. Before any rollback-only *writing then rollback* rehearsal, fully review Redis/precommit side effects and unique expected child/series DML. Before **any actual stock/GL COMMIT**, secure separately explicit posting approval following transaction and recovery gates. **Status: NO-GO for permanent Material Issue posting; neither posting candidate staged or run; inert v2 retains early unconditional `exit 1`; PRODUCTION untouched.**
+
 ## Isolated DEVELOPMENT read-only metadata probe STAGED and syntax-checked; NOT EXECUTED — 2026-10-15
 
 **Owner authorized STAGING ONLY**, not execution of the metadata probe. Following a pinned and checked GitHub-to-Ubuntu staging procedure, the operator supplied the exact terminal result:
