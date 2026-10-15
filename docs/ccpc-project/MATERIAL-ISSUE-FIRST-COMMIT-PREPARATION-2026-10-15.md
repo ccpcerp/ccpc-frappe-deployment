@@ -1,5 +1,13 @@
 # CCPC ERPNext — First committed one-unit Material Issue: preparation and execution gates
 
+## Inert exact-series SQL effect witness 14/14 offline tests PASS; no live diagnostic — 2026-10-15
+
+The user approved continued **GitHub-only** source/test design. Added `tests/offline/material_issue_effect_witness.py` (Git blob `ba56262cc1adf0f9d995687de288cf8b3845df54`) and `tests/offline/test_material_issue_effect_witness.py` (Git blob `ea9640270bbc189c40a564fe53e37a942cf79cc9`). They were byte-matched to a credential-free local test workspace, Python compile PASS, and **14/14 new unittest methods PASS**. This counts as a fresh offline-only milestone, not a rerun of the previous 19 tests or any DEV integration.
+
+The pure in-memory model accepts at most **one exact hypothetical** Stock Entry naming-counter `tabSeries` DML statement and its expected bind args, but *never* returns live execution/COMMIT authorization. It rejects UPDATE with `WHERE 1`, deletion, changed series keys or other sites, retries and declared external effects. No SQL or Redis interception is actually installed; real child DELETE SQL/parameter captures, Redis/cache/queue effects, fallback `__global_search`, other ledger DML and backup recovery remain unresolved. See [source-specific boundary design](MATERIAL-ISSUE-FIRST-COMMIT-EFFECT-BOUNDARY-DESIGN-2026-10-15.md), review commit `136f7ef876cca38a3bb596efa4edaf64e3c09f8e`, and [security review](MATERIAL-ISSUE-FIRST-COMMIT-SECURITY-REVIEW-2026-10-15.md), commit `b76fe46e961feae71a7a57554e2bc68c4d187dba`.
+
+**Next authorization boundary:** No Ubuntu script staging, no read-only metadata rerun, no write-then-rollback, no permanent Stock Entry/GL issue and no PRODUCTION modification was approved. Keep the inert v2 unconditional `exit 1` and original guarded candidate unchanged. Only after full SQL/Redis capture and isolation design, recovery checks and separate owner permission could a future isolated rollback-only diagnostic be considered. **First actual one-unit Material Issue COMMIT remains NO-GO.**
+
 ## First committed Material Issue: effects-boundary contract mapped, 19 offline tests PASS — 2026-10-15
 
 The owner approved **GitHub-only continuation** after the two one-time read-only isolated metadata probes were completed. No further staging, Ubuntu/DEVELOPMENT/PRODUCTION operation, SQL writing or permanent posting was authorized.
