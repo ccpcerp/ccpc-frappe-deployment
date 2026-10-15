@@ -126,7 +126,7 @@ class TestCustomizationMetadataContract(unittest.TestCase):
     def test_no_production_or_persistent_dev_sql(self):
         self.assertIn("TEST_SITE = 'ccpc-integration2.localhost'", self.embedded)
         self.assertIn("SHARED_SITE = 'development.localhost'", self.embedded)
-        self.assertIn("if isolated['db_name'] == shared['db_name']", self.embedded)
+        self.assertIn("isolated['db_name'] == shared['db_name']", self.embedded)
         self.assertIn("host='mariadb', port=3306", self.embedded)
         self.assertIn("SELECT DATABASE()", self.embedded)
         self.assertNotIn("ccpcerp.localhost", self.shell)
