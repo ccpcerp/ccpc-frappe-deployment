@@ -49,7 +49,7 @@ class RedisBoundaryCandidateTests(unittest.TestCase):
         nodes = [node for node in ast.walk(self.ast)
                  if isinstance(node, (ast.Import, ast.ImportFrom))]
         imports = {(n.module.split('.')[0] if isinstance(n, ast.ImportFrom) else a.name.split('.')[0]) for n in nodes for a in n.names}
-        self.assertEqual(imports, {'json', 'os', 'stat', 'sys', 'pathlib', 'urllib'})
+        self.assertEqual(imports, {'ipaddress', 'json', 'os', 'stat', 'sys', 'pathlib', 'urllib'})
         self.assertNotIn('import frappe', self.embedded)
         self.assertNotIn('import redis', self.embedded)
         self.assertNotIn('import MySQLdb', self.embedded)
@@ -140,6 +140,41 @@ class RedisBoundaryCandidateTests(unittest.TestCase):
             p.write_bytes(b'x' * 65537)
             with self.assertRaises(self.fn['Stop']):
                 self.fn['read_config'](p)
+
+    def test_20_localhost_aliases_share_conservative_endpoint_identity(self):
+        urls = (
+            'redis://localhost:6379/0', 'redis://LOCALHOST.:6379/2',
+            'redis://localhost.localdomain:6379/4',
+            'redis://127.0.0.1:6379', 'redis://127.5.0.1:6379',
+            'redis://[::1]:6379', 'redis://[::ffff:127.0.0.1]:6379',
+        )
+        identifiers = {self.fn['endpoint'](url) for url in urls}
+        self.assertEqual(len(identifiers), 1)
+
+    def test_21_localhost_cross_site_different_alias_must_stop(self):
+        test = {'cache': self.fn['endpoint']('redis://localhost:6379'),
+                'queue': self.fn['endpoint']('redis://queue:6379')}
+        shared = {'cache': self.fn['endpoint']('redis://127.0.0.1:6379'),
+                  'queue': self.fn['endpoint']('redis://shared:6379')}
+        report = self.fn['classify'](test, shared)
+        self.assertTrue(report['test_shared_site_overlap'])
+        self.assertFalse(report['rollback_or_posting_authorized'])
+
+    def test_22_unspecified_and_multicast_ip_fail_closed(self):
+        for url in ('redis://0.0.0.0:6379', 'redis://[::]:6379',
+                    'redis://224.0.0.1:6379', 'redis://[ff01::1]:6379'):
+            with self.subTest(url=url), self.assertRaises(self.fn['Stop']):
+                self.fn['endpoint'](url)
+
+    def test_23_nonloopback_names_still_not_physical_isolation(self):
+        test = {'cache': self.fn['endpoint']('redis://cache1:6379'),
+                'queue': self.fn['endpoint']('redis://queue1:6379')}
+        shared = {'cache': self.fn['endpoint']('redis://cache2:6379'),
+                  'queue': self.fn['endpoint']('redis://queue2:6379')}
+        report = self.fn['classify'](test, shared)
+        self.assertFalse(report['physical_redis_isolation_proven'])
+        self.assertFalse(report['worker_process_endpoints_proven'])
+        self.assertFalse(report['rollback_or_posting_authorized'])
 
     def test_19_no_external_connection_ever_claimed(self):
         for forbidden in ('connect(', 'ping(', 'publish(', 'getaddrinfo(',
