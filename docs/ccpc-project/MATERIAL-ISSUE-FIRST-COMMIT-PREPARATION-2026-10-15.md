@@ -1,5 +1,15 @@
 # CCPC ERPNext — First committed one-unit Material Issue: preparation and execution gates
 
+## First committed Material Issue: effects-boundary contract mapped, 19 offline tests PASS — 2026-10-15
+
+The owner approved **GitHub-only continuation** after the two one-time read-only isolated metadata probes were completed. No further staging, Ubuntu/DEVELOPMENT/PRODUCTION operation, SQL writing or permanent posting was authorized.
+
+Pinned-source design: [MATERIAL-ISSUE-FIRST-COMMIT-EFFECT-BOUNDARY-DESIGN-2026-10-15.md](MATERIAL-ISSUE-FIRST-COMMIT-EFFECT-BOUNDARY-DESIGN-2026-10-15.md), created review commit `1e346f6cd5b0e7d48d12ee091398a3bf71e8af08`; formal [security review](MATERIAL-ISSUE-FIRST-COMMIT-SECURITY-REVIEW-2026-10-15.md) updated at `398a43362dbb368dd11acf6702b3e25a02041304`. It now specifies hard record-scoped `tabSeries` first-creation and concurrency requirements, zero-deletion child-table SQL pre/post constraints, Redis/global-search/precommit cache isolation and fallback-SQL blocking, auxiliary DML validation, recoverability and uncertain COMMIT handling, all **future** approval gates.
+
+New **source-only NO-GO characterization suite** `tests/offline/test_material_issue_first_commit_blockers_contract.py` exact Git blob `27ec2374d14d93cf471e1661ae2d88ea56a2037a` (SHA256 `64c86d3d6a4ca8b997b611d0d356b74f01b600c450566435f2446ff99aeff063`), final code commit `014cbb981c94d84ff219611ec7575358e23b8954`; `7/7` offline tests PASS with Git-blob-matched inert v2 `0a17d53cc0badac1de05745ef9edfb60d342ed89`. Prior `12/12` v2 offline tests also PASS, **19 total**. These tests affirm **known incompatibilities and loopholes**: no `tabSeries` INSERT allowed, all child DELETE blocked, regex wrongly accepts `UPDATE ... WHERE 1`, selected realtime shim does not cover `frappe.cache.lpush`. **Passing these tests is NO-GO evidence, NOT posting readiness.**
+
+No changes to the original first-commit candidate `323967737cd762f7018a739fc7d67d1b25520259` or inert v2 `0a17d53cc0badac1de05745ef9edfb60d342ed89`. Neither was executed; **v2 hard early STOP remains**. Continue exact pinned-source SQL and cache/callback inspection before designing a newly separately authorized rollback-only DEV diagnostic. No PRODUCTION release/deployment approval exists.
+
 ## Owner-approved isolated DEV second metadata audit PASS; remain NO-GO for posting — 2026-10-15
 
 **Completed step:** The separately authorized, once-only, SHA256-verified `ccpc_material_issue_isolated_customizations_readonly_review_20261015.sh` reported successful isolated MariaDB read-only SQL inspection, no Frappe initialization, no Redis/stock/GL writes and no PRODUCTION access. The exact script remained Git blob `d13f605876eb669b404179a52e6e084c4031f191`; detailed results are in [second-probe review](MATERIAL-ISSUE-CUSTOMIZATION-DETAILS-PROBE-PREPARATION-2026-10-15.md), updated commit `65df6567d31b378316ef4ca604395ed5dd740dd6`, and [security review](MATERIAL-ISSUE-FIRST-COMMIT-SECURITY-REVIEW-2026-10-15.md), commit `3b9cdcefb647f6d7b9b3b568b3578f1056a593d9`. Output was reported by the operator, not independently observed via direct DEVELOPMENT access.
