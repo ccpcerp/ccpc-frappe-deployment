@@ -1,5 +1,18 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## DEV Python binary check passed by operator; Redis preflight still unexplained — 2026-10-15
+
+The owner separately approved **one read-only Docker exec** inside the already-verified running DEVELOPMENT container `frappe_docker_devcontainer-frappe-1`, as the `frappe` user, to inspect only the expected interpreter path `/workspace/development/frappe-bench/env/bin/python`. Operator-provided output:
+
+```text
+DEVELOPMENT PYTHON: PRESENT AND EXECUTABLE
+READ-ONLY CONTAINER CHECK: COMPLETED
+```
+
+This establishes only that the expected file was present and executable according to the non-executing shell test. It does **not** confirm that the Python interpreter actually launches, the bench working directory and `bash` execution path work, or that any Redis settings, worker topology, or physical isolation were examined. The one-operation Docker exec approval is now consumed. The earlier one-time Redis preflight produced only `ONE-SHOT READ-ONLY PREFLIGHT: STOPPED OR FAILED`, with its earlier terminal lines unavailable and a separately documented assistant wrapper fail-fast defect. Treat that earlier result as an **unclassified STOP**, not evidence of Redis overlap or no overlap. Do not rerun the consumed preflight; any new runtime probe requires fresh explicit approval.
+
+GitHub review script unchanged at blob `85123cd4d487110d01cdc375ad7e6969035bdc34`, staged file expected SHA256 `837dcdee993f1fb8d9187dde473070c8b137254664d0d270b7b7d0fa21c35202`. No code changes, Redis writes, SQL, Material Issue posting, or PRODUCTION changes were made in this ChatGPT milestone. Permanent Stock Entry/SLE/GL posting remains **NO-GO**.
+
 ## Redis preflight STOP triage: DEVELOPMENT container identity confirmed — 2026-10-15
 
 The operator reported the one-time read-only Redis preflight wrapper's final output as `ONE-SHOT READ-ONLY PREFLIGHT: STOPPED OR FAILED`. The intermediate diagnostic output was not available; classify as **unexplained STOP**, not confirmed Redis overlap. The original one-shot preflight permission is consumed; do not rerun it.
