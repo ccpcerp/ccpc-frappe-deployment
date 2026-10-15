@@ -1,5 +1,29 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## Approved isolated SQL / stock / GL / 48 recovery fingerprints READ-ONLY audit PASSED — 2026-10-15
+
+**Owner explicitly approved one read-only isolated DEVELOPMENT audit, not a financial posting.** Operator reported the following output from manually executing the staged, SHA256-pinned and syntax-checked `ccpc_material_issue_isolated_baseline_readonly_20261015.sh`:
+```text
+PINNED DEV SOURCE AND TEST/SHARED SITE CONFIGS: VERIFIED
+12 HISTORICAL RECOVERY SETS, 48 NONEMPTY FILES: SHA256 HASHED
+ACTUAL ISOLATED SQL DATABASE NAME: VERIFIED
+UNISSUED SLIP AND 10 NOS/PHP1000 STOCK BIN: VERIFIED
+0 STOCK ENTRIES, 1 HISTORICAL SLE, 2 HISTORICAL GL: VERIFIED
+TEST USERS, ROLES AND SYNTHETIC ACCOUNTING DEFAULTS: VERIFIED
+48 RECOVERY ARTIFACT SHA256/SIZE FINGERPRINTS: STABLE IN THIS RUN
+PINNED SOURCE AND SITE CONFIGURATION: UNCHANGED
+NO PRODUCTION ACCESS, SQL WRITES, STOCK ISSUE OR DOCKER SERVICE CHANGE
+ISOLATED PRECOMMIT READ-ONLY BASELINE AUDIT: PASSED
+```
+
+**Verified gate:** Configured DEV/PRODUCTION Docker and DB name separation PASSED the prior authorized preflight; this subsequent isolated-site audit PASSED operator-reported live SQL `SELECT DATABASE()` identity, expected DEV-only `mariadb:3306` endpoint, synthetic Slip `WS-2026-00001` still Stockroom Review/unissued, one test item at 10 Nos and PHP1,000 with PHP100 moving-average rate, 0 Stock Entries, one historical SLE/two historical GL, fictional users/roles and expected default accounts. It checked 12 historical isolated recovery sets / 48 nonempty files; backup SHA256+sizes were stable **between two reads in this single run**. Git/source/config fingerprints also unchanged during run. The reviewed script's GitHub blob `9e1edeaf1656ad475e53060ed7797f0aa8a34fce`, SHA256 `533f01e16080cd2bf18d36ea43b7f64e2cec54b6288efc7bd1beec5e75df0bfb`, review source HEAD originally `05c89be19c2477c8a5edc8834e43b42bbafcc9dd`, and unchanged application feature HEAD `2f846a75dc7f1b9e6eb20bed38a1ae3433571ad6` were independently rechecked through GitHub in this chat. **Runtime PASS derives from operator's terminal output; ChatGPT has no direct Docker/SQL access.**
+
+**Meaning and strict limits:** This was `START TRANSACTION READ ONLY`, SELECT checks, backup read/fingerprinting and SQL read-only transaction closure; no stock issue, Stock Entry submit, SQL COMMIT, data change, Docker restart, migration, recovery restoration, persistent shared DEVELOPMENT business write or PRODUCTION access was performed under the script. 48 stable recovery fingerprints **do not** prove those archives restore properly, exist off-host, or equal an immutable historical manifest. No actual committed stock/GL path, non-SQL side effects, HTTP/CSRF or concurrency was tested.
+
+**GitHub documentation:** Review branch `review/material-issue-first-commit-preparation-2026-10-15` updated `docs/ccpc-project/MATERIAL-ISSUE-FIRST-COMMIT-PREPARATION-2026-10-15.md` at commit `0ead27b09e5046498e91b6a54718db0c12383c8a` and read back. This rolling handoff captures the latest verified checkpoint.
+
+**Next proper gate:** Before **any** first synthetic one-unit Material Issue COMMIT, review and remedy outstanding candidate runner security/transaction issues (ancillary Frappe documents, Redis/outbound/on_commit hooks, durable one-shot marker/failure paths and postcommit independent audit), review restore/off-host backup limitations, and obtain **new, narrow, explicit owner posting authorization**. Commit-capable script `ccpc_material_issue_first_commit_guarded_candidate_20261015.sh` is **NOT staged, NOT armed, NOT executed and NOT approved**; original consumed rollback rehearsal MUST NOT be rerun. PRODUCTION changes require separate approval and must remain untouched.
+
 ## Read-only isolated test-site stock/GL/recovery audit STAGED + SYNTAX-CHECKED; not executed — 2026-10-15
 
 **Operator terminal report** after the prescribed manual GitHub-to-Ubuntu pin-fetched staging: `STAGED AND SYNTAX-CHECKED, NOT EXECUTED: /home/gani/ccpc-reviewed-scripts/ccpc_material_issue_isolated_baseline_readonly_20261015.sh`. The staged command verified immutable review-branch HEAD `05c89be19c2477c8a5edc8834e43b42bbafcc9dd`, expected SHA256 `533f01e16080cd2bf18d36ea43b7f64e2cec54b6288efc7bd1beec5e75df0bfb`, ran `bash -n`, extracted the Python heredoc using `ast.parse`, then placed the script into a private separate operator home staging directory with fail-if-exists semantics. Terminal output supports PASS for this staging procedure and **not** a live SQL/backup audit. ChatGPT has no shell access to Ubuntu and cannot independently inspect staged file bytes. Connected GitHub independently rechecked the reviewed script's blob `9e1edeaf1656ad475e53060ed7797f0aa8a34fce` and review branch HEAD `05c89be19c2477c8a5edc8834e43b42bbafcc9dd`; application feature remains pinned at `2f846a75dc7f1b9e6eb20bed38a1ae3433571ad6`.
