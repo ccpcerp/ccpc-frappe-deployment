@@ -1,8 +1,37 @@
 # CCPC ERPNext — Second isolated DEVELOPMENT metadata probe: review-only preparation
 
+## Exact-source offline syntax and eight source-contract tests PASSED — 2026-10-15
+
+**Owner's latest authorization:** “Approved continue” after GitHub-only preparation authorized **offline source validation and test corrections**, not a DEV/PRODUCTION server operation, staging or a read-only metadata audit execution.
+
+**Source provenance verified:** The full new script was reconstructed into an isolated local test workspace from connected GitHub, and `git hash-object` **matched the GitHub blob** `d13f605876eb669b404179a52e6e084c4031f191` (10,263 bytes). `sha256sum` of the exact script was **`9a026738074f31e790186fc9156ab5755baab06c351b22ad9db399a006db72d0`**. Neither a code change nor a DEV/SQL run was made to that script.
+
+**Initial exact-source test failure and safe fix:** Initial committed suite blob `60ae76a2570a473bba441546a07a0c2b95a6922e` produced **7 PASS / 1 FAIL**. The failing `test_no_production_or_persistent_dev_sql` asserted the literal text `if isolated['db_name'] == shared['db_name']`; the real correct code combines this equality with `not isinstance(common, dict) or ...` in one conditional. This was a **test assertion tied to source formatting**, not evidence of an unsafe database identity check. Only the test assertion was adjusted to match the actual equality expression. Updated suite committed at `66d300985cd609b0565353c1c8d2315204becf16`; new verified GitHub/local blob **`998ac3278646fc91c48c7123afe4c8029f293b98`**, 6,240 bytes, SHA256 **`f76363f6f15077711b98bcd95f9b14e47e1903a9a331fcc80d2244905d6b8e0e`**. No runnable source changes were needed.
+
+**Exact-source offline commands and final result, isolated workspace only:**
+```text
+bash -n scripts/development/operator/ccpc_material_issue_isolated_customizations_readonly_review_20261015.sh
+PASS
+
+ast.parse(extracted_embedded_python_heredoc)
+PASS
+
+python3 -m unittest discover -s tests/offline -p 'test_material_issue_customizations_probe_contract.py' -v
+Ran 8 tests
+OK (8 PASS, 0 FAIL)
+
+env -u CCPC_METADATA_DETAILS_APPROVED bash scripts/development/operator/ccpc_material_issue_isolated_customizations_readonly_review_20261015.sh
+exit 1
+NOT AUTHORIZED: detailed metadata audit needs separate owner consent
+```
+
+**Actual coverage:** Bash + embedded Python syntax; approval gate before DEV Docker access; strict DEV site/endpoint and separate DB name source checks; no Frappe initialization or SQL COMMIT in the script; static SELECT-only SQL and rollback transaction; permitted/redacted metadata field names and naming-pattern values; merged common/site file-config status with explicit runtime limitation; isolated unarmed entrypoint rejection. AST-extracted helper tests use synthetic values and do **not** connect to MariaDB, Frappe, Redis or Docker. The only shell invocation was unarmed and exited **before** Docker, with no server access.
+
+**Current disposition:** **Offline source/guard test PASS; metadata audit NOT STAGED OR EXECUTED ON OPERATOR UBUNTU.** Installed site naming overrides, actual Property Setter/Custom Field names, Redis/global-search behavior and SQL child writes remain unobserved. Approval to run the second probe is not implied. Separate user authorization is necessary for staging-only, followed by **distinct** execution consent. The old metadata audit's one-time approval is consumed. Commit-capable Material Issue remains **NO-GO**; original candidate and early-exit inert v2 unchanged, and PRODUCTION untouched.
+
 **Date:** 2026-10-15  
 **Authorization:** Owner requested **GitHub-only preparation** after the first owner-approved isolated read-only metadata audit passed and indicated relevant site customizations and Stock Entry Detail searchable fields. **No staging, Docker/SQL access, rollback-only posting, financial COMMIT, PRODUCTION operation or repeat of the first audit was approved.**  
-**Current decision:** New probe **SOURCE-PREPARED; NOT STAGED; NOT EXECUTED; syntax/unittest execution pending**. Permanent Material Issue still **NO-GO**.
+**Earlier preparation checkpoint (superseded by the offline PASS above):** New probe was source-prepared, not staged or executed, with syntax and test execution then pending. Permanent Material Issue remains **NO-GO**.
 
 ## Project context and source of truth
 
