@@ -16,6 +16,43 @@ This output is **operator-reported** and matches the success line of the provide
 
 **Staging approval is consumed.** Do **not** execute the staged script, repeat the staging action, or run the old Redis preflight under this permission. Before any new DEVELOPMENT execution, obtain **separate, explicit, single-use owner approval** for running only this exact staged new SHA256-matched redacted JSON/URL-format candidate against the named DEVELOPMENT container. The prospective execution opens exactly three fixed DEVELOPMENT site-config JSON files (bounded size), parses Redis URL shapes and the two allowlisted exec-child environment values, and returns only sanitized categorical status; it never resolves/connects to Redis, Frappe or SQL, and cannot prove isolation. No read-only run has yet been authorized or reported. **Material Issue Stock Entry/SLE/GL posting, rollback-only writing and PRODUCTION remain NO-GO.**
 
+## 2026-10-16 — One-shot DEVELOPMENT execution: five stage checks OK, trailing STOP caused by Python exit-handler defect
+
+**Explicit one-time execution approval, now consumed.** The owner separately approved a **single** read-only execution of the previously checksum-staged `ccpc_material_issue_redis_json_shape_readonly_candidate_20261015.sh`. The assistant supplied a separate Bash wrapper that checked nonroot operator, exact staging path and owner/mode, pinned **SHA256 `b88dadc10cac64c5b6f48a695fbf506b046613cbe4db192da440227934b212b0`**, and `bash -n` before setting the script's distinct approval flag and invoking it once. The operator returned the following complete sanitized output:
+
+```text
+VERIFIED: STARTING ONE READ-ONLY DEVELOPMENT DIAGNOSTIC
+COMMON: JSON_OK
+ISOLATED: JSON_OK
+SHARED: JSON_OK
+ISOLATED_REDIS: FORMAT_OK
+SHARED_REDIS: FORMAT_OK
+CONFIG SHAPE: COMPLETE; ENDPOINTS/ISOLATION: UNVERIFIED; POSTING: NO-GO
+CONFIG SHAPE: STOP; POSTING: NO-GO
+ONE-SHOT REDACTED FORMAT CHECK: STOPPED; POSTING: NO-GO
+```
+
+**Supported interpretation:** All **five** scoped validation stages reported successful completion: JSON structure for common, isolated and shared development sites, and Redis URL format for isolated and shared sites under the short-lived `docker exec` Python process's limited environment model. The inner completion message appeared, but subsequent output incorrectly reported STOP. Do **not** classify this as a JSON or URL-format failure, or proof of endpoint overlap. The user report is consistent with the reviewed script running after the wrapper's checksum/syntax checks, but no ChatGPT-side independent live host access was available.
+
+**Confirmed source-level bug in the NEW diagnostic, distinct from the earlier preflight:** The current reviewed script, Git blob `fc5617117806b8cd19586ae3c7bf530dab21d632`, ends its embedded Python with:
+
+```python
+if __name__ == '__main__':
+    try:
+        sys.exit(main())
+    except BaseException:
+        print('CONFIG SHAPE: STOP; POSTING: NO-GO')
+        sys.exit(1)
+```
+
+When `main()` returns `0`, `sys.exit(0)` raises `SystemExit(0)`, a subclass of `BaseException`. Thus `except BaseException` intercepts **normal successful termination**, prints the spurious STOP, and forces exit status `1`. The outer Bash `if docker exec ... then ... else` then prints `ONE-SHOT REDACTED FORMAT CHECK: STOPPED; POSTING: NO-GO`. A **minimal credential-free local Python reproduction** of this control flow confirmed that a success line is followed by STOP and process status 1; it did not touch Docker or any CCPC site.
+
+**Why the 25/25 synthetic tests missed the defect:** The offline test harness explicitly loads the embedded Python with `{'__name__': 'ccpc_offline_tests'}`, and invokes `main()` as a function rather than exercising the full guarded `if __name__ == '__main__'` process-entry/exit-handler path. Therefore the local tests verified internal parsing and redaction but did not test the final **successful exit code**. No existing tested outcome should be recharacterized as a full execution-path PASS. Preserve the 25/25 claim strictly as the previous scope of offline tests.
+
+**Correction recommendation — NOT APPLIED / NOT EXECUTED:** A distinct reviewed GitHub candidate should avoid catching normal `SystemExit` (e.g., run `status = main()` in the `try`, catch `Exception` for unexpected failures and use `sys.exit(status)` *outside* the `try`); add an adversarial subprocess regression that tests the **entire `__main__` path** for a synthetic `main() -> 0`, a `main() -> 1`, and an unexpected exception, asserting both status and fixed redacted output. Keep the original staged operator script immutable and its approval consumed; any replacement needs distinct source/file hash, review, fresh staging consent, and separate one-shot execution consent. No rerun is needed to explain the already observed trailing STOP.
+
+**Remaining boundaries:** The previously consumed original Redis endpoint-overlap preflight remains an independently unexplained STOP. This new JSON/format check does **not** compare Redis endpoint equality or prove actual Redis services, DNS, workers, pub/sub, physical DEVELOPMENT/PRODUCTION isolation, transaction rollback or Material Issue posting safety. No Redis/SQL/Frappe write or PRODUCTION action was authorized. **Persistent Material Issue Stock Entry/SLE/GL COMMIT: NO-GO.**
+
 ## Purpose and verified source basis
 
 The prior one-shot Redis configuration-boundary preflight is **consumed** and produced only the operator-reported final `ONE-SHOT READ-ONLY PREFLIGHT: STOPPED OR FAILED`. Its preceding output was not recovered. Later host checks independently reported script SHA256/syntax/ownership, DEVELOPMENT container identity, Python launch and stdin, and non-symlink readable metadata for the common, isolated test and shared development site config files. None establishes why the prior preflight stopped or that Redis instances are physically isolated.
