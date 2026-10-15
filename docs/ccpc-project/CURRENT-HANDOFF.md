@@ -1,5 +1,17 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## Five exact-blob isolated metadata probe offline tests PASSED; pending owner consent for any live run — 2026-10-15
+
+**Source/test identity and offline verification:** After GitHub-first preparation, both files were byte-reconstructed into a credential-free local test workspace and verified by `git hash-object` against the connected-GitHub review branch `review/material-issue-first-commit-preparation-2026-10-15`:
+- `scripts/development/operator/ccpc_material_issue_isolated_metadata_readonly_review_20261015.sh`: Git blob `3dd860d6e254ee361b8f61769fe72ac9dc6a3854`, 6,508 bytes, **SHA256 `d38a617a23a91bb008a1f794ac5f9f179097e9b98ea3b1f54fc4109cda56aa32`**.
+- `tests/offline/test_material_issue_metadata_probe_contract.py`: Git blob `6c396b5045b994d09128a837dfa92755839bc938`, 3,117 bytes, SHA256 `afd96c185d295d27ae888a45e3a1d071abb7b8bb09abc57ec9999241bb301597`.
+
+**Exact-source offline outcome:** `bash -n` PASS; embedded Python `ast.parse` PASS; **5/5 unittest methods PASS** covering static SELECT-only metadata SQL, `START TRANSACTION READ ONLY`, no SQL COMMIT/Frappe import/stock posting, explicit approval gate and DEV-only Compose identity. The locally invoked shell without approval variable exited **1**, printed only `NOT AUTHORIZED: read-only metadata probe not approved`, and stopped before Docker. Neither file was ever run or staged on owner Ubuntu, and no MariaDB/PRODUCTION data was queried from this new script. These are **offline static contract tests**, not a runtime result.
+
+**Connected GitHub documentation commits:** Full Frappe naming / child DELETE / pre-COMMIT Redis search trace `docs/ccpc-project/MATERIAL-ISSUE-WRITE-PATH-NAMING-SEARCH-2026-10-15.md` at `ffb0c4581922d8800be3f60074cc18315f014140`; detailed first-commit plan at `a42183b7194eb6fcdcf3ca266f9d203000b17e2f`; security review at `4af5c269e20dbf490fb0390e9e109167147d6286`. Probe source creation commit `6289324d2142d74ce5f42d27d101a3127c878db4`; test creation commit `f6754961451749dbb65356b5a8ed4fc59a290c91`.
+
+**Active blockers:** v2 posting remains an inert **NO-GO**, original candidate unchanged. Actual site naming-series selection, child-table SQL semantics, Redis global-search setting/queue, after-COMMIT callback and budget/ledger auxiliary operations still unknown. An independently reviewed one-time **isolated DEV read-only** metadata probe could narrow naming and customization uncertainties but cannot test Redis operations or actual stock posting. **Next gate: separate owner permission to stage the SHA256-verified probe on Ubuntu and, separately, to execute it once.** Do not stage or run v2 or original permanent posting script, replay the consumed diagnostic, mutate shared DEVELOPMENT, or access PRODUCTION without separate approval. No stock/GL COMMIT has occurred.
+
 ## Naming/child DELETE and precommit Redis global-search trace + read-only metadata probe PREPARED, NOT RUN — 2026-10-15
 
 **Owner request:** “Continue” following 12/12 successful offline tests of the **inert** one-unit Material Issue v2 review candidate. Work in this conversation remained GitHub-first, source-level, documentation and a new **separately gated read-only** metadata script/test. No DEVELOPMENT or PRODUCTION server connection, SQL, stock/GL posting, Docker change, backup mutation, restoration, migration, or actual one-unit COMMIT occurred.
