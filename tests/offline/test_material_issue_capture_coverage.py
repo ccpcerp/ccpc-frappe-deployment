@@ -128,7 +128,6 @@ class CoverageContractTests(unittest.TestCase):
             pairs.entries = (("param1", "b"),)
         self.assertEqual(pairs.entries, (("param1", "a"),))
 
-
     def test_unknown_surface_and_phase_rejected(self):
         for surface, phase in (("redis.unrecognized", "before_commit"),
                                ("frappe.cache.lpush", "unknown_phase")):
