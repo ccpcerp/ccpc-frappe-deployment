@@ -67,24 +67,24 @@ class TestFirstCommitKnownBlockers(unittest.TestCase):
     def test_missing_series_insert_remains_disallowed(self):
         guard = self.guard()
         with self.assertRaises(Blocked):
-            guard("INSERT INTO \`tabSeries\` (\`name\`, \`current\`) VALUES (%s, 1)")
+            guard("INSERT INTO `tabSeries` (`name`, `current`) VALUES (%s, 1)")
         with self.assertRaises(Blocked):
-            guard("UPDATE \`tabSeries\` SET \`current\`=\`current\`+1 WHERE \`name\`=%s")
+            guard("UPDATE `tabSeries` SET `current`=`current`+1 WHERE `name`=%s")
 
     def test_normal_child_sync_delete_remains_disallowed(self):
         guard = self.guard()
         with self.assertRaises(Blocked):
-            guard("DELETE FROM \`tabWithdrawal Slip Item\` WHERE \`parent\`=%s AND \`parenttype\`=%s")
+            guard("DELETE FROM `tabWithdrawal Slip Item` WHERE `parent`=%s AND `parenttype`=%s")
         with self.assertRaises(Blocked):
-            guard("DELETE FROM \`tabStock Entry Detail\` WHERE \`parent\`=%s AND \`parentfield\`=%s")
+            guard("DELETE FROM `tabStock Entry Detail` WHERE `parent`=%s AND `parentfield`=%s")
 
     def test_unknown_auxiliary_writes_still_fail_closed(self):
         guard = self.guard()
         for sql in (
-            "INSERT INTO \`tabPayment Ledger Entry\` (\`name\`) VALUES (%s)",
-            "INSERT INTO \`__global_search\` (\`doctype\`) VALUES (%s)",
-            "UPDATE \`tabSeries\` SET \`current\`=1 WHERE \`name\`=%s",
-            "DELETE FROM \`tabVersion\` WHERE \`name\`=%s",
+            "INSERT INTO `tabPayment Ledger Entry` (`name`) VALUES (%s)",
+            "INSERT INTO `__global_search` (`doctype`) VALUES (%s)",
+            "UPDATE `tabSeries` SET `current`=1 WHERE `name`=%s",
+            "DELETE FROM `tabVersion` WHERE `name`=%s",
         ):
             with self.subTest(sql=sql), self.assertRaises(Blocked):
                 guard(sql)
@@ -93,8 +93,8 @@ class TestFirstCommitKnownBlockers(unittest.TestCase):
         # This is an intentionally *passing* characterization of a weakness:
         # WHERE 1 is not a safe record-level constraint but passes this regex.
         guard = self.guard()
-        self.assertIsNone(guard("UPDATE \`tabBin\` SET \`actual_qty\`=0 WHERE 1"))
-        self.assertIsNone(guard("UPDATE \`tabGL Entry\` SET \`debit\`=0 WHERE 1"))
+        self.assertIsNone(guard("UPDATE `tabBin` SET `actual_qty`=0 WHERE 1"))
+        self.assertIsNone(guard("UPDATE `tabGL Entry` SET `debit`=0 WHERE 1"))
         # Keep the unavoidable gate explicitly visible in the test output.
         self.assertIn("NOT a full SQL parser", self.shell)
 
