@@ -5,6 +5,7 @@ import unittest
 
 from material_issue_capture_coverage import (
     ISOLATED_SITE,
+    FrozenNamedBinds,
     REVIEW_SURFACES,
     SyntheticCaptureEvent,
     UnreviewedCapture,
@@ -78,6 +79,56 @@ class CoverageContractTests(unittest.TestCase):
             with self.subTest(sql=sql, binds=binds), self.assertRaises(UnreviewedCapture):
                 SyntheticCaptureEvent(ISOLATED_SITE, "frappe.db.sql", "before_commit", sql, binds)
 
+    def test_query_builder_named_dictionary_binding_shape_supported_without_certification(self):
+        sql = "DELETE FROM `tabStock Entry Detail` WHERE `parent`=%(param1)s"
+        event = sql_event(sql, FrozenNamedBinds((("param1", "'MAT-STE-SYNTHETIC'"),)))
+        report = review_synthetic_coverage(("frappe.qb.run",), (event,))
+        self.assertEqual(report["hypothetical_sql_event_count"], 1)
+        self.assertFalse(report["child_sql_predicates_verified"])
+        self.assertFalse(report["safe_to_rehearse"])
+
+    def test_named_multisql_fallback_fields_supported(self):
+        sql = "INSERT INTO `__global_search` (`doctype`, `name`) VALUES (%(doctype)s, %(name)s)"
+        event = sql_event(sql, FrozenNamedBinds((("doctype", "Stock Entry"), ("name", "STE-SYNTHETIC"))), "frappe.db.multisql")
+        self.assertFalse(review_synthetic_coverage(("frappe.db.multisql",), (event,))["safe_to_commit"])
+
+    def test_mismatched_named_placeholders_rejected(self):
+        sql = "DELETE FROM `tabStock Entry Detail` WHERE `parent`=%(param1)s"
+        for binds in (FrozenNamedBinds(()), FrozenNamedBinds((("param2", "x"),)),
+                      FrozenNamedBinds((("param1", "x"), ("param2", "y")))):
+            with self.subTest(binds=binds), self.assertRaises(UnreviewedCapture):
+                sql_event(sql, binds)
+
+    def test_direct_dict_is_not_immutable_evidence(self):
+        with self.assertRaises(UnreviewedCapture):
+            sql_event("DELETE FROM x WHERE parent=%(param1)s", {"param1": "foo"})
+
+    def test_duplicate_named_key_rejected(self):
+        with self.assertRaises(UnreviewedCapture):
+            FrozenNamedBinds((("param1", "a"), ("param1", "b")))
+
+    def test_malformed_named_keys_rejected(self):
+        for key in ("", "1param", "param-1", "param name", 42):
+            with self.subTest(key=key), self.assertRaises(UnreviewedCapture):
+                FrozenNamedBinds(((key, "x"),))
+
+    def test_mutable_named_value_and_outer_entries_rejected(self):
+        for entries in ([("param1", "x")], (("param1", [1]),), (("param1", {"x": 1}),)):
+            with self.subTest(entries=entries), self.assertRaises(UnreviewedCapture):
+                FrozenNamedBinds(entries)
+
+    def test_mutable_positional_value_rejected(self):
+        with self.assertRaises(UnreviewedCapture):
+            sql_event("SELECT %s", (["x"],))
+
+    def test_named_binding_is_immutable_after_creation(self):
+        from dataclasses import FrozenInstanceError
+        pairs = FrozenNamedBinds((("param1", "a"),))
+        with self.assertRaises(FrozenInstanceError):
+            pairs.entries = (("param1", "b"),)
+        self.assertEqual(pairs.entries, (("param1", "a"),))
+
+
     def test_unknown_surface_and_phase_rejected(self):
         for surface, phase in (("redis.unrecognized", "before_commit"),
                                ("frappe.cache.lpush", "unknown_phase")):
@@ -114,7 +165,7 @@ class CoverageContractTests(unittest.TestCase):
             (node.module or "").split(".")[0]
             for node in ast.walk(tree) if isinstance(node, ast.ImportFrom)
         }
-        self.assertEqual(roots, {"dataclasses"})
+        self.assertEqual(roots, {"dataclasses", "re"})
         for forbidden in ("import frappe", "import redis", "import MySQLdb", "subprocess",
                           "docker exec", "def main(", "conn.commit(", "frappe.db.sql("):
             self.assertNotIn(forbidden, source)
