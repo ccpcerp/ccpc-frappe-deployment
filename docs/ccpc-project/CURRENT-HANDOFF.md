@@ -1,5 +1,19 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## Redis config preflight: approved staging completed by operator report; execution NOT approved — 2026-10-15
+
+**Owner-approved action:** After a specific request for **staging only**, the owner replied “Approved”. The assistant provided the exact reviewed manual GitHub-to-Ubuntu staging block; the operator then returned only the success line:
+
+```text
+STAGED AND VERIFIED, NOT EXECUTED: /home/gani/ccpc-reviewed-scripts/ccpc_material_issue_redis_boundary_readonly_candidate_20261015.sh
+```
+
+**Evidence and limits:** The output is **operator-reported**, not direct host access by ChatGPT. Because the supplied staging block uses `set -euo pipefail`, requires `FETCH_HEAD` to match the **full pinned review-branch commit** `6a10a80f9e4496f3e1112c11b738bcde375440f5`, checks file mode, refuses a pre-existing staged filename, and compares the staged file's SHA256 before printing success, the supplied output is consistent with successful one-time staging and checksum validation. Do not claim any subsequent independent on-Ubuntu filesystem inspection occurred. The GitHub connector independently confirmed the review branch remains at `6a10a80f9e4496f3e1112c11b738bcde375440f5` and script blob **`85123cd4d487110d01cdc375ad7e6969035bdc34`**. SHA256 pinned for the staged script is **`837dcdee993f1fb8d9187dde473070c8b137254664d0d270b7b7d0fa21c35202`**. The earlier candidate checksum is superseded and must not be used.
+
+**Scope consumed:** This owner approval was **only** to stage the corrected read-only Redis endpoint *configuration* comparator outside the DEVELOPMENT protected working tree; it granted **no permission to run the staged file** or repeat earlier one-shot probes. No result from `docker inspect`, `docker exec`, Frappe/Redis/SQL, site configuration or isolated-versus-shared Redis endpoint comparisons was provided. No new actual Redis isolation conclusion can be made. The script's previous offline tests remain **23/23 PASS**, but there was **no new test run** this turn.
+
+**Next independently controlled gate:** Obtain new, separate, explicit owner permission for **one** manual, read-only execution of the **already staged exact file** `/home/gani/ccpc-reviewed-scripts/ccpc_material_issue_redis_boundary_readonly_candidate_20261015.sh`. Before proposing that execution, verify staged file checksum against the current reviewed SHA256 and enforce the script's approval gate; confirm the target is the documented `frappe_docker_devcontainer-frappe-1` DEVELOPMENT container. The script must STOP on unexpected identity, malformed/Sentinel Redis configuration or obvious overlap. A no-overlap result is **configuration-only**, not proof of physical Redis, worker, pub/sub or transaction isolation; failure must not trigger retries or config changes. No new approval for a live write-then-rollback test, first permanent Material Issue Stock Entry/SLE/GL COMMIT, DEVELOPMENT app update or PRODUCTION action. Original posting candidate unchanged; review-only v2 retains unconditional early `exit 1`. **Permanent Material Issue: NO-GO**.
+
 ## Redis read-only preflight loopback alias correction, 23/23 offline PASS; old staging hash superseded — 2026-10-15
 
 **Owner message:** “Continue” following the previous Redis read-only candidate (19/19 offline PASS). Authorized scope interpreted as **GitHub-only source scrutiny, correction of unsafe candidate classification, credential-free local tests and GitHub documentation/handoff**. No on-Ubuntu/DEVELOPMENT staging, Docker execution, read-only site probe, rollback-only writing, permanent Material Issue COMMIT, or PRODUCTION operation was authorized or performed. Existing one-shot probe approvals remain consumed.
