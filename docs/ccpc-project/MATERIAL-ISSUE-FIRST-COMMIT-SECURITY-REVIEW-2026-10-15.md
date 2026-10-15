@@ -1,5 +1,11 @@
 # CCPC ERPNext — First committed Material Issue candidate: source-level transaction safety review
 
+## Update: exact-source metadata probe offline PASS, site execution NOT approved — 2026-10-15
+
+The isolated-DEVELOPMENT-only naming/search metadata probe is **prepared and syntax/unit-tested, NOT executed on Ubuntu**. SHA-matched exact GitHub probe blob `3dd860d6e254ee361b8f61769fe72ac9dc6a3854` (6,508 bytes) and exact source-contract test blob `6c396b5045b994d09128a837dfa92755839bc938` (3,117 bytes) were validated in a credential-free local workspace. `bash -n`, embedded Python AST and **5/5 source-only offline tests PASSED**; unarmed local entrypoint exited 1 before Docker. Detailed evidence is in [MATERIAL-ISSUE-WRITE-PATH-NAMING-SEARCH-2026-10-15.md](MATERIAL-ISSUE-WRITE-PATH-NAMING-SEARCH-2026-10-15.md) at review commit `ffb0c4581922d8800be3f60074cc18315f014140`.
+
+**Still NO-GO for posting:** No actual DEVELOPMENT metadata was fetched, no rollback-only Frappe transaction was exercised, and Redis global-search / naming-series / query-builder child writes remain potential active blockers. The read-only probe needs an independent staging/execution authorization even after its offline pass. The original commit candidate and inert v2 remain unexecuted and unchanged; PRODUCTION remains protected.
+
 ## Confirmed naming-series, child-row DELETE and precommit Redis search paths — NO-GO, 2026-10-15
 
 Further connected-GitHub source inspection verified a **more precise incomplete-write-boundary finding**. See the newly added [full source trace and separately gated isolated metadata probe](MATERIAL-ISSUE-WRITE-PATH-NAMING-SEARCH-2026-10-15.md), initially committed at `fa4d596972565205ee2f632988d88fd51f8b06e9`.
