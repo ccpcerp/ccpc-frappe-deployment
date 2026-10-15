@@ -1,5 +1,15 @@
 # CCPC ERPNext — First committed one-unit Material Issue: preparation and execution gates
 
+## Owner-approved isolated DEV second metadata audit PASS; remain NO-GO for posting — 2026-10-15
+
+**Completed step:** The separately authorized, once-only, SHA256-verified `ccpc_material_issue_isolated_customizations_readonly_review_20261015.sh` reported successful isolated MariaDB read-only SQL inspection, no Frappe initialization, no Redis/stock/GL writes and no PRODUCTION access. The exact script remained Git blob `d13f605876eb669b404179a52e6e084c4031f191`; detailed results are in [second-probe review](MATERIAL-ISSUE-CUSTOMIZATION-DETAILS-PROBE-PREPARATION-2026-10-15.md), updated commit `65df6567d31b378316ef4ca604395ed5dd740dd6`, and [security review](MATERIAL-ISSUE-FIRST-COMMIT-SECURITY-REVIEW-2026-10-15.md), commit `3b9cdcefb647f6d7b9b3b568b3578f1056a593d9`. Output was reported by the operator, not independently observed via direct DEVELOPMENT access.
+
+**Now known:** Four hidden-property `Check` Property Setter *names* (actual bool values not provided), three Withdrawal Slip traceability Custom Field names/types, Stock Entry base `naming_series:` with `MAT-STE-.YYYY.-` options, default value unreported/unavailable, no naming-related Property Setter overrides, **`MAT-STE-%` series counter records absent**, searchable Stock Entry Detail base `item_code,item_name`, and **file configuration not disabling global search**. Link option targets and runtime Frappe hooks/Redis/cache effects were not checked.
+
+**Blocking implications:** A missing initial `tabSeries` row is likely to require an INSERT in the default Stock Entry path, currently intentionally rejected by the inert v2 SQL guard. The not-disabled-by-file config plus searchable child fields strengthens the need for pre-COMMIT Redis/cache containment before *any* rollback-only integration experiment. Do not broaden the v2 SQL target gate or post permanent inventory/accounting records based solely on these observations.
+
+**Next gate:** GitHub-only design/review for exact naming-series row invariants, parent/child DELETE restrictions, global search/callback suppression or isolation, and independently recoverable snapshot criteria; then request new explicit authorization for a rollback-only DEVELOPMENT integration diagnostic. Do not replay either earlier one-time read-only probe. Any actual one-unit Stock Entry submission/COMMIT needs distinct future owner approval, with PRODUCTION expressly excluded. **First Material Issue posting is still NO-GO.**
+
 ## Second customization details read-only probe: exact-source 8/8 offline tests PASS, NOT STAGED — 2026-10-15
 
 Following the owner's “Approved continue” to **offline-only** verification, the distinct second metadata script `scripts/development/operator/ccpc_material_issue_isolated_customizations_readonly_review_20261015.sh` (Git blob `d13f605876eb669b404179a52e6e084c4031f191`, SHA256 `9a026738074f31e790186fc9156ab5755baab06c351b22ad9db399a006db72d0`) passed `bash -n` and embedded Python AST parsing in a credential-free local workspace; `git hash-object` independently matched exact connected GitHub source.
