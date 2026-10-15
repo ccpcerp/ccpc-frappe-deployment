@@ -300,7 +300,7 @@ def checked_directory(path):
 
     def test_29_subprocess_real_main_good_synthetic_json(self):
         with tempfile.TemporaryDirectory() as path:
-            root = pathlib.Path(path)
+            root = Path(path)
             self.fixture(root)
             r = self.process('', root)
             self.assertEqual(r.returncode, 0, r.stderr)
@@ -311,7 +311,7 @@ def checked_directory(path):
 
     def test_30_subprocess_real_main_invalid_json_failure(self):
         with tempfile.TemporaryDirectory() as path:
-            root = pathlib.Path(path)
+            root = Path(path)
             self.fixture(root)
             (root / 'common_site_config.json').write_text('{"secret":"SECRET"')
             r = self.process('', root)
@@ -321,7 +321,7 @@ def checked_directory(path):
 
     def test_31_subprocess_real_main_bad_redis_format_failure(self):
         with tempfile.TemporaryDirectory() as path:
-            root = pathlib.Path(path)
+            root = Path(path)
             self.fixture(root)
             (root / 'ccpc-integration2.localhost/site_config.json').write_text(
                 '{"redis_queue":"redis://user:PRIVATE@host:bad"}')
