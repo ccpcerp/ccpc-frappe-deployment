@@ -85,8 +85,10 @@ printf 'STAGED AND VERIFIED, NOT EXECUTED: %s\n' "$OUT_DIR/$FILE_NAME"
 
 Only after a successful staging confirmation, explicit one-operation authorization, and review of the run's current prerequisites may the operator run an exact `bash "$HOME/ccpc-reviewed-scripts/<approved-new-script-name>"` command. Check all error/output lines. Never auto-retry. The agent must record **operator-reported**, independently supported PASS/STOP results in GitHub, distinguishing transactional rehearsal from committed business effects. No background scripts, automatic deployment or server access is created by this runbook.
 
-## Current status on adoption
+## Current status — post-SSH-verification preparation (2026-10-15)
 
-- Owner approved the **delivery workflow**, not a new Material Issue posting, restore or diagnostic replay.
-- The identity-safe rollback-only integration diagnostic already ran successfully on 2026-10-15 and **must never be rerun**.
-- At time of writing, **Ubuntu private-GitHub SSH access is unverified**; Phase 1 is the only next recommended terminal command. No new script has been published for execution under this workflow.
+- The owner approved the **GitHub-to-DEVELOPMENT delivery workflow**, and noninteractive SSH `git ls-remote` to the private deployment repository **PASSED** with strict host-key verification. The original Phase 1 access check must not be misreported as pending.
+- The identity-safe rollback-only Material Issue integration diagnostic already ran successfully and **must never be rerun**. Its stock/ledger changes were rolled back, so it is not a committed posting.
+- The owner separately approved **review and preparation only**, not execution, for the next isolated committed one-unit Material Issue test.
+- A **new read-only delivery check** and risk/acceptance plan were published on review branch `review/material-issue-first-commit-preparation-2026-10-15` at full commit `d7e1d0361c14b7ea406479271fb15377ec7b94cd`. Script path: `scripts/development/operator/ccpc_material_issue_delivery_readonly_check_20261015.sh`; exact UTF-8 SHA256 `d81fa05afdef07bf059ccc21c6e9a9bea2eb77195b1a542cd1b95841ddbfd9a6`. This script only checks GitHub read access and the pinned feature branch. It is **not** a commit-capable Material Issue test and **has not been staged or executed by the operator**.
+- **Next gate:** manual, SHA-pinned isolated staging of the read-only script following Phase 3, then report output. The actual commit-capable harness has **not** been safely reconstructed from the consumed prior one-shot source, and no further operation against the database, backups, shared DEVELOPMENT or PRODUCTION is authorized.
