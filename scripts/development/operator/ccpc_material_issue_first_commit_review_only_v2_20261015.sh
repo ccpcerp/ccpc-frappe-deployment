@@ -158,6 +158,21 @@ def verify_snapshots(*, metadata_only=False):
                 for p in artifacts}
     return {str(p): sha256(p) for p in artifacts}
 
+def ensure_dev_endpoint(isolated, common):
+    if not isinstance(isolated,dict) or not isinstance(common,dict):
+        stop('Invalid DB endpoint configuration')
+    if any(h not in (None,'',EXPECTED_DEV_DB_HOST)
+           for h in (isolated.get('db_host'),common.get('db_host'))):
+        stop('Conflicting site/global DB host override')
+    host = isolated.get('db_host') or common.get('db_host')
+    try:
+        port = int(isolated.get('db_port') or common.get('db_port') or 3306)
+    except (TypeError,ValueError):
+        stop('Invalid DEVELOPMENT DB port')
+    if host != EXPECTED_DEV_DB_HOST or port != EXPECTED_DEV_DB_PORT:
+        stop('Writable DB endpoint is not exact DEVELOPMENT mariadb:3306')
+    return (host,port)
+
 def verify_source_modules():
     for name, module in sys.modules.items():
         if name == 'ccpcerp' or name.startswith('ccpcerp.'):
@@ -378,12 +393,7 @@ try:
     common = json.loads(common_path.read_text())
     if not isinstance(common,dict) or not iso.get('db_name') or iso['db_name'] == other.get('db_name'):
         stop('Isolated and shared DEVELOPMENT DB identities overlap')
-    host = iso.get('db_host') or common.get('db_host')
-    port = int(iso.get('db_port') or common.get('db_port') or 3306)
-    if host != EXPECTED_DEV_DB_HOST or port != EXPECTED_DEV_DB_PORT:
-        stop('Writable DB endpoint is not exact DEVELOPMENT mariadb:3306')
-    if any(h not in (None,'',EXPECTED_DEV_DB_HOST) for h in (iso.get('db_host'),common.get('db_host'))):
-        stop('Conflicting site/global DB host override')
+    ensure_dev_endpoint(iso, common)
     site_config_hash = sha256(SITES / SITE / 'site_config.json')
     common_config_hash = sha256(common_path)
     old_backups = verify_snapshots()  # full hashes done outside SQL transaction
@@ -394,6 +404,7 @@ try:
         stop('CCPC already loaded before selecting isolated feature')
     sys.path.insert(0,str(FEATURE))
     import frappe
+    import frappe.realtime
     from frappe.model.document import Document
     from frappe.utils import background_jobs
     pinned_names = (
@@ -475,9 +486,9 @@ try:
         q = str(query).strip().upper()
         if kwargs.get('auto_commit'):
             stop('Unapproved SQL auto_commit requested')
-        if re.match(r'^(ALTER|CREATE|DROP|TRUNCATE|RENAME|GRANT|REVOKE|LOCK|UNLOCK|CALL|LOAD|REPLACE)\\b',q):
+        if re.match(r'^(ALTER|CREATE|DROP|TRUNCATE|RENAME|GRANT|REVOKE|LOCK|UNLOCK|CALL|LOAD|REPLACE)\b',q):
             stop('DDL/implicit commit operation blocked in review candidate')
-        if re.match(r'^(COMMIT|ROLLBACK|BEGIN|START\\s+TRANSACTION|SAVEPOINT|RELEASE\\s+SAVEPOINT|SET\\s+AUTOCOMMIT)\\b',q):
+        if re.match(r'^(COMMIT|ROLLBACK|BEGIN|START\s+TRANSACTION|SAVEPOINT|RELEASE\s+SAVEPOINT|SET\s+AUTOCOMMIT)\b',q):
             if q == 'COMMIT' and sql_commit_phase == 'one_commit':
                 sql_commit_phase = 'committed_sql'
             elif q == 'START TRANSACTION' and sql_commit_phase == 'committed_sql':
