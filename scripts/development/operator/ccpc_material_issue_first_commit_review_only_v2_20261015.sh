@@ -486,9 +486,14 @@ try:
         q = str(query).strip().upper()
         if kwargs.get('auto_commit'):
             stop('Unapproved SQL auto_commit requested')
-        if re.match(r'^(ALTER|CREATE|DROP|TRUNCATE|RENAME|GRANT|REVOKE|LOCK|UNLOCK|CALL|LOAD|REPLACE)\b',q):
-            stop('DDL/implicit commit operation blocked in review candidate')
-        if re.match(r'^(COMMIT|ROLLBACK|BEGIN|START\s+TRANSACTION|SAVEPOINT|RELEASE\s+SAVEPOINT|SET\s+AUTOCOMMIT)\b',q):
+        if (not q or ';' in q or '--' in q or '/*' in q or '#' in q):
+            stop('SQL empty, comments or multiple statements not allowed')
+        # Fail closed on DDL, transaction control, stored routines, session
+        # mutations and unknown statement types. This is NOT a table-level DML
+        # allowlist: full trace and schema delta review remain mandatory.
+        if not re.match(r'^(SELECT|INSERT|UPDATE|DELETE|SHOW|DESCRIBE|EXPLAIN|COMMIT|START\s+TRANSACTION)\b',q):
+            stop('Unreviewed SQL command category blocked')
+        if re.match(r'^(COMMIT|START\s+TRANSACTION)\b',q):
             if q == 'COMMIT' and sql_commit_phase == 'one_commit':
                 sql_commit_phase = 'committed_sql'
             elif q == 'START TRANSACTION' and sql_commit_phase == 'committed_sql':
