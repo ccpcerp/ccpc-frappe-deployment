@@ -1,5 +1,18 @@
 # CCPC ERPNext — Redis configuration boundary read-only preflight CANDIDATE
 
+## Latest source correction (2026-10-15): loopback address aliases now STOP conservatively — 23/23 PASS
+
+**CURRENT review-only candidate; prior file hash and 19-test result below are retained solely as historical evidence, NOT approved staging pins.** A new source review found that the initial URL parser compared raw lowercased host labels: `redis://localhost:6379` and `redis://127.0.0.1:6379` could be labelled nonoverlapping even though both may reach the same local Redis service in the tested process namespace. The candidate now normalizes `localhost`, `localhost.localdomain`, IPv4 loopback ranges (`127.0.0.0/8`), `[::1]` and mapped IPv4 loopback IPv6 addresses to one **comparison-only** token. It also rejects unspecified or multicast IP addresses as unsuitable for this classification. It uses only the Python standard-library `ipaddress` module; no DNS resolution, socket, Frappe, Redis or database access was added.
+
+**Current exact reviewed artifacts in `review/material-issue-first-commit-preparation-2026-10-15`:**
+- `scripts/development/operator/ccpc_material_issue_redis_boundary_readonly_candidate_20261015.sh`: update commit **`f8568f7a09c05b978dd775b00e2275ee3ecf9100`**, **current Git blob `85123cd4d487110d01cdc375ad7e6969035bdc34`**, **current SHA256 `837dcdee993f1fb8d9187dde473070c8b137254664d0d270b7b7d0fa21c35202`**.
+- `tests/offline/test_material_issue_redis_boundary_candidate.py`: update commit **`e6102183b6d0165f8afc9d98ada661c0e8a6c169`**, current Git blob **`2794ad929032aea344cfdbe238811ab76f6c22a9`**, SHA256 **`3525867075281384f7dffb6c327e59a8d86a288d49ad2528984f11bde8423035`**.
+- The credential-free offline exact-source test run (`PYTHONDONTWRITEBYTECODE=1 python -W error -m unittest discover -s /mnt/data/ccpc_redis_review/tests/offline -p test_material_issue_redis_boundary_candidate.py -v`) passed **23/23**, retaining all 19 prior checks plus four regression tests: loopback aliases, cross-site alias collision, invalid unspecified/multicast addresses and non-loopback names remaining unverified. `bash -n`, embedded Python `ast.parse` and test-file `py_compile` also passed. Reconstructed original files' Git hashes matched the previous GitHub blobs before modification; updated files' local `git hash-object` values exactly matched GitHub commit readback. These tests do not execute Docker or live network operations.
+
+**Old staging pins invalid:** previously documented candidate Git blob `5a37dae1391bac0a2bb1be979a6aaf036f9f4c6d` / SHA256 `4fbac349cddb43d40994ef53182c225069341c8fbac393a33c9f7db5c47f7b05` are **superseded and must not be staged**. The original 19/19 result applied to that earlier version only. A future staging decision must independently recheck the **current full review-branch commit**, the new SHA256, and manual execution approval. No stage or Ubuntu execution has been approved by a generic “Continue.”
+
+The revised script still cannot prove that distinct Redis host labels correspond to separate physical services or that workers, Socket.IO and global-search paths use the same config as the short-lived `docker exec` Python process. **Both successful configuration classification and overlap STOP remain NO-GO for rollback-only writing and Material Issue COMMIT. PRODUCTION untouched.**
+
 **2026-10-15 | GitHub-only prepared artifact; not staged or executed on DEVELOPMENT | NO-GO for posting.**
 
 ## Verified source and limitation
