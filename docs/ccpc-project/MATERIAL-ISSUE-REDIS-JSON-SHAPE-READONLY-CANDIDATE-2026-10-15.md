@@ -2,6 +2,20 @@
 
 **2026-10-15 | New GitHub-only candidate; NOT STAGED OR RUN on Ubuntu or DEVELOPMENT.**
 
+## 2026-10-16 — Approved staging completed by operator report; NOT EXECUTED
+
+The owner gave **separate, express approval for staging only** of this new-format candidate. GitHub review branch `review/material-issue-first-commit-preparation-2026-10-15` was independently verified at the pinned full commit **`21756ddf639eea0a7f6d83331e8476515c871aba`** before the assistant supplied the reviewed GitHub-to-Ubuntu staging block. The new script Git blob **`fc5617117806b8cd19586ae3c7bf530dab21d632`** and pinned SHA256 **`b88dadc10cac64c5b6f48a695fbf506b046613cbe4db192da440227934b212b0`** were also verified in GitHub, with earlier synthetic offline tests **25/25 PASS** (not re-run during staging).
+
+The owner returned **exactly**:
+
+```text
+STAGED AND VERIFIED, NOT EXECUTED: /home/gani/ccpc-reviewed-scripts/ccpc_material_issue_redis_json_shape_readonly_candidate_20261015.sh
+```
+
+This output is **operator-reported** and matches the success line of the provided staging-only Bash block. That block checks the exact fetched review branch commit, Git file mode, full-script SHA256, and absence of a preexisting destination before creating an owner-only (`0600`) file outside the protected DEVELOPMENT checkout. There is **no direct independent ChatGPT filesystem check** on Ubuntu, and the one supplied success line does not prove any subsequent activity. The given block contains **no script execution or `docker exec`**. The original Redis endpoint-overlap preflight is a different, previously consumed one-shot and remains **unclassified STOP**.
+
+**Staging approval is consumed.** Do **not** execute the staged script, repeat the staging action, or run the old Redis preflight under this permission. Before any new DEVELOPMENT execution, obtain **separate, explicit, single-use owner approval** for running only this exact staged new SHA256-matched redacted JSON/URL-format candidate against the named DEVELOPMENT container. The prospective execution opens exactly three fixed DEVELOPMENT site-config JSON files (bounded size), parses Redis URL shapes and the two allowlisted exec-child environment values, and returns only sanitized categorical status; it never resolves/connects to Redis, Frappe or SQL, and cannot prove isolation. No read-only run has yet been authorized or reported. **Material Issue Stock Entry/SLE/GL posting, rollback-only writing and PRODUCTION remain NO-GO.**
+
 ## Purpose and verified source basis
 
 The prior one-shot Redis configuration-boundary preflight is **consumed** and produced only the operator-reported final `ONE-SHOT READ-ONLY PREFLIGHT: STOPPED OR FAILED`. Its preceding output was not recovered. Later host checks independently reported script SHA256/syntax/ownership, DEVELOPMENT container identity, Python launch and stdin, and non-symlink readable metadata for the common, isolated test and shared development site config files. None establishes why the prior preflight stopped or that Redis instances are physically isolated.
