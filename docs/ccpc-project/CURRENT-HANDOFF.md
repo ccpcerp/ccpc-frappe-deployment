@@ -1,5 +1,15 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## Consumed successful rollback-only diagnostic source located and checksum-matched on Ubuntu — 2026-10-15
+
+**Operator ran a read-only local filename/SHA256 search** and provided exact output:
+```text
+951ff6be3ae561b21fe86bd5b62b708d672b7e2166d5995d518914a11b9af996  /home/gani/ccpc_material_issue_identity_safe_rollback_diagnostic.sh
+```
+The digest **exactly equals the established successful rollback-only one-shot diagnostic** from earlier handoff entries, providing strong integrity evidence that its bytes remain at that path on the operator's Ubuntu home directory (subject to the operator's reported terminal output). This is **not new script execution or an ERPNext transaction**. ChatGPT's current container does **not** have this shell script mounted, and GitHub stores neither this consumed script nor its source. Therefore no source-level review of the guards has yet taken place in this conversation.
+
+**Next gate:** Obtain a **read-only copy of the exact original script source for private review** (e.g. upload original .sh file as a chat attachment after checking it contains no credentials, tokens, private key, site_config or dumps). Do not paste secret-bearing lines into the chat, push the consumed script to GitHub, run it again, modify it in place, or treat its known hash as permission to post. When exact source is available, validate SHA256 locally, review the ledger allowlist with strong GL object references, and build a **new distinct** fail-closed commit-capable harness on an approved review branch for **preparation only**. Future one-unit site posting/SQL COMMIT still requires separate explicit owner approval, current guarded baseline/recovery checks and a fresh reviewed operator artifact.
+
 ## First GitHub-to-Ubuntu script delivery and read-only execution PASSED — 2026-10-15
 
 **Operator terminal evidence:** After the previously verified isolated staging step, the operator ran the pinned `ccpc_material_issue_delivery_readonly_check_20261015.sh` from `$HOME/ccpc-reviewed-scripts` with a fresh `test -f` / reject-symlink / `sha256sum --check --status` gate. The exact output was:
