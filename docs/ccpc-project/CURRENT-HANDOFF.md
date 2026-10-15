@@ -1,5 +1,11 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## Additional naming-series / raw-DML source trace confirms v2 remains NO-GO — 2026-10-15
+
+Read-only GitHub inspection of pinned Frappe `988e54f3c4c291e2077a83809663f123731abe76` confirmed `frappe/model/naming.py` `getseries` has `SELECT ... FOR UPDATE` and direct `UPDATE/INSERT tabSeries` paths (blob `84e9ad01eb934d4ebaf60e608cf039eb15f1dbc4`); `frappe/model/base_document.py` `db_insert`/`db_update` issue direct SQL for parent and child DocTypes (blob `65fa116d3e1725ee806ac469a9905122f25b586f`). Thus a complete exact-fixture DML/table-delta trace is still required and current `Document.insert`/`submit` wrappers cannot assert exhaustiveness. Do **not** assume `tabSeries` was actually modified by the synthetic issue; site naming metadata and a separately authorized rollback-only trace must establish that. This evidence was added to formal security review at review branch commit `f2528cdf670553768f8d52c8757bc6a29ff94200`.
+
+**Authorization and code state unchanged:** New source-only v2 is unconditionally inert at Git blob `1d75461ec5bcb22e3e67f2ebfb503b79b3606243`; original candidate untouched at `323967737cd762f7018a739fc7d67d1b25520259`. Seven offline tests passed on a reconstructed mock helper fixture, not exact full source. No GitHub candidate was staged/executed on Ubuntu; no database/stock/GL changes or PRODUCTION interactions. NO-GO until B2/B3/B5/B6 remaining evidence and external separate approval for future tests.
+
 ## GitHub-only first-commit Material Issue safety hardening v2 PREPARED, STILL NO-GO — 2026-10-15
 
 **Owner said “Continue”** to the prior **GitHub-only** remediation and offline test plan after the final safety code review found eight blockers. This consent does not authorize any live Docker/DEVELOPMENT execution, backup mutations, database transaction, PRODUCTION operation or actual Stock Entry/GL COMMIT.
