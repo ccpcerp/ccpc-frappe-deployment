@@ -84,6 +84,9 @@ class TestMaterialIssueV2ReviewOnly(unittest.TestCase):
         scope = {
             "sql_commit_phase": "locked",
             "original_sql": lambda q, *a, **k: q,
+            # SQL DML targets are exercised by the separate source-extracted
+            # test_material_issue_v2_dml_surface.py suite.
+            "review_dml_scope": lambda query: None,
         }
         fn, globals_dict = self.extract("limited_sql", scope)
         self.assertEqual(fn("SELECT 1"), "SELECT 1")
