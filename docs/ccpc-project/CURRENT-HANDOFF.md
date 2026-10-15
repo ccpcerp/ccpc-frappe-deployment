@@ -1,5 +1,18 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## Python stdin diagnostic: pasted-label command errors; outcome unverified — 2026-10-15
+
+The owner explicitly approved a one-time read-only DEVELOPMENT container stdin diagnostic, distinct from the previously consumed Redis preflight. The supplied Docker/Python command was designed to send only a harmless print statement to the already confirmed DEVELOPMENT container. Operator output was **only**:
+
+```text
+DEVELOPMENT: command not found
+READ-ONLY: command not found
+```
+
+These two Bash errors indicate that the shell tried to run the displayed result labels as separate commands; this is **consistent with pasting the example expected output instead of the diagnostic command**. No transcript of the actual command entered or diagnostic success output was received. **Do not claim the Docker stdin diagnostic ran**, passed or failed. The two errors give no Redis isolation information. Before any new run, request clarification of which text was pasted and separate explicit permission for any further container execution. Do not rerun the original Redis configuration preflight; its earlier one-time authorization is consumed and STOP remains unexplained.
+
+No code, configuration, database, Redis or PRODUCTION updates were authorized by these terminal messages. Development permanent Material Issue remains **NO-GO**.
+
 ## DEV bench Bash/Python startup check passed, Redis preflight remains unclassified — 2026-10-15
 
 The owner approved one additional restricted DEVELOPMENT-container diagnostic to confirm `bash -c`, bench working-directory access and a minimal isolated Python startup. Operator-supplied output:
