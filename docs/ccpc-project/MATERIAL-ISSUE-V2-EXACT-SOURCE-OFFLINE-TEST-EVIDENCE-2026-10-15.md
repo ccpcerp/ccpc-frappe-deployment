@@ -1,5 +1,43 @@
 # CCPC ERPNext — Exact-source inert Material Issue v2 offline test evidence
 
+## Follow-on exact-source write-target review — 12 offline tests PASS, 2026-10-15
+
+**Authority:** Owner said “Continue” to the prior **GitHub-only** SQL write-path tracing and offline testing work. No ERPNext server staging, Frappe integration run, SQL COMMIT, restoration, or PRODUCTION action was authorized.
+
+**Exact source hashes matched local, GitHub-backed file blobs after reviewed edits:**
+```text
+scripts/development/operator/ccpc_material_issue_first_commit_review_only_v2_20261015.sh
+GitHub and local git hash-object: 0a17d53cc0badac1de05745ef9edfb60d342ed89
+bytes: 41591
+
+tests/offline/test_material_issue_v2_guards.py
+GitHub and local git hash-object: 6469997eb93efb523a308ca015c755902132764d
+bytes: 7951
+
+tests/offline/test_material_issue_v2_dml_surface.py
+GitHub and local git hash-object: 29fbbd8c3603b24488d4bc8e2ad671b667536edf
+bytes: 5279
+```
+
+**GitHub review commits:** v2 DML target hardening `19d3227b37a640252d4caf1141262b30746bde6d`; original seven-test suite dependency adjustment `c096255a98835488fc160e669cb134fcfb513a6e`; added five-test DML surface suite `6efb3b89e5c50aedb74a50fae29aa380a4121926`.
+
+**Source change:** Added `review_dml_scope`, called from the existing `limited_sql` proxy. This is a **provisional, fail-closed regex gate**, not a real SQL parser or proven ERPNext DML boundary. It accepts only simple, backtick-quoted `INSERT INTO` forms for `tabStock Entry`, `tabStock Entry Detail`, `tabStock Ledger Entry`, `tabGL Entry` and `tabVersion`; accepts simple `UPDATE ... SET ... WHERE` forms targeting `tabWithdrawal Slip`, `tabWithdrawal Slip Item`, `tabStock Entry`, `tabStock Entry Detail`, `tabStock Ledger Entry`, `tabGL Entry`, `tabBin`; rejects DELETE, INSERT IGNORE, unrelated tables, unqualified broad updates and the currently unmapped `tabSeries` naming-counter writes. The previous high-level SQL prefix/comment/COMMIT phase checks remain present.
+
+**Run locally in a credential-free, non-server review container:** SHA-pinned local script and two exact-source unittest files underwent `bash -n`, Python embedded AST parse and `python3 -m unittest discover -v -s <offline-test-dir> -p 'test_material_issue_v2_*.py'` with `CCPC_V2_SCRIPT` pointing at the source-matched v2 file. The **existing 7 + new 5 tests = 12 tests: ALL PASSED** (0.054 sec of Python unittest execution, timing incidental). The old seven-test harness was updated to inject the newly required pure DML helper dependency in its isolated `limited_sql` extraction; the independent new suite evaluates the actual `review_dml_scope` AST and tests 10 named negative patterns. A dry shell invocation with the *old* approval environment variable still exited status 1 with the permanent `NO-GO` message **before any Docker operation**. This is an **offline static/helper test** and no integration test.
+
+**Critical interpretation:** One cannot infer release/posting safety from these PASS results:
+- The regex recognizes only first DML verbs and table names. It does not prove WHERE row selection, embedded subqueries, stored functions, multi-table effects, driver-level commands, all DDL/implicit COMMIT paths, or completeness of Frappe's write path. For instance, a `WHERE 1` update to an otherwise listed table is not a safe record-scoped operation.
+- In pinned Frappe `frappe/model/naming.py:getseries`, naming series updates `tabSeries` directly. `tabSeries` is **intentionally blocked in v2**, so the synthetic issue could fail if it uses that naming counter. Do not add permission absent exact naming metadata, expected prefix and current-row invariants.
+- Real Frappe/ERPNext posting may legitimately write currently denied auxiliary, child, repost, reservation, global-search or ledger-related DocTypes, as well as Redis/cache/filesystem effects outside SQL. Exact shape must be separately traced in a reviewed rollback-only integration test, not inferred.
+- The v2 shell has an **unconditional early `exit 1`** and must remain inert. The old candidate remains unchanged and NO-GO. The v2 script was not staged/executed on Ubuntu, and no business transaction or PRODUCTION access occurred.
+
+**Next safety gate:** Continue GitHub-only source mapping of exact table/delta list including `tabSeries`, Frappe/ERPNext auxiliary SQL and callbacks. Update negative tests with independently reviewed output. Only then seek owner authorization for a **new distinct, rollback-only** synthetic DEVELOPMENT integration rehearsal; do not unarm v2 or run a first persistent one-unit stock/GL COMMIT.
+
+---
+### Previous seven-test checkpoint (historical source blob)
+
+The previous seven-test PASS below refers to the **earlier v2 blob `1d75461ec5bcb22e3e67f2ebfb503b79b3606243`**, not the updated 41,591-byte source. Retained for audit continuity.
+
 **Date:** 2026-10-15  
 **Disposition:** **PASS for seven offline helper guard tests and exact-source syntax/inertness. STILL NO-GO for deployment or posting.**
 
