@@ -41,6 +41,13 @@ APPROVED_BRANCH='REPLACE-WITH-REVIEWED-BRANCH'
 APPROVED_COMMIT='REPLACE-WITH-FULL-40-HEX-COMMIT'
 APPROVED_PATH='REPLACE-WITH-REPO-RELATIVE-PATH'
 APPROVED_SHA256='REPLACE-WITH-FILE-64-HEX-SHA256'
+# Validate every pin and restrict scripts to the designated reviewed directory.
+[[ "$APPROVED_COMMIT" =~ ^[0-9a-f]{40}$ ]]
+[[ "$APPROVED_SHA256" =~ ^[0-9a-f]{64}$ ]]
+[[ "$APPROVED_BRANCH" =~ ^[a-zA-Z0-9._/-]+$ ]]
+[[ "$APPROVED_BRANCH" != *..* && "$APPROVED_BRANCH" != /* && "$APPROVED_BRANCH" != *//* ]]
+[[ "$APPROVED_PATH" =~ ^scripts/development/operator/[a-zA-Z0-9._/-]+[.]sh$ ]]
+[[ "$APPROVED_PATH" != *..* && "$APPROVED_PATH" != /* && "$APPROVED_PATH" != *//* ]]
 OUT_DIR="$HOME/ccpc-reviewed-scripts"
 REPO_URL='git@github.com:ccpcerp/ccpc-frappe-deployment.git'
 mkdir -p -m 700 "$OUT_DIR"
@@ -49,15 +56,19 @@ GIT_TERMINAL_PROMPT=0 GIT_SSH_COMMAND='ssh -o BatchMode=yes -o StrictHostKeyChec
 GIT_TERMINAL_PROMPT=0 GIT_SSH_COMMAND='ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=10' git -C "$TMP_DIR" fetch -q --depth=1 --no-tags "$REPO_URL" "refs/heads/$APPROVED_BRANCH"
 test "$(git -C "$TMP_DIR" rev-parse FETCH_HEAD)" = "$APPROVED_COMMIT"
 FILE_NAME="$(basename -- "$APPROVED_PATH")"
-test "$FILE_NAME" = "$APPROVED_PATH" || test "$APPROVED_PATH" != "$FILE_NAME"
 test ! -e "$OUT_DIR/$FILE_NAME"
-git -C "$TMP_DIR" show "FETCH_HEAD:$APPROVED_PATH" > "$OUT_DIR/$FILE_NAME"
-test "$(sha256sum "$OUT_DIR/$FILE_NAME" | cut -d' ' -f1)" = "$APPROVED_SHA256"
-chmod 600 "$OUT_DIR/$FILE_NAME"
+MODE="$(git -C "$TMP_DIR" ls-tree FETCH_HEAD -- "$APPROVED_PATH" | awk '{print $1}')"
+[[ "$MODE" = '100644' || "$MODE" = '100755' ]]  # Reject symlinks/submodules.
+STAGED_TEMP="$(mktemp "$OUT_DIR/.stage.XXXXXXXX")"
+git -C "$TMP_DIR" show "FETCH_HEAD:$APPROVED_PATH" > "$STAGED_TEMP"
+test "$(sha256sum "$STAGED_TEMP" | cut -d' ' -f1)" = "$APPROVED_SHA256"
+chmod 600 "$STAGED_TEMP"
+ln -- "$STAGED_TEMP" "$OUT_DIR/$FILE_NAME" # Fails if destination exists.
+rm -- "$STAGED_TEMP"                   # Removes only our verified temporary filename.
 printf 'STAGED AND VERIFIED, NOT EXECUTED: %s\n' "$OUT_DIR/$FILE_NAME"
 ```
 
-**Review note:** The template intentionally leaves its dedicated hidden `.fetch.*` repository for operator inspection instead of deleting anything automatically; tidy only those exact owned temporary folders later under a separately reviewed housekeeping step. The `APPROVED_PATH` must be provided and reviewed as an exact relative path under the operational scripts directory; do **not** accept arbitrary `..`, leading `/`, a symlink or untrusted ref. If staging fails or an existing output file is present, stop and do not execute. A production-grade reusable staging helper should additionally validate these inputs mechanically before being introduced. **Do not paste placeholder values as executable instructions.**
+**Review note:** The template intentionally leaves its dedicated hidden `.fetch.*` repository for operator inspection instead of deleting anything automatically; tidy only those exact owned temporary folders later under a separately reviewed housekeeping step. The `APPROVED_PATH` must be reviewed as an exact relative path under `scripts/development/operator/`; the staged file basename must be unique. The template checks the branch, pinned commit, file SHA256 and blob mode, and rejects `..`, leading `/`, untrusted refs and symlink blobs. If staging fails or an existing output file is present, stop and do not execute. This is a manually reviewed template, not a hardened installed fetch service. **Do not paste placeholder values as executable instructions.**
 
 ## Phase 4 — separate manual execution
 
