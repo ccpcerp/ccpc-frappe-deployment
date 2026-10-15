@@ -1,5 +1,11 @@
 # CCPC ERPNext — First committed one-unit Material Issue: preparation and execution gates
 
+## Exact-source read-only isolated metadata probe offline validation PASS — 2026-10-15
+
+The **new** DEVELOPMENT-only metadata probe `scripts/development/operator/ccpc_material_issue_isolated_metadata_readonly_review_20261015.sh` and its source-contract test suite were each reconstructed and compared with **their exact connected-GitHub blob SHA** in a credential-free local test workspace: script blob `3dd860d6e254ee361b8f61769fe72ac9dc6a3854` (6,508 bytes), test blob `6c396b5045b994d09128a837dfa92755839bc938` (3,117 bytes). `bash -n`, embedded Python AST parsing, and **5/5 offline unittest methods PASSED**. A local shell run **without** approval variable exited 1 / NOT AUTHORIZED before Docker. See [full write-path and probe evidence](MATERIAL-ISSUE-WRITE-PATH-NAMING-SEARCH-2026-10-15.md), updated review commit `ffb0c4581922d8800be3f60074cc18315f014140`.
+
+**Remaining consent gate:** No operator Ubuntu staging has happened, no Docker/SQL executed for the new probe, no site metadata result exists, and no permission has been obtained to run the new probe. If owner separately approves, carefully stage against an immutable GitHub review commit, check SHA256/Bash/Python, then request separate explicit approval for its once-only read-only isolated metadata execution (or obtain precise combined staging + one-run consent). Do not run or unarm the posting candidate; NO-GO still applies to a permanent Material Issue.
+
 ## B2/B3 source trace: naming series, child sync and Redis global-search exposure (GitHub only) — 2026-10-15
 
 **New source findings, verified in pinned GitHub:** Stock Entry has a `naming_series:` autoname definition and Stock Entry Detail exposes `item_code`/`item_name` to global search. Frappe's naming code conditionally writes `tabSeries`; document save synchronizes child tables using query-builder DELETE and child UPDATE; document post-save can queue a Redis `global_search_queue` event before SQL COMMIT, if effective site configuration and document data activate global search. The inert v2 candidate currently denies all DELETE and `tabSeries` writes, and its realtime suppression does **not** cover `frappe.cache.lpush`. A complete actual table/Redis trace remains a **blocking prerequisite**, not an optional enhancement.
