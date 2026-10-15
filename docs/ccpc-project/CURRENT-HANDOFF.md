@@ -1,5 +1,19 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## DEV bench Bash/Python startup check passed, Redis preflight remains unclassified — 2026-10-15
+
+The owner approved one additional restricted DEVELOPMENT-container diagnostic to confirm `bash -c`, bench working-directory access and a minimal isolated Python startup. Operator-supplied output:
+
+```text
+DEVELOPMENT BENCH DIRECTORY: ACCESSIBLE
+DEVELOPMENT PYTHON: LAUNCHED SUCCESSFULLY
+READ-ONLY PYTHON STARTUP CHECK: PASSED
+```
+
+The command targeted only `frappe_docker_devcontainer-frappe-1` as `frappe`, entered `/workspace/development/frappe-bench`, and ran `PYTHONDONTWRITEBYTECODE=1 ./env/bin/python -I -B -S -c "print(...)"`. It did not run the existing Redis preflight, read site or Redis configuration, initialize Frappe or make Redis/SQL connections. This is **operator-reported** verification of Bash, bench directory and Python launch; it does **not** establish the original preflight's `docker exec -i ... python -` stdin path, any Redis endpoints, physical services, running worker configuration or isolation.
+
+The initial single-use Redis preflight report remains only `ONE-SHOT READ-ONLY PREFLIGHT: STOPPED OR FAILED`. Original output above the final line was never provided; cause and whether the classifier ran remain unknown. The original wrapper was separately found not to fail-fast reliably because `set -e` was in a subshell conditioned on `if`. Do not rerun the consumed preflight. Approval for this restricted startup check is also consumed. If further diagnostics are needed, first request any retained original error lines; otherwise any new runtime check needs its own explicit approval, and must be distinct from the consumed Redis preflight. No new claim of Redis isolation or authorization for database writing or Material Issue posting. **Persistent Material Issue Stock Entry/SLE/GL: NO-GO; PRODUCTION untouched.**
+
 ## DEV Python binary check passed by operator; Redis preflight still unexplained — 2026-10-15
 
 The owner separately approved **one read-only Docker exec** inside the already-verified running DEVELOPMENT container `frappe_docker_devcontainer-frappe-1`, as the `frappe` user, to inspect only the expected interpreter path `/workspace/development/frappe-bench/env/bin/python`. Operator-provided output:
