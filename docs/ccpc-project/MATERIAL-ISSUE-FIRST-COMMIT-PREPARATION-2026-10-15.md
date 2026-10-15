@@ -1,5 +1,31 @@
 # CCPC ERPNext — First committed one-unit Material Issue: preparation and execution gates
 
+## Live isolated-only SQL / inventory / ledger / recovery baseline audit PASSED — 2026-10-15
+
+**Owner authorization:** Separately approved one read-only isolated-DEVELOPMENT audit. No authorization to commit a Stock Entry or mutate any business record, shared DEVELOPMENT or PRODUCTION.
+
+**Operator terminal evidence** from running the exact previously staged, SHA256 checked and Bash/Python syntax-checked `ccpc_material_issue_isolated_baseline_readonly_20261015.sh`:
+```text
+PINNED DEV SOURCE AND TEST/SHARED SITE CONFIGS: VERIFIED
+12 HISTORICAL RECOVERY SETS, 48 NONEMPTY FILES: SHA256 HASHED
+ACTUAL ISOLATED SQL DATABASE NAME: VERIFIED
+UNISSUED SLIP AND 10 NOS/PHP1000 STOCK BIN: VERIFIED
+0 STOCK ENTRIES, 1 HISTORICAL SLE, 2 HISTORICAL GL: VERIFIED
+TEST USERS, ROLES AND SYNTHETIC ACCOUNTING DEFAULTS: VERIFIED
+48 RECOVERY ARTIFACT SHA256/SIZE FINGERPRINTS: STABLE IN THIS RUN
+PINNED SOURCE AND SITE CONFIGURATION: UNCHANGED
+NO PRODUCTION ACCESS, SQL WRITES, STOCK ISSUE OR DOCKER SERVICE CHANGE
+ISOLATED PRECOMMIT READ-ONLY BASELINE AUDIT: PASSED
+```
+
+**Meaning of PASS:** The script used a `START TRANSACTION READ ONLY` and verified the actual connected MariaDB database name against the configured isolated test site's database identity on the expected DEVELOPMENT `mariadb:3306` host. It confirmed the synthetic `WS-2026-00001` remains unissued, the single Bin retains 10 Nos / PHP1,000 / PHP100 rate, test identities and accounting defaults match the pinned expected values, the isolated DB has no Stock Entry, and contains one pre-existing Stock Ledger Entry and two pre-existing General Ledger entries. Twelve checkpoint locations and 48 archive files were found; their **size and SHA256 were unchanged between beginning and end of this run**, along with pinned checkout and site config fingerprints. The previous separate read-only Docker and site configuration inspection also reported distinct test/shared DEV/PRODUCTION database names and distinct PROD vs DEV MariaDB storage mounts.
+
+**Evidence boundary:** GitHub source blob `9e1edeaf1656ad475e53060ed7797f0aa8a34fce`, previously expected SHA256 `533f01e16080cd2bf18d36ea43b7f64e2cec54b6288efc7bd1beec5e75df0bfb`, and review branch at `05c89be19c2477c8a5edc8834e43b42bbafcc9dd` were rechecked independently through GitHub. Execution and output are **operator-reported**; ChatGPT did not have direct server access. This audit demonstrates a fresh **read-only baseline**, NOT committed ledger/transaction behavior. It did not perform Frappe initialization or workflow transitions.
+
+**Still unverified / not yet authorized:** No immutable independently held historical backup manifest comparison, off-host proof or restore drill; SQL rollback does not establish non-SQL side-effect isolation for future posting; no demonstrated legitimate ancillary document behavior under the new commit-capable runner's stricter allowlist; no actual COMMIT/postcommit audit, HTTP/CSRF, concurrent/duplicate submission testing or business accounting policy review. The prepared commit-capable candidate at `scripts/development/operator/ccpc_material_issue_first_commit_guarded_candidate_20261015.sh` remains **unstaged, unarmed, unexecuted and NOT approved for stock/GL posting**. Do NOT automatically stage/run it or reuse the consumed one-shot diagnostic.
+
+**Next preparation decision:** Code-review and resolve remaining commit-candidate blockers (commit-hook/Redis/side-effects, new Version insertion allowlist, one-shot failure/unknown-COMMIT handling, additional protected before/after state checks), review exact recovery limitations and obtain separate explicit owner authorization for a single synthetic committed transaction only after the reviewed gate is satisfactory. No PRODUCTION deployment/changes follow from this milestone.
+
 ## NEW isolated-DEVELOPMENT-only read-only SQL baseline / recovery audit prepared — 2026-10-15
 
 **Authorization:** Owner responded “Continue” to preparation of the next *read-only* isolated-site audit, after the separate live configured DEV/PRODUCTION isolation preflight passed. This did **not** authorize execution, an actual business transaction, production configuration access, modifications to shared DEVELOPMENT, or a one-unit Material Issue COMMIT.
