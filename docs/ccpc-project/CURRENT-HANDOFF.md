@@ -1,9 +1,27 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
-**Last verified update:** 2026-10-14 (GitHub connector and operator terminal reports).  
+**Last verified update:** 2026-10-15 (GitHub connector and operator terminal reports).  
 **Purpose:** This is the **single rolling GitHub handoff** for CCPC ERPNext. Maintain **this same path** at meaningful milestones, during longer conversations before a thread limit is reached, and when the operator requests a handoff. Do not create a new dated Project Source attachment every time.
 
 > **Read first in every new project conversation:** [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md), then this handoff, then verify relevant live GitHub branches and commits with the GitHub connection. The permanent ChatGPT Project Instructions define policy; older Project Sources and dated handoffs supply historical context only. If information conflicts, the most recently verified GitHub state takes precedence. If GitHub is inaccessible, report the inability to verify rather than treating old snapshots as current.
+
+## Twelfth protected isolated recovery checkpoint created and archive-verified — 2026-10-15
+
+**Operator terminal output verified backup-only success:** The user ran the previously downloaded checksum-pinned `ccpc_isolated_post_slip_backup_guarded.sh` (SHA256 `385169bfb6460b3209902daf8d27d23756881ebf21b7bbbd95eb331f34189506`) on the DEVELOPMENT host. The console reported `PROTECTED SOURCE AND SITE IDENTITY: VERIFIED`, `PREVIOUS RECOVERY SETS: 11 / 44 FILES FINGERPRINTED`, `EXISTING TEST SLIP, USERS, STOCK AND LEDGERS: VERIFIED`, `NEW ISOLATED RECOVERY DIRECTORY: CREATED EMPTY`, `FRAPPE BACKUP RETENTION: REDIRECTED TO NEW EMPTY DIRECTORY`, `ONE FULL ISOLATED-SITE BACKUP: CREATED`, `FOUR NEW PRIVATE BACKUP ARTIFACTS: ARCHIVE-VERIFIED`, `EXISTING 44 BACKUP FILES: SHA256 UNCHANGED`, `ISOLATED DATABASE, BIN AND LEDGERS: UNCHANGED`, `SHARED DEVELOPMENT AND PINNED FEATURE: UNCHANGED`, `RECOVERY CHECKPOINTS: 12 SETS / 48 ARCHIVE-VERIFIED FILES`, `RESTORE DRILL: NOT PERFORMED`, and **`ISOLATED POST-SLIP BACKUP: PASSED`**.
+
+**Exact new protected destination, isolated site-local filesystem only:**
+`sites/ccpc-integration2.localhost/private/ccpc-test-snapshots/post-verified-withdrawal-slip-pre-material-issue-20261015`.
+
+**Four artifacts as printed (no confidential contents published):**
+- `20261015_085718-ccpc-integration2_localhost-database.sql.gz` — 1,008,563 bytes.
+- `20261015_085718-ccpc-integration2_localhost-files.tar` — 10,240 bytes.
+- `20261015_085718-ccpc-integration2_localhost-private-files.tar` — 10,240 bytes.
+- `20261015_085718-ccpc-integration2_localhost-site_config_backup.json` — 212 bytes.
+
+The guarded script's output supports that this checkpoint includes the isolated test state with the existing committed `WS-2026-00001` (Stockroom Review), three fictional Users and synthetic Bin at 10 Nos/PHP1,000, with zero Stock Entries, one preexisting SLE and two opening GL entries; business data, prior 44 backups, Git checkout and site config remained unchanged. **Archive/hash verification is not a successful restore test**, and this is a **site-local recovery copy, not an independently verified NAS/off-host copy**. Never publish the site_config or any dump because it can contain sensitive site data/config. GitHub stores only names/sizes/procedure, **not backups or secrets**. Site persistence is confirmed by operator script output; no separate new Frappe posting/integration test occurred.
+
+**Authority gate:** The backup-only owner approval has been fulfilled. Do not rerun this one-shot script. No PRODUCTION action, persistent DEVELOPMENT modification, stock issue/GL transaction, `received_by` change, user-role change, database migration or restore is approved. The next possible milestone is a separately **explicitly authorized** one-unit Material Issue test on `ccpc-integration2.localhost` using independent Stockroom B and existing `WS-2026-00001`, only after reviewing and checksum-pinning the guarded transaction/rollback/independent-ledger-audit procedure. Expected account pair under the verified current isolated config: **debit Stock Adjustment - TISS, credit Stock In Hand - TISS**; forecast stock 10→9 Nos and nominal 100 PHP expense/stock transfer (not a verified posting). Preserve the now-protected pre-posting checkpoint.
+
 
 ## Owner-approved isolated post-Slip backup: guarded operator script prepared — 2026-10-15
 
