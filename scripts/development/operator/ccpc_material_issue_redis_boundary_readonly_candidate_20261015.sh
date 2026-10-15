@@ -31,6 +31,7 @@ fi
 docker exec -i --user frappe "$DEV_CONTAINER" \
   bash -c 'cd /workspace/development/frappe-bench && PYTHONDONTWRITEBYTECODE=1 ./env/bin/python -' <<'PYTHON'
 """Read-only configuration classifier, NOT a Redis connection/isolation test."""
+import ipaddress
 import json
 import os
 import stat
@@ -88,7 +89,25 @@ def endpoint(value):
     if (parsed.scheme not in ('redis', 'rediss') or not host or port is None
             or not 1 <= port <= 65535 or any(c.isspace() for c in host)):
         raise Stop('Redis configuration requires an explicit host and port')
-    return host.rstrip('.').lower(), port
+    # Localhost names and IP loopback aliases can reach the same local Redis
+    # process; comparing the strings literally would miss that overlap.
+    # This is deliberately conservative: distinct non-loopback labels still
+    # cannot prove separate physical Redis services or worker routing.
+    host = host.rstrip('.').lower()
+    if host in ('localhost', 'localhost.localdomain'):
+        host = '@loopback'
+    else:
+        try:
+            ip = ipaddress.ip_address(host)
+        except ValueError:
+            pass  # DNS aliases are not resolved; physical isolation stays NO-GO.
+        else:
+            if ip.is_unspecified or ip.is_multicast:
+                raise Stop('Redis address is unsuitable for endpoint comparison')
+            mapped = getattr(ip, 'ipv4_mapped', None)
+            if ip.is_loopback or (mapped is not None and mapped.is_loopback):
+                host = '@loopback'
+    return host, port
 
 
 def effective(common, specific, environment):
