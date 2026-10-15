@@ -1,5 +1,22 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## Second isolated customization metadata probe STAGED + syntax checked; NOT EXECUTED — 2026-10-15
+
+**Owner authority:** Owner separately **approved staging-only** of the *second* isolated read-only customization/naming/global-search probe. The operator subsequently reported this exact Ubuntu terminal output:
+
+```text
+SECOND METADATA AUDIT: STAGED AND SYNTAX-CHECKED
+NOT EXECUTED — NO DATABASE ACCESS
+```
+
+**Scope and source provenance:** Staging command used the deployment repository review branch `review/material-issue-first-commit-preparation-2026-10-15` at pinned commit **`07718791a6dc8c9ca2820b7fc404605da1971c57`**. It fetched `scripts/development/operator/ccpc_material_issue_isolated_customizations_readonly_review_20261015.sh`, validated exact Git blob **`d13f605876eb669b404179a52e6e084c4031f191`** and SHA256 **`9a026738074f31e790186fc9156ab5755baab06c351b22ad9db399a006db72d0`**, then performed `bash -n` and extracted embedded Python `ast.parse` before placing the private copy using a hard link into `/home/gani/ccpc-reviewed-scripts/ccpc_material_issue_isolated_customizations_readonly_review_20261015.sh`. The staging destination had a fail-if-exists check; no overwrite or shared DEVELOPMENT checkout branch switch was requested. GitHub has been independently re-fetched by ChatGPT and still exposes the same script blob and review-branch HEAD. **Actual Ubuntu command completion is operator-reported**, not independently observed shell access.
+
+**Execution was NOT authorized:** The staging command did **not** call the new script, `docker inspect`, `docker exec`, Python database connectivity or any SQL query. The second probe's `CCPC_METADATA_DETAILS_APPROVED` variable remains an internal fail-closed gate, **not independent owner consent**. The probe has not read its live metadata and no actual naming/customization/global-search setting results exist from it yet. It would access only the isolated DEV `ccpc-integration2.localhost` database over `mariadb:3306` in `START TRANSACTION READ ONLY` if separately approved and invoked. A future one-time execution must revalidate the staged path (non-symlink, operator-owned) and SHA256 immediately beforehand; STOP without automatic retry on any mismatch/failure.
+
+**Prior verification:** Eight of eight offline source-contract tests for this new probe had passed against exact matching GitHub source/test blobs, with `bash -n` and embedded Python AST PASS; that offline unit testing is separate from staging and not live Frappe testing. Previous **first** isolated read-only metadata probe was executed one time with separate approval, reported PASS, and found relevant site customizations and searchable Stock Entry Detail fields. Its one-run permission is already consumed and must not be replayed.
+
+**Next permission gate:** Require **new explicit approval for one live read-only execution of this distinct second probe**, not for any stock/GL posting or PROD access. User's staging-only approval must not be silently treated as execution consent. Following results, map actual site-specific field/property names, Stock Entry series options and global-search file configuration before considering a separately authorized rollback-only integration trace. Original permanent Material Issue candidate unchanged Git blob `323967737cd762f7018a739fc7d67d1b25520259`; review-only v2 unchanged Git blob `0a17d53cc0badac1de05745ef9edfb60d342ed89` with early `exit 1`. **Permanent Material Issue COMMIT remains NO-GO; no DEVELOPMENT stock/GL mutation, shared DEV modification or PRODUCTION change authorized or performed by this staging.**
+
 ## Second isolated customization metadata probe: exact-source offline 8/8 PASS, NOT STAGED / NOT EXECUTED — 2026-10-15
 
 **Authorization:** After the GitHub-only source-preparation milestone, the owner said “Approved continue” for the next **offline syntax and eight-test verification gate**. No Ubuntu staging, second audit live execution, Docker/SQL, rollback-only Frappe writing, actual stock/GL COMMIT, restore, PRODUCTION action or further use of the first audit's consumed consent was granted.
