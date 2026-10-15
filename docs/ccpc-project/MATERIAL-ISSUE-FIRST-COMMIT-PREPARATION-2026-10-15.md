@@ -1,5 +1,15 @@
 # CCPC ERPNext — First committed one-unit Material Issue: preparation and execution gates
 
+## Security / transaction safety final source review — NO-GO FOR COMMIT CANDIDATE, 2026-10-15
+
+The owner authorized a **GitHub-only code and transaction-safety review** following the successful read-only isolated SQL/Bin/GL/recovery audit; owner did **not** approve code changes to the runnable candidate, staging, stock/GL posting, SQL COMMIT, DEVELOPMENT mutations or PRODUCTION operations.
+
+**Formal findings document:** [MATERIAL-ISSUE-FIRST-COMMIT-SECURITY-REVIEW-2026-10-15.md](MATERIAL-ISSUE-FIRST-COMMIT-SECURITY-REVIEW-2026-10-15.md), committed on this review branch in `18a00170c132d329a9f701acff6ea1afd800c300`. It cites pinned CCPC app, ERPNext/Frappe source and candidate lines, records confirmed strengths, eight review findings and concrete remedies. **Disposition: BLOCKED / NO-GO for executing the existing commit-capable candidate.** Candidate script remains UNCHANGED (Git blob `323967737cd762f7018a739fc7d67d1b25520259`).
+
+**Blocking themes:** (B1) writable Frappe connection and independent SQL readback lack a fail-closed exact DEV MariaDB endpoint constraint; (B2) Document.insert/submit wrappers do not bound direct SQL, `db_set` or all child/ancillary writes; (B3) Frappe Document notifications register callbacks that publish to Redis via `after_commit` *after the SQL commit*, not blocked by patched sendmail/enqueue; (B4) hashing 48 backups before COMMIT while holding the Slip row lock increases transaction/IO duration; (B5) strict ancillary Version/StockEntry/SLE/GL insertion allowlist unverified in a committed path; (B6) fingerprints alone do not demonstrate recoverability; (B7) one-shot marker/interrupt and path hardening not fault-tested; (B8) synthetic 1 Nos/PHP100 ledger expectations cannot establish real accounting policy, concurrency/HTTP/CSRF or production readiness.
+
+**Correct next task:** authorize *review-branch-only candidate remediation* as a distinct implementation task; independently test negative/fault cases and keep any new executable artifact **inert, un-staged and unexecuted**. A future single 1 Nos synthetic permanent posting still needs separate owner consent after re-review, current recovery assessment and fresh baseline. Do not stage or run `ccpc_material_issue_first_commit_guarded_candidate_20261015.sh`.
+
 ## Live isolated-only SQL / inventory / ledger / recovery baseline audit PASSED — 2026-10-15
 
 **Owner authorization:** Separately approved one read-only isolated-DEVELOPMENT audit. No authorization to commit a Stock Entry or mutate any business record, shared DEVELOPMENT or PRODUCTION.
