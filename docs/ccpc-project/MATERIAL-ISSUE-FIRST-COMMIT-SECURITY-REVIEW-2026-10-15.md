@@ -1,5 +1,14 @@
 # CCPC ERPNext — First committed Material Issue candidate: source-level transaction safety review
 
+## Additional verified B2 table-write trace — 2026-10-15
+
+Pinned Frappe `988e54f3c4c291e2077a83809663f123731abe76` code provides concrete reasons why a broad DML write guard is unsafe without a complete fixture-specific trace:
+- `frappe/model/naming.py` Git blob `84e9ad01eb934d4ebaf60e608cf039eb15f1dbc4`, `getseries` lines **408–423**, performs `SELECT ... FOR UPDATE` on naming counters and directly `UPDATE`s or `INSERT`s **`tabSeries`** to allocate sequential names. At least Stock Entry naming may use such a counter depending on the site's exact metadata. The candidate's table count assertions did not include `tabSeries`. Denying all out-of-ledger table DML can therefore reject legitimate document creation; allowing `tabSeries` without scoped prefixes/expected increments may miss collateral writes. **Do not assume from static code that a particular counter was used for this fixture.**
+- `frappe/model/base_document.py` Git blob `65fa116d3e1725ee806ac469a9905122f25b586f`, `db_insert` lines **728–776** writes direct SQL `INSERT INTO tab{doctype}`, and `db_update` lines **804–828** issues direct `UPDATE tab{doctype}` through `frappe.db.sql`; child table and ordinary document writes can therefore bypass `Document.insert` / `Document.submit` monkeypatch counts. Need a table-by-table whitelist traced in a newly authorized dry-run/rollback-only integration test, including `tabWithdrawal Slip Item`, `tabStock Entry Detail`, `tabBin`, possible `tabSeries` and `tabVersion`, plus conditional accounting/stock auxiliary tables.
+- Pinned ERPNext `erpnext/stock/stock_ledger.py` `make_entry` lines **228–240** calls `sle.submit()`, while `Stock Entry.on_submit` contains reservation/repost/project/inspection conditional branches. This supports the previously observed stock/GL calls but does not establish a complete table-delta list.
+
+**Disposition unchanged:** INERT v2 candidate's prefix/COMMIT-state SQL guard is a useful first barrier but is **not** a verified write/table allowlist. Neither candidate may be executed. No database table, real site, Docker service or PRODUCTION object was accessed to generate these source findings.
+
 ## Remediation milestone: separate INERT v2 review draft and offline tests — 2026-10-15
 
 **User scope:** Owner said “Continue” to the recommended GitHub review-branch corrections and offline safety tests. No staging, server execution or committed one-unit posting has been authorized.
