@@ -1,5 +1,24 @@
 # CCPC ERPNext — First committed one-unit Material Issue: preparation and execution gates
 
+## Live read-only configured database separation preflight PASSED — operator evidence 2026-10-15
+
+**Owner approval:** Explicit separate consent was given for **one** read-only preflight, including limited inspection of PRODUCTION `ccpcerp.local/site_config.json` database-name configuration inside the running PRODUCTION backend. This was **not** authorization to change PRODUCTION or permanently issue any stock.
+
+**Operator result:** After GitHub-pinned staging and SHA256 verification of `scripts/development/operator/ccpc_material_issue_db_isolation_readonly_20261015.sh`, operator supplied the following complete console output:
+```text
+FOUR DISTINCT RUNNING DEV/PROD COMPOSE SERVICE ROLES: VERIFIED
+SEPARATE DEV/PROD MARIADB STORAGE MOUNTS: VERIFIED
+PRODUCTION SITES MOUNT DISTINCT FROM DEV WORKSPACE: VERIFIED
+ISOLATED TEST, SHARED DEVELOPMENT AND PRODUCTION DB NAMES: DISTINCT
+ONLY SITE CONFIG DATABASE NAMES WERE READ; NO VALUES OR SECRETS PRINTED
+NO SQL, FRAPPE, STOCK, GL, BACKUP, DOCKER LIFECYCLE OR PRODUCTION DATA WRITE
+DATABASE CONFIGURATION ISOLATION READ-ONLY PREFLIGHT: PASSED
+```
+
+**Verified meaning:** Source and immutable review branch commit `d1bf86ae7170a6b7401d513d97f0a00174de3348` were re-fetched through GitHub. The script checks four distinct running Docker Compose project/service-role containers, disjoint MariaDB mount Source locations, disjoint development workspace vs production site storage mounts, and distinct HMAC representations of `db_name` keys for test DEVELOPMENT `ccpc-integration2.localhost`, shared DEVELOPMENT `development.localhost`, and PRODUCTION `ccpcerp.local`. With the operator's supplied PASS output, this gate has **operator-reported runtime PASS**. It did not query actual MariaDB SQL connections or inspect site business records; live output cannot be independently obtained by ChatGPT's GitHub-only connector. Source design limits operation to reading configured `db_name` values, mount metadata and Compose labels. Nothing in this pass changes the existing no-production-writes restriction.
+
+**Remaining financial posting gates (all NOT YET PASSED):** Need a separately reviewed isolated-only direct SQL/read-only Frappe database connection identity and current baseline check, verify 12 protected recovery checkpoint sets / 48 artifacts and snapshots without modifying them, reconsider actual accounting defaults and all ledger/mutation side effects of the new commit-capable candidate, and obtain new exact owner authorization for **one** committed 1 Nos Material Issue. The preflight passed **configured identity and mount separation only**, not direct SQL, complete network isolation, permissions, recoverability, committed GL/SLE behavior, CSRF or concurrency. The commit-capable script has not been staged, armed or executed. Never replay the consumed rollback-only diagnostic or auto-repeat any first commit attempt.
+
 ## New read-only DEVELOPMENT/PRODUCTION isolation preflight prepared — 2026-10-15
 
 **Scope: preparation and GitHub source review only. No server execution or permission for permanent Material Issue posting.** The operator said “Continue” after the recommendation to *prepare and review a nonmutating database-isolation preflight*, not after a request for actual financial posting.
