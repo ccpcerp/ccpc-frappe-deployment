@@ -1,5 +1,13 @@
 # CCPC ERPNext — First committed one-unit Material Issue: preparation and execution gates
 
+## Exact-source inert v2 regression suite PASSED, release remains NO-GO — 2026-10-15
+
+The reviewed `ccpc_material_issue_first_commit_review_only_v2_20261015.sh` was reconstructed **byte-identically** in a credential-free local test container and cryptographically matched `git hash-object` GitHub blob **`1d75461ec5bcb22e3e67f2ebfb503b79b3606243`**. The checked-in suite `tests/offline/test_material_issue_v2_guards.py` independently matched GitHub blob **`772abee3e57eb844deee1bcd2f40df67d0bebf71`**. The exact-source shell `bash -n`, embedded Python AST parse and **all seven** extracted-helper offline tests PASSED; an attempted local shell entry with the old arming flag demonstrated exit 1 / unconditional NO-GO prior to any Docker call. See [detailed exact-source test evidence](MATERIAL-ISSUE-V2-EXACT-SOURCE-OFFLINE-TEST-EVIDENCE-2026-10-15.md) and formal security review.
+
+This verifies **inertness and selected guard logic only**. No Frappe/ERPNext handler, real SQL transaction, table-by-table DML trace, Redis/callback, ledger posting, archival restore, Ubuntu server action or PRODUCTION operation was performed. B2/B3/B5/B6 and unknown-COMMIT scenario tests remain open. The candidate is not executable without a separate code change and review; the original commit runner is also still blocked. **No staging, execution or actual synthetic one-Nos COMMIT is authorized.**
+
+**Next:** GitHub-only source tracing and negative tests for `tabSeries`, exact child/stock accounting table deltas and callback paths; then a separately approved isolated rollback-only integration rehearsal and recovery assessment if warranted. Retain the original STOP, do not stage either candidate, and protect PRODUCTION.
+
 ## Review-only v2 hardening prepared — execution still forbidden (2026-10-15)
 
 The owner said “Continue” after the source-only **NO-GO** security review, permitting GitHub review-branch improvements and offline negative tests only. No live financial or ERPNext operation was authorized.
