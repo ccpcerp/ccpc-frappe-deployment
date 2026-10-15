@@ -1,5 +1,15 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## Redis preflight STOP triage: DEVELOPMENT container identity confirmed — 2026-10-15
+
+The operator reported the one-time read-only Redis preflight wrapper's final output as `ONE-SHOT READ-ONLY PREFLIGHT: STOPPED OR FAILED`. The intermediate diagnostic output was not available; classify as **unexplained STOP**, not confirmed Redis overlap. The original one-shot preflight permission is consumed; do not rerun it.
+
+Subsequent separately limited host-side checks were reported successful: exact staged script SHA256 `837dcdee993f1fb8d9187dde473070c8b137254664d0d270b7b7d0fa21c35202`, Bash syntax, script ownership, and availability of the Docker and stat commands. An additional explicitly approved **single read-only Docker inspection** returned `DEVELOPMENT CONTAINER: IDENTITY VERIFIED AND RUNNING`, confirming the documented `frappe_docker_devcontainer-frappe-1` label tuple and running state as reported by the operator. These checks do not prove that the preflight's embedded Python ran.
+
+The assistant identified a flaw in its *execution wrapper* (not the staged script): Bash `errexit` inside a subshell used as an `if` condition was not a reliable prerequisite gate. Therefore, do not infer that pre-execution checks stopped a later command if one failed. The existing staging checksum check was separately operator-reported successful; there has been no independent host access.
+
+**Next possible diagnostic, if separately approved:** one specifically scoped read-only `docker exec` check to confirm the DEVELOPMENT bench Python binary exists and is executable, without launching the Redis preflight, reading site credentials, initiating Frappe, connecting to Redis/SQL, or touching PRODUCTION. The identity inspection approval is consumed, and any new container entry requires fresh approval. Material Issue persistent Stock Entry/SLE/GL posting remains **NO-GO**.
+
 ## Redis config preflight: approved staging completed by operator report; execution NOT approved — 2026-10-15
 
 **Owner-approved action:** After a specific request for **staging only**, the owner replied “Approved”. The assistant provided the exact reviewed manual GitHub-to-Ubuntu staging block; the operator then returned only the success line:
