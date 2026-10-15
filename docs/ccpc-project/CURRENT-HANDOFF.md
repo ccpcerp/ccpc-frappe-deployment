@@ -1,5 +1,19 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## Isolated DEVELOPMENT read-only metadata probe STAGED and syntax-checked; NOT EXECUTED — 2026-10-15
+
+**Owner authorized STAGING ONLY**, not execution of the metadata probe. Following a pinned and checked GitHub-to-Ubuntu staging procedure, the operator supplied the exact terminal result:
+
+```text
+STAGED AND SYNTAX-CHECKED, NOT EXECUTED: /home/gani/ccpc-reviewed-scripts/ccpc_material_issue_isolated_metadata_readonly_review_20261015.sh
+```
+
+**What the staging procedure checked:** Existing private operator-owned non-symlink `$HOME/ccpc-reviewed-scripts`, fail-if-exists destination, remote review branch `review/material-issue-first-commit-preparation-2026-10-15` at pinned commit `4af5c269e20dbf490fb0390e9e109167147d6286`, exact file Git blob `3dd860d6e254ee361b8f61769fe72ac9dc6a3854` (6,508 bytes), SHA256 `d38a617a23a91bb008a1f794ac5f9f179097e9b98ea3b1f54fc4109cda56aa32`, `bash -n` and embedded-Python `ast.parse`. Used private staging file and hard link, with temporary clone cleanup. Terminal success **was operator-reported**, not direct shell inspection by ChatGPT; connected GitHub independently re-read the unchanged source blob and pinned review-branch HEAD. Prior five exact-source metadata probe source-contract tests also passed offline; they were not rerun on Ubuntu during this staging-only command.
+
+**Explicit execution boundary:** The staging-only operation did not run `bash "$DEST"`, `docker inspect`, `docker exec`, SQL/Frappe, Redis, backup checks or any financial transaction. The script has NOT queried live site metadata, and actual installed naming-series, Property Setter, Custom Field and global-search indicators remain unverified. The probe is designed for one read-only SQL `START TRANSACTION READ ONLY` on isolated DEVELOPMENT `ccpc-integration2.localhost` at expected DEV `mariadb:3306`; its own approval environment gate is NOT owner consent. **Obtain separate, explicit owner approval before one live execution**, and re-verify the staged SHA256 and non-symlink path immediately before running. No automatic retry after STOP or unexpected output.
+
+**Posting status unchanged:** Both Material Issue commit-capable runners remain NO-GO and unexecuted; inert v2 retains its unconditional early `exit 1`, the original first-commit candidate is unchanged, and the previously consumed rollback diagnostic must not be rerun. No permanent one-unit Stock Entry, SLE/GL posting, shared DEVELOPMENT database change, PRODUCTION access/change, Docker lifecycle operation, migration or backup modification has been authorized by staging.
+
 ## Five exact-blob isolated metadata probe offline tests PASSED; pending owner consent for any live run — 2026-10-15
 
 **Source/test identity and offline verification:** After GitHub-first preparation, both files were byte-reconstructed into a credential-free local test workspace and verified by `git hash-object` against the connected-GitHub review branch `review/material-issue-first-commit-preparation-2026-10-15`:
