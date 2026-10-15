@@ -1,5 +1,15 @@
 # CCPC ERPNext — First committed Material Issue candidate: source-level transaction safety review
 
+## Exact v2 GitHub-source offline regression PASS (no ERPNext execution) — 2026-10-15
+
+**Evidence:** [MATERIAL-ISSUE-V2-EXACT-SOURCE-OFFLINE-TEST-EVIDENCE-2026-10-15.md](MATERIAL-ISSUE-V2-EXACT-SOURCE-OFFLINE-TEST-EVIDENCE-2026-10-15.md), created at GitHub review commit `a1fc13815c387f6cd964d83c3a3d085e3e872cd0`.
+
+A local isolated, credential-free test container could not contact GitHub directly. Using the connected GitHub source for independent verification, the full v2 script was deterministically reconstructed from the original reviewed candidate and recorded v2 edits; `git hash-object` exactly **matched GitHub blob `1d75461ec5bcb22e3e67f2ebfb503b79b3606243` (39,982 bytes)**. The pre-existing local regression suite `tests/offline/test_material_issue_v2_guards.py` also exactly **matched GitHub blob `772abee3e57eb844deee1bcd2f40df67d0bebf71` (7,763 bytes)**. This is no longer a merely representative mock-source test.
+
+**Exact-source result:** `bash -n` PASSED, embedded Python `ast.parse` PASSED, and all **7** committed offline unittest methods PASSED using the AST-extracted functions from the **exact v2 GitHub bytes**. In a separate local dry invocation with the old legacy environment arming string set, v2 exited **1** with its fixed `NO-GO: Review-only v2; Docker/SQL execution is deliberately disabled.` message **before** any Docker instruction. No actual development/production host access occurred.
+
+**Scope limitations unchanged:** These are purely isolated offline helper/fixture/AST tests. No complete Frappe/ERPNext Stock Entry handler, SQL session, database permission, Redis/callback, actual archived backup or durable COMMIT was tested. A complete SQL/table/child DML trace, callback and cache side-effect review, archive recoverability verification and separately approved rollback-only rehearsal remain blockers. **Disposition: NO-GO for execution and no approval to stage either posting candidate.**
+
 ## Additional verified B2 table-write trace — 2026-10-15
 
 Pinned Frappe `988e54f3c4c291e2077a83809663f123731abe76` code provides concrete reasons why a broad DML write guard is unsafe without a complete fixture-specific trace:
