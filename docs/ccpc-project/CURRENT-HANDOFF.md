@@ -1,5 +1,15 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## First GitHub-to-Ubuntu reviewed script staging — OPERATOR REPORTED PASS, NOT EXECUTED — 2026-10-15
+
+**Operator terminal output:** `STAGED AND VERIFIED, NOT EXECUTED: /home/gani/ccpc-reviewed-scripts/ccpc_material_issue_delivery_readonly_check_20261015.sh`. This was the pre-approved manual staging procedure using isolated `git fetch`, exact review branch HEAD `d7e1d0361c14b7ea406479271fb15377ec7b94cd`, expected file under `scripts/development/operator/`, and SHA256 `d81fa05afdef07bf059ccc21c6e9a9bea2eb77195b1a542cd1b95841ddbfd9a6`. The procedure checks a Git blob mode, commit and sha256, then creates the private staged file with fail-if-exists behavior. The **GitHub connector independently rechecked** the review branch still at the pinned commit and the script blob at `c95fc0a9526dc827d8fc00103b0b10067898516f`. The operator's terminal output supports successful staging and checks; ChatGPT has **no shell access to the user's actual server**, so cannot independently inspect its staged file.
+
+**Meaning:** The first new reviewed script has been transferred via GitHub to a separate Ubuntu private staging directory without using Windows downloads/PowerShell. **No script execution has been reported.** The staged script is solely a read-only authentication/ref check; it is **NOT** a Material Issue posting or recovery script.
+
+**Next single manual action (read-only smoke test; does not authorize database writes):** Check the staged file's exact sha256 again, reject a symlink, then manually invoke its shell script once as `gani`. It calls only `git ls-remote` for the private deployment branch and the pinned `feature/withdrawal-material-issue-safety` app branch; expected safe output includes `PRIVATE GITHUB READ: PASSED`, `PINNED MATERIAL ISSUE SOURCE BRANCH: VERIFIED`, `DELIVERY PREPARATION READ-ONLY CHECK: PASSED`. If it fails, stop and report safe error output; do not auto-retry or weaken SSH checks. This does not test any Frappe operation, Docker, MariaDB, or a transaction.
+
+**Boundaries:** The earlier 12 / 48 isolated recovery checkpoint assets are preserved in the last verified handoff; current content was not read/changed by staging. The earlier rollback-only business test was successful but rolled back, and its scripts remain consumed and prohibited from replay. A new commit-capable posting harness has **not** been safely prepared. No new business-data/stock/GL COMMIT, persistent DEVELOPMENT change, or PRODUCTION operation is authorized. Separate owner approval will be required for exact financial posting and postcommit audit.
+
 ## First committed Material Issue — PREPARATION ONLY; reviewed GitHub delivery proof prepared — 2026-10-15
 
 **Owner authorization in new chat:** Following successful private GitHub SSH read and identity-safe rollback-only Material Issue rehearsal, the owner approved **review and preparation of the next isolated one-unit committed-posting test, expressly not execution**. No stock posting, database COMMIT, receive-by change, transaction, new fixture, production/shared DEVELOPMENT modification, backup change or migration took place in this chat.
