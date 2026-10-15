@@ -6,6 +6,7 @@ Surface names are REVIEW TARGETS, not proof that all paths were intercepted.
 """
 
 from dataclasses import dataclass
+import re
 
 
 ISOLATED_SITE = "ccpc-integration2.localhost"
@@ -42,6 +43,32 @@ class UnreviewedCapture(ValueError):
 
 
 @dataclass(frozen=True)
+class FrozenNamedBinds:
+    """Immutable review representation of a named SQL parameter dictionary.
+
+    Pinned Frappe query-builder prepare_query returns SQL and a DICT of named
+    binds; this tuple-of-pairs representation is an inert, non-runtime copy.
+    It never proves that a real cursor saw these exact bytes or keys.
+    """
+
+    entries: tuple
+
+    def __post_init__(self):
+        if type(self.entries) is not tuple:
+            raise UnreviewedCapture("Named bind entries must be an immutable tuple")
+        seen = set()
+        for entry in self.entries:
+            if (type(entry) is not tuple or len(entry) != 2
+                    or type(entry[0]) is not str
+                    or not re.fullmatch(r"[A-Za-z_][A-Za-z_0-9]*", entry[0])
+                    or type(entry[1]) not in (str, int, float, bool, type(None), bytes)):
+                raise UnreviewedCapture("Invalid or mutable named SQL bind entry")
+            if entry[0] in seen:
+                raise UnreviewedCapture("Duplicate named SQL parameter")
+            seen.add(entry[0])
+
+
+@dataclass(frozen=True)
 class SyntheticCaptureEvent:
     """Inert fixture, not an actual database/Redis observation."""
 
@@ -49,7 +76,7 @@ class SyntheticCaptureEvent:
     surface: str
     phase: str
     sql: str | None = None
-    binds: tuple | None = None
+    binds: tuple | FrozenNamedBinds | None = None
 
     def __post_init__(self):
         if self.site != ISOLATED_SITE:
@@ -59,8 +86,17 @@ class SyntheticCaptureEvent:
         if self.phase not in PHASES:
             raise UnreviewedCapture("Unknown event ordering/phase")
         if self.surface in SQL_SURFACES:
-            if type(self.sql) is not str or not self.sql.strip() or type(self.binds) is not tuple:
-                raise UnreviewedCapture("SQL observation lacks exact text and tuple binds")
+            if type(self.sql) is not str or not self.sql.strip() or type(self.binds) not in (tuple, FrozenNamedBinds):
+                raise UnreviewedCapture("SQL observation requires exact text and immutable positional or named binds")
+            if type(self.binds) is tuple and any(
+                type(value) not in (str, int, float, bool, type(None), bytes) for value in self.binds
+            ):
+                raise UnreviewedCapture("Mutable or unsupported positional bind value")
+            if type(self.binds) is FrozenNamedBinds:
+                sql_keys = set(re.findall(r"%\(([A-Za-z_][A-Za-z_0-9]*)\)s", self.sql))
+                bind_keys = {key for key, _ in self.binds.entries}
+                if sql_keys != bind_keys:
+                    raise UnreviewedCapture("Named SQL placeholders and immutable bind keys differ")
         elif self.sql is not None or self.binds is not None:
             raise UnreviewedCapture("Non-SQL event must not be disguised as SQL")
 
