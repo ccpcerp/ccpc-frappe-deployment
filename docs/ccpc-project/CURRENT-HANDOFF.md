@@ -1,5 +1,22 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## Synthetic SQL/Redis capture-coverage contract 16/16 offline PASS; live tracing still NO-GO — 2026-10-15
+
+**Owner request:** Continuation of the preceding approved GitHub-only source/offline transaction-safety work. No permission for Ubuntu/DEVELOPMENT script staging, new metadata probe, Frappe/SQL/Redis execution, rollback-only write rehearsal, permanent stock/GL posting, Docker/server operation or PRODUCTION access. The previously authorized one-run read-only probes remain consumed.
+
+**Verified pinned source:** Custom app feature `ccpcerp/ccpcerp@feature/withdrawal-material-issue-safety` still `2f846a75dc7f1b9e6eb20bed38a1ae3433571ad6` (no app changes). Pinned Frappe `988e54f3c4c291e2077a83809663f123731abe76`: Document.update_child_table builds query-builder DELETE with parent/type/field predicates and query builder routes to `frappe.local.db.sql`; global search can `frappe.cache.lpush('global_search_queue', ...)` before SQL COMMIT; database transaction callbacks also need tracing.
+
+**New GitHub-only review-branch artifacts:** `ccpcerp/ccpc-frappe-deployment@review/material-issue-first-commit-preparation-2026-10-15`:
+- `tests/offline/material_issue_capture_coverage.py` committed `91a86f2fff918baccc13a324e472b066eed24da8`, exact GitHub blob **`3a539e638aa5bb6e63156689791acbe206096724`**.
+- `tests/offline/test_material_issue_capture_coverage.py` committed `1e8bc8d377ee235153636f8d95f1124c53b4f5ab`, exact GitHub blob **`df211082f48277431057cb5f2f89d70ec014ea71`**.
+- [Capture-coverage design and adversarial fixtures](MATERIAL-ISSUE-CAPTURE-COVERAGE-MATRIX-2026-10-15.md) committed `a7f405ced72a0729b4230ccfe6ddea55efc3fc6d`.
+
+**Local exact-source validation:** A credential-free workspace ran `python3 -m unittest discover -s tests/offline -p 'test_material_issue_capture_coverage.py'` **16/16 PASS** and `python3 -m py_compile` **PASS**. Local `git hash-object` for the two new source/test files **exactly matched the GitHub blob SHAs** after connector readback. Tests cover missing capture claims despite zero effects, false completeness from claiming all 16 surfaces, child DELETE, unscoped SQL, raw SQL cursor, Redis global-search queue, raw Redis bypass, callbacks, wrong site, invalid or unknown event shape, duplicate declarations and purity of imports. These 16 are a **new** standalone negative suite; the earlier 14/14 exact-series and 19/19 blocker suites were not rerun in this turn.
+
+**Critical interpretation:** New Python is NOT a hook, SQL parser, Redis interceptor, runtime adapter or permission to execute SQL. It can only characterize synthetic traces and declared candidate review surfaces; `real_capture_coverage_verified=false`, `redis_cache_containment_verified=false`, `child_sql_predicates_verified=false`, `safe_to_rehearse=false` and `safe_to_commit=false` remain hardcoded. A zero-event transcript or complete-looking capture declaration must never be taken as evidence that Redis/cache/callback effects did not occur.
+
+**Next source-only gate:** Review exact pinned SQL driver/cursor escape paths, query-builder generated DELETE shape, Frappe cache/Redis and callback registrations, and explore separately reviewed process-local containment or a truly isolated cache/queue. Any executable instrumentation and rollback-only DEVELOPMENT test requires a new explicitly scoped approval, verified isolation, recovery and NO unintended side effects. Original permanent candidate and inert v2 stay untouched, including v2's unconditional early `exit 1`; permanent first Material Issue COMMIT remains **NO-GO**. No DEVELOPMENT pull/mutation or PRODUCTION operation.
+
 ## Pure offline first-series SQL effect witness tested 14/14; still not safe to rehearse or commit — 2026-10-15
 
 **Owner authorization:** “Approved Continue” after the prior first-issue effects-boundary design was implemented as **GitHub-only source/test development**. No new live DEVELOPMENT, Ubuntu, Docker, SQL, Redis, read-only site audit, rollback-only Stock Entry rehearsal, permanent issue or PRODUCTION operation was authorized. Both prior isolated read-only metadata probes were each approved for **one run**, completed by operator report; **do not run them again without fresh consent**.
