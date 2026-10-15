@@ -1,5 +1,15 @@
 # CCPC ERPNext — First Material Issue source-level naming, child-row and search side-effect trace
 
+## Second restricted metadata probe: GitHub-only PREPARED, NOT STAGED or RUN — 2026-10-15
+
+Following the first explicitly approved isolated MariaDB read-only metadata audit (operator-reported PASS, searchable Stock Entry Detail fields and relevant customizations PRESENT), the owner asked to **continue preparing** the next **GitHub-only** metadata inspection. This instruction did not authorize any second SQL/Docker run, Ubuntu staging, stock/GL posting or PRODUCTION operation.
+
+**New exact GitHub review artifacts:** [second metadata probe](../../scripts/development/operator/ccpc_material_issue_isolated_customizations_readonly_review_20261015.sh), Git blob `d13f605876eb669b404179a52e6e084c4031f191` at commit `7729282a04a8680505dc35f4962be8a451d1b4b8`; [eight-method offline contract suite](../../tests/offline/test_material_issue_customizations_probe_contract.py), blob `60ae76a2570a473bba441546a07a0c2b95a6922e` at commit `2e8bc4cbd455254973fc8a49c0fa1501fa912f32`; [full preparation/safety note](MATERIAL-ISSUE-CUSTOMIZATION-DETAILS-PROBE-PREPARATION-2026-10-15.md) committed at `56fc387c15a17d353034b47402f7a8349a1e3ad7`.
+
+**Scope:** Reads only the distinct isolated DEVELOPMENT site's SQL metadata in `START TRANSACTION READ ONLY`, reports names/types of relevant `tabProperty Setter` and `tabCustom Field` records, sanitized naming-series patterns/overrides, whether a `MAT-STE-%` counter name exists (not value), `Stock Entry Detail` searchable field names, and merged common/site **file-config** `disable_global_search` indicator. Never prints arbitrary property values, credentials or business documents. Site file configuration is **not proof of live Redis behavior**; naming pattern metadata is **not proof of a selected runtime series**.
+
+**Validation/approval status:** Source-structure checks completed against GitHub; **Bash/Python syntax and the eight offline tests are NOT YET RUN on exact source**. The script has a distinct explicit approval gate, but that environment variable is not user consent. Do not run, stage or retry anything on the Ubuntu server. First read-only audit's one-time approval is consumed. No status of the original commit candidate or inert v2 changed. **Permanent Material Issue COMMIT remains NO-GO.**
+
 ## Operator-reported isolated metadata read-only audit PASSED; relevant customizations FOUND — 2026-10-15
 
 **Exact permission and provenance:** After explicit owner authorization to execute the **one** newly staged read-only metadata probe, operator supplied these eight sanitized output lines:
