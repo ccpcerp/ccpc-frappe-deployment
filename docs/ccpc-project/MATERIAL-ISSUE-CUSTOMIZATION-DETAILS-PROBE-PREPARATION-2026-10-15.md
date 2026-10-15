@@ -1,5 +1,19 @@
 # CCPC ERPNext — Second isolated DEVELOPMENT metadata probe: review-only preparation
 
+## Isolated metadata audit one-run PASS; verified site-specific findings, 2026-10-15
+
+After **separate owner approval**, the operator reported `CHECKSUM AND SYNTAX VERIFIED`, `ACTUAL ISOLATED SQL DATABASE: VERIFIED` and `ISOLATED CUSTOMIZATION DETAILS READ-ONLY AUDIT: PASSED`. Reviewed script blob `d13f605876eb669b404179a52e6e084c4031f191`, SHA256 `9a026738074f31e790186fc9156ab5755baab06c351b22ad9db399a006db72d0`; no SQL writes, Frappe initialization, Redis operation, stock/GL or PRODUCTION access. Runtime output is operator-reported. **Do not repeat this one-time approved audit.**
+
+**Property Setter metadata (4 rows):** Stock Entry `accounting_dimensions_section.hidden`, `scan_barcode.hidden`; Stock Entry Detail `accounting_dimensions_section.hidden`, `barcode.hidden`; all type `Check`. **Their actual boolean values were not displayed**, so we cannot state whether these fields are currently hidden.
+
+**Custom Fields (3 rows):** Stock Entry `withdrawal_slip` Link, `withdrawal_slip_issued_by` Link; Stock Entry Detail `withdrawal_slip_item` Data. Link targets and requiredness were not reported. Pinned custom app `withdrawal_slip_stock.py` uses these fields to associate Stock Entry and its items to a Withdrawal Slip.
+
+**Naming:** Stock Entry base autoname `naming_series:`, base options `MAT-STE-.YYYY.-`, base default `UNAVAILABLE`, zero targeted naming overrides, and **no `MAT-STE-%` naming-counter record exists** in the isolated DB at audit time. Pinned Frappe normally selects first available option and inserts missing `tabSeries` row; pinned custom builder does not set naming series. This is a **likely first-issue `tabSeries` INSERT**, which inert v2 denies. Exact runtime behavior remains untested.
+
+**Global search:** Merged site file configuration returns `NOT_DISABLED_BY_CONFIG`, not a direct runtime Redis state measurement. Stock Entry Detail base searchable fields are `item_code,item_name`; none custom. Framework can enqueue an external Redis search update before SQL COMMIT during document save. This remains a potential rollback-leak risk.
+
+Detailed blocker analysis is also in [the formal security review](MATERIAL-ISSUE-FIRST-COMMIT-SECURITY-REVIEW-2026-10-15.md). The next safe step is **GitHub-only design** of exact first naming counter allocation and Redis/cache containment; any further isolated read-only or rollback-only live work needs separate permission. **No permanent Material Issue posting authorized: NO-GO.**
+
 ## Exact-source offline syntax and eight source-contract tests PASSED — 2026-10-15
 
 **Owner's latest authorization:** “Approved continue” after GitHub-only preparation authorized **offline source validation and test corrections**, not a DEV/PRODUCTION server operation, staging or a read-only metadata audit execution.
