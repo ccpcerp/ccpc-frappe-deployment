@@ -2,7 +2,7 @@
 
 ## Operator-reported isolated metadata read-only audit PASSED; relevant customizations FOUND — 2026-10-15
 
-**Exact permission and provenance:** After explicit owner authorization to execute the **one** newly staged read-only metadata probe, operator supplied these ten sanitized output lines:
+**Exact permission and provenance:** After explicit owner authorization to execute the **one** newly staged read-only metadata probe, operator supplied these eight sanitized output lines:
 
 ```text
 ISOLATED DEV METADATA CONNECTION CONFIG: VERIFIED
