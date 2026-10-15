@@ -175,16 +175,16 @@ try:
     # Property Setter values or business records are printed.
     overrides = fetch(
         'SELECT field_name, property, value FROM `tabProperty Setter` '
-        'WHERE doc_type=%s AND ((field_name IS NULL AND property=%s) '
+        'WHERE doc_type=%s AND (((field_name IS NULL OR field_name=%s) AND property=%s) '
         'OR (field_name=%s AND property IN (%s,%s))) '
         'ORDER BY field_name, property',
-        ('Stock Entry', 'autoname', 'naming_series', 'options', 'default'))
+        ('Stock Entry', '', 'autoname', 'naming_series', 'options', 'default'))
     print('STOCK ENTRY NAMING OVERRIDES:', len(overrides), flush=True)
     for field_name, prop, value in overrides:
         prop = safe_identifier(prop)
         if prop not in ('autoname', 'options', 'default'):
             stop('Unexpected naming override property')
-        kind = 'DOCTYPE' if field_name is None else safe_identifier(field_name)
+        kind = 'DOCTYPE' if not field_name else safe_identifier(field_name)
         print('STOCK ENTRY NAMING OVERRIDE:', kind, prop,
               safe_pattern(value), flush=True)
 
