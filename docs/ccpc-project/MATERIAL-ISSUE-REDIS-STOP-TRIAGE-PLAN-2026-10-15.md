@@ -4,7 +4,7 @@
 
 ## Verified record
 
-- Deployment review branch: `review/material-issue-first-commit-preparation-2026-10-15` HEAD `6a10a80f9e4496f3e1112c11b738bcde375440f5`.
+- Verified source before this documentation update: deployment review branch `review/material-issue-first-commit-preparation-2026-10-15` at commit `6a10a80f9e4496f3e1112c11b738bcde375440f5`; the reviewed Redis script blob and staged SHA256 below remain unchanged. Do not treat that historical tip as the new live branch HEAD.
 - Original guarded Redis candidate blob `85123cd4d487110d01cdc375ad7e6969035bdc34`, staged SHA256 `837dcdee993f1fb8d9187dde473070c8b137254664d0d270b7b7d0fa21c35202`. Its approval is consumed: do not rerun or restage it.
 - Only the final original wrapper result was provided: `ONE-SHOT READ-ONLY PREFLIGHT: STOPPED OR FAILED`. No preceding output or specific internal STOP category was provided.
 - The subsequent VS Code terminal exit code 127 was *not definitively linked* to the original preflight. The user later reported copying example expected-output labels as shell commands on a separate attempt. Do not use the terminal closure to diagnose Redis.
