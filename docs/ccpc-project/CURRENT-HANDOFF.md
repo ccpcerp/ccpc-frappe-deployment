@@ -1,5 +1,19 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## DEV Python standard-input diagnostic passed after explicit renewed approval — 2026-10-15
+
+After the previous read-only stdin test was not confirmed (operator mistakenly appeared to paste the example expected-output labels, producing `DEVELOPMENT: command not found` and `READ-ONLY: command not found`), the owner said they thought that was the cause and gave **fresh, explicit authorization for one new read-only stdin test**. The assistant provided a *single-line* instruction using `printf` piped into `docker exec -i --user frappe frappe_docker_devcontainer-frappe-1 bash -c 'cd /workspace/development/frappe-bench && PYTHONDONTWRITEBYTECODE=1 ./env/bin/python -'`. The operator reported exactly:
+
+```text
+DEVELOPMENT PYTHON STDIN: VERIFIED
+```
+
+**Interpretation:** The reported output is consistent with the DEVELOPMENT bench Python interpreter successfully reading and executing a harmless `print(...)` statement from Docker standard input as the `frappe` user. This newly approved one-shot read-only diagnostic is **complete and consumed**. It does **not** reexecute or clear the earlier Redis preflight failure. The earlier preflight remains an **unclassified STOP**: only `ONE-SHOT READ-ONLY PREFLIGHT: STOPPED OR FAILED` was reported, without preceding output; the original execution wrapper also had a diagnosed `if ( set -e ... )` fail-fast defect. The successful stdin test demonstrates only the I/O invocation path, not configuration parsing, Redis endpoint equivalence or isolation, container worker environment, pub/sub isolation, or readiness to write.
+
+**Verified GitHub baseline at report time:** deployment review branch `6a10a80f9e4496f3e1112c11b738bcde375440f5`, Redis script blob `85123cd4d487110d01cdc375ad7e6969035bdc34` (expected staged SHA256 `837dcdee993f1fb8d9187dde473070c8b137254664d0d270b7b7d0fa21c35202`), application feature branch `2f846a75dc7f1b9e6eb20bed38a1ae3433571ad6`. No DEV configuration, Redis, SQL, stock/accounting code, or PRODUCTION change was made through this diagnostic.
+
+**Next controlled step:** First ask for any recoverable *preceding* terminal lines from the original STOP, without rerunning it. Any separate new runtime investigation, Redis configuration reading, Docker access, or materially broader diagnostic requires its own owner authorization. **Persistent Material Issue Stock Entry/SLE/GL remains NO-GO. PRODUCTION requires distinct approval.**
+
 ## Python stdin diagnostic: pasted-label command errors; outcome unverified — 2026-10-15
 
 The owner explicitly approved a one-time read-only DEVELOPMENT container stdin diagnostic, distinct from the previously consumed Redis preflight. The supplied Docker/Python command was designed to send only a harmless print statement to the already confirmed DEVELOPMENT container. Operator output was **only**:
