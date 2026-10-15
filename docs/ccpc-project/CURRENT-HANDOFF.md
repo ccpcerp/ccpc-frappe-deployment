@@ -1,5 +1,21 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## New Redis JSON/format diagnostic staged with operator-reported checksum verification; NOT EXECUTED — 2026-10-16
+
+**Owner-authorized staging only, permission consumed.** After GitHub re-verification of the reviewed deployment branch `review/material-issue-first-commit-preparation-2026-10-15` at `21756ddf639eea0a7f6d83331e8476515c871aba` and the new JSON/URL-format diagnostic blob `fc5617117806b8cd19586ae3c7bf530dab21d632` (SHA256 `b88dadc10cac64c5b6f48a695fbf506b046613cbe4db192da440227934b212b0`), the assistant provided a staging-only command using the approved pinned `git fetch`, exact commit/file-mode/SHA256 comparison and private staging directory with no existing-file overwrite. **No command inside the staged script was executed by that staging block.**
+
+**Full operator-supplied result:**
+
+```text
+STAGED AND VERIFIED, NOT EXECUTED: /home/gani/ccpc-reviewed-scripts/ccpc_material_issue_redis_json_shape_readonly_candidate_20261015.sh
+```
+
+This is consistent with the staged file being pinned and verified on Ubuntu. It is **operator-reported only**; ChatGPT cannot independently inspect the host filesystem. No `docker exec`, site configuration read, Redis or SQL connection, ERPNext transaction or PRODUCTION operation was reported in this staging milestone. The new candidate's **25/25 synthetic offline PASS** is unchanged and not a DEVELOPMENT result.
+
+**GitHub review document updated:** [Redis JSON shape candidate review](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/review/material-issue-first-commit-preparation-2026-10-15/docs/ccpc-project/MATERIAL-ISSUE-REDIS-JSON-SHAPE-READONLY-CANDIDATE-2026-10-15.md), change commit `f1523846adc84f2229d832f9b2adc9075d5794db`, verified content blob `b042525dfaa03e385b24976d6550bccfa440f56a`. The script and offline test files were not modified; custom ERPNext application feature tip remains `2f846a75dc7f1b9e6eb20bed38a1ae3433571ad6` at staging verification.
+
+**Only next potential permission:** Seek a distinct **explicit, one-shot approval** for *read-only execution* of that exact staged new script (not the consumed earlier Redis endpoint-overlap preflight), after nonexecuting checksum verification. The new script would read three bounded DEVELOPMENT site JSON configurations and validate effective Redis URL formats; output only static redacted stage labels. It does **not** measure true Redis endpoint overlap, connection, DNS, workers, pubsub, isolation or readiness for posting. No script-execution permission has been granted by the staging-only approval. Do not auto-retry. The original Redis preflight STOP is still unexplained, all its permission consumed. **Persistent Material Issue Stock Entry/SLE/GL: NO-GO. PRODUCTION untouched.**
+
 ## New Redis JSON/URL-format-only diagnostic committed, 25/25 offline PASS; no host execution — 2026-10-15
 
 **Owner approval interpreted narrowly:** “Continue” after the metadata-only DEVELOPMENT inspection authorizes GitHub-only preparation of a **new**, redacted configuration-shape diagnostic, local synthetic offline tests and GitHub documentation/handoff. No Ubuntu script staging, Docker execution, Redis/SQL/Frappe commands, rollback-only write, Material Issue Stock Entry/SLE/GL COMMIT, or PRODUCTION operation was approved or performed. All earlier one-shot approvals are consumed.
