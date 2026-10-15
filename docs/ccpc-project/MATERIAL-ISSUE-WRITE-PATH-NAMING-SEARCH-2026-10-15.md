@@ -1,5 +1,15 @@
 # CCPC ERPNext — First Material Issue source-level naming, child-row and search side-effect trace
 
+## Exact GitHub-blob offline metadata probe contract tests PASSED — 2026-10-15
+
+After initial GitHub staging as a **source-only review artifact**, the newly created metadata probe and its test suite were reconstructed locally in a credential-free, isolated model test workspace, **then independently matched by `git hash-object` to the exact connected-GitHub blobs**:
+- `scripts/development/operator/ccpc_material_issue_isolated_metadata_readonly_review_20261015.sh` — **`3dd860d6e254ee361b8f61769fe72ac9dc6a3854`**, 6,508 bytes.
+- `tests/offline/test_material_issue_metadata_probe_contract.py` — **`6c396b5045b994d09128a837dfa92755839bc938`**, 3,117 bytes.
+
+**Executed only offline on exact source:** `bash -n` PASSED, embedded Python `ast.parse` PASSED, and `python3 -m unittest discover -v -s tests/offline -p 'test_material_issue_metadata_probe_contract.py'` reported **5 tests, all PASS**. These check approval and exact DEV container preconditions, only fixed SELECT metadata calls, one read-only SQL transaction without a commit call, absence of Frappe/stock posting and Docker lifecycle operations. An **unarmed local** shell invocation with the approval variable absent exited **1** with `NOT AUTHORIZED: read-only metadata probe not approved` before accessing Docker.
+
+**Boundary:** These are exact-source syntax/source-contract tests, **not** a live database readback, proof of effective site naming, runtime Docker inspection, or permission to execute. The script was **not staged or run on the user's Ubuntu server**; its real metadata output and actual site overrides remain UNKNOWN. Any authorized future run still requires one separate scoped owner approval and checksum-verified manual staging; the probe's environment variable by itself is not equivalent to authorization. No financial COMMIT or PRODUCTION action follows from this PASS.
+
 **Date:** 2026-10-15  
 **Scope:** GitHub source inspection and preparation of a separate, bounded **read-only** isolated-DEVELOPMENT metadata probe. No runnable posting candidate was changed or executed.  
 **Disposition:** **NO-GO for one-unit committed posting.** An existing 12/12 offline test pass covers only isolated v2 guard/helper behavior, not live ERPNext/Frappe write paths.
