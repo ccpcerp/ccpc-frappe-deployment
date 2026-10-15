@@ -2,6 +2,26 @@
 
 **2026-10-15 | GitHub-only source review; NOT approval to run anything on Ubuntu.**
 
+## Owner-approved DEVELOPMENT metadata check: PASS — 2026-10-15
+
+The owner gave **separate, explicit approval** for one metadata-only read-only check of the three DEVELOPMENT site configuration paths, distinct from the previously consumed Redis preflight. The assistant provided a single Docker inspect identity gate followed by one `docker exec --user frappe` using `/bin/sh`. The check used only filesystem-type tests (`-L`, `-d`, `-f`, `-r`) and printed coarse labels. The operator reported the **complete** output:
+
+```text
+COMMON: PRESENT AND READABLE
+ISOLATED: PRESENT AND READABLE
+SHARED: PRESENT AND READABLE
+METADATA-ONLY FILE CHECK: COMPLETED
+READ-ONLY DEVELOPMENT INSPECTION: PASSED
+```
+
+This reports that the named running DEVELOPMENT Compose identity matched and that, **at inspection time**, the specified `sites` parent directory and three known common/test/shared configuration paths passed the script's nonsymlink, regular-file and readability tests as user `frappe`. No config JSON contents, Redis URLs, secrets, environment or database values were read or printed. This is **operator-reported**, not independently observed host access by ChatGPT, and it proves only the metadata predicate exercised by the check; it does not independently establish that an actual file-content open or JSON parse succeeds.
+
+**Resolved narrow question:** basic file absence, symlink and observed mode/readability failures are not indicated by this new check. **Still unknown:** original Redis STOP cause; JSON parse errors, Redis URL and Sentinel configuration, effective Frappe overrides, actual overlap, DNS/services/worker/socketio/pubsub physical separation and Redis transaction effects. The old Redis preflight remains **unclassified STOP** and its permission is consumed; do not rerun it.
+
+**Next owner-controlled gate:** Seek any retained earlier original STOP terminal lines if accessible without reexecution, omitting sensitive data. If unavailable, design a separate, credential-redacting, bounded configuration shape/parser check on the GitHub review branch with offline adversarial tests before any fresh, explicitly approved staging and distinct one-time execution. It should never print raw URL hostnames/ports or credentials and should not claim that configuration-only no-overlap proves runtime isolation. Avoid ad hoc repeated site probes without a reviewed procedure.
+
+**Approval for this metadata check is consumed.** No further Docker/site reads or writes, Redis connections, Frappe initialization, app pulls, rollback rehearsal, permanent Material Issue posting or PRODUCTION operation are authorized. **Stock Entry/SLE/GL COMMIT: NO-GO.**
+
 ## Verified record
 
 - Verified source before this documentation update: deployment review branch `review/material-issue-first-commit-preparation-2026-10-15` at commit `6a10a80f9e4496f3e1112c11b738bcde375440f5`; the reviewed Redis script blob and staged SHA256 below remain unchanged. Do not treat that historical tip as the new live branch HEAD.
