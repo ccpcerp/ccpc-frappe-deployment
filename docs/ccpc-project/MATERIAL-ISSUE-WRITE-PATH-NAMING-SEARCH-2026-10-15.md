@@ -1,5 +1,32 @@
 # CCPC ERPNext — First Material Issue source-level naming, child-row and search side-effect trace
 
+## Operator-reported isolated metadata read-only audit PASSED; relevant customizations FOUND — 2026-10-15
+
+**Exact permission and provenance:** After explicit owner authorization to execute the **one** newly staged read-only metadata probe, operator supplied these ten sanitized output lines:
+
+```text
+ISOLATED DEV METADATA CONNECTION CONFIG: VERIFIED
+ACTUAL ISOLATED DEV DATABASE: VERIFIED
+DOCTYPE NAMING AND CHILD GLOBAL SEARCH METADATA: READ
+STOCK ENTRY DETAIL SEARCH FIELDS: PRESENT
+RELEVANT SITE CUSTOMIZATIONS: PRESENT - REQUIRE REVIEW
+STOCK ENTRY NAMING SERIES COUNTER: COUNTED (VALUE NOT PRINTED)
+NO FRAPPE INIT, SQL WRITES, STOCK/GL, BACKUP OR PRODUCTION ACCESS
+ISOLATED METADATA READ-ONLY AUDIT: PASSED
+```
+
+**Audited source:** `scripts/development/operator/ccpc_material_issue_isolated_metadata_readonly_review_20261015.sh`, Git blob `3dd860d6e254ee361b8f61769fe72ac9dc6a3854`, SHA256 `d38a617a23a91bb008a1f794ac5f9f179097e9b98ea3b1f54fc4109cda56aa32` from branch `review/material-issue-first-commit-preparation-2026-10-15` at pre-staging pinned commit `4af5c269e20dbf490fb0390e9e109167147d6286`. Staging and source SHA256/syntax checks were previously reported PASSED before this separate explicitly approved invocation. Connected GitHub re-fetched the same audited source blob and review branch HEAD. **Runtime evidence is operator-reported**, not independently observed by ChatGPT.
+
+**Narrow interpretation:**
+- The probe's actual isolated MariaDB database identity matched `ccpc-integration2.localhost` site configuration, with expected `mariadb:3306` DEVELOPMENT endpoint and shared DEV database `db_name` distinct by configuration. No connection to shared DEVELOPMENT SQL or PRODUCTION SQL is in the script.
+- All six checked `tabDocType` rows and the Stock Entry `naming_series` base DocField row were available, but the probe **did not print autoname or naming-series options**; it does not prove effective Stock Entry numbering or the next naming series counter value.
+- At least one `tabDocField` in **Stock Entry Detail** has `in_global_search=1`. This makes the pinned `update_global_search` / `frappe.cache.lpush` source path relevant, but **does not prove** effective global search is enabled for this site, that a Redis event occurred, or whether child search fields were actually populated on the synthetic issue.
+- `RELEVANT SITE CUSTOMIZATIONS: PRESENT` means **at least one** `tabProperty Setter` row for `Stock Entry`, `Stock Entry Detail`, `Withdrawal Slip` or `Withdrawal Slip Item` **OR** one `tabCustom Field` row for those DocTypes exists. It does **not** identify which DocType, which property, its value, or whether it alters stock/financial behavior. Reviewing the specific override *names/categories* without exposing sensitive business data is the next missing metadata step.
+- The `tabSeries` query simply returned a `COUNT(*)` for a `MAT-STE-%` name pattern and deliberately **never printed its value**, so the output does **not** indicate whether matching counters exist, nor the selected prefix or next sequence number.
+- Audit printed `NO FRAPPE INIT, SQL WRITES, STOCK/GL, BACKUP OR PRODUCTION ACCESS` and final PASS. Exact script opens `START TRANSACTION READ ONLY`, executes fixed SELECT queries, then rolls back/closes. No permanent Material Issue/Stock Entry/GL posting was performed by this audit, and it does not verify backup restore or transaction callback isolation.
+
+**Decision / next gate:** **NO-GO remains** for the original commit-capable candidate and early-exit inert v2; do NOT loosen `tabSeries`/DELETE/Redis guards or make a trial COMMIT based on this result. Review site-specific *relevant customization metadata, naming selection, and global-search enabled/disabled state* through **new separately authorized isolated read-only-only analysis** before designing a **new** separately approved rollback-only integration trace. Do not run or modify the prior one-time probe repeatedly; treat its approved execution as used. PRODUCTION requires completely separate explicit authorization.
+
 ## Exact GitHub-blob offline metadata probe contract tests PASSED — 2026-10-15
 
 After initial GitHub staging as a **source-only review artifact**, the newly created metadata probe and its test suite were reconstructed locally in a credential-free, isolated model test workspace, **then independently matched by `git hash-object` to the exact connected-GitHub blobs**:
