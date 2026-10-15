@@ -1,5 +1,15 @@
 # CCPC ERPNext — First committed one-unit Material Issue: preparation and execution gates
 
+## V2 provisional DML guard + exact GitHub-source 12-test offline checkpoint — 2026-10-15
+
+**Current project state:** GitHub source-only remediation continued with owner instruction “Continue.” The inert v2 draft now has an explicit provisional INSERT/UPDATE table-name gate, denies DELETE and leaves `tabSeries` blocked pending exact synthetic naming-series metadata; the hard `exit 1` before Docker remains. This is not a complete parser, record-level/WHERE guard, SQL driver isolation or proven transaction allowlist.
+
+**Verified source/test Git blobs:** v2 `0a17d53cc0badac1de05745ef9edfb60d342ed89` (41,591 bytes); original 7-test suite updated for injected DML helper `6469997eb93efb523a308ca015c755902132764d`; new 5-test DML suite `29fbbd8c3603b24488d4bc8e2ad671b667536edf`. In a credential-free local container, all three files matched the connected-GitHub blob SHAs, `bash -n` and Python `ast.parse` passed, and **12/12 offline tests passed**. Local v2 invoked with the old arming environment variable exited 1 at the hard NO-GO guard, without contacting Docker. No live ERPNext site, SQL, Redis, production or server access.
+
+**Details:** [Updated exact-source offline evidence](MATERIAL-ISSUE-V2-EXACT-SOURCE-OFFLINE-TEST-EVIDENCE-2026-10-15.md) at review commit `077f9f870f5a50a395b802ab5557369e4b692a80`, and [formal safety review](MATERIAL-ISSUE-FIRST-COMMIT-SECURITY-REVIEW-2026-10-15.md) at review commit `5bad3e1132802a5733cba8d4fa96b55e6a584c76`. The original commit candidate remains unchanged and unexecuted.
+
+**NO-GO outstanding:** Exact `tabSeries` usage and all child/SLE/GL/Bin/Version/auxiliary table deltas, direct-driver writes, after-COMMIT Redis/cache and callback state, unexpected one-shot/unknown-COMMIT results and isolated restore/recovery evidence require further mapping and separately authorized rollback-only rehearsal before any single-unit committed stock/GL posting. No PRODUCTION approval or application merge/deployment. Do not stage or run either commit candidate or repeat the consumed diagnostic.
+
 ## Exact-source inert v2 regression suite PASSED, release remains NO-GO — 2026-10-15
 
 The reviewed `ccpc_material_issue_first_commit_review_only_v2_20261015.sh` was reconstructed **byte-identically** in a credential-free local test container and cryptographically matched `git hash-object` GitHub blob **`1d75461ec5bcb22e3e67f2ebfb503b79b3606243`**. The checked-in suite `tests/offline/test_material_issue_v2_guards.py` independently matched GitHub blob **`772abee3e57eb844deee1bcd2f40df67d0bebf71`**. The exact-source shell `bash -n`, embedded Python AST parse and **all seven** extracted-helper offline tests PASSED; an attempted local shell entry with the old arming flag demonstrated exit 1 / unconditional NO-GO prior to any Docker call. See [detailed exact-source test evidence](MATERIAL-ISSUE-V2-EXACT-SOURCE-OFFLINE-TEST-EVIDENCE-2026-10-15.md) and formal security review.
