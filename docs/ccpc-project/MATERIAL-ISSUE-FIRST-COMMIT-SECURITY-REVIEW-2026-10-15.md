@@ -1,5 +1,13 @@
 # CCPC ERPNext — First committed Material Issue candidate: source-level transaction safety review
 
+## First-issue exact effect-boundary source design + 19/19 offline tests PASS — 2026-10-15
+
+**Latest source-only milestone:** [MATERIAL-ISSUE-FIRST-COMMIT-EFFECT-BOUNDARY-DESIGN-2026-10-15.md](MATERIAL-ISSUE-FIRST-COMMIT-EFFECT-BOUNDARY-DESIGN-2026-10-15.md), created review commit `1e346f6cd5b0e7d48d12ee091398a3bf71e8af08`. It maps the exact Frappe `getseries` missing-`tabSeries` insertion, `Document.update_child_table` generated child DELETE predicates, and `Document.run_post_save_methods` -> `update_global_search` -> pre-COMMIT `frappe.cache.lpush`. It specifies record/argument-level DML constraints, cache/Redis isolation, rollback invariants, naming concurrency and recovery gates **for future review**, not for immediate execution.
+
+**New blocker-characterization tests:** `tests/offline/test_material_issue_first_commit_blockers_contract.py`, byte-verified exact Git blob `27ec2374d14d93cf471e1661ae2d88ea56a2037a`, SHA256 `64c86d3d6a4ca8b997b611d0d356b74f01b600c450566435f2446ff99aeff063`, final test-fix commit `014cbb981c94d84ff219611ec7575358e23b8954`. Locally, in credential-free container, **12/12 prior v2** plus **7/7 new** offline tests PASS; v2 Bash syntax and embedded Python AST PASS, exact unchanged v2 Git blob `0a17d53cc0badac1de05745ef9edfb60d342ed89`. The tests **prove the NO-GO remains**: `tabSeries` INSERT/UPDATE and child DELETE are denied; `UPDATE ... WHERE 1` still passes the regex (not record-scoped); no `global_search_queue`/Redis `cache.lpush` interception exists. This is **not** a clean transaction/rehearsal or a reason to unarm v2.
+
+**Posture:** No DEV/PROD/Docker/SQL/Redis access in this milestone; both previously authorized one-run metadata probes remain consumed; no write-capable operator script was changed. Need a new, separately owner-reviewed rollback-only design and approval before any live write/revert test. **Persistent first one-unit stock/GL COMMIT remains NO-GO.**
+
 ## Actual isolated site metadata: naming series will likely need missing counter; precommit search exposure remains — NO-GO, 2026-10-15
 
 Following separately authorized **single** read-only execution of the second detailed metadata audit, operator reported PASS (reviewed SHA256/Git blob `d13f605876eb669b404179a52e6e084c4031f191` of `ccpc_material_issue_isolated_customizations_readonly_review_20261015.sh`). Source used isolated `ccpc-integration2.localhost` `mariadb:3306`, `START TRANSACTION READ ONLY` and parameterized SELECT statements. No business mutation/PRODUCTION operation occurred during this audit. **Its one-run approval is consumed.**
