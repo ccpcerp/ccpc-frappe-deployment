@@ -23,6 +23,17 @@ Expected: one line ending `refs/heads/docs/ccpc-checkpoint-2026-10-10`, with a 4
 
 The command runs `git ls-remote` against a private repo and neither writes files locally nor alters Git branches. Only the operator performs this test; ChatGPT cannot reach the private `192.168.50.166` server directly through the GitHub connector.
 
+## Access checkpoint: Ubuntu GitHub SSH probe PASSED — 2026-10-15
+
+**Operator-returned evidence:** Running the exact Phase 1 `git ls-remote` from `gani@ccpcerpserver` returned
+```text
+27b37bd25f10c0568a668f8bd608dc38b2111f23        refs/heads/docs/ccpc-checkpoint-2026-10-10
+```
+The connected GitHub tool independently verified the **same** branch HEAD `27b37bd25f10c0568a668f8bd608dc38b2111f23` at the time of the operator test. Noninteractive SSH authentication and strict host-key checking thus succeeded for this private repository **at that moment**, without a new token/key change. **Note:** this branch HEAD may advance as documentation is updated; do not permanently pin it for all future script downloads. This proves repository advertisement/readability, **not** permission to execute anything or that every future `git fetch` will succeed; stage the first reviewed future artifact by exact SHA and verify it on Ubuntu before claiming the full delivery path is tested.
+
+**Current gate:** Phase 1 complete. Phase 2 requires a **new sanitized, expressly reviewed and approved operator script** committed with exact file/commit SHA; no already-consumed Material Issue diagnostic is eligible for replay. No server code run, new script staged, branch checkout modified, cron/runner installed, or PRODUCTION operation performed by this access verification.
+
+
 ## Phase 2 — review and publish a newly authorized script
 
 1. Review the exact source and permissions, business/transaction scope, backup preconditions, rollback/failure handling and disallowed side effects. Store only the sanitized script in a reviewed branch of `ccpcerp/ccpc-frappe-deployment` (a separate path for operator artifacts, not custom application source). A GitHub commit of documentation/scripts is **not** a deployment or execution approval.
