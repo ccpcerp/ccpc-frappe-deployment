@@ -45,3 +45,24 @@ Coverage contract: simulated permission/row-lock/duplicate-draft/insert/submit o
 **Result vocabulary:** `SOURCE_EFFECT_MAP_INCOMPLETE_STOP`; E1 synthetic `OFFLINE_ORDERING_PASS` only if tests actually pass; `NODE_ROUTE_UNVERIFIED`; `WORKER_ROUTE_UNVERIFIED`; `REDIS_INSTANCE_IDENTITY_UNVERIFIED`; `DEV_PROD_SEPARATION_UNVERIFIED`; `POSTING_NO_GO`.
 
 **NO Ubuntu staging, DEVELOPMENT DB/Redis or PRODUCTION access occurred. No rollback-only or committed Material Issue test was authorized.**
+
+
+---
+
+## E1 exact GitHub artifact and offline verification checkpoint — 2026-10-16
+
+**Code commit:** `da02b0cee622a092910fa42fdca404498dc0b4d3`, path `tests/offline/test_material_issue_precommit_effects_20261016.py`, exact Git blob `7911720353300b11109b413eb8c4705146c010fb`, UTF-8 SHA256 `638f9a816aa441753081361ba628344b86e439ad855891a090d1a686f6cf7a40`. New inventory document initially committed in `47d1d6c3da9bd450f0416f48b2e9a80eb5481c4a`. GitHub source readback and local `git hash-object` matched the **same blob SHA**. No custom application file was changed.
+
+**Exact offline command** run in a disposable local directory containing the byte-identical E1 test module:
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 python -W error -m unittest discover -s tests/offline -p 'test_material_issue_precommit_effects_20261016.py' -v
+```
+
+**Actual result: Ran 25 tests — OK, 25/25 PASS (0.031 s).** These are **reduced, source-derived behavioral models**, not byte-for-byte executable original Frappe/ERPNext functions, not a framework import, not an isolated real SQL database, not a live Redis service, and not actual stock/GL or concurrency testing. The artificial event log represents presumed behaviors of the cited functions and confirms the model's expected sequencing, not that the running environment is the same. No Docker, Ubuntu host, DEV bench, PRODUCTION or production data was accessed.
+
+**Scope of tests:** Permission/row-lock/duplicate-draft guard order; insert/submit happy and exceptional control flows; callback registration after immediate cache clearing; simulated full COMMIT/ROLLBACK and savepoint behavior; immediate versus deferred/deduplicated realtime and forced-immediate task progress; callback failure after SQL COMMIT; failure after submit's simulated cache operation. Tests enforce no imports of real Redis/Frappe/network/SQL clients. **Do not characterize the 25 passes as complete static source coverage or a Material Issue release gate.**
+
+**Remaining STOPs:** `SOURCE_EFFECT_MAP_INCOMPLETE_STOP` (untraced conditional ERPNext branches and installed version), `NODE_ROUTE_UNVERIFIED`, `WORKER_ROUTE_UNVERIFIED`, `REDIS_INSTANCE_IDENTITY_UNVERIFIED`, `DEV_PROD_SEPARATION_UNVERIFIED` and `POSTING_NO_GO`.
+
+**Next recommended step (separately authorized):** a stronger exact-source ERPNext Stock Entry → stock-ledger/reposting/GL transitive effect audit and additional synthetic negative tests, before considering any DEV integration step. Staging and process inspection still require separate scope; PRODUCTION requires its own independent approval.
