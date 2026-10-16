@@ -1,0 +1,115 @@
+{
+  "description": "Exact function source excerpts from immutable GitHub blobs, for AST-isolated offline testing only; not running DEV sources",
+  "snapshots": [
+    {
+      "key": "ccpc_issue",
+      "repo": "ccpcerp/ccpcerp",
+      "ref": "2f846a75dc7f1b9e6eb20bed38a1ae3433571ad6",
+      "path": "ccpcerp/ccpc_erp/withdrawal_slip_stock.py",
+      "fn": "issue_withdrawal_slip",
+      "blob": "771d27781f8d933fd243415e8286976fbdd1a861",
+      "start_line": 177,
+      "source": "def issue_withdrawal_slip(withdrawal_slip):\n\t\"\"\"Atomically submit one slip-bound Material Issue without broad Stock Entry roles.\n\n\tA normal POST request owns the transaction. Do not commit or catch exceptions:\n\tFrappe must roll back the inserted draft and any ledger/status changes on failure.\n\t\"\"\"\n\t_require_stockroom_user()\n\tlocked = _lock_withdrawal_slip(withdrawal_slip)\n\tslip = _get_issuable_slip(withdrawal_slip, locked)\n\t_assert_no_submitted_material_issue(slip.name)\n\n\tdrafts = _get_existing_draft_names(slip.name)\n\tif drafts:\n\t\tfrappe.throw(\n\t\t\t_(\"Withdrawal Slip {0} already has a draft Material Issue. Have an authorized Stock Entry user review or discard that draft before issuing.\").format(\n\t\t\t\tfrappe.bold(slip.name)\n\t\t\t)\n\t\t)\n\n\t# Never elevate permissions on a pre-existing user-editable Stock Entry draft:\n\t# it could carry expense account, costing or other posting-related overrides.\n\tstock_entry = _build_material_issue(slip)\n\tstock_entry.flags.ignore_permissions = True\n\tstock_entry.insert(ignore_permissions=True)\n\tstock_entry.submit()  # Runs normal Stock Entry validators, stock ledger and GL hooks.\n\treturn {\"name\": stock_entry.name, \"submitted\": 1}\n"
+    },
+    {
+      "key": "stock_on_submit",
+      "repo": "frappe/erpnext",
+      "ref": "5af6561f5aa48104559692fb4fd82f2580e8d338",
+      "path": "erpnext/stock/doctype/stock_entry/stock_entry.py",
+      "fn": "on_submit",
+      "blob": "dfe6aeef0f76fbf76af8caeb787a321c773f2bbf",
+      "start_line": 619,
+      "source": "\tdef on_submit(self):\n\t\tself.set_serial_batch_for_disassembly()\n\t\tself.make_bundle_using_old_serial_batch_fields()\n\t\tself.update_work_order()\n\t\tself.update_disassembled_order()\n\t\tself.adjust_stock_reservation_entries_for_return()\n\t\tself.update_stock_reservation_entries()\n\t\t# Release the Work Order's own reservation for items being sent to the subcontractor\n\t\t# before the negative-stock guard runs in update_stock_ledger().\n\t\tself.update_wo_reservation_for_subcontracting()\n\t\tself.update_stock_ledger()\n\t\t# finished good serial / batch nos exist only after the stock ledger is posted\n\t\tset_fg_mapping_on_submit(self)\n\t\tself.make_stock_reserve_for_wip_and_fg()\n\t\tself.reserve_stock_for_subcontracting()\n\n\t\tself.update_subcontract_order_supplied_items()\n\t\tself.update_subcontracting_order_status()\n\t\tself.update_pick_list_status()\n\n\t\tself.make_gl_entries()\n\n\t\tself.repost_future_sle_and_gle()\n\t\tself.update_cost_in_project()\n\t\tself.update_transferred_qty()\n\t\tself.update_quality_inspection()\n\n\t\tif self.purpose == \"Material Transfer\" and self.add_to_transit:\n\t\t\tself.set_material_request_transfer_status(\"In Transit\")\n\t\tif self.purpose == \"Material Transfer\" and self.outgoing_stock_entry:\n\t\t\tself.set_material_request_transfer_status(\"Completed\")\n\n\t\tsuper().on_submit_subcontracting_inward()\n"
+    },
+    {
+      "key": "repost_decision",
+      "repo": "frappe/erpnext",
+      "ref": "5af6561f5aa48104559692fb4fd82f2580e8d338",
+      "path": "erpnext/controllers/stock_controller.py",
+      "fn": "repost_future_sle_and_gle",
+      "blob": "3d77e45058d47a264009c2a3d2b35c633ce9e363",
+      "start_line": 1964,
+      "source": "\tdef repost_future_sle_and_gle(self, force=False, via_landed_cost_voucher=False):\n\t\targs = frappe._dict(\n\t\t\t{\n\t\t\t\t\"posting_date\": self.posting_date,\n\t\t\t\t\"posting_time\": self.posting_time,\n\t\t\t\t\"voucher_type\": self.doctype,\n\t\t\t\t\"voucher_no\": self.name,\n\t\t\t\t\"company\": self.company,\n\t\t\t\t\"via_landed_cost_voucher\": via_landed_cost_voucher,\n\t\t\t}\n\t\t)\n\n\t\tif self.docstatus == 2:\n\t\t\tforce = True\n\n\t\tif force or future_sle_exists(args, for_update=True) or repost_required_for_queue(self):\n\t\t\titem_based_reposting = frappe.get_single_value(\"Stock Reposting Settings\", \"item_based_reposting\")\n\t\t\tif item_based_reposting:\n\t\t\t\tcreate_item_wise_repost_entries(\n\t\t\t\t\tvoucher_type=self.doctype,\n\t\t\t\t\tvoucher_no=self.name,\n\t\t\t\t\tvia_landed_cost_voucher=via_landed_cost_voucher,\n\t\t\t\t)\n\t\t\telse:\n\t\t\t\tcreate_repost_item_valuation_entry(args)\n"
+    },
+    {
+      "key": "repost_repeat_guard",
+      "repo": "frappe/erpnext",
+      "ref": "5af6561f5aa48104559692fb4fd82f2580e8d338",
+      "path": "erpnext/controllers/stock_controller.py",
+      "fn": "repost_required_for_queue",
+      "blob": "3d77e45058d47a264009c2a3d2b35c633ce9e363",
+      "start_line": 2356,
+      "source": "def repost_required_for_queue(doc: StockController) -> bool:\n\t\"\"\"check if stock document contains repeated item-warehouse with queue based valuation.\n\n\tif queue exists for repeated items then SLEs need to reprocessed in background again.\n\t\"\"\"\n\n\tconsuming_sles = frappe.db.get_all(\n\t\t\"Stock Ledger Entry\",\n\t\tfilters={\n\t\t\t\"voucher_type\": doc.doctype,\n\t\t\t\"voucher_no\": doc.name,\n\t\t\t\"actual_qty\": (\"<\", 0),\n\t\t\t\"is_cancelled\": 0,\n\t\t},\n\t\tfields=[\"item_code\", \"warehouse\", \"stock_queue\"],\n\t)\n\titem_warehouses = [(sle.item_code, sle.warehouse) for sle in consuming_sles]\n\n\tunique_item_warehouses = set(item_warehouses)\n\n\tif len(unique_item_warehouses) == len(item_warehouses):\n\t\treturn False\n\n\tfor sle in consuming_sles:\n\t\tif sle.stock_queue != \"[]\":  # using FIFO/LIFO valuation\n\t\t\treturn True\n\treturn False\n"
+    },
+    {
+      "key": "repost_create",
+      "repo": "frappe/erpnext",
+      "ref": "5af6561f5aa48104559692fb4fd82f2580e8d338",
+      "path": "erpnext/controllers/stock_controller.py",
+      "fn": "create_repost_item_valuation_entry",
+      "blob": "3d77e45058d47a264009c2a3d2b35c633ce9e363",
+      "start_line": 2584,
+      "source": "def create_repost_item_valuation_entry(args):\n\targs = frappe._dict(args)\n\trepost_entry = frappe.new_doc(\"Repost Item Valuation\")\n\trepost_entry.based_on = args.based_on\n\tif not args.based_on:\n\t\trepost_entry.based_on = \"Transaction\" if args.voucher_no else \"Item and Warehouse\"\n\trepost_entry.voucher_type = args.voucher_type\n\trepost_entry.voucher_no = args.voucher_no\n\trepost_entry.item_code = args.item_code\n\trepost_entry.warehouse = args.warehouse\n\trepost_entry.posting_date = args.posting_date\n\trepost_entry.posting_time = args.posting_time\n\trepost_entry.company = args.company\n\trepost_entry.allow_zero_rate = args.allow_zero_rate\n\trepost_entry.flags.ignore_links = True\n\trepost_entry.flags.ignore_permissions = True\n\trepost_entry.via_landed_cost_voucher = args.via_landed_cost_voucher\n\trepost_entry.save()\n\trepost_entry.submit()\n"
+    },
+    {
+      "key": "repost_itemwise_create",
+      "repo": "frappe/erpnext",
+      "ref": "5af6561f5aa48104559692fb4fd82f2580e8d338",
+      "path": "erpnext/controllers/stock_controller.py",
+      "fn": "create_item_wise_repost_entries",
+      "blob": "3d77e45058d47a264009c2a3d2b35c633ce9e363",
+      "start_line": 2605,
+      "source": "def create_item_wise_repost_entries(\n\tvoucher_type, voucher_no, allow_zero_rate=False, via_landed_cost_voucher=False\n"
+    },
+    {
+      "key": "riv_on_submit",
+      "repo": "frappe/erpnext",
+      "ref": "5af6561f5aa48104559692fb4fd82f2580e8d338",
+      "path": "erpnext/stock/doctype/repost_item_valuation/repost_item_valuation.py",
+      "fn": "on_submit",
+      "blob": "66a0f707504ae6958868795ae393c1adcd35765f",
+      "start_line": 267,
+      "source": "\tdef on_submit(self):\n\t\t\"\"\"During tests reposts are executed immediately.\n\n\t\tExceptions:\n\t\t        1. \"Repost Item Valuation\" document has self.flags.dont_run_in_test\n\t\t        2. global flag frappe.flags.dont_execute_stock_reposts is set\n\n\t\t        These flags are useful for asserting real time behaviour like quantity updates.\n\t\t\"\"\"\n\n\t\tif not frappe.in_test:\n\t\t\treturn\n\t\tif self.flags.dont_run_in_test or frappe.flags.dont_execute_stock_reposts:\n\t\t\treturn\n\n\t\trepost(self)\n"
+    },
+    {
+      "key": "riv_worker_repost",
+      "repo": "frappe/erpnext",
+      "ref": "5af6561f5aa48104559692fb4fd82f2580e8d338",
+      "path": "erpnext/stock/doctype/repost_item_valuation/repost_item_valuation.py",
+      "fn": "repost",
+      "blob": "66a0f707504ae6958868795ae393c1adcd35765f",
+      "start_line": 408,
+      "source": "def repost(doc):\n\ttry:\n\t\tfrappe.flags.through_repost_item_valuation = True\n\t\tif not frappe.db.exists(\"Repost Item Valuation\", doc.name):\n\t\t\treturn\n\n\t\t# This is to avoid TooManyWritesError in case of large reposts\n\t\tfrappe.db.MAX_WRITES_PER_TRANSACTION *= 4\n\n\t\tdoc.set_status(\"In Progress\")\n\t\tif not frappe.in_test:\n\t\t\tfrappe.db.commit()\n\n\t\tif (\n\t\t\tdoc.voucher_type in [\"Purchase Receipt\", \"Purchase Invoice\", \"Stock Entry\"]\n\t\t\tand doc.recalculate_valuation_rate\n\t\t):\n\t\t\tdoc._recalculate_valuation_rate()\n\n\t\tif doc.recreate_stock_ledgers:\n\t\t\tdoc.recreate_stock_ledger_entries()\n\n\t\tif not doc.repost_only_accounting_ledgers:\n\t\t\trepost_sl_entries(doc)\n\n\t\trepost_gl_entries(doc)\n\n\t\tdoc.set_status(\"Completed\")\n\t\tdoc.db_set(\"reposting_data_file\", None)\n\t\tremove_attached_file(doc.name)\n\n\texcept Exception as e:\n\t\tif frappe.in_test:\n\t\t\t# Don't silently fail in tests,\n\t\t\t# there is no reason for reposts to fail in CI\n\t\t\traise\n\n\t\tfrappe.db.rollback()\n\t\ttraceback = frappe.get_traceback()\n\t\tdoc.log_error(\"Unable to repost item valuation\")\n\n\t\tmessage = frappe.message_log.pop() if frappe.message_log else \"\"\n\t\tif isinstance(message, dict):\n\t\t\tmessage = message.get(\"message\")\n\n\t\tstatus = \"Failed\"\n\t\t# If failed because of a recoverable error (timeout, deadlock), set status to In Progress\n\t\t# so the scheduler automatically retries instead of leaving it permanently failed.\n\t\t# NOTE: isinstance check comes first because the traceback string matching is unreliable\n\t\t# when SIGALRM kills the process mid-C-extension (JobTimeoutException may not appear\n\t\t# in the traceback if the exception handler itself was interrupted).\n\t\ttraceback_lower = traceback.lower() if traceback else \"\"\n\t\tif isinstance(e, RecoverableErrors) or (\n\t\t\ttraceback_lower and (\"timeout\" in traceback_lower or \"deadlock found\" in traceback_lower)\n\t\t):\n\t\t\tstatus = \"In Progress\"\n\n\t\tif traceback:\n\t\t\tmessage += \"<br><br>\" + \"<b>Traceback:</b> <br>\" + traceback\n\n\t\tfrappe.db.set_value(\n\t\t\tdoc.doctype,\n\t\t\tdoc.name,\n\t\t\t{\n\t\t\t\t\"error_log\": message,\n\t\t\t\t\"status\": status,\n\t\t\t},\n\t\t)\n\n\t\tif status == \"Failed\":\n\t\t\toutgoing_email_account = frappe.get_cached_value(\n\t\t\t\t\"Email Account\", {\"default_outgoing\": 1, \"enable_outgoing\": 1}, \"name\"\n\t\t\t)\n\n\t\t\tif outgoing_email_account and not isinstance(e, RecoverableErrors):\n\t\t\t\tnotify_error_to_stock_managers(doc, message)\n\t\t\t\tdoc.set_status(\"Failed\")\n\tfinally:\n\t\tif not frappe.in_test:\n\t\t\tfrappe.db.commit()\n"
+    },
+    {
+      "key": "cache_clear",
+      "repo": "frappe/frappe",
+      "ref": "988e54f3c4c291e2077a83809663f123731abe76",
+      "path": "frappe/cache_manager.py",
+      "fn": "clear_doctype_cache",
+      "blob": "fc4cb7e0d15c893fd0baf4d289de1e3deb70950d",
+      "start_line": 121,
+      "source": "def clear_doctype_cache(doctype=None):\n\tclear_controller_cache(doctype)\n\tfrappe.client_cache.erase_persistent_caches(doctype=doctype)\n\n\tif doctype:\n\t\tfrappe.local.valid_columns.pop(doctype, None)\n\telse:\n\t\tfrappe.local.valid_columns = {}\n\n\t_clear_doctype_cache_from_redis(doctype)\n\tif hasattr(frappe.db, \"after_commit\"):\n\t\tfrappe.db.after_commit.add(lambda: _clear_doctype_cache_from_redis(doctype))\n\t\tfrappe.db.after_rollback.add(lambda: _clear_doctype_cache_from_redis(doctype))\n"
+    },
+    {
+      "key": "notify_update",
+      "repo": "frappe/frappe",
+      "ref": "988e54f3c4c291e2077a83809663f123731abe76",
+      "path": "frappe/model/document.py",
+      "fn": "notify_update",
+      "blob": "e4cc2fbadba02605d6a30bdb5f853e35e60a9e5a",
+      "start_line": 1493,
+      "source": "\tdef notify_update(self):\n\t\t\"\"\"Publish realtime that the current document is modified\"\"\"\n\t\tif (\n\t\t\tfrappe.flags.in_import\n\t\t\tor frappe.flags.in_patch\n\t\t\tor frappe.flags.in_migrate\n\t\t\tor frappe.flags.in_install\n\t\t):\n\t\t\treturn\n\n\t\tfrappe.publish_realtime(\n\t\t\t\"doc_update\",\n\t\t\t{\"modified\": self.modified, \"doctype\": self.doctype, \"name\": self.name},\n\t\t\tdoctype=self.doctype,\n\t\t\tdocname=self.name,\n\t\t\tafter_commit=True,\n\t\t)\n\n\t\tif not self.meta.get(\"read_only\") and not self.meta.get(\"issingle\") and not self.meta.get(\"istable\"):\n\t\t\tdata = {\"doctype\": self.doctype, \"name\": self.name, \"user\": frappe.session.user}\n\t\t\tfrappe.publish_realtime(\"list_update\", data, after_commit=True)\n"
+    },
+    {
+      "key": "webhook_queue",
+      "repo": "frappe/frappe",
+      "ref": "988e54f3c4c291e2077a83809663f123731abe76",
+      "path": "frappe/integrations/doctype/webhook/__init__.py",
+      "fn": "_add_webhook_to_queue",
+      "blob": "804560319ffb16c60798d807064a02defb336443",
+      "start_line": 73,
+      "source": "def _add_webhook_to_queue(webhook, doc):\n\t# Maintain a queue and flush on commit\n\tif not getattr(frappe.local, \"_webhook_queue\", None):\n\t\tfrappe.local._webhook_queue = []\n\t\tfrappe.db.after_commit.add(flush_webhook_execution_queue)\n\n\tfrappe.local._webhook_queue.append(frappe._dict(doc=doc, webhook=webhook))\n"
+    }
+  ]
+}
