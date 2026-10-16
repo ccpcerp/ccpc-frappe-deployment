@@ -361,6 +361,33 @@ def checked_directory(path):
         result=self.function('compare_labels',iso,shared,f('redis://192.0.2.5:6379'))
         self.assertEqual(result,'NO_EXACT_LABEL_OVERLAP')
 
+    def test_41_node_queue_reuses_isolated_cache_collision(self):
+        f=self.scope['opaque_endpoint']
+        iso={'redis_cache': f('redis://192.0.2.11:6379'),
+             'redis_queue': f('redis://192.0.2.12:6379')}
+        shared={'redis_cache': f('redis://192.0.2.13:6379'),
+                'redis_queue': f('redis://192.0.2.14:6379')}
+        self.assertEqual(self.function('compare_labels', iso, shared,
+                         f('redis://192.0.2.11:6379')), 'OVERLAP_STOP')
+
+    def test_42_node_dns_queue_matches_shared_cache(self):
+        f=self.scope['opaque_endpoint']
+        iso={'redis_cache': f('redis://cache-a:6379'),
+             'redis_queue': f('redis://queue-a:6379')}
+        shared={'redis_cache': f('redis://cache-b:6379'),
+                'redis_queue': f('redis://queue-b:6379')}
+        self.assertEqual(self.function('compare_labels', iso, shared,
+                         f('redis://CACHE-B.:6379')), 'OVERLAP_STOP')
+
+    def test_43_node_queue_matching_site_queue_still_unverified(self):
+        f=self.scope['opaque_endpoint']
+        iso={'redis_cache': f('redis://192.0.2.11:6379'),
+             'redis_queue': f('redis://192.0.2.12:6379')}
+        shared={'redis_cache': f('redis://192.0.2.13:6379'),
+                'redis_queue': f('redis://192.0.2.14:6379')}
+        self.assertEqual(self.function('compare_labels', iso, shared,
+                         f('redis://192.0.2.12:6379')), 'NO_EXACT_LABEL_OVERLAP')
+
     def test_40_readonly_paths_guard_against_stored_secrets(self):
         self.assertNotIn('print(common)',self.py)
         self.assertNotIn('print(env)',self.py)
