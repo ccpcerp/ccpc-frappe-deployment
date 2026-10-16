@@ -59,7 +59,7 @@
       "fn": "create_item_wise_repost_entries",
       "blob": "3d77e45058d47a264009c2a3d2b35c633ce9e363",
       "start_line": 2605,
-      "source": "def create_item_wise_repost_entries(\n\tvoucher_type, voucher_no, allow_zero_rate=False, via_landed_cost_voucher=False\n"
+      "source": "def create_item_wise_repost_entries(\n\tvoucher_type, voucher_no, allow_zero_rate=False, via_landed_cost_voucher=False\n):\n\t\"\"\"Using a voucher create repost item valuation records for all item-warehouse pairs.\"\"\"\n\n\tstock_ledger_entries = get_items_to_be_repost(voucher_type, voucher_no)\n\n\tdistinct_item_warehouses = set()\n\trepost_entries = []\n\n\tfor sle in stock_ledger_entries:\n\t\titem_wh = (sle.item_code, sle.warehouse)\n\t\tif item_wh in distinct_item_warehouses:\n\t\t\tcontinue\n\t\tdistinct_item_warehouses.add(item_wh)\n\n\t\trepost_entry = frappe.new_doc(\"Repost Item Valuation\")\n\t\trepost_entry.based_on = \"Item and Warehouse\"\n\n\t\trepost_entry.item_code = sle.item_code\n\t\trepost_entry.warehouse = sle.warehouse\n\t\trepost_entry.posting_date = sle.posting_date\n\t\trepost_entry.posting_time = sle.posting_time\n\t\trepost_entry.allow_zero_rate = allow_zero_rate\n\t\trepost_entry.flags.ignore_links = True\n\t\trepost_entry.flags.ignore_permissions = True\n\t\trepost_entry.via_landed_cost_voucher = via_landed_cost_voucher\n\t\trepost_entry.submit()\n\t\trepost_entries.append(repost_entry)\n\n\treturn repost_entries\n"
     },
     {
       "key": "riv_on_submit",
