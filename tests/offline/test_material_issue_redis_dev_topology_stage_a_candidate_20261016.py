@@ -2,8 +2,6 @@
 import ast
 import json
 from pathlib import Path
-import re
-import os
 import tempfile
 import subprocess
 import sys
