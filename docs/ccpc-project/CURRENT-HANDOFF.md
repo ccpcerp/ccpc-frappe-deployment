@@ -1,5 +1,19 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## Final Stage A v2 review — DEFER STAGING; avoid another metadata-only host cycle (2026-10-16)
+
+**Owner approved GitHub-only final security/usefulness review only.** Reviewed v2 script Git blob `e8af1dd3c7f15f066d9572fbd5cc5b4119737d47`, test blob `86963b7149d4055e5e11d3c5b336db30d572716b`, tracked DEV Compose template, design, current project workflow/handoff, and public [Docker container ls documentation](https://docs.docker.com/reference/cli/docker/container/ls/). **No code/test files changed, no tests rerun, no Ubuntu staging, no DEVELOPMENT/PRODUCTION Docker/Redis/SQL access or business writes.** Previous v2 **39/39 synthetic PASS** remains unchanged, not live evidence.
+
+**Verified GitHub final-review record:** [Stage A v2 review](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/review/material-issue-first-commit-preparation-2026-10-15/docs/ccpc-project/MATERIAL-ISSUE-REDIS-DEV-TOPOLOGY-STAGE-A-V2-REVIEW-2026-10-16.md) was appended on deployment branch `review/material-issue-first-commit-preparation-2026-10-15` in commit **`6782b25e0d20caea753ff1d9ec6a34788d120e85`**. V2 script and tests are unchanged.
+
+**Positive:** V2 really bounds **captured Docker CLI stdout** to **4,096 bytes accepted / 4,097th-byte rejection per call** plus six-second per-call deadline, not an overall Docker/host RAM cap. It removes individual per-container `docker inspect` calls and instead makes only six tightly filtered `docker container ls` reads. Distinct approval token, fixed redacted status labels and no forbidden ERPNext/Redis operations remain.
+
+**Decisive staging blocker:** Docker Compose labels and names are not independent authentication of actual DEV object origin on the shared Docker daemon, so **no-PRODUCTION-object inspection cannot be guaranteed**. A successful result would provide only named/labelled running-state and network-*name* assertions, **not** Redis physical isolation, Node/WebSocket routing, Python/RQ worker routing, network peers, pub/sub, or pre-COMMIT reversibility. The live Ubuntu Docker CLI syntax/paths and Redis names/networks are unverified; legitimate DEV can STOP. Additional defense-in-depth caveats: the v2 one-shot flag is a static reusable literal (one-time use is a procedural approval rule), and `child.kill()` stops only the direct subprocess, not necessarily descendants.
+
+**Decision:** **KEEP V2 REVIEW-ONLY, NOT STAGED, NOT EXECUTED**. Because the metadata's marginal value does not clear the transaction gate, do **not** seek staging/execution for this candidate merely to get a predictable STOP or unverified status. **Next consent gate**, if owner wants progress, is a **separate GitHub-only alternative evidence design** for truly DEV-bounded Node/RQ Redis route and pre-COMMIT cache/pubsub behavior without PROD metadata reads; acknowledge any unprovable boundary rather than broadening the shared daemon query. Staging, one-shot execution and all PRODUCTION access remain separately unapproved.
+
+**Material Issue write-then-rollback and permanent Stock Entry/SLE/GL posting remain NO-GO. PRODUCTION untouched.**
+
 ## Stage A v2 bounded-output correction committed and offline tested; NOT STAGED — 2026-10-16
 
 **Authorization:** Owner approved GitHub-only revision and new adversarial synthetic tests for the prior Stage A security blockers, and asked whether the 4 KB limit was default. **Answer: NO.** It was a script-defined 4,096 **character** post-capture check, not a Docker/Python/Ubuntu/Frappe default or actual resource limit. New v2 uses a fixed **4,096-byte per-Docker-CLI stdout capture budget**, reading no more than 4,097 bytes and killing the subprocess when exceeded, plus a bounded execution deadline. This is not a global process/host RAM limit.
