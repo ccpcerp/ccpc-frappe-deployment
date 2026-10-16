@@ -6,14 +6,37 @@ dependencies. This is NOT a live application test or a posting approval.
 import ast
 import hashlib
 import json
+import hmac
+import subprocess
+import sys
+import tempfile
 import textwrap
 import unittest
 from pathlib import Path
 from types import SimpleNamespace as NS
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures/material_issue_reachability_source_pins_20261016.json"
 FIXTURE_BLOB = "7ca589594fb9ed818da75476ddbe68b471eef444"
+FIXTURE_SHA256 = "57344e05f07c2f31445e4140ef6bf543cd97660fb34aa2c18db8dd9443f38bb9"
+MAX_FIXTURE_BYTES = 65536
+
+# Only six functions have approved isolated mock executions; all others AST-only.
+EXECUTABLE_KEYS = frozenset({"riv_on_submit", "repost_repeat_guard", "repost_decision",
+                             "cache_clear", "notify_update", "webhook_queue"})
+SAFE_BUILTINS = {"bool": bool, "len": len, "set": set, "hasattr": hasattr, "getattr": getattr,
+                 "isinstance": isinstance, "Exception": Exception, "super": super}
+BANNED_NAMES = frozenset({"__builtins__", "__import__", "open", "eval", "exec",
+                          "compile", "globals", "locals", "vars", "breakpoint",
+                          "input", "dir", "help", "exit", "quit"})
+BANNED_AST = (ast.Import, ast.ImportFrom, ast.Global, ast.Nonlocal, ast.AsyncFunctionDef,
+              ast.Await, ast.ClassDef, ast.Delete, ast.Yield, ast.YieldFrom, ast.NamedExpr)
+
+
+class FixtureIntegrityError(ValueError):
+    """Fail-closed, optimization-independent fixture or AST validation error."""
+
+
 EXPECTED = {
     "ccpc_issue": "771d27781f8d933fd243415e8286976fbdd1a861",
     "stock_on_submit": "dfe6aeef0f76fbf76af8caeb787a321c773f2bbf",
@@ -29,25 +52,93 @@ EXPECTED = {
 }
 
 
+def _parse_excerpt(entry):
+    key = entry["key"]
+    try:
+        src = textwrap.dedent(entry["source"])
+        tree = ast.parse(src, filename="<trusted-CCPC-excerpt:%s>" % key)
+    except (SyntaxError, TypeError, KeyError) as error:
+        raise FixtureIntegrityError("unparseable pinned source: " + key) from error
+    if len(tree.body) != 1 or not isinstance(tree.body[0], ast.FunctionDef):
+        raise FixtureIntegrityError("non-single function excerpt: " + key)
+    fn = tree.body[0]
+    if fn.name != entry["fn"] or fn.decorator_list:
+        raise FixtureIntegrityError("decorated or mismatched excerpt: " + key)
+    # Function defaults and annotations run at DEFINITION time, before the
+    # tested function is ever called. Explicitly admit only the pinned forms.
+    defaults = [*fn.args.defaults, *(x for x in fn.args.kw_defaults if x is not None)]
+    if any(not isinstance(value, ast.Constant) for value in defaults):
+        raise FixtureIntegrityError("executable function default in " + key)
+    arguments = (*fn.args.posonlyargs, *fn.args.args, *fn.args.kwonlyargs)
+    annotations = [arg.annotation for arg in arguments if arg.annotation is not None]
+    if fn.returns is not None:
+        annotations.append(fn.returns)
+    if any(not isinstance(value, ast.Name) or value.id not in ("StockController", "bool")
+           for value in annotations):
+        raise FixtureIntegrityError("executable or unexpected annotation in " + key)
+    # Validation happens before even the first selected function is compiled.
+    # Not a general Python sandbox; these snapshots must remain pinned and reviewed.
+    for node in ast.walk(tree):
+        if isinstance(node, BANNED_AST):
+            raise FixtureIntegrityError("unsafe AST node in " + key)
+        if isinstance(node, ast.Name) and (node.id in BANNED_NAMES or node.id.startswith("__")):
+            raise FixtureIntegrityError("unsafe name in " + key)
+        if isinstance(node, ast.Attribute) and node.attr.startswith("__"):
+            raise FixtureIntegrityError("unsafe attribute in " + key)
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "getattr":
+            if (len(node.args) < 2 or not isinstance(node.args[1], ast.Constant)
+                    or node.args[1].value != "_webhook_queue"):
+                raise FixtureIntegrityError("dynamic attribute access in " + key)
+    return fn
+
+
 def snapshots():
-    data = FIXTURE.read_bytes()
+    # A true byte cap, not a read-all-then-check and not an assert removed by -O.
+    with FIXTURE.open("rb") as stream:
+        data = stream.read(MAX_FIXTURE_BYTES + 1)
+    if len(data) > MAX_FIXTURE_BYTES:
+        raise FixtureIntegrityError("oversize pinned fixture")
+    if not hmac.compare_digest(hashlib.sha256(data).hexdigest(), FIXTURE_SHA256):
+        raise FixtureIntegrityError("SHA256 pinned fixture drift")
     header = b"blob " + str(len(data)).encode("ascii") + b"\0"
-    assert hashlib.sha1(header + data).hexdigest() == FIXTURE_BLOB, "pinned fixture drift"
-    return {entry["key"]: entry for entry in json.loads(data)["snapshots"]}
+    if not hmac.compare_digest(hashlib.sha1(header + data).hexdigest(), FIXTURE_BLOB):
+        raise FixtureIntegrityError("Git blob pinned fixture drift")
+    try:
+        manifest = json.loads(data)
+        entries = manifest["snapshots"]
+    except (ValueError, KeyError, TypeError) as error:
+        raise FixtureIntegrityError("malformed pinned fixture") from error
+    if (not isinstance(entries, list) or len(entries) != len(EXPECTED)
+            or any(not isinstance(e, dict) or not isinstance(e.get("key"), str) for e in entries)):
+        raise FixtureIntegrityError("unexpected fixture shape")
+    result = {}
+    for entry in entries:
+        key = entry["key"]
+        if (key not in EXPECTED or key in result or entry.get("blob") != EXPECTED[key]
+                or not isinstance(entry.get("ref"), str) or len(entry["ref"]) != 40
+                or not isinstance(entry.get("source"), str)):
+            raise FixtureIntegrityError("unknown or conflicting fixture item")
+        _parse_excerpt(entry)
+        result[key] = entry
+    if set(result) != set(EXPECTED):
+        raise FixtureIntegrityError("missing fixture item")
+    return result
 
 
 def function(key, globals_=None):
-    record = snapshots()[key]
-    tree = ast.parse(textwrap.dedent(record["source"]))
-    assert len(tree.body) == 1 and isinstance(tree.body[0], ast.FunctionDef), key
-    node = tree.body[0]
-    assert node.name == record["fn"], key
-    node.decorator_list = []  # avoid executing any framework decorator
-    names = {"__name__": "ccpc_synthetic_source_excerpts", "StockController": object}
+    if key not in EXECUTABLE_KEYS:
+        raise FixtureIntegrityError("function not allowlisted for offline execution")
+    record = snapshots()  # Always validate entire fixture before any exec.
+    node = _parse_excerpt(record[key])
+    names = {"__name__": "ccpc_offline_pinned_source",
+             "__builtins__": SAFE_BUILTINS, "StockController": object}
     names.update(globals_ or {})
-    exec(compile(ast.Module(body=[node], type_ignores=[]), "<pinned-%s>" % key, "exec"), names)
+    # Disallow overriding restricted __builtins__ and the annotation placeholder.
+    names["__builtins__"] = SAFE_BUILTINS
+    names["StockController"] = object
+    exec(compile(ast.fix_missing_locations(ast.Module(body=[node], type_ignores=[])),
+                 "<pinned-offline:%s>" % key, "exec"), names)
     return names[node.name]
-
 
 class SourcePinnedReachability(unittest.TestCase):
     def test_01_pin_manifest_and_syntax(self):
@@ -59,7 +150,9 @@ class SourcePinnedReachability(unittest.TestCase):
                 self.assertRegex(entry["ref"], r"^[0-9a-f]{40}$")
                 self.assertGreater(entry["start_line"], 0)
                 self.assertIn("def " + entry["fn"] + "(", entry["source"])
-                self.assertIsInstance(function(key, {}), type(lambda: None))
+                self.assertIsInstance(_parse_excerpt(entry), ast.FunctionDef)
+                if key in EXECUTABLE_KEYS:
+                    self.assertIsInstance(function(key, {}), type(lambda: None))
 
     def test_02_snippets_contain_no_import_statements(self):
         for key, entry in snapshots().items():
@@ -179,11 +272,12 @@ class SourcePinnedReachability(unittest.TestCase):
         self.assertEqual((len(ac), len(ar)), (1, 1))
 
     def test_18_cache_afterrollback_and_aftercommit_are_separate(self):
-        events, ac, ar = self.cache()
-        ar[0]()
-        self.assertEqual(events.count("redis"), 2)
-        ac[0]()
-        self.assertEqual(events.count("redis"), 3)
+        rollback_events, _, rollback_callbacks = self.cache()
+        rollback_callbacks[0]()  # synthetic full-rollback callback ONLY
+        self.assertEqual(rollback_events.count("redis"), 2)
+        commit_events, commit_callbacks, _ = self.cache()
+        commit_callbacks[0]()  # separate synthetic committed transaction ONLY
+        self.assertEqual(commit_events.count("redis"), 2)
 
     def test_19_document_notifications_are_after_commit(self):
         output = []
@@ -224,6 +318,112 @@ class SourcePinnedReachability(unittest.TestCase):
         self.assertIn("submit", calls)
         self.assertNotIn("commit", calls)
         self.assertNotIn("rollback", calls)
+
+
+    def test_23_nonallowlisted_worker_cannot_be_executed(self):
+        for key in set(EXPECTED) - EXECUTABLE_KEYS:
+            with self.subTest(key=key), self.assertRaises(FixtureIntegrityError):
+                function(key, {})
+
+    def test_24_integrity_rejects_mutated_fixture_before_execution(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bad = Path(tmp) / "pins.json"
+            bad.write_bytes(FIXTURE.read_bytes().replace(b'"cache_clear"', b'"cache_clear_tampered"'))
+            with patch.dict(globals(), {"FIXTURE": bad}):
+                with self.assertRaisesRegex(FixtureIntegrityError, "SHA256"):
+                    function("riv_on_submit", {})
+
+    def test_25_optimized_python_rejects_tampered_fixture(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bad = Path(tmp) / "pins.json"
+            bad.write_bytes(FIXTURE.read_bytes() + b" ")
+            code = (
+                "import importlib.util, pathlib, sys; "
+                "p=pathlib.Path(sys.argv[1]); "
+                "sp=importlib.util.spec_from_file_location('ccpc_fixture',p); "
+                "m=importlib.util.module_from_spec(sp); sp.loader.exec_module(m); "
+                "m.FIXTURE=pathlib.Path(sys.argv[2]); "
+                "m.snapshots()"
+            )
+            result = subprocess.run([sys.executable, "-O", "-I", "-B", "-S", "-c",
+                                     code, str(Path(__file__).resolve()), str(bad)],
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                    text=True, timeout=8)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("FixtureIntegrityError", result.stderr)
+            self.assertNotIn("Traceback", result.stdout)
+
+    def test_26_optimized_python_accepts_original_fixture(self):
+        code = (
+            "import importlib.util,pathlib,sys; "
+            "p=pathlib.Path(sys.argv[1]); "
+            "sp=importlib.util.spec_from_file_location('ccpc_fixture',p); "
+            "m=importlib.util.module_from_spec(sp); sp.loader.exec_module(m); "
+            "print(len(m.snapshots()))"
+        )
+        result = subprocess.run([sys.executable, "-O", "-I", "-B", "-S", "-c", code,
+                                 str(Path(__file__).resolve())], capture_output=True,
+                                text=True, timeout=8)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, "11\n")
+
+    def adversarial_ast(self, change):
+        # Red-team a copy while recalculating *both* fixture digests. This checks
+        # preflight AST safety independent of content-digest mismatch rejection.
+        manifest = json.loads(FIXTURE.read_text(encoding="utf-8"))
+        record = next(x for x in manifest["snapshots"] if x["key"] == "riv_on_submit")
+        record["source"] = change
+        data = (json.dumps(manifest, indent=2) + "\n").encode("utf-8")
+        with tempfile.TemporaryDirectory() as tmp:
+            bad = Path(tmp) / "pins.json"
+            bad.write_bytes(data)
+            header = b"blob " + str(len(data)).encode() + b"\0"
+            with patch.dict(globals(), {"FIXTURE": bad,
+                                        "FIXTURE_BLOB": hashlib.sha1(header + data).hexdigest(),
+                                        "FIXTURE_SHA256": hashlib.sha256(data).hexdigest()}):
+                with self.assertRaises(FixtureIntegrityError):
+                    function("cache_clear", {})  # ensures full-fixture preflight
+
+    def test_27_ast_rejects_import_even_with_recomputed_digests(self):
+        self.adversarial_ast("def on_submit(self):\n    import os\n")
+
+    def test_28_ast_rejects_exec_even_with_recomputed_digests(self):
+        self.adversarial_ast("def on_submit(self):\n    exec('raise Exception()')\n")
+
+    def test_29_ast_rejects_dunder_even_with_recomputed_digests(self):
+        self.adversarial_ast("def on_submit(self):\n    return self.__class__\n")
+
+    def test_30_ast_rejects_dynamic_getattr_even_with_recomputed_digests(self):
+        self.adversarial_ast("def on_submit(self):\n    return getattr(self, x)\n")
+
+    def test_31_safe_builtin_scope_explicit(self):
+        self.assertNotIn("__import__", SAFE_BUILTINS)
+        self.assertNotIn("open", SAFE_BUILTINS)
+        self.assertNotIn("exec", SAFE_BUILTINS)
+        self.assertTrue(EXECUTABLE_KEYS.issubset(EXPECTED))
+
+    def test_32_callback_tests_do_not_fire_both_for_one_transaction(self):
+        events, commit_callbacks, rollback_callbacks = self.cache()
+        self.assertEqual(events.count("redis"), 1)
+        # These are separate possibilities; the test never runs both.
+        self.assertEqual(len(commit_callbacks), 1)
+        self.assertEqual(len(rollback_callbacks), 1)
+
+    def test_33_oversized_fixture_fails_before_json_and_ast(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bad = Path(tmp) / "large.json"
+            bad.write_bytes(b"A" * (MAX_FIXTURE_BYTES + 300))
+            with patch.dict(globals(), {"FIXTURE": bad}):
+                with self.assertRaisesRegex(FixtureIntegrityError, "oversize"):
+                    snapshots()
+
+
+    def test_34_ast_rejects_executable_default_pre_compile(self):
+        self.adversarial_ast("def on_submit(self, x=side_effect()):\n    return x\n")
+
+    def test_35_ast_rejects_executable_annotation_pre_compile(self):
+        self.adversarial_ast("def on_submit(self: side_effect()):\n    return None\n")
+
 
 
 if __name__ == "__main__":
