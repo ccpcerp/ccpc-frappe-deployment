@@ -2,6 +2,29 @@
 
 **2026-10-16 | GitHub-only source and offline testing. NOT STAGED; NOT RUN against DEVELOPMENT.**
 
+## 2026-10-16 — Separately approved one-shot v2 DEVELOPMENT format diagnostic: COMPLETED (all five stages OK)
+
+The owner supplied a **separate, explicit one-shot approval** to execute exactly the privately staged new `ccpc_material_issue_redis_json_shape_readonly_v2_20261016.sh`, distinct from its consumed staging permission and from both previously consumed Redis diagnostics. The assistant rechecked the source on GitHub before giving a one-shot operator-run wrapper. The review branch then stood at `f9635163e8278cfa2e37b6ea9a7bdaf99588d460`; the v2 script blob remained **`da9cc87f6f240a6afa581d4b1a0c7d6d24e9b684`**, with pinned SHA256 **`bd306c3324ae1e9acbb583fe61a97b314f6074025c66abd8b5678b77ee307486`**. The exact 33-case corrected GitHub synthetic offline test suite previously passed **33/33**. The execution wrapper required operator `gani`, nonsymlink owner-controlled private `0700` staging directory, regular nonsymlink owner-controlled `0600` script, matching pinned SHA256 and `bash -n` before setting the v2-only one-shot approval variable and executing the script once. No loop or retry was included.
+
+**Full, sanitized, operator-reported Ubuntu output:**
+
+```text
+VERIFIED: STARTING ONE READ-ONLY DEVELOPMENT V2 DIAGNOSTIC
+COMMON: JSON_OK
+ISOLATED: JSON_OK
+SHARED: JSON_OK
+ISOLATED_REDIS: FORMAT_OK
+SHARED_REDIS: FORMAT_OK
+CONFIG SHAPE: COMPLETE; ENDPOINTS/ISOLATION: UNVERIFIED; POSTING: NO-GO
+ONE-SHOT REDACTED FORMAT V2: COMPLETED; POSTING: NO-GO
+```
+
+**Conclusion for this narrow gate: SUCCESS.** All three fixed file paths (`common_site_config.json`, `ccpc-integration2.localhost/site_config.json`, `development.localhost/site_config.json`) were reported parseable into JSON mappings, and both site-specific effective Redis cache/queue URL **format validations** returned `FORMAT_OK` within the short-lived `docker exec --user frappe` process's limited environment model. The fixed v2 success exit path now produced the correct outer `COMPLETED` label with no false trailing STOP. This is stronger than prior metadata-only results but does **not** prove endpoints are distinct. The wrapper success line is consistent with pre-execution hash/mode/syntax checks passing, yet ChatGPT cannot independently inspect the Ubuntu host. Do not infer a real Redis connection, worker-process environment, database transaction or physical isolation from this operator-reported output.
+
+**Unresolved, still safety-critical:** The earlier independently consumed **Redis endpoint-overlap boundary preflight** ended with an unexplained STOP; its cause remains unclassified. The format-only v2 deliberately neither compares configured Redis endpoint identities (including aliases) nor performs DNS/Redis connections, worker, Socket.IO or pub/sub topology checks. Dynamic Frappe `extra_config` hooks and long-lived worker configuration were not inspected. Physical DEVELOPMENT/PRODUCTION separation and Material Issue Stock Entry/SLE/GL posting/rollback safety remain **unproven**.
+
+**One-shot v2 approval is now consumed. Do not rerun, rearm, restage, or reinterpret it as a posting approval.** No additional Ubuntu/DEVELOPMENT/Redis/SQL, app pull, service change, stock/GL writes, rollback rehearsal or PRODUCTION action is authorized. GitHub project documents only were modified during this follow-up; the staged operator script, review script, tests and custom ERPNext application were not changed. The next reasonable safe step is **GitHub-only analysis and planning of unresolved configured endpoint and actual worker/pubsub isolation gates**, using existing reviewed code/docs, before proposing any new distinct operator diagnostic and requesting its own explicit approval. **Permanent Material Issue Stock Entry/SLE/GL: NO-GO.**
+
 ## 2026-10-16 — v2 staging-only success reported, execution NOT authorized
 
 The owner gave **explicit staging-only approval** for the separate corrected v2 diagnostic. Immediately before supplying the Ubuntu staging block, GitHub was verified at review branch `review/material-issue-first-commit-preparation-2026-10-15` commit **`d118eb2e60d7eca75d7fefda6f43bc017a09b41c`**, with v2 script blob **`da9cc87f6f240a6afa581d4b1a0c7d6d24e9b684`**, expected file SHA256 **`bd306c3324ae1e9acbb583fe61a97b314f6074025c66abd8b5678b77ee307486`**, and corrected regression-test blob **`ff2b31ef23594b1038d3581875c8174f9db7d8b4`** (33/33 previously passing offline, not rerun on server).
