@@ -1,5 +1,21 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## Corrected v2 Redis format candidate staged privately, operator-reported PASS; not executed — 2026-10-16
+
+**Explicit owner approval: STAGING ONLY, now consumed.** The assistant reverified current GitHub `ccpcerp/ccpc-frappe-deployment@review/material-issue-first-commit-preparation-2026-10-15` at commit **`d118eb2e60d7eca75d7fefda6f43bc017a09b41c`**, the new **v2 script** `scripts/development/operator/ccpc_material_issue_redis_json_shape_readonly_v2_20261016.sh` at unchanged Git blob **`da9cc87f6f240a6afa581d4b1a0c7d6d24e9b684`**, SHA256 **`bd306c3324ae1e9acbb583fe61a97b314f6074025c66abd8b5678b77ee307486`**, and the amended **33/33 locally passing** regression test Git blob **`ff2b31ef23594b1038d3581875c8174f9db7d8b4`**. The separate approved Ubuntu staging block obtained the reviewed branch via strict-key, noninteractive GitHub SSH; required the exact commit, regular file Git mode, SHA256, syntax (`bash -n`), private directory and destination nonexistence; wrote only the newly named owner-only staged file. The protected app checkout was not touched.
+
+**Complete operator-supplied output:**
+
+```text
+STAGED AND VERIFIED, NOT EXECUTED: /home/gani/ccpc-reviewed-scripts/ccpc_material_issue_redis_json_shape_readonly_v2_20261016.sh
+```
+
+This is **operator-reported** staging success, not independently witnessed Ubuntu file access. The staging command contained **no execution** of the v2 diagnostic, no `docker exec`, Redis/SQL commands, ERPNext site JSON reads, business-data mutation, DEVELOPMENT app pull or PRODUCTION action. It is **not** a new runtime test result.
+
+**GitHub record:** [v2 Redis JSON-shape exit fix/security review](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/review/material-issue-first-commit-preparation-2026-10-15/docs/ccpc-project/MATERIAL-ISSUE-REDIS-JSON-SHAPE-V2-EXIT-FIX-2026-10-16.md) updated on review branch commit **`f9635163e8278cfa2e37b6ea9a7bdaf99588d460`**, document blob **`98057f7456a90f632efc381c85d91818c99987e4`**. The v2 source, old consumed Redis shape file `fc5617117806b8cd19586ae3c7bf530dab21d632`, and old consumed boundary preflight `85123cd4d487110d01cdc375ad7e6969035bdc34` remain unchanged. Original Redis boundary STOP remains **unclassified**. Application feature branch at last verified commit `2f846a75dc7f1b9e6eb20bed38a1ae3433571ad6` is untouched.
+
+**NEXT OWNER APPROVAL REQUIRED:** One new **explicit, one-shot read-only execution** of the *new* staged v2 file, preceded by owner/mode/SHA256/syntax verification; DO NOT execute on staging approval or retry a consumed script. V2 would read only three DEVELOPMENT site JSON files and validate Redis URL formats, printing safe fixed labels. It **cannot establish endpoint overlap/physical Redis, workers, Socket.IO or pub/sub isolation**. No permissions for Redis connectivity, service changes, Stock Entry/SLE/GL persistent posting, rollback-only writes, shared site modification or PRODUCTION. **Material Issue posting NO-GO.**
+
 ## Exact GitHub Redis v2 offline regression verified: 33/33 PASS; v2 still not staged — 2026-10-16
 
 **Owner request:** “Continue” after GitHub-only v2 correction; scoped to verifying the exact committed **33-case** offline regression source, correcting test-only errors, and recording results in GitHub. No Ubuntu/DEVELOPMENT command, Docker operation, Redis/SQL interaction, application pull, site configuration access, file staging, or PRODUCTION change was approved or performed.
