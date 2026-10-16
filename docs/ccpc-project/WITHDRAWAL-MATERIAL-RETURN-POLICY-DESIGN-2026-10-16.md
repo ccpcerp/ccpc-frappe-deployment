@@ -25,6 +25,14 @@ The owner selected **Option A: Material Issue at release + separate linked Mater
 
 **Still unapproved:** Exact software implementation, permitted approver roles, detailed GL account/dimension mapping and exception/variance account, handling of serial/batch/condition edge cases, and actual DEVELOPMENT/PRODUCTION execution. The approval is **policy only**, not a successful test of real material returns and not approval for posting code.
 
+## Owner-approved return cancellation safeguards — 2026-10-17
+
+**OWNER-APPROVED BUSINESS POLICY:** An authorized stockroom supervisor may cancel an incorrectly submitted linked Material Receipt, subject to appropriate accounting and permission controls. Cancelling that **return voucher only** must reverse its own inventory/Stock Ledger and General Ledger effects, remove only that voucher's contribution to accepted `returned_qty`, and recalculate `net_used_qty` and the original Equipment/beneficiary Department net consumption. The valid original Material Issue and other accepted return vouchers must remain intact, with full audit history. The original Material Issue **must not be cancelled while any submitted, non-cancelled linked return is active**; require controlled resolution of those returns first, without automatically cancelling them.
+
+**Implementation safety requirements:** Enforce supervisor authorization server-side on voucher/API paths, require a reason and audit identity/time, validate the exact return/source links, period/ledger integrity, resulting stock availability and accounting reversal before accepting cancellation. Fail atomically if any stock/GL reversal cannot complete. Do not silently delete ledgers, double-reverse on replay, or allow unauthorized users to cancel either source or return. A cancellation that would produce invalid stock balances or violate period controls requires a separate reviewed exception, not a forced reversal.
+
+**NOT YET IMPLEMENTED OR TESTED:** The exact mapping of supervisor roles, ERPNext v16 reversal mechanics for independently linked physical returns, accounting exception authority and safe handling of previously consumed/reissued returned stock. The existing 79/79 isolated regression gate covers cancellation of the **original issue**, not these new return cancellations. This policy approval does not authorize application code, role changes, DEV/PROD database transactions, PR merge or deployment.
+
 ## Owner-approved multiple partial returns — 2026-10-17
 
 The owner approved multiple separate partial returns of unused, serviceable materials against the same original submitted Withdrawal Slip Material Issue. Every return must have its own Stockroom Personnel physical verification and different authorized supervisor approval, followed by its own linked Material Receipt. The sum of accepted posted return quantities must never exceed the original issued quantity for the exact source item.
