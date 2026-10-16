@@ -1,5 +1,28 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## Owner-approved one-shot DEVELOPMENT v2 Redis JSON/format check: COMPLETE, five stages PASS — 2026-10-16
+
+**Status: New, separately approved one-shot read-only v2 diagnostic completed; authorization CONSUMED.** The owner approved one execution (distinct from staging) of `/home/gani/ccpc-reviewed-scripts/ccpc_material_issue_redis_json_shape_readonly_v2_20261016.sh`. The assistant reverified review-branch HEAD `f9635163e8278cfa2e37b6ea9a7bdaf99588d460`, exact v2 script Git blob **`da9cc87f6f240a6afa581d4b1a0c7d6d24e9b684`**, SHA256 **`bd306c3324ae1e9acbb583fe61a97b314f6074025c66abd8b5678b77ee307486`**, and earlier committed synthetic 33/33 offline passes before presenting the one-shot command. The operator wrapper required nonroot `gani`, owned nonsymlink private `0700` directory, owned regular nonsymlink `0600` file, SHA256 match, `bash -n`, then invoked the v2-only flag `CCPC_REDIS_SHAPE_V2_READONLY_APPROVED=ccpc-redis-json-shape-v2-one-shot` once. No automatic retry.
+
+**Full operator-reported sanitized terminal output:**
+
+```text
+VERIFIED: STARTING ONE READ-ONLY DEVELOPMENT V2 DIAGNOSTIC
+COMMON: JSON_OK
+ISOLATED: JSON_OK
+SHARED: JSON_OK
+ISOLATED_REDIS: FORMAT_OK
+SHARED_REDIS: FORMAT_OK
+CONFIG SHAPE: COMPLETE; ENDPOINTS/ISOLATION: UNVERIFIED; POSTING: NO-GO
+ONE-SHOT REDACTED FORMAT V2: COMPLETED; POSTING: NO-GO
+```
+
+**Evidence and interpretation:** At that reported execution time, all **three JSON configuration maps parsed successfully**, both isolated/shared DEVELOPMENT effective Redis cache/queue URL **format checks** passed in the short-lived exec child context, and the entire corrected v2 invocation reported **COMPLETED** rather than the original v1 false STOP. This is operator-reported host evidence, not a directly independently observed host read, and it does **not** prove Redis endpoint non-overlap, runtime Redis connection availability, worker/Socket.IO/pubsub separation, DNS alias mapping, actual physical DEVELOPMENT/PRODUCTION separation, or first Material Issue posting/rollback/transaction safety. It also does not identify why the earlier separately consumed *endpoint boundary preflight* stopped: its original STOP category remains unclassified. Do not rerun either old candidate.
+
+**GitHub review record updated** in `review/material-issue-first-commit-preparation-2026-10-15`: [v2 Redis JSON/format security review](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/review/material-issue-first-commit-preparation-2026-10-15/docs/ccpc-project/MATERIAL-ISSUE-REDIS-JSON-SHAPE-V2-EXIT-FIX-2026-10-16.md) at commit **`6b90d561a21f73fbd27c4943b671f3dd6c433155`**, review doc Git blob **`0a655dfb75814a7e56472127ab0f3ffca7ea539a`**. The committed v2 script `da9cc87f6f240a6afa581d4b1a0c7d6d24e9b684`, corrected test suite `ff2b31ef23594b1038d3581875c8174f9db7d8b4`, consumed v1 `fc5617117806b8cd19586ae3c7bf530dab21d632`, original Redis boundary candidate `85123cd4d487110d01cdc375ad7e6969035bdc34`, and app feature branch at last verified `2f846a75dc7f1b9e6eb20bed38a1ae3433571ad6` are unchanged.
+
+**Next controlled gate:** No further host/DEVELOPMENT execution is authorized. Review **GitHub-only** the outstanding Redis endpoint identity/alias, dynamic Frappe config, worker/Socket.IO/pubsub and physical isolation needs, plan safe diagnostic evidence and offline tests. Obtain **new operation-specific approval** before any future new staging or read-only DEVELOPMENT probe. No Redis or Frappe initialization, SQL/Stock Entry/SLE/GL posting, rollback-only rehearsal, DEVELOPMENT app pull, PRODUCTION changes or service restart authorized. **Persistent Material Issue Stock Entry/SLE/GL COMMIT: NO-GO.**
+
 ## Corrected v2 Redis format candidate staged privately, operator-reported PASS; not executed — 2026-10-16
 
 **Explicit owner approval: STAGING ONLY, now consumed.** The assistant reverified current GitHub `ccpcerp/ccpc-frappe-deployment@review/material-issue-first-commit-preparation-2026-10-15` at commit **`d118eb2e60d7eca75d7fefda6f43bc017a09b41c`**, the new **v2 script** `scripts/development/operator/ccpc_material_issue_redis_json_shape_readonly_v2_20261016.sh` at unchanged Git blob **`da9cc87f6f240a6afa581d4b1a0c7d6d24e9b684`**, SHA256 **`bd306c3324ae1e9acbb583fe61a97b314f6074025c66abd8b5678b77ee307486`**, and the amended **33/33 locally passing** regression test Git blob **`ff2b31ef23594b1038d3581875c8174f9db7d8b4`**. The separate approved Ubuntu staging block obtained the reviewed branch via strict-key, noninteractive GitHub SSH; required the exact commit, regular file Git mode, SHA256, syntax (`bash -n`), private directory and destination nonexistence; wrote only the newly named owner-only staged file. The protected app checkout was not touched.
