@@ -1,5 +1,15 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## Stage A final security review — DEFER STAGING (GitHub-only, 2026-10-16)
+
+**Authorization:** Owner's “Approved” was for the **final GitHub-only security and usefulness review**, not a Docker run, staging, revision to executable/test files, DEVELOPMENT configuration read, any PRODUCTION read/write, or Material Issue posting. This session reviewed GitHub script blob `d610b749eb212163ee08a99b314c143dad25453f`, offline-test blob `94727d1e727cbee18831bb72638d376c740b3f55`, prior design/review, and tracked DEV Compose template. The historical **39/39 synthetic offline PASS** was not rerun and remains *not* evidence of live runtime.
+
+**Final disposition: KEEP CURRENT STAGE A CANDIDATE REVIEW-ONLY; DO NOT STAGE OR EXECUTE.** [Final independent review](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/review/material-issue-first-commit-preparation-2026-10-15/docs/ccpc-project/MATERIAL-ISSUE-REDIS-DEV-TOPOLOGY-STAGE-A-CANDIDATE-REVIEW-2026-10-16.md) was committed on deployment review branch `review/material-issue-first-commit-preparation-2026-10-15` as `4f0aabf86aca491094f4f27f4cbc10611dab0c9b`. The candidate and 39-test suite remain unchanged.
+
+**Two staging blockers identified:** (1) project/service-label-filtered `container ls` followed by `docker inspect` does not establish that **only genuine DEV objects** were inspected: labels are not authenticated provenance and mismatch checks happen after inspect; (2) `subprocess.run(stdout=PIPE)` buffers arbitrary child output before applying its 4 KB length check, so the limit is **not** a resource bound. Further material concerns: only synthetic Go-template/NetworkMode output fixtures, guessed live Redis container naming and single-network assumptions, and inherited PATH executable provenance. Even synthetic success says `NODE_ROUTE_UNVERIFIED`, `WORKER_ROUTE_UNVERIFIED`, `DEV_PROD_SEPARATION_UNVERIFIED`, `POSTING_NO_GO`.
+
+**Next one safe authorization gate:** Request specifically scoped **GitHub-only implementation/test approval** to revise Stage A identity-boundary and bounded-output handling. Review whether the intended no-foreign-inspection guarantee can actually be met; do not widen Docker/PRODUCTION scope to force an answer. Verify Docker format/executable assumptions offline and re-review usefulness before considering future, separate staging-only and one-shot read-only DEV permissions. No approved new code changes or host action in this final review; all old one-shot permissions remain consumed. **Material Issue write-then-rollback and permanent Stock Entry/SLE/GL NO-GO. PRODUCTION untouched.**
+
 ## DEV Redis topology Stage A candidate: GitHub-only implementation, 39/39 offline PASS; NOT STAGED — 2026-10-16
 
 **Owner approval strictly scoped to GitHub-only implementation, adversarial synthetic offline tests, and documentation** under the prior Stage A [design](../../docs/ccpc-project/MATERIAL-ISSUE-REDIS-DEV-TOPOLOGY-EVIDENCE-DESIGN-2026-10-16.md). No Ubuntu staging, DEVELOPMENT Docker access, live Redis/SQL/Node/RQ probes, app pull/merge, write-then-rollback, persistent Stock Entry/SLE/GL or PRODUCTION access is authorized.
