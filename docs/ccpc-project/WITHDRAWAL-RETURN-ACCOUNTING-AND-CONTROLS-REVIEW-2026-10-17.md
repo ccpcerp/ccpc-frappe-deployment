@@ -49,6 +49,12 @@ The owner approved the proposed **two-person physical return control**, not mere
 
 **Unverified/undecided:** existing role labels and permission mappings, specific supervisor designation, handling supervisor absence, special-case corrections and cancellation of approved returns. These are implementation/configuration and accounting controls needing separate review. No roles created, no posting code implemented and no physical environment modified.
 
+### Approved multiple partial returns — 2026-10-17
+
+Owner approved separate, repeatable physical returns of eligible unused materials, each verified by Stockroom Personnel and independently approved by a different authorized supervisor. The total quantity of submitted, valid returns against each original issued Stock Entry detail must remain at or below that issue quantity. For 10 units issued, two accepted returns of 2 and 3 leave 5 net consumed; a further return of 6 is prohibited. Original issued-cost valuation and original Equipment/beneficiary Department allocation still require genuine accounting verification.
+
+Implementation must retain separately numbered source-linked receipts, count only valid submitted returns, and prevent duplicate or concurrent approvals from exceeding the outstanding balance. The cancellation approval process is not yet decided. This is policy documentation, not implemented or tested return posting.
+
 ## 4. Proposed verification gates before any release
 
 1. Confirm CCPC Company uses perpetual inventory as expected; inspect actual original-issued Account, Cost Center, Equipment accounting dimension and beneficiary Department mapping, including when requesting and beneficiary Departments differ.
@@ -63,6 +69,6 @@ The owner approved the proposed **two-person physical return control**, not mere
 
 **Approved:** Option A — original issuance is consumption, accepted unused return uses a **separately linked Material Receipt** and reduces original Equipment/Department net cost **using original posted issue cost**. Valuation deviations require accounting review.
 
-**Recommended but not yet approved:** exact native ERPNext receipt-rate and GL mapping implementation; account/dimension correction procedures and authorized valuation-variance treatment; source-linked **same expense-account and Equipment/beneficiary Cost Center** credit mapping (pending configuration/accounting verification); actual configured role/permission mapping for the **already-approved two-person return process**, including return-cancellation authority; specific segregation/quarantine disposition and exception accounting for the **already-approved serviceable-only eligibility rule**; multiple bounded partial returns; stop original issue cancellation while submitted returns exist.
+**Recommended but not yet approved:** exact native ERPNext receipt-rate and GL mapping implementation; account/dimension correction procedures and authorized valuation-variance treatment; source-linked **same expense-account and Equipment/beneficiary Cost Center** credit mapping (pending configuration/accounting verification); actual configured role/permission mapping for the **already-approved two-person return process**, including return-cancellation authority; specific segregation/quarantine disposition and exception accounting for the **already-approved serviceable-only eligibility rule**; multiple bounded partial returns are **owner approved** but remain to be implemented/tested; stop original issue cancellation while submitted returns exist.
 
 **Next operator/accounting sign-off:** validate and authorize exact expense-account/dimension mapping and exceptional valuation/variance postings **without reopening the approved original-cost policy**; map approved separate receiver/approver duties to verified existing Frappe users/roles and decide return-cancellation privileges; agree detailed quarantine/disposition procedure and partial/multiple return/cancellation policy. **DO NOT implement transactional return code, submit stock vouchers, merge app PRs, perform DEV migrations, or touch PRODUCTION yet.**
