@@ -7,6 +7,7 @@ import importlib.util
 from pathlib import Path
 import subprocess
 import tempfile
+import types
 import unittest
 from unittest.mock import patch
 
@@ -91,6 +92,76 @@ class TestSourceBoundary(unittest.TestCase):
                 with self.assertRaises(runner.Stop):
                     runner.run_tests(self.root)
                 init.assert_not_called()
+
+
+    def test_expected_stock_module_origin_passes(self):
+        module = types.ModuleType("ccpcerp.ccpc_erp.withdrawal_slip_stock")
+        module.__file__ = str(self.source)
+        with patch.dict(runner.sys.modules, {module.__name__: module}):
+            runner.verify_loaded_ccpc_modules(self.root)
+
+    def test_module_from_other_checkout_stops(self):
+        module = types.ModuleType("ccpcerp.ccpc_erp.withdrawal_slip_stock")
+        module.__file__ = str(Path(self.temp.name) / "other/withdrawal_slip_stock.py")
+        with patch.dict(runner.sys.modules, {module.__name__: module}):
+            with self.assertRaises(runner.Stop):
+                runner.verify_loaded_ccpc_modules(self.root)
+
+    def test_wrong_dotted_path_inside_checkout_stops(self):
+        module = types.ModuleType("ccpcerp.ccpc_erp.withdrawal_slip_stock")
+        module.__file__ = str(self.root / "ccpcerp/wrong_name.py")
+        with patch.dict(runner.sys.modules, {module.__name__: module}):
+            with self.assertRaises(runner.Stop):
+                runner.verify_loaded_ccpc_modules(self.root)
+
+    def test_external_test_module_stops(self):
+        module = types.ModuleType(
+            "ccpcerp.ccpc_erp.doctype.withdrawal_slip.test_withdrawal_slip"
+        )
+        module.__file__ = str(Path(self.temp.name) / "external/test_withdrawal_slip.py")
+        with patch.dict(runner.sys.modules, {module.__name__: module}):
+            with self.assertRaises(runner.Stop):
+                runner.verify_loaded_ccpc_modules(self.root)
+
+    def test_namespace_spanning_another_checkout_stops(self):
+        module = types.ModuleType("ccpcerp")
+        module.__path__ = [
+            str(self.root / "ccpcerp"),
+            str(Path(self.temp.name) / "external/ccpcerp"),
+        ]
+        with patch.dict(runner.sys.modules, {module.__name__: module}):
+            with self.assertRaises(runner.Stop):
+                runner.verify_loaded_ccpc_modules(self.root)
+
+    def test_single_namespace_path_inside_checkout_passes(self):
+        module = types.ModuleType("ccpcerp")
+        module.__path__ = [str(self.root / "ccpcerp")]
+        with patch.dict(runner.sys.modules, {module.__name__: module}):
+            runner.verify_loaded_ccpc_modules(self.root)
+
+    def test_unknown_origin_stops(self):
+        module = types.ModuleType("ccpcerp.ccpc_erp.synthetic")
+        with patch.dict(runner.sys.modules, {module.__name__: module}):
+            with self.assertRaises(runner.Stop):
+                runner.verify_loaded_ccpc_modules(self.root)
+
+    def test_post_test_source_recheck_on_discovery_failure(self):
+        with (
+            patch.object(runner, "verify_source") as source,
+            patch.object(runner, "verify_loaded_ccpc_modules") as origins,
+            patch.object(runner, "install_non_site_context"),
+            patch("importlib.import_module"),
+            patch.object(
+                runner.unittest.defaultTestLoader,
+                "loadTestsFromNames",
+                side_effect=RuntimeError("synthetic discovery failure"),
+            ),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "synthetic discovery failure"):
+                runner.run_tests(self.root)
+            self.assertEqual(source.call_count, 2)
+            origins.assert_called_once()
+
 
 
 if __name__ == "__main__":
