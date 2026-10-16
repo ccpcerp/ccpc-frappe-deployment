@@ -17,6 +17,12 @@ The owner selected **Option A: Material Issue at release + separate linked Mater
 
 **Still pending before implementing any return posting:** Accounting/owner agreement on valuation and original-expense credit mapping, beneficiary department versus requesting-department treatment, stockroom receiving/verification/approval roles, return-eligibility/condition rules, and partial/cancellation handling. No CCPC DEVELOPMENT/PRODUCTION execution is authorized by this design approval.
 
+## Follow-up accounting/role inspection (2026-10-17)
+
+A source-only review of the pinned CCPC issue builder and ERPNext v16 Stock Entry/StockController revealed an **issue-side allocation verification gap**: the CCPC builder does not explicitly set the row expense account or cost center, and native ERPNext can fill them from Item/Item Group/Company defaults. Return GL must reverse the **actual original issue account, Equipment dimension and beneficiary Department/Cost Center**. A separate return-source reference is also necessary because the current issue-only Withdrawal Slip Stock Entry validator rejects a linked Material Receipt. Source review alone does not establish a deployed accounting defect.
+
+See **[Withdrawal Return — Accounting and Controls Review, 2026-10-17](WITHDRAWAL-RETURN-ACCOUNTING-AND-CONTROLS-REVIEW-2026-10-17.md)** for exact verified source references, valuation/GL recommendation, role segregation, concurrency and reconciliation gates. All specific valuation, expense/Department mapping and approver arrangements remain **recommended / awaiting accounting-owner approval**. Neither document authorizes return-posting implementation, migration or production changes.
+
 ## 1. Source-verified present behavior — not a real physical return
 
 - In `ccpcerp/ccpc_erp/doctype/withdrawal_slip/withdrawal_slip.py`, `_validate_issue_tracking` validates `0 <= returned_qty <= issued_qty` for each Withdrawal Slip Item; `_set_issue_tracking_totals` computes `net_used_qty = max(issued_qty - returned_qty, 0)`. Those are **document fields and derived quantities**, not necessarily inventory movements.
