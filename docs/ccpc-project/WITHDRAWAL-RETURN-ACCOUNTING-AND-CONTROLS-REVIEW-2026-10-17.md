@@ -55,6 +55,14 @@ Owner approved separate, repeatable physical returns of eligible unused material
 
 Implementation must retain separately numbered source-linked receipts, count only valid submitted returns, and prevent duplicate or concurrent approvals from exceeding the outstanding balance. The cancellation approval process is not yet decided. This is policy documentation, not implemented or tested return posting.
 
+### Owner-approved Material Receipt cancellation and source-issue block — 2026-10-17
+
+The owner approved an **authorized stockroom supervisor cancelling an incorrectly submitted return Material Receipt**, subject to accounting controls and server-side permission checks. Cancellation must reverse **only** that return's stock, valuation and GL entries and update only its accepted quantity, leaving the original submitted Material Issue and all other valid returned receipts intact. Recompute the source Withdrawal Slip's returned and net-used quantities from submitted, uncancelled return vouchers. Preserve cancellation reason, supervisor identity, timestamp and linked source/voucher provenance in the audit history.
+
+The owner also approved **blocking cancellation of the original Material Issue whenever any valid, submitted linked return remains active**. Resolve outstanding returns through their own controlled process before source-issue cancellation; there is no automatic cascading reversal. Failure to reverse ledgers correctly, stock shortfalls after reissue/consumption, closed periods, accounting mismatch, unauthorized cancellation or duplicate/replayed cancellation must fail safely rather than rewrite historical voucher/GL data. Separate approval is needed for exceptional stock/period adjustments and the exact Frappe role assignments.
+
+**Required new isolated tests (not yet run):** partial-return cancellation with other active returns, independent SQL/SLE/Bin/GL reversal by original Equipment and beneficiary Department Cost Center, incorrect receiver/approver/canceller permissions, replay/concurrency, original-issue cancellation blocked until all returns resolved, and inability to cancel when receipt stock has been consumed. Previous 79/79 CI validates original-issue cancellation only. No real CCPC DEV/PROD posting is authorized.
+
 ## 4. Proposed verification gates before any release
 
 1. Confirm CCPC Company uses perpetual inventory as expected; inspect actual original-issued Account, Cost Center, Equipment accounting dimension and beneficiary Department mapping, including when requesting and beneficiary Departments differ.
