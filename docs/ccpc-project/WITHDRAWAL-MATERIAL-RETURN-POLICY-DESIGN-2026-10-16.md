@@ -1,8 +1,21 @@
-# Withdrawal Slip — physical material return policy and accounting design (DRAFT)
+# Withdrawal Slip — physical material return policy and accounting design (OWNER APPROVED MODEL; IMPLEMENTATION PENDING)
 
 **Date:** 2026-10-16  
-**Status:** DESIGN / OWNER AND ACCOUNTING DECISION REQUIRED — NO TRANSACTION IMPLEMENTATION APPROVED  
+**Status:** OWNER APPROVED **OPTION A** on 2026-10-16 — issuance treated as consumption, linked physical returns via separate Material Receipt; exact valuation, GL mapping and receiving permissions pending accounting/owner review. **No transaction implementation, merge or live posting approved.**  
 **Repository evidence:** Application review branch `review/withdrawal-cancellation-ledger-ci-2026-10-16` at `6aea58f9d785f037076b75bc9e0b4bc7bf683bd2` (draft PR #13, unmerged); independently passing hosted CI [38900855857](https://github.com/ccpcerp/ccpcerp/actions/runs/38900855857) = 72 mocked Frappe + 7 genuine synthetic MariaDB/WSGI tests = **79/79 PASS**. Previous PRs #7–#12 are also drafts/unmerged.
+
+## Owner-approved decision — Option A (2026-10-16)
+
+The owner selected **Option A: Material Issue at release + separate linked Material Receipt for accepted physical returns**, rather than employee-custody warehouses and Material Transfer as the default withdrawal workflow. The following are **business requirements**, not implemented or tested return functionality:
+
+1. A submitted Withdrawal Slip Material Issue records the full released quantity as consumption/expense under the approved company accounts, Equipment accounting dimension, and appropriate beneficiary Department/Cost Center or related allocation. The *requesting* department must not silently replace the *beneficiary/work-for* department when they differ.
+2. Stockroom acceptance of unused, returnable materials generates a separately numbered **Material Receipt** linked to the exact original Withdrawal Slip, Slip Item and submitted Material Issue detail. The original Material Issue remains submitted/auditable; do not cancel it merely because items were physically returned.
+3. The approved return must increase warehouse inventory **and reduce the net expense/consumption attributed to the SAME original Equipment and beneficiary Department/Cost Center**. For a correctly mapped original issue of 10 units at 500 currency units each, return of 3 units at an approved 500 rate would leave 7 units / 3,500 net expense and restore 1,500 inventory value. This is illustrative, not a confirmed ERPNext valuation or GL result.
+4. The desired entry under an approved perpetual-inventory accounting model is **debit inventory asset / credit the appropriate original consumption expense**, preserving the original accounting dimensions. The precise receipt valuation (original outgoing cost versus other policy), original expense-account mapping, native ERPNext GL behavior, and potential differences between equipment-cost reports and GL are **not yet verified or approved**. Do not assume a plain Material Receipt automatically reverses the original Equipment or Department expense, or introduce duplicate/custom GL without an accounting design and genuine tests.
+5. Derive returned and net-used quantities from **accepted submitted return vouchers**, not manual edits of `returned_qty`; support bounded partial/multiple returns, explicit return-voucher cancellation, receiver/approval evidence and immutable source links. Return quantities and charges cannot exceed the outstanding issued quantity/value under the approved valuation policy.
+6. Damaged, consumed, scrap, serialized/batch-controlled, cross-company and otherwise unsuitable stock require separately reviewed eligibility, quarantine and accounting rules before acceptance into usable stock.
+
+**Still pending before implementing any return posting:** Accounting/owner agreement on valuation and original-expense credit mapping, beneficiary department versus requesting-department treatment, stockroom receiving/verification/approval roles, return-eligibility/condition rules, and partial/cancellation handling. No CCPC DEVELOPMENT/PRODUCTION execution is authorized by this design approval.
 
 ## 1. Source-verified present behavior — not a real physical return
 
@@ -11,9 +24,9 @@
 - `ccpcerp/ccpc_erp/withdrawal_slip_stock.py` recomputes `issued_qty` from *submitted linked Material Issue Stock Entries*, but `returned_qty` is only read while calculating `net_used_qty`. The file does **not** currently create a linked Material Receipt, transfer, returned-item stock ledger movement, or GL credit/debit when `returned_qty` changes.
 - `ccpcerp/hooks.py` installs Stock Entry `on_cancel` sync; [CI 38900855857](https://github.com/ccpcerp/ccpcerp/actions/runs/38900855857) verifies real **cancellation of the original submitted issue** on a disposable test site restores Bin quantity and value, reverses GL by account, and resets Slip issue state. Cancelling the original issue is a **different business event from returning unused materials after issue**. Do not cancel original issue merely to register a partial/physical return.
 
-## 2. Decisions required before implementing real return posting
+## 2. Approved model and remaining decisions before implementing real return posting
 
-1. **Return business model.** Preferred *candidate*, not approved: create an authorized, individually numbered and submitted **Stock Entry of purpose Material Receipt**, linking each returned item to its original Withdrawal Slip, exact Slip Item, and original submitted Material Issue row. An alternate custody model is a **Material Transfer** from an explicit employee/custody warehouse back to stockroom. Decide whether CCPC tracks issued materials as consumed at issue, or transferred into employee custody. This choice determines the correct voucher and GL flow.
+1. **Return business model — DECIDED (2026-10-16).** Option A is approved: treat materials as consumed/expensed upon Material Issue and post accepted physical returns as separate, authorized, linked **Material Receipt** Stock Entries. Employee-custody Material Transfer is **not** the selected default model. Return submission, expense-credit mapping and valuation remain to be implemented and verified.
 2. **Who is allowed to receive, verify, and approve return** (Stockroom Personnel, receiving witness, supervisor, or different approval chain); which roles may create vs submit vs cancel. Direct `returned_qty` editing should not masquerade as a posted return.
 3. **What kinds of return qualify.** Unused/resalable material back to its same company and approved warehouse versus damaged, scrap, wrong company, unusable, partially used, serial/batch-controlled, or consumed supplies. Define reject/quarantine/revaluation workflows separately.
 4. **Valuation and GL account policy.** Select whether accepted returned stock is valued at the **original outgoing cost** (with document-row provenance), an ERPNext-generated current valuation/rate, or an authorized accounting adjustment. Confirm desired debit inventory and credit expense/stock-adjustment mapping with accounting; ERPNext's native Material Receipt does **not automatically prove it reverses the original consumption/expense account**. No accounting policy inferred or implemented.
@@ -28,7 +41,7 @@
 - **Cancellation/exception:** Cancelling an accepted return should reverse its own stock/GL, reduce only its own contribution to `returned_qty`, and leave the original issue intact. No silent deletion/rewriting of original SLE/GL history.
 - **Never touch physical CCPC DEV/PROD** before separate verified target provenance, backups, restoration readiness and per-environment approval.
 
-## 4. Independent test plan once policy is approved
+## 4. Independent test plan once remaining accounting and authorization controls are approved
 
 - New **GitHub-hosted disposable test branch** from the verified review feature chain; all fixtures use unique synthetic `_Test Company` records. New tests should retain prior 79/79 regression baseline.
 - Positive partial receipt and full return with independent MariaDB verification: initial issue -1 / GL 100 in test currency, receipt +approved quantity with correctly reconciled valuation/GL per agreed accounting policy; Slip `issued_qty` must remain historical issue and `returned_qty` must reflect **only** posted return.
@@ -39,6 +52,6 @@
 
 ## 5. Go/no-go and next owner decision
 
-**GO for policy discussion and further source-only inspection. NO-GO for implementing, merging, deploying, or posting any material return until the business custody model, approval roles, and valuation/accounting policy are explicitly selected.** Current 79/79 tests prove *issuance and original-voucher cancellation*, **not employee material returns**. All production posting remains **POSTING_NO_GO / PRODUCTION NO-GO**.
+**BUSINESS MODEL APPROVED:** Option A (Material Issue at release, separate linked Material Receipt for physical return, correct reduction of the same original Equipment/Department net expense). **NO-GO for transactional implementation, merge, DEVELOPMENT/PRODUCTION posting or deployment** until exact valuation/GL mapping, receiving/approval roles, item-return eligibility, and concurrency/cancellation policies are reviewed and approved. The current 79/79 tests establish issuance and *original-issue cancellation*, not physical returns. **POSTING_NO_GO / PRODUCTION NO-GO / DEV_TARGET_ORIGIN_UNKNOWN_STOP**.
 
-**Decision requested:** For materials issued to staff, does CCPC treat them as **consumed/expensed immediately** (unused items returned via a separately linked *Material Receipt*) or as **stock held by a staff/custody warehouse** (returned via *Material Transfer*)? Accounting should then approve the corresponding valuation and GL account mapping before code changes.
+**Next decisions:** Obtain accounting confirmation for return valuation and debit-inventory/credit-original-consumption accounting dimension allocation; agree who may physically receive, verify, submit and cancel a Material Receipt and what stock condition/partial-return rules apply. Then develop only on a new reviewed GitHub application branch and test on disposable CI before any separate verified DEVELOPMENT procedure.
