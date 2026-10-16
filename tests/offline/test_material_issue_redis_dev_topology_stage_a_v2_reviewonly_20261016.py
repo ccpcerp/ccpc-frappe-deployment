@@ -282,7 +282,7 @@ class StageAV2Offline(unittest.TestCase):
 
     def test_32_invalid_utf8_refused_without_echo(self):
         fn, Stop = self.real_bounded_reader()
-        args = (sys.executable, '-u', '-c', 'import sys;sys.stdout.buffer.write(b"\xff")')
+        args = (sys.executable, '-u', '-c', 'import sys;sys.stdout.buffer.write(b"\\xff")')
         with self.assertRaises(Stop) as caught:
             fn(args, deadline_seconds=2)
         self.assertEqual(caught.exception.category, 'DEV_METADATA_UNKNOWN_STOP')
