@@ -425,6 +425,5 @@ class SourcePinnedReachability(unittest.TestCase):
         self.adversarial_ast("def on_submit(self: side_effect()):\n    return None\n")
 
 
-
 if __name__ == "__main__":
     unittest.main()
