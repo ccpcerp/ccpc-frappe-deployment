@@ -2,6 +2,20 @@
 
 **2026-10-16 | GitHub-only source and offline testing. NOT STAGED; NOT RUN against DEVELOPMENT.**
 
+## 2026-10-16 — v2 staging-only success reported, execution NOT authorized
+
+The owner gave **explicit staging-only approval** for the separate corrected v2 diagnostic. Immediately before supplying the Ubuntu staging block, GitHub was verified at review branch `review/material-issue-first-commit-preparation-2026-10-15` commit **`d118eb2e60d7eca75d7fefda6f43bc017a09b41c`**, with v2 script blob **`da9cc87f6f240a6afa581d4b1a0c7d6d24e9b684`**, expected file SHA256 **`bd306c3324ae1e9acbb583fe61a97b314f6074025c66abd8b5678b77ee307486`**, and corrected regression-test blob **`ff2b31ef23594b1038d3581875c8174f9db7d8b4`** (33/33 previously passing offline, not rerun on server).
+
+The assistant supplied a **staging-only** command using authenticated private GitHub SSH read with strict host-key checking, a separate private `$HOME/ccpc-reviewed-scripts` directory, pinned branch/commit comparison, regular Git blob mode check, SHA256 verification, `bash -n`, destination nonexistence guard and a `0600` exclusive file link. It neither executed the candidate nor entered Docker. Operator reported the complete success output:
+
+```text
+STAGED AND VERIFIED, NOT EXECUTED: /home/gani/ccpc-reviewed-scripts/ccpc_material_issue_redis_json_shape_readonly_v2_20261016.sh
+```
+
+This is **operator-reported host evidence**, consistent with successfully staging the exact approved file and syntax-checking it; ChatGPT cannot independently audit the Ubuntu filesystem. The staged v2 file is a **different filename** from the already-consumed 2026-10-15 script; the older script must not be overwritten or rerun. The staging approval is **consumed**.
+
+**Next separate authorization gate:** Before any execution, request new explicit **one-shot read-only DEVELOPMENT permission** scoped to the exact staged v2 file and checksum. Even if separately approved, it can only validate fixed three-site JSON and Redis URL formats in the short-lived exec-child environment; it is not an actual Redis connection, endpoint-overlap, DNS, worker, pub/sub or physical isolation test. No v2 execution has yet been reported or authorized. **No Material Issue Stock Entry/SLE/GL commit, SQL mutation, DEVELOPMENT deployment, or PRODUCTION operation is authorized. Posting remains NO-GO.**
+
 ## 2026-10-16 — Exact GitHub 33-case offline suite verified and corrected: 33/33 PASS
 
 **This checkpoint supersedes the earlier, historical 33-case pending claim below.** The assistant fetched both exact GitHub review-branch artifacts through the connected GitHub tools, reconstructed their bytes in a **credential-free local test workspace**, and used `git hash-object` to establish that the initial source files matched the independently read GitHub blob SHAs:
