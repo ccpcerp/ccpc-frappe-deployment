@@ -58,6 +58,32 @@ def verify_source(root: Path) -> None:
         raise Stop("Feature module is missing")
 
 
+
+def verify_loaded_ccpc_modules(root: Path) -> None:
+    """Reject CCPC Python modules loaded from another checkout or path.
+
+    A pinned Git HEAD alone does not guarantee that Python imports follow it.
+    Reject namespace paths spanning multiple locations as well as modules
+    whose dotted name and resolved file do not agree.
+    """
+    for name, module in tuple(sys.modules.items()):
+        if name != "ccpcerp" and not name.startswith("ccpcerp."):
+            continue
+        expected = root.joinpath(*name.split("."))
+        location = getattr(module, "__file__", None)
+        if location:
+            resolved = Path(location).resolve()
+            if resolved not in (expected.with_suffix(".py"), expected / "__init__.py"):
+                raise Stop("CCPC module origin does not match pinned checkout")
+        else:
+            search_paths = getattr(module, "__path__", None)
+            if search_paths is None:
+                raise Stop("CCPC module has no verifiable origin")
+            paths = [Path(p).resolve() for p in search_paths]
+            if paths != [expected]:
+                raise Stop("CCPC namespace package origin is ambiguous")
+
+
 def install_non_site_context():
     import frappe
 
@@ -88,18 +114,19 @@ def run_tests(root: Path) -> bool:
     import importlib
 
     frappe = install_non_site_context()
-    feature = importlib.import_module("ccpcerp.ccpc_erp.withdrawal_slip_stock")
-    resolved = Path(feature.__file__).resolve()
-    expected = (root / "ccpcerp" / "ccpc_erp" / "withdrawal_slip_stock.py").resolve()
-    if resolved != expected:
-        raise Stop("Imported module is not the pinned detached checkout")
-    suite = unittest.defaultTestLoader.loadTestsFromNames(TEST_MODULES)
-    if suite.countTestCases() != EXPECTED_TESTS:
-        raise Stop("Unexpected test count; source or suite has drifted")
-    result = unittest.TextTestRunner(verbosity=1).run(suite)
-    # Ensure the test run did not alter the protected feature checkout.
-    verify_source(root)
-    return result.wasSuccessful() and result.testsRun == EXPECTED_TESTS
+    importlib.import_module("ccpcerp.ccpc_erp.withdrawal_slip_stock")
+    try:
+        suite = unittest.defaultTestLoader.loadTestsFromNames(TEST_MODULES)
+        verify_loaded_ccpc_modules(root)
+        if suite.countTestCases() != EXPECTED_TESTS:
+            raise Stop("Unexpected test count; source or suite has drifted")
+        result = unittest.TextTestRunner(verbosity=1).run(suite)
+        return result.wasSuccessful() and result.testsRun == EXPECTED_TESTS
+    finally:
+        # Recheck on success and failure; loaded mocks must not change
+        # which source was executed, or leave the tested checkout dirty.
+        verify_loaded_ccpc_modules(root)
+        verify_source(root)
 
 
 def main() -> int:
