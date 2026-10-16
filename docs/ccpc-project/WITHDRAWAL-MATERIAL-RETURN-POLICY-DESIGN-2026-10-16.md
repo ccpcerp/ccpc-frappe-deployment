@@ -25,6 +25,14 @@ The owner selected **Option A: Material Issue at release + separate linked Mater
 
 **Still unapproved:** Exact software implementation, permitted approver roles, detailed GL account/dimension mapping and exception/variance account, handling of serial/batch/condition edge cases, and actual DEVELOPMENT/PRODUCTION execution. The approval is **policy only**, not a successful test of real material returns and not approval for posting code.
 
+## Owner-approved multiple partial returns — 2026-10-17
+
+The owner approved multiple separate partial returns of unused, serviceable materials against the same original submitted Withdrawal Slip Material Issue. Every return must have its own Stockroom Personnel physical verification and different authorized supervisor approval, followed by its own linked Material Receipt. The sum of accepted posted return quantities must never exceed the original issued quantity for the exact source item.
+
+Example: 10 bearings issued at ₱500 each; returning 2, then 3 in two separate accepted receipts leaves 5 consumed, with proposed net Equipment/Department cost of ₱2,500. Each accepted receipt is valued using the approved original issued cost, subject to actual ERPNext stock and GL verification. A further return of 6 must be rejected.
+
+Implementation must calculate returned quantities from accepted submitted vouchers, not drafts or editable tracking fields; preserve source issue and item links; reject duplicates, retries, stale quantities and simultaneous returns that together exceed issued quantity. Original Material Issue stays intact. Return cancellation and reversal permissions remain undecided. Documentation approval does not authorize application posting changes or DEVELOPMENT/PRODUCTION operations.
+
 ## Owner-approved return-condition / quarantine rule — 2026-10-17
 
 **Owner decision approved:** Direct restoration to **available stockroom inventory** through the usual Option A accepted return is allowed **only for unused, serviceable, identifiable material** from the correct company/source, after authorized Stockroom Personnel physical inspection and independent supervisor approval/submission. An approved and actually submitted return may use the previously approved original issued-cost accounting basis, subject to the original expense account/Equipment/beneficiary Department and actual GL/SLE reconciliation gates.
