@@ -44,3 +44,30 @@ Result: **Ran 39 tests — OK (39/39 passing)**. Coverage includes default/consu
 4. Node/WebSocket live process routing, Python/RQ worker Redis routes, physical Redis and cross-environment separation remain **separate unapproved gates**. Any PRODUCTION read—even metadata-only—requires its own explicit scope. Material Issue SQL/callback/cache/recoverability review remains independent.
 
 **Status:** NEW STAGE A GITHUB-ONLY CANDIDATE + TESTS COMPLETE. **NOT STAGED. NOT EXECUTED.** No Material Issue write-then-rollback or permanent Stock Entry/SLE/GL posting permitted. PRODUCTION untouched.
+
+
+---
+
+## Final independent GitHub-only security and usefulness review — 2026-10-16
+
+**Decision: DEFER STAGING.** Owner approved **review only**, not Ubuntu staging, runtime execution, DEVELOPMENT/PRODUCTION Docker inspection, or code/test modification. This final assessment is based on static GitHub inspection of the candidate, 39-case synthetic suite, design, and tracked DEV Compose template. The prior **39/39 synthetic PASS** is not a live Docker result and was **not rerun** in this review.
+
+**Exact source reviewed:** script blob `d610b749eb212163ee08a99b314c143dad25453f`; offline tests blob `94727d1e727cbee18831bb72638d376c740b3f55`. The script and tests remain unchanged.
+
+### Findings by priority
+
+1. **BLOCKER — post-discovery metadata checks cannot enforce a no-foreign-object inspection boundary.** The script discovers IDs from `docker container ls` filtered on claimed Compose project/service labels, then invokes `docker inspect` on those IDs **before** checking the expected container name and metadata. Docker labels are not independently authenticated proof of origin. A mislabelled/substituted foreign container could be inspected before an eventual STOP. Therefore the script cannot substantiate an unconditional promise to inspect *only* actual DEV objects or never inspect a PRODUCTION object. A later implementation must establish a defensible pre-inspection DEV identity boundary or explicitly reduce the claimed guarantee; no broader Docker/PROD discovery is approved.
+2. **BLOCKER — unbounded child-output buffering.** `subprocess.run(..., stdout=subprocess.PIPE)` buffers all stdout in memory; `len(result.stdout) > 4096` is checked **after** the subprocess has finished. The 4 KB threshold is a *validation check*, **not** a capture-time memory bound. Existing mock tests supply oversized completed results, not a bounded streaming or adversarial high-volume subprocess test. Fix before exposing the shared Ubuntu host to a future diagnostic.
+3. **MATERIAL — Docker template/runtime shape unverified.** The success fixtures exactly reproduce the candidate's assumed `docker inspect --format` output: six JSON fields plus one network-attachment line. The tests do not execute real Docker Go-template parsing or verify actual host Docker version, `--no-trunc`, `HostConfig.NetworkMode`, newline behavior, or network attachment output. A format mismatch may safely STOP but give negligible diagnostic evidence.
+4. **MATERIAL — strict network/container-name assumptions may STOP on valid DEV.** Exact container names `frappe_docker_devcontainer-{frappe,redis-cache,redis-queue}-1`, sole attachment to `frappe_docker_devcontainer_default`, and an identical NetworkMode are assumptions from tracked template conventions, **not observed running REDIS service identities**. Do not relax/fallback to broad Docker discovery without a separately approved design.
+5. **MATERIAL — operator executable provenance is not bounded.** The script resolves `id`, `docker`, and `python3` through inherited `PATH`; the existing mocked PATH tests demonstrate substitution is possible, **not** that an operator host PATH/binaries are trustworthy. A future delivery and execution review must check those assumptions as well as file ownership/SHA256, without accessing PROD.
+
+### What remains positive but limited
+
+The new approval guard rejects old tokens; selected Docker commands use narrow project/service label filters, exact-field formats, strict JSON/cardinality checks, two snapshot reads, suppressed raw errors and fixed output vocabulary. No SQL, Redis, site config, Node/RQ process, network-peer enumeration, pub/sub publication, Docker mutation or ERPNext transaction call is present in the reviewed source. Every outcome retains `NODE_ROUTE_UNVERIFIED`, `WORKER_ROUTE_UNVERIFIED`, `DEV_PROD_SEPARATION_UNVERIFIED`, and `POSTING_NO_GO`.
+
+**Usefulness:** At best, this tool could confirm three Compose-labelled running objects and certain DEV network metadata predicates at an instant. It does not prove Redis instance identity, actual worker/WebSocket transport, inter-project isolation, or reversible pre-COMMIT Redis/cache/pubsub effects. The present incremental value does **not** justify a staging cycle while blockers remain.
+
+**Next separate authorization gate:** Request a focused **GitHub-only revision and adversarial tests** addressing pre-inspection DEV scope and bounded subprocess output first. Also decide whether a truly useful DEV-only topology check can be made without observing non-DEV objects; verify Docker formatting/provenance from trusted sources before any future staging proposal. If absolute no-foreign inspection cannot be established, do not claim it. Revised code, its offline checks, and security review must precede any separately requested **staging-only** permission, followed by a distinct **one-shot DEV read-only execution** permission.
+
+**NO-GO:** Current Stage A script is **REVIEW-ONLY, NOT STAGED, NOT EXECUTED**. Material Issue write-then-rollback and permanent Stock Entry/SLE/GL remain **NO-GO**. No PRODUCTION interaction.
