@@ -43,7 +43,7 @@ def function(key, globals_=None):
     node = tree.body[0]
     assert node.name == record["fn"], key
     node.decorator_list = []  # avoid executing any framework decorator
-    names = {"__name__": "ccpc_synthetic_source_excerpts"}
+    names = {"__name__": "ccpc_synthetic_source_excerpts", "StockController": object}
     names.update(globals_ or {})
     exec(compile(ast.Module(body=[node], type_ignores=[]), "<pinned-%s>" % key, "exec"), names)
     return names[node.name]
