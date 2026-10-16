@@ -36,7 +36,6 @@ BANNED_AST = (ast.Import, ast.ImportFrom, ast.Global, ast.Nonlocal, ast.AsyncFun
 class FixtureIntegrityError(ValueError):
     """Fail-closed, optimization-independent fixture or AST validation error."""
 
-
 EXPECTED = {
     "ccpc_issue": "771d27781f8d933fd243415e8286976fbdd1a861",
     "stock_on_submit": "dfe6aeef0f76fbf76af8caeb787a321c773f2bbf",
@@ -139,6 +138,7 @@ def function(key, globals_=None):
     exec(compile(ast.fix_missing_locations(ast.Module(body=[node], type_ignores=[])),
                  "<pinned-offline:%s>" % key, "exec"), names)
     return names[node.name]
+
 
 class SourcePinnedReachability(unittest.TestCase):
     def test_01_pin_manifest_and_syntax(self):
