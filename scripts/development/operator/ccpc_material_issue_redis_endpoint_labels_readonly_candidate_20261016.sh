@@ -164,7 +164,8 @@ def compare_labels(isolated, shared, node_queue):
     isolated_values = tuple(isolated.values())
     shared_values = tuple(shared.values())
     if (isolated['redis_cache'] == isolated['redis_queue']
-            or bool(set(isolated_values) & set(shared_values))):
+            or bool(set(isolated_values) & set(shared_values))
+            or node_queue in (isolated['redis_cache'], shared['redis_cache'])):
         return 'OVERLAP_STOP'
     # The bench-level Node subscriber can consume from a site-specific queue;
     # that is NOT evidence of isolated WebSocket service or subscriber identity.
