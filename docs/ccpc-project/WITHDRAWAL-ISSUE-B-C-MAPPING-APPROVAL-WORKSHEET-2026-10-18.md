@@ -3,6 +3,14 @@
 **Prepared:** 2026-10-18. **Status: DRAFT FOR ACCOUNTING SIGN-OFF; NO MASTER MAPPINGS APPROVED HERE.**  
 **Scope:** Original controlled Withdrawal Slip → submitted Stock Entry `Material Issue`, downstream source-linked physical return design. **Not** an instruction to edit Company, Item, Item Group, Department, Cost Center, stock, GL, DEVELOPMENT or PRODUCTION.
 
+## Owner-approved G1–G3 design principles — actual Finance assignments and rows still pending
+
+On 2026-10-18 the owner expressly **APPROVED the G1–G3 design principles for a GitHub-only review**, as recorded in the [owner decision](WITHDRAWAL-B-C-G1-G3-DESIGN-OWNER-APPROVAL-2026-10-18.md). This approves (G1) independent preparer/Accounting approver design; (G2) immutable reviewed revisions with auditability and no retroactive posted-ledger rewrites; and (G3) positive explicit eligible signed C revision selection for multi-center Departments, with Slip-level choice as the starting *review design* and no implied Section financial-key rule.
+
+**Still not authorized:** specific mapped Companies/accounts/Cost Centers; actual named approvers or ERPNext roles, Company permissions and user grants; approval-state activation, effective-date/backposting cutoffs, live audit-event storage, G3 selector field/Section/key granularity and exception authority. **All blank B2/C1 Accounting crosswalk rows below remain TO BE PROVIDED / NOT APPROVED.**
+
+[App draft PR #18](https://github.com/ccpcerp/ccpcerp/pull/18) contains only pure G1–G3 policy functions with static unit test source, on top of unmerged draft PR #17. **No verified CI result for PR #18** and no live workflow, Stock Entry/GL integration or release approval.
+
 ## Accounting approval and multi-center selector design pending signoff
 
 A specific [maker–checker approval lifecycle, revision-effective-time and explicit beneficiary Cost Center selection proposal](WITHDRAWAL-B-C-ACCOUNTING-APPROVAL-AND-CENTER-SELECTION-DESIGN-2026-10-18.md) is ready for owner and Accounting review. **It is not approved**: no Accounting users/role permissions, activation/revocation method, audit-event storage, Cutoff timezone, Section policy, or selector field is authorized. The proposed model deliberately separates **one Department-only Center** from **multiple valid Center choice scopes**; the latter needs a distinct explicitly approved selection scope and positive choice of an eligible signed revision. The current PR17 design **still refuses all activation and explicit multi-Center scopes**.
