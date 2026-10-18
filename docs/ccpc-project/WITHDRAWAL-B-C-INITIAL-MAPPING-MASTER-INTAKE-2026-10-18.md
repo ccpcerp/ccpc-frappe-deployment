@@ -1,5 +1,21 @@
 # CCPC Withdrawal Slip B/C — Initial Accounting Mapping Master Intake
 
+## DEVELOPMENT verification of Account 5149 and reported four Companies — read-only UI procedure
+
+**2026-10-18 continuation:** User asked to continue after requesting `5149 - Laboratory Supplies - CCPC` as a candidate label and recalling four Companies configured in DEVELOPMENT. No connected ERPNext DEVELOPMENT session, independently verified target URL, Company master export, or Account master export is available to this conversation; GitHub source is authoritative for code/checkpoints **but not proof of current database rows**.
+
+A new **conversation-only** workbook `CCPC_BC_Financial_Mapping_DEV_5149_Verification_2026-10-18.xlsx` preserves the earlier CCPC-name shortlist and 11 existing review sheets and adds **`DEV 5149 Check`** as sheet 12. Its Company 1–4 exact-name fields, Account number/ID/name/Company/root_type/account_type/is_group/disabled fields, evidence source and reviewed-at fields are **all blank**, status **NOT VERIFIED**. The formula compares the eventual exact `Account.name` to proposed `5149 - Laboratory Supplies - CCPC` but is only an evidence cue, never mapping approval. Workbook checking shows `PENDING ACCOUNT EXPORT` and `PENDING COMPANY LIST` with blank source cells; no workbook formula errors. No live database action.
+
+**User can collect evidence via ERPNext Desk, read-only, in this precise order:**
+
+1. **Confirm the current browser session is DEVELOPMENT** using a known verified DEV environment address/identity before opening records. If environment identity is uncertain, **STOP**; do not use the shared PRODUCTION site merely because the login or company names look similar.
+2. In DEVELOPMENT **Company List**, record the count and **exact `Company.name`** of the observed Companies (owner recalls four; do not invent names or require it to be four).
+3. In DEVELOPMENT **Account List** (or Chart of Accounts with Company scoped), search/filter by **Account Number `5149`**; Company scope must be explicit if the number is reused in other Companies. Open the actual Account record without editing it. Copy only `name` (exact document identifier), `account_number`, `account_name`, `company`, `root_type`, `account_type`, `is_group`, `disabled` and source evidence date. UI labels may vary; use Data Export read-only if necessary.
+4. Upload a screenshot or minimal read-only export to the **controlled conversation**, rather than a public GitHub issue. No credentials, tax IDs, payroll, accounting ledger balances or business transaction records are requested. Do not click **Save, Rename, Import or Delete**.
+5. If the actual Account title differs from the proposed suffix, **record the difference**; do not immediately rename or auto-merge/activate financial mappings. Check transaction dependencies and separate explicit authorization before any master data change.
+
+**Existing authorization boundary:** owner has approved G1–G3 architecture/design principles only and provisionally offered to act as initial approver, with maker-checker independent review still required. **No verified exact Account master, approved Item Group→Account financial assignment, role grant, DEVELOPMENT pull, or PRODUCTION operation.** `POSTING_NO_GO / PRODUCTION NO-GO / DEV_TARGET_ORIGIN_UNKNOWN_STOP`.
+
 ## Owner-directed CCPC suffix for 5149 — proposed workbook label only
 
 **Owner instruction, 2026-10-18:** “put CCPC on it cause theres four company listed and i think this record was already set up before in the development site including the four company.” In context this refers to the discrepancy between the user-pasted Chart of Accounts entry `5149 - Laboratory Supplies` (no suffix) and the CCPC-specific naming convention. **Changed the PRELIMINARY SHORTLIST label to `5149 - Laboratory Supplies - CCPC`**, as requested, within an updated **conversation-only** Excel review workbook `CCPC_BC_Financial_Mapping_CCPC_Naming_Review_2026-10-18.xlsx`.
