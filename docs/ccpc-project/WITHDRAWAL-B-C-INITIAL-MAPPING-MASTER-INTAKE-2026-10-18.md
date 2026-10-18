@@ -1,5 +1,13 @@
 # CCPC Withdrawal Slip B/C — Initial Accounting Mapping Master Intake
 
+## Owner-directed CCPC suffix for 5149 — proposed workbook label only
+
+**Owner instruction, 2026-10-18:** “put CCPC on it cause theres four company listed and i think this record was already set up before in the development site including the four company.” In context this refers to the discrepancy between the user-pasted Chart of Accounts entry `5149 - Laboratory Supplies` (no suffix) and the CCPC-specific naming convention. **Changed the PRELIMINARY SHORTLIST label to `5149 - Laboratory Supplies - CCPC`**, as requested, within an updated **conversation-only** Excel review workbook `CCPC_BC_Financial_Mapping_CCPC_Naming_Review_2026-10-18.xlsx`.
+
+**Provenance preserved:** `Chart Snapshot` continues to show original pasted `5149 - Laboratory Supplies`, while `Expense Review Shortlist` separately displays the CCPC proposed label and a dedicated original-source column. The workbook's `START HERE` and Company/intake notes say the owner **reports** that four Companies were already configured in DEVELOPMENT; this is NOT independently verified in any current DEVELOPMENT site. It remains scoped solely to **Cagayan Corn Products Corporation (CCPC)**. Do not treat the name with suffix as the actual ERPNext `Account.name` until an authorized read-only DEV `Account`/Company export or equivalent exact master verification confirms it. Do not infer any other Company or Account name.
+
+**No live change or financial approval:** B/C mapping proposal rows, source master tabs and approval log remain blank; the Account has **not** been renamed on DEVELOPMENT or PRODUCTION; no Stock Entry, DocType, Company or general-ledger change occurred. Excel formula error scan was clear after workbook export. `POSTING_NO_GO / PRODUCTION NO-GO / DEV_TARGET_ORIGIN_UNKNOWN_STOP`.
+
 **Prepared:** 2026-10-18 (Asia/Manila). **Status:** READ-ONLY MASTER COLLECTION / REVIEW WORKBOOK PREPARED. **No real CCPC financial mapping row is populated, approved, or activated.** `POSTING_NO_GO / PRODUCTION NO-GO / DEV_TARGET_ORIGIN_UNKNOWN_STOP`.
 
 ## Owner instruction and bounded progress
