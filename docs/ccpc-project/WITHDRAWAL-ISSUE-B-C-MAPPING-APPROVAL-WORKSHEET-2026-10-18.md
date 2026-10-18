@@ -3,6 +3,14 @@
 **Prepared:** 2026-10-18. **Status: DRAFT FOR ACCOUNTING SIGN-OFF; NO MASTER MAPPINGS APPROVED HERE.**  
 **Scope:** Original controlled Withdrawal Slip → submitted Stock Entry `Material Issue`, downstream source-linked physical return design. **Not** an instruction to edit Company, Item, Item Group, Department, Cost Center, stock, GL, DEVELOPMENT or PRODUCTION.
 
+## Owner approval: controlled, versioned B/C mapping arrangement (2026-10-18)
+
+The project owner **approved the controlled, versioned, company-scoped CCPC accounting mapping arrangement**. [Authoritative architecture decision and its exact boundary](WITHDRAWAL-ISSUE-B-C-VERSIONED-MAPPING-ARCHITECTURE-APPROVED-2026-10-18.md).
+
+- **Approved architectural choice:** B and C allocations must be based on explicit, approved, versioned CCPC-controlled mapping records, with suitable audit history and fail-closed missing/ambiguous selection. Do **not** treat standard ERPNext account or Cost Center defaults as approved simply because they are populated.
+- **Not approved by this architecture decision:** actual Company/category→Expense Account rows, Company/beneficiary Department→Cost Center rows, category precedence, Section/selector, exact mapping DocTypes/field schema, permission/approval workflow, role assignments, effective-time semantics, exceptions, migration, application posting integration or site deployment.
+- The blank B/C rows in sections 1–2 below **still require Accounting approval**. The [B/C implementation readiness record](WITHDRAWAL-ISSUE-B-C-IMPLEMENTATION-READINESS-AND-APPROVAL-GATE-2026-10-18.md) now treats the architecture as selected and keeps detailed BC1 schema/governance choices open.
+
 ## Latest joint A+D review and B/C readiness (2026-10-18)
 
 - [Joint app draft PR #16](https://github.com/ccpcerp/ccpcerp/pull/16) at `827993e45ae9321e7a936f48f7fc3b17bf842099` reconciles PR #14's beneficiary Department with PR #15's Equipment-at-issue snapshots; all four isolated regression groups passed **72 mocked + 13 real Accounting/GL + 12 mocked Equipment + 13 real Equipment/SLE/GL tests**. **This is not evidence of approved Company/category expense-account or beneficiary Department→Cost Center mapping.** PR #16 remains draft/unmerged.
@@ -45,7 +53,7 @@ Accounting decision points:
 
 ## 3. Implementation choices requiring separate owner/Accounting sign-off
 
-- **Mapping authority/storage:** existing master defaults versus a dedicated CCPC controlled mapping DocType/record; ownership, permission model, effective-dating and change audit; whether any migration is needed. **No choice made.**
+- **Mapping authority/storage:** **owner approved the controlled, versioned CCPC company-scoped mapping arrangement** rather than implicit ERPNext default selection. **Still to approve:** exact record/DocType schema, revision and approval lifecycle, roles/permissions, effective-dating semantics, migration impact and how any approved native master reference is validated. See [architecture decision](WITHDRAWAL-ISSUE-B-C-VERSIONED-MAPPING-ARCHITECTURE-APPROVED-2026-10-18.md).
 - **Snapshot and enforcement:** for each line resolve approved account and Cost Center before issue insert; store on Stock Entry Detail; at `before_submit` resolve/revalidate against the locked source and approved effective mapping; reject user-forged or cleared rows and mismatched source. Require actual GL debit to carry approved expense Account, Cost Center and Decision A Department. Avoid permission escalation to edit financial selections.
 - **Locking and change safety:** detect mapping changes between issue construction and submission; define whether approval records are immutable once referenced or versioned; preserve original actually **posted** account/center for later physical-return expense credit even if current mapping changes.
 - **Exceptions:** Accounting-approved review/override trail, scope and authorized users; no arbitrary correction account, custom duplicate GL posting, or historical backfill without separately approved design.
@@ -63,4 +71,4 @@ Accounting decision points:
 
 **BLOCKED — POSTING_NO_GO / PRODUCTION NO-GO / DEV_TARGET_ORIGIN_UNKNOWN_STOP.**
 
-No CCPC-specific Account or Cost Center values have been independently supplied, verified against live ERPNext masters, or authorized in this worksheet. Do not mark the accounting controls implemented from policy approval alone. **Next action:** Accounting supplies signed Company/category → Account and Company/beneficiary Department → Cost Center crosswalks plus the authoritative selector/storage choice; then implement exact fail-closed controls on a separate reviewed GitHub branch, run disposable Frappe/MariaDB GL tests, and plan DEVELOPMENT validation after target/backup checks. PRODUCTION requires separate explicit authorization.
+No CCPC-specific Account or Cost Center values have been independently supplied, verified against live ERPNext masters, or authorized in this worksheet. Do not mark the accounting controls implemented from policy approval alone. **Next action:** The owner-approved **controlled/versioned mapping architecture** now governs the approach. Accounting still must supply signed Company/category → Account and Company/beneficiary Department → Cost Center crosswalks, category/Section/selector rules and the detailed controlled mapping schema/permissions/revision workflow. Only after those separately reviewed approvals implement exact fail-closed controls on a GitHub review branch, run disposable Frappe/MariaDB GL tests, and plan DEVELOPMENT validation after target/backup checks. PRODUCTION requires separate explicit authorization.
