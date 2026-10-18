@@ -19,7 +19,7 @@
 
 ## Pending decisions
 
-**Decision B:** Exact approved company/item-category original expense-account mapping and whether a missing account should prohibit posting instead of falling back to the generic Stock Adjustment Account.
+**Decision B — OWNER-APPROVED POLICY (2026-10-18), MAPPING STILL PENDING:** Require an approved company/material-category expense account before Material Issue posting; block missing/ambiguous/invalid accounts rather than silently using the Stock Adjustment Account. The Stock Adjustment Account is permissible only with explicit accounting approval for the purpose. Actual CCPC account numbers and mappings are still undecided. See [Decision B checkpoint](WITHDRAWAL-ISSUE-ACCOUNTING-DECISION-B-APPROVED-2026-10-18.md).
 
 **Decision C:** Authorized company-specific beneficiary Department-to-Cost-Center mapping, missing/multiple-center handling and master-data strategy.
 
