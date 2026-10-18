@@ -3,6 +3,12 @@
 **Prepared:** 2026-10-18. **Status: DRAFT FOR ACCOUNTING SIGN-OFF; NO MASTER MAPPINGS APPROVED HERE.**  
 **Scope:** Original controlled Withdrawal Slip → submitted Stock Entry `Material Issue`, downstream source-linked physical return design. **Not** an instruction to edit Company, Item, Item Group, Department, Cost Center, stock, GL, DEVELOPMENT or PRODUCTION.
 
+## Detailed schema proposal ready for review (2026-10-18)
+
+The [specific B/C mapping schema and transaction-control design proposal](WITHDRAWAL-ISSUE-B-C-MAPPING-SCHEMA-AND-CONTROL-DESIGN-PROPOSAL-2026-10-18.md) is now available for owner/Accounting review. **Proposed, NOT APPROVED:** four logical DocTypes (two unique stable mapping scopes plus immutable B/C revision records), per-company Account/Cost Center eligibility, audited approvals, effective intervals, overlap checks under scope-row locks, selected revision IDs on original issue rows, and before-submit anti-forgery revalidation.
+
+**Proposed but NOT APPROVED choices:** use exact Item Group as material-category authority without automatic parent inheritance; explicitly select a specific signed C revision if multiple Cost Centers apply; decide whether `work_for_section` is a selection key and enforce appropriate locking only if it is approved. The document includes a review checklist for schema, permissions, effective timestamps, exceptions and cutover. **The real B/C mapping tables in this worksheet remain blank and unsigned.**
+
 ## Owner approval: controlled, versioned B/C mapping arrangement (2026-10-18)
 
 The project owner **approved the controlled, versioned, company-scoped CCPC accounting mapping arrangement**. [Authoritative architecture decision and its exact boundary](WITHDRAWAL-ISSUE-B-C-VERSIONED-MAPPING-ARCHITECTURE-APPROVED-2026-10-18.md).
