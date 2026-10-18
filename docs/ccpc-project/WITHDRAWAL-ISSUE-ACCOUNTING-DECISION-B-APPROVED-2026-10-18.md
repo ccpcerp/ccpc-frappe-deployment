@@ -13,7 +13,7 @@
 ## Not yet approved or verified
 
 - Exact CCPC Company/item/material-category account numbers and mapping authority, including whether Item or Item Group defaults are approved masters; exception reviewer; any schema or master-data changes; history corrections.
-- **Decision C**: official Company and beneficiary Department to Cost Center mapping, including missing/multiple-center cases; **Decision D**: whether Equipment is a GL Accounting Dimension or immutable operational cost tag.
+- **Decision C — OWNER-APPROVED SAFEGUARD (2026-10-18):** The beneficiary Department must resolve to an approved Company-specific Cost Center; multiple valid centers require explicit validated selection; missing/ambiguous mappings must block posting. **Exact Department-to-Cost-Center mappings and mapping master-data design are still pending.** See [Decision C checkpoint](WITHDRAWAL-ISSUE-ACCOUNTING-DECISION-C-APPROVED-2026-10-18.md). **Decision D remains undecided:** whether Equipment is a GL Accounting Dimension or immutable operational cost tag.
 - Actual CCPC DEVELOPMENT/PRODUCTION account and Accounting Dimension configurations, plus stock valuation and GL correction behavior for original-cost physical Material Receipts.
 
 ## Verification and safety status
