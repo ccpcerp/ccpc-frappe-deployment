@@ -1,5 +1,11 @@
 # CCPC Withdrawal Slip Material Issue — Decisions B/C Accounting mapping approval worksheet
 
+## Open Accounting signoff tracker — GitHub Issue #25
+
+[**Issue #25: B/C Accounting authority, effective rules, explicit Center selection and signed mappings**](https://github.com/ccpcerp/ccpc-frappe-deployment/issues/25) is the **OPEN** tracked gate for unresolved G1 role/Company/user authority, G2 activation/cutover/retrospective posting/effective-time and revocation policy, G3 Slip-or-line center choice and Section behavior, and actual G4 Company/leaf Item Group→Expense Account and Company/beneficiary Department→Cost Center approved crosswalks. Opening the issue is **not** Accounting approval and does not supply mapping rows. Keep any sensitive real business data/identities in appropriately access-controlled records; do not include credentials, production exports, or unreviewed private data in issue comments.
+
+**Next authorization boundary:** signed exact Accounting decisions, approval actors, mapping exceptions and financial masters must be verified before approval transitions, selector hookup or Stock Entry/GL posting logic is enabled. **POSTING_NO_GO / PRODUCTION NO-GO / DEV_TARGET_ORIGIN_UNKNOWN_STOP.**
+
 **Prepared:** 2026-10-18. **Status: DRAFT FOR ACCOUNTING SIGN-OFF; NO MASTER MAPPINGS APPROVED HERE.**  
 **Scope:** Original controlled Withdrawal Slip → submitted Stock Entry `Material Issue`, downstream source-linked physical return design. **Not** an instruction to edit Company, Item, Item Group, Department, Cost Center, stock, GL, DEVELOPMENT or PRODUCTION.
 
