@@ -1,6 +1,6 @@
 # Withdrawal Slip issue accounting — source verification and proposed allocation decisions
 
-**Date:** 2026-10-18. **State:** BENEFICIARY DEPARTMENT PRECEDENCE (DECISION A) OWNER APPROVED 2026-10-18; EXPENSE ACCOUNT, COST CENTER, EQUIPMENT GL TREATMENT (DECISIONS B–D) REMAIN PROPOSED AND UNAPPROVED. **No code, ERPNext role, master-data or deployed-site changes are authorized by this document.**
+**Date:** 2026-10-18. **State:** DECISIONS A (BENEFICIARY DEPARTMENT) AND B (EXPENSE-ACCOUNT VALIDATION) OWNER APPROVED AS BUSINESS POLICY; DECISIONS C (COST CENTER MAPPING) AND D (EQUIPMENT GL TREATMENT) REMAIN PROPOSED AND UNAPPROVED. Exact account numbers/mappings and Accounting exceptions remain unapproved. **No code, ERPNext role, master-data or deployed-site changes are authorized by this document.**
 
 ## Purpose and tested evidence
 
@@ -22,11 +22,11 @@ Pinned [ERPNext v16 Stock Entry defaults](https://github.com/frappe/erpnext/blob
 
 **OWNER APPROVED (2026-10-18):** The entire Decision A beneficiary-selection policy above, including precedence, Equipment fallback, mandatory conflict review and blocking when neither source establishes the beneficiary. Only business policy was approved; no financial posting implementation, configured roles, authorization-exception process or ERPNext site change has been approved. Conflicts require a separately authorized, audited resolution procedure before posting. Proceed to Decisions B–D for accounting review.
 
-## Decision B — original expense account (PROPOSED CONTROL, MAPPING NOT YET PROVIDED)
+## Decision B — original expense account (OWNER APPROVED 2026-10-18; EXACT MAPPING AND IMPLEMENTATION PENDING)
 
 Do **not** invent a CCPC consumption account or silently adopt the generic `Stock Adjustment` account solely because native ERPNext returns one. Accounting must supply/confirm the permissible **expense-account mapping by company and item/material category** (possibly approved Item/Item Group defaults), including active account type, expected P&L treatment, handling different businesses and exceptions. Preserve the **actual posted original expense account** on the source voucher for return GL reversal; do not recalculate later using changed default accounts. Missing/ambiguous or non-expense account mapping should stop the new controlled issue workflow, subject to accounting-approved treatment.
 
-**Not decided:** Exact account numbers/names, whether current Item/Item Group defaults are authoritative, grandfathering and correction of past issues. No historical financial adjustments authorized.
+**OWNER APPROVED (2026-10-18):** For every controlled original Material Issue, resolve to an **approved, valid expense account for its Company and material/item category**. Do not silently accept an unrelated ERPNext generic **Stock Adjustment Account** fallback; allow that specific account only when it is explicitly approved for the corresponding material/category and company. If the account is missing, ambiguous, inactive, unsuitable for the intended expense posting, or cannot be verified against the approved mapping, **block posting and route for accounting review** instead of substituting a guessed/default account. Retain the original actually posted expense account for any later linked Material Receipt/reversal. This approves the business validation policy, **not** any specific CCPC chart-of-accounts account, Item/Item Group precedence, mapping table/schema, exception authority, historical correction, application posting change or live permission/configuration change. **Still undecided:** exact approved account numbers/names and account-category mappings, whether any existing Item/Item Group defaults are authoritative, approved exception procedure and treatment of past issues. No historical financial adjustments authorized.
 
 ## Decision C — beneficiary Cost Center (PROPOSED CONTROL, MAPPING NOT YET PROVIDED)
 
@@ -50,4 +50,4 @@ Option A's accepted partial returns must refer to the exact original submitted i
 - Test true SLE/Bin/GL valuation and duplicate issue prevention, permissions, rollback, concurrent issue, later material return and cancellation with **same original** source accounting. Do not treat mocks as real database evidence.
 - Keep [draft PR #14](https://github.com/ccpcerp/ccpcerp/pull/14) **unmerged**; preserve its intentionally failing regression until allocation policy is approved and the implementation is tested.
 
-**Current status:** TEST-ONLY DIAGNOSIS COMPLETE. **Decision A owner-approved as business policy, not implemented or tested as posting behavior.** Decisions B–D still require owner/accounting determination, exact CCPC configured mappings remain unverified. No application ledger-posting change authorized; no deployment/DB/role/account master-data changes. **POSTING_NO_GO / PRODUCTION NO-GO / DEV_TARGET_ORIGIN_UNKNOWN_STOP.**
+**Current status:** TEST-ONLY DIAGNOSIS COMPLETE. **Decisions A and B are owner-approved business policies, not implemented or tested as posting behavior.** Exact expense-account mappings and accounting exceptions remain unapproved; Decisions C and D still require owner/accounting determination, and CCPC deployed mappings remain unverified. No application ledger-posting change authorized; no deployment/DB/role/account master-data changes. **POSTING_NO_GO / PRODUCTION NO-GO / DEV_TARGET_ORIGIN_UNKNOWN_STOP.**
