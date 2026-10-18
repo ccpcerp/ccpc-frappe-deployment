@@ -31,4 +31,4 @@
 - Signed B2 Company/exact leaf Item Group→Expense Account and C1 Company/beneficiary Department→Cost Center rows in [blank B/C worksheet](WITHDRAWAL-ISSUE-B-C-MAPPING-APPROVAL-WORKSHEET-2026-10-18.md); none supplied or inferred.
 - Review/merge of dependent drafts, independently verified DEVELOPMENT target/origin/dirty work/backups and explicit separate PRODUCTION approval. No automatic Codex reporter, personal notes, deployment, or posting.
 
-**Next safe step:** Obtain reviewed static-unit execution for PR18 and exact Banking/Accounting approval identity/Company scope decisions; only then design secure server-side workflow/selection integration, separately test it with synthetic real Frappe/ERPNext/MariaDB stock/GL cases and obtain release permission.
+**Next safe step:** Obtain reviewed static-unit execution for PR18 and exact Finance/Accounting approval identity/Company scope decisions; only then design secure server-side workflow/selection integration, separately test it with synthetic real Frappe/ERPNext/MariaDB stock/GL cases and obtain release permission.
