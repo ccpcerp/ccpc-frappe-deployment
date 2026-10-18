@@ -1,0 +1,53 @@
+# Withdrawal Slip issue accounting — source verification and proposed allocation decisions
+
+**Date:** 2026-10-18. **State:** TECHNICAL REVIEW COMPLETE; ACCOUNTING RULES PROPOSED ONLY; NOT OWNER/ACCOUNTING-APPROVED. **No code, ERPNext role, master-data or deployed-site changes are authorized by this document.**
+
+## Purpose and tested evidence
+
+The owner previously approved physical returns under Option A: the original Material Issue must charge the **original Equipment and actual beneficiary Department**, and a later independently approved linked Material Receipt must reduce the **same original expense account, dimensions and valuation basis**. An incorrect original issue allocation would also contaminate the reversal target; therefore issue allocation is a prerequisite.
+
+GitHub source: [CCPC issue builder `_build_material_issue`](https://github.com/ccpcerp/ccpcerp/blob/review/withdrawal-issue-accounting-ci-2026-10-17/ccpcerp/ccpc_erp/withdrawal_slip_stock.py) sets item, warehouse, amount, provenance and Equipment where fields exist; it **does not set** `department`, `expense_account` or `cost_center` on an issue row. [Withdrawal Slip](https://github.com/ccpcerp/ccpcerp/blob/review/withdrawal-issue-accounting-ci-2026-10-17/ccpcerp/ccpc_erp/doctype/withdrawal_slip/withdrawal_slip.py) distinguishes requesting `department` from beneficiary `work_for_department`; when Equipment is supplied, the current form defaults a missing work-for Department from `Equipment Registry.department`. A filled work-for Department is **not overwritten** by the equipment default. There is no verified master-data crosswalk between Department and Cost Center in the current inspected CCPC builder/setup.
+
+Pinned [ERPNext v16 Stock Entry defaults](https://github.com/frappe/erpnext/blob/5af6561f5aa48104559692fb4fd82f2580e8d338/erpnext/stock/doctype/stock_entry/stock_entry.py) use the Item's company-specific expense account or Item Group account, then the Company's **Stock Adjustment Account** when absent; cost center is derived via `get_default_cost_center` from item/group/brand/company defaults. This generic native fallback is **not evidence that CCPC's intended expense category and beneficiary Department Cost Center are selected**. Native [GL stock-account logic](https://github.com/frappe/erpnext/blob/5af6561f5aa48104559692fb4fd82f2580e8d338/erpnext/controllers/stock_controller.py) charges the item-row expense account/Cost Center using the actual SLE valuation difference; [`get_gl_dict`](https://github.com/frappe/erpnext/blob/5af6561f5aa48104559692fb4fd82f2580e8d338/erpnext/controllers/accounts_controller.py) propagates **active configured** dimensions from header/row.
+
+**Actual test outcome, NOT production claim:** On the disposable synthetic CI site, Department is active, but the **CCPC-linked Material Issue** has no Department on header/row/expense GL. An independent **native Material Issue with beneficiary Department explicitly populated passes** the real GL Department test. [Run 39085044119](https://github.com/ccpcerp/ccpcerp/actions/runs/39085044119): 72/72 mocked + 8/9 real MariaDB/ERPNext tests passed, overall **FAILED** by the deliberately strict CCPC issue-attribution assertion. No installed CCPC DEVELOPMENT/PRODUCTION accounting setup has been checked; Equipment was not configured as GL dimension in this CI site.
+
+## Decision A — beneficiary Department precedence (PROPOSED, NOT APPROVED)
+
+1. The **actual beneficiary** is `work_for_department` when explicitly recorded and validated for the correct company. This is **not** the Slip's `department` unless it is in fact the beneficiary.
+2. When `work_for_department` is missing but a valid Equipment Registry record exists, propose `Equipment Registry.department` as the initial beneficiary. The existing Slip logic often fills this automatically; account for old records and missing fields separately.
+3. When both explicit `work_for_department` and Equipment Registry Department are present but differ, **stop automatic posting for a documented authorized review**. Do not silently override either with the requesting Department or Equipment field.
+4. When neither beneficiary source exists, **do not silently charge the requester**. Require a positively identified, validated beneficiary Department, or accounting-approved exception. A prefilled requestor Department is not a substitute for confirmation.
+5. Validate company ownership, active leaf Department, and immutable approved source intent; snapshot the resolved Department onto the submitted issue detail/header where the active Accounting Dimension is supported. If the required dimension is not configured, stop for configuration review rather than claim correct GL attribution.
+
+**Owner decision needed:** Approve/revise the precedence and mismatch/fallback handling before changing the posting builder.
+
+## Decision B — original expense account (PROPOSED CONTROL, MAPPING NOT YET PROVIDED)
+
+Do **not** invent a CCPC consumption account or silently adopt the generic `Stock Adjustment` account solely because native ERPNext returns one. Accounting must supply/confirm the permissible **expense-account mapping by company and item/material category** (possibly approved Item/Item Group defaults), including active account type, expected P&L treatment, handling different businesses and exceptions. Preserve the **actual posted original expense account** on the source voucher for return GL reversal; do not recalculate later using changed default accounts. Missing/ambiguous or non-expense account mapping should stop the new controlled issue workflow, subject to accounting-approved treatment.
+
+**Not decided:** Exact account numbers/names, whether current Item/Item Group defaults are authoritative, grandfathering and correction of past issues. No historical financial adjustments authorized.
+
+## Decision C — beneficiary Cost Center (PROPOSED CONTROL, MAPPING NOT YET PROVIDED)
+
+Native ERPNext `Department` and `Cost Center` are separate doctypes; standard Department JSON does **not** define a built-in `cost_center` field, nor does this CCPC issue builder provide an explicit Department-to-Cost-Center mapping. Accounting must approve a **company-scoped beneficiary Department → active, non-group Cost Center** crosswalk (and Section mapping if needed). Do not guess from name similarity or silently charge the Company's global default. Validate that the resolved Cost Center belongs to the issue company and is suitable for posting. Multiple legitimate Cost Centers under a Department need a defined selector and audit trail, not an arbitrary first-match.
+
+**Not decided:** Whether to store mappings on Department, a dedicated CCPC configuration DocType, or standard supported ERPNext defaults; actual company/Department/Centers and Section policy are unverified.
+
+## Decision D — Equipment attribution (PROPOSED, CONFIGURATION NOT APPROVED)
+
+Equipment is a custom CCPC operational dimension on some vouchers. In the isolated site, it was **not** an active ERPNext GL Accounting Dimension. Choose whether to use Equipment for operational per-equipment cost reporting with immutable Stock Entry detail links only, or add a formally configured Equipment GL Accounting Dimension after assessing schema, indexes, migration, all voucher types, and reporting impact. Do not assume an Equipment field on Stock Entry guarantees Equipment on GL. Whatever reporting design is selected, preserve exact original Equipment provenance for later physical returns.
+
+## Decision E — return source snapshot, cancellation and legacy exceptions (OWNER PRINCIPLE APPROVED, IMPLEMENTATION PENDING)
+
+Option A's accepted partial returns must refer to the exact original submitted issue item, use the **original posted unit valuation basis**, and credit **the original issue's actual expense account, Cost Center, beneficiary Department and relevant Equipment accounting attribution**—not current defaults. Original issue survives; unrelated returns are untouched. No expense/stock effect until a valid independently approved return receipt is submitted. A mistaken return cancellation reverses only its linked receipt with audit history. If original issue lacks an authorized account/dimension or stock value differs due to native valuation, **stop and route to accounting**; no arbitrary compensating GL or guessed rate. Historical issues are not automatically rewritten. These are tests/design gates, not proven live ERPNext return behavior.
+
+## Proposed test and configuration verification gates before a real posting fix
+
+- Confirm active `Accounting Dimension` definitions on the **intended authorized DEVELOPMENT target**, user role assignments, real approved company accounts, item defaults, Department-to-Cost-Center crosswalk, and real Equipment GL configuration **using read-only inspection** before deciding migrations or edits. Do not proceed while `DEV_TARGET_ORIGIN_UNKNOWN_STOP` remains.
+- Test a requester Department different from the Equipment/beneficiary Department; reject unresolved/mismatched beneficiary records; validate disabled/cross-company/group Department, missing Equipment and cross-company Cost Center; assert submitted issue **item/header and expense GL** account, Cost Center and Department all equal approved mappings.
+- Test item-level default fallbacks: item-specific, Item Group, company adjustment account, absent/invalid account, and multi-company isolation. Detect that a technically balanced GL entry can still be booked to the wrong beneficiary/cost account.
+- Test true SLE/Bin/GL valuation and duplicate issue prevention, permissions, rollback, concurrent issue, later material return and cancellation with **same original** source accounting. Do not treat mocks as real database evidence.
+- Keep [draft PR #14](https://github.com/ccpcerp/ccpcerp/pull/14) **unmerged**; preserve its intentionally failing regression until allocation policy is approved and the implementation is tested.
+
+**Current status:** TEST-ONLY DIAGNOSIS COMPLETE. Proposed decisions A–D require owner/accounting determination. No application ledger-posting change authorized; no deployment/DB/role/account master-data changes. **POSTING_NO_GO / PRODUCTION NO-GO / DEV_TARGET_ORIGIN_UNKNOWN_STOP.**
