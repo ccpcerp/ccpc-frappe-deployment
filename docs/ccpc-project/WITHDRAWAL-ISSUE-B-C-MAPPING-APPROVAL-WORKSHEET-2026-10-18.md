@@ -3,6 +3,12 @@
 **Prepared:** 2026-10-18. **Status: DRAFT FOR ACCOUNTING SIGN-OFF; NO MASTER MAPPINGS APPROVED HERE.**  
 **Scope:** Original controlled Withdrawal Slip → submitted Stock Entry `Material Issue`, downstream source-linked physical return design. **Not** an instruction to edit Company, Item, Item Group, Department, Cost Center, stock, GL, DEVELOPMENT or PRODUCTION.
 
+## Owner-approved schema review implemented as draft PR #17 (2026-10-18)
+
+The owner [approved the detailed four-DocType scope/revision design for inert GitHub review](WITHDRAWAL-ISSUE-B-C-SCHEMA-DESIGN-OWNER-APPROVAL-2026-10-18.md), including **exact leaf Item Group without automatic parent inheritance** and the rule that multiple eligible Centers require **positive, validated explicit approved C revision selection** (the actual Section/UI/selection authority remains unapproved). [App draft PR #17](https://github.com/ccpcerp/ccpcerp/pull/17) now holds four inactive, draft-only schema/controller definitions; see [PR17 review checkpoint](WITHDRAWAL-B-C-MAPPING-SCHEMA-GITHUB-REVIEW-CHECKPOINT-2026-10-18.md). The static schema run passed; disposable Frappe/MariaDB schema tests must be verified separately.
+
+**No actual Accounting crosswalk entries have been approved here.** All live Company/category→Account and Company/beneficiary Department→Center rows below stay **TO BE PROVIDED / NOT APPROVED**. PR #17 does not authorize material issue posting or DEVELOPMENT/PRODUCTION deployment.
+
 ## Detailed schema proposal ready for review (2026-10-18)
 
 The [specific B/C mapping schema and transaction-control design proposal](WITHDRAWAL-ISSUE-B-C-MAPPING-SCHEMA-AND-CONTROL-DESIGN-PROPOSAL-2026-10-18.md) is now available for owner/Accounting review. **Proposed, NOT APPROVED:** four logical DocTypes (two unique stable mapping scopes plus immutable B/C revision records), per-company Account/Cost Center eligibility, audited approvals, effective intervals, overlap checks under scope-row locks, selected revision IDs on original issue rows, and before-submit anti-forgery revalidation.
