@@ -1,5 +1,10 @@
 # CCPC Equipment issue-time snapshot — GitHub implementation checkpoint
 
+## Later verified continuation: snapshot-source report and forged voucher gates
+
+The source and testing limitations below describe the **earlier first paired-field milestone**. The [later report + forged direct-voucher checkpoint](EQUIPMENT-SNAPSHOT-REPORT-CUTOVER-AND-FORGED-VOUCHER-2026-10-18.md) now supersedes the interim statement that the read-only report still groups by mutable Withdrawal Slip Equipment. [App draft PR #15](https://github.com/ccpcerp/ccpcerp/pull/15) **head `7ef5299c368a0fe4ad8f458a9771eade5d52861f`** implements the original-snapshot report cutover with unmatched historic stock values visible in separate unattributed/exception groups. [Real disposable CI `39096282930`](https://github.com/ccpcerp/ccpcerp/actions/runs/39096282930) **13/13 PASS**, [mocked `39096282908`](https://github.com/ccpcerp/ccpcerp/actions/runs/39096282908) **12/12 PASS**. This is a gross-issue stock-cost baseline, NOT net maintenance cost, GL beneficiary/cost-center correctness or production authorization.
+
+
 **Date:** 2026-10-18. **User authorization:** Implement the approved paired issue-time Equipment fields, server-side validators, and rename safeguards **on an application GitHub review branch** with isolated, disposable ERPNext tests. **No historical submitted stock or GL backfill, actual site migration, permission changes, DEVELOPMENT pull or PRODUCTION operation approved.**
 
 ## GitHub application scope
