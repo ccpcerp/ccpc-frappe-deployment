@@ -1,0 +1,27 @@
+# CCPC Equipment issue-time snapshot — GitHub implementation checkpoint
+
+**Date:** 2026-10-18. **User authorization:** Implement the approved paired issue-time Equipment fields, server-side validators, and rename safeguards **on an application GitHub review branch** with isolated, disposable ERPNext tests. **No historical submitted stock or GL backfill, actual site migration, permission changes, DEVELOPMENT pull or PRODUCTION operation approved.**
+
+## GitHub application scope
+
+[Draft PR #15](https://github.com/ccpcerp/ccpcerp/pull/15), branch `review/equipment-maintenance-baseline-2026-10-18`, is still unmerged; independent accounting [draft PR #14](https://github.com/ccpcerp/ccpcerp/pull/14) original Material Issue beneficiary Department GL assertion is still unresolved. The code changes under review are:
+
+1. `ccpcerp/setup.py`: two **nullable**, read-only, no-copy, hidden custom child fields on `Stock Entry Detail`, `ccpc_equipment_at_issue` (Link → Equipment Registry) and `ccpc_equipment_code_at_issue` (Data preserving actual issue-time registry name/equipment number); existing idempotent `after_migrate` setup path; **no backfill**. Other stock-purpose vouchers and legitimate non-equipment issues do not get guessed Equipment values.
+2. `ccpcerp/ccpc_erp/withdrawal_slip_stock.py`: controlled original issue builder captures both fields per row and fails closed when reviewed metadata is absent. Normal `validate` and `before_submit` enforce exact pair correspondence with locked Withdrawal Slip Equipment, same-Company Equipment identity, row/header consistency where optional site-specific fields exist, and no substitution/clearing of previously saved source values. Equipment was added to the database-locked Slip comparison to prevent stale attribution.
+3. `ccpcerp/hooks.py`: `before_update_after_submit` source-immutability guard for submitted linked vouchers; does not create a new financial-posting workflow or change accounting mappings.
+4. `ccpcerp/ccpc_erp/doctype/equipment_registry/equipment_registry.py`: before Equipment rename, detect original submitted/cancelled Material Issue history through linked Withdrawal Slip even without optional original `equipment` columns, and separately through the new original Link/Data row fields. Normal Frappe Link rename can rewrite a Link column, so original-number Data and history-aware rename prevention must work together. Normal application control is **not** protection against privileged direct database mutation.
+5. `test_equipment_maintenance_real_integration.py` and the PR-only GitHub-hosted Frappe v16/MariaDB workflow: expand independent synthetic-site real checks from six to ten including metadata and actual issued source fields, mismatch rejection, legacy-source-only rename refusal and independent original code surviving bypassed Slip metadata. Mocked checks are separate.
+
+**Current status when first recorded:** The modified source files were read back from GitHub. CI run [`39094318174`](https://github.com/ccpcerp/ccpcerp/actions/runs/39094318174) is the source's isolated **real** test gate; companion [mocked run `39094318207`](https://github.com/ccpcerp/ccpcerp/actions/runs/39094318207) completed SUCCESS, but **a mocked pass is not a MariaDB/posting verification**. Check latest PR head SHA and real test logs before modifying this status or recommending merge.
+
+## Scope excluded / next review gates
+
+- The existing **read-only Equipment Maintenance Baseline report still groups via current `Withdrawal Slip.equipment`** and visibly states **PROVISIONAL**, even when the new original snapshot pair exists. The report must later be safely switched to canonical source snapshot, with explicit handling of unattributed/legacy submitted issue rows, rather than silently dropping their stock values.
+- New schema fields are **optional at the DB level** to avoid rewriting older Stock Entry Details. Old blank or conflicting records must remain classified as historical/evidence-needed; never automatically fill from current Slip, Equipment Registry, Job Order or Company defaults. No stock or GL changes are planned for historic rows.
+- Additional tests should exercise **actual forged direct-voucher submission**, hash/bypass attempts, failed-submit transaction rollback, missing/legacy/conflicting source, multi-company and error paths; this current suite's source-validation helper negatives are not yet proof of full malicious API rejection.
+- Actual DEVELOPMENT site identity, Git origin/status, custom fields, historical record counts, backups, user permissions, rollback and migration impacts have **not** been independently verified. None is authorized to change under this milestone.
+- Repair-vs-replace total costing still awaits approved return Material Receipts, expense account and beneficiary Cost Center mappings A–C, labor/service rates, downtime reliability inputs, strict duplicate prevention and real-site reconciliation. Do not describe a gross issue report as net lifetime cost.
+
+Read [approved schema/history review](EQUIPMENT-ISSUE-TIME-ATTRIBUTION-DESIGN-2026-10-18.md), [Equipment report tests checkpoint](EQUIPMENT-MAINTENANCE-BASELINE-REPORT-2026-10-18.md), and [GitHub-first workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md).
+
+**STOP GATES:** `POSTING_NO_GO / PRODUCTION NO-GO / DEV_TARGET_ORIGIN_UNKNOWN_STOP`. Draft PR #15 **is not approved for deployment** by this owner decision.
