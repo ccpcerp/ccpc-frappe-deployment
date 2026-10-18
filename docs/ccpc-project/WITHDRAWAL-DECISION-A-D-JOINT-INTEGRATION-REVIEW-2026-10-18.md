@@ -1,6 +1,6 @@
 # Withdrawal Slip original issue — Decision A + D joint integration draft review
 
-**Date:** 2026-10-18 (Asia/Manila). **Status:** GITHUB-ONLY DRAFT PR; EQUIPMENT MOCKED CI **12/12 PASS**, TWO GENUINE DISPOSABLE CI SUITES RUNNING AT LAST CHECK, NOT VERIFIED COMPLETE. **POSTING_NO_GO / PRODUCTION NO-GO / DEV_TARGET_ORIGIN_UNKNOWN_STOP.**
+**Date:** 2026-10-18 (Asia/Manila). **Status:** GITHUB-ONLY DRAFT PR; ALL THREE JOINT CI WORKFLOWS **COMPLETED SUCCESS** on exact PR #16 head, including 72/72 Withdrawal mocks, 13/13 real accounting/stock/GL, 12/12 Equipment mocks and 13/13 real Equipment SQL/SLE/GL/report tests. **NOT MERGED, NOT DEPLOYED. POSTING_NO_GO / PRODUCTION NO-GO / DEV_TARGET_ORIGIN_UNKNOWN_STOP.**
 
 ## GitHub authoritative sources and exact branches
 
@@ -18,14 +18,14 @@
 
 ## Verified CI status at latest review
 
-- [PR #16 mocked Equipment report Actions run 39100967202](https://github.com/ccpcerp/ccpcerp/actions/runs/39100967202): **COMPLETED SUCCESS, 12/12 mocked tests passed** (verified workflow job conclusion and log `Ran 12 tests ... OK`).
-- [PR #16 real Accounting attribution run 39100967156](https://github.com/ccpcerp/ccpcerp/actions/runs/39100967156): **IN PROGRESS** at last check; no claimed real ledger pass yet.
-- [PR #16 real Equipment report run 39100967357](https://github.com/ccpcerp/ccpcerp/actions/runs/39100967357): **IN PROGRESS** at last check; no claimed genuine snapshot+Department GL assertion pass yet.
-- All three runs originated from the integration source head `827993e45ae9321e7a936f48f7fc3b17bf842099`. Verify latest run/head again before release.
+- [PR #16 mocked Equipment report Actions run 39100967202](https://github.com/ccpcerp/ccpcerp/actions/runs/39100967202): **COMPLETED SUCCESS — 12/12 mocked** (job log: `Ran 12 tests ... OK`).
+- [PR #16 real Accounting attribution run 39100967156](https://github.com/ccpcerp/ccpcerp/actions/runs/39100967156): **COMPLETED SUCCESS — 72/72 mocked and 13/13 genuine disposable ERPNext v16/MariaDB/GL**. Log showed mocked module counts 37 + 17 + 18 and real `Ran 13 tests ... OK`. Actual beneficiary Equipment fallback, requester/beneficiary distinction, forged direct-voucher Department, conflict and missing beneficiary negative tests passed.
+- [PR #16 real Equipment report run 39100967357](https://github.com/ccpcerp/ccpcerp/actions/runs/39100967357): **COMPLETED SUCCESS — 13/13 genuine disposable ERPNext v16/MariaDB/SLE/GL/permission tests**. Log explicitly shows passing `test_real_new_issue_snapshot_pair_is_provisioned`, which now asserts immutable Equipment provenance and correct GL beneficiary Department **in the same submitted original issue**. Other report and source-integrity tests passed.
+- Verified the three independent workflow conclusions and test-count lines from GitHub job logs; all runs correspond to joint app draft PR #16 head `827993e45ae9321e7a936f48f7fc3b17bf842099`. **These pass results establish isolated review behavior only**; they do not approve CCPC financial master mappings, historical backfill, return posting, branch merge, DEVELOPMENT tests or PRODUCTION release.
 
 ## Review and acceptance gates
 
-- **Required CI pass on this specific branch/head:** accounting mocked tests, accounting genuine real GL/transaction/concurrency tests, report mocked tests and report real SQL/SLE/GL/permission tests. Prior PR results are not combined acceptance evidence. Inspect Actions steps and test counts; failing CI means **blocked**.
+- **Joint CI gate PASSED on this specific branch/head** for accounting mocked tests, accounting genuine real GL/transaction/concurrency tests, report mocked tests and report real SQL/SLE/GL/permission tests. These are isolated-scope acceptance tests for approved A+D only; retain branch review and other release blockers.
 - If either CI suite needs fixture updates because the other approved safeguard now runs, preserve both fail-closed validators and both source identifiers. Do **not** bypass Department GL dimension checks or Equipment snapshot guards to make CI pass; update synthetic isolated fixtures and add a joint ledger assertion.
 - Review submitted issue and direct-voucher forgery, source changes under lock, stale saved drafts, legacy blank Equipment snapshots, update-after-submit immutability, cancellation, permission boundaries, stock/GL balance and exact equipment/Department read-only reporting. Distinguish tests with mocked objects from real ERPNext SQL/GL tests.
 - **Decision B & C posting blockers remain**: no verified Accounting-approved Company/category→Expense Account mapping, no Company/beneficiary Department→Cost Center crosswalk, exception authority or storage design. Real CI defaults are synthetic and **cannot** stand in for CCPC masters.
