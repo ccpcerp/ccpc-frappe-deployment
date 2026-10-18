@@ -1,6 +1,6 @@
 # Withdrawal Slip original issue — Decision A + D joint integration draft review
 
-**Date:** 2026-10-18 (Asia/Manila). **Status:** GITHUB-ONLY DRAFT PR; DISPOSABLE CI RUNS REQUESTED, RESULTS NOT YET VERIFIED. **POSTING_NO_GO / PRODUCTION NO-GO / DEV_TARGET_ORIGIN_UNKNOWN_STOP.**
+**Date:** 2026-10-18 (Asia/Manila). **Status:** GITHUB-ONLY DRAFT PR; EQUIPMENT MOCKED CI **12/12 PASS**, TWO GENUINE DISPOSABLE CI SUITES RUNNING AT LAST CHECK, NOT VERIFIED COMPLETE. **POSTING_NO_GO / PRODUCTION NO-GO / DEV_TARGET_ORIGIN_UNKNOWN_STOP.**
 
 ## GitHub authoritative sources and exact branches
 
@@ -15,6 +15,13 @@
 3. Reconciles overlapping `withdrawal_slip_stock.py` to acquire `equipment` **and** `work_for_department` in the same SQL `FOR UPDATE` Slip lock and to check both fields in the post-lock stale-document comparisons. Preserve existing double-issue, quantity, permission, cancellation, provenance and ledger protections.
 4. Carries PR #14 mocked/real tests and concurrent worker into the PR #15 branch; retains PR #15 mocked/real report tests. The report's real integration method `test_real_new_issue_snapshot_pair_is_provisioned` now asserts **on the same genuinely submitted original Material Issue** the original Equipment pair, the actual beneficiary Department on header/item, native active Department GL dimension, and the expense GL debit's Department and item Cost Center.
 5. Adjusts **only** the separate disposable GitHub CI review workflows and real-test environment guards for the new exact same-repo branch. No secrets, self-hosted runners, scheduled jobs, PROD or DEVELOPMENT connections were added. These workflows only initialize temporary Frappe v16 / ERPNext v16 MariaDB sites or use pure mocked report tests.
+
+## Verified CI status at latest review
+
+- [PR #16 mocked Equipment report Actions run 39100967202](https://github.com/ccpcerp/ccpcerp/actions/runs/39100967202): **COMPLETED SUCCESS, 12/12 mocked tests passed** (verified workflow job conclusion and log `Ran 12 tests ... OK`).
+- [PR #16 real Accounting attribution run 39100967156](https://github.com/ccpcerp/ccpcerp/actions/runs/39100967156): **IN PROGRESS** at last check; no claimed real ledger pass yet.
+- [PR #16 real Equipment report run 39100967357](https://github.com/ccpcerp/ccpcerp/actions/runs/39100967357): **IN PROGRESS** at last check; no claimed genuine snapshot+Department GL assertion pass yet.
+- All three runs originated from the integration source head `827993e45ae9321e7a936f48f7fc3b17bf842099`. Verify latest run/head again before release.
 
 ## Review and acceptance gates
 
