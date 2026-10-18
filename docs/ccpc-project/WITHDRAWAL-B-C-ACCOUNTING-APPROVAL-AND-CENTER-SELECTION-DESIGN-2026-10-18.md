@@ -1,6 +1,6 @@
 # CCPC Withdrawal Slip Decisions B/C — Accounting approval and Cost Center selection design
 
-**Prepared:** 2026-10-18, Asia/Manila. **Decision status: PROPOSED FOR OWNER AND ACCOUNTING APPROVAL; NOT AN OPERATIVE PERMISSION, WORKFLOW, OR FINANCIAL MAPPING.** The owner previously approved a controlled versioned architecture and an **inert four-DocType review**, not the concrete approval actors, permissions, selector source, effective-date policy, revocation workflow, exception processing, or financial allocation.
+**Prepared:** 2026-10-18, Asia/Manila. **Updated decision status:** **G1–G3 DESIGN PRINCIPLES OWNER APPROVED** for separate inert GitHub-only review; see [authoritative decision boundary](WITHDRAWAL-B-C-G1-G3-DESIGN-OWNER-APPROVAL-2026-10-18.md). **Specific Accounting users, Company access, active role grants, approval workflows, finance mapping rows, effective-time cutover, and posting implementation are NOT authorized.** The owner already approved controlled/versioned architecture and inert four-DocType review.
 
 **STOP:** `POSTING_NO_GO` / `PRODUCTION NO-GO` / `DEV_TARGET_ORIGIN_UNKNOWN_STOP`. Nothing in this document approves installing a schema or workflow, enabling mapping revisions, or issuing stock against new mappings.
 
@@ -12,7 +12,7 @@
 - On PR17 `Withdrawal Slip`, `department`/`section` mean **requesting** while `work_for_department`/`work_for_section` mean **beneficiary**. `REQUEST_INTENT_HEADER_FIELDS` already includes beneficiary Section; the issue-time row lock and both post-lock comparisons in `withdrawal_slip_stock.py` currently lock `work_for_department` but **not `work_for_section` or any new selector**. The Material Issue builder/validator do **not** resolve approved B/C revisions or snap their identities.
 - The [B/C Accounting mapping approval worksheet](WITHDRAWAL-ISSUE-B-C-MAPPING-APPROVAL-WORKSHEET-2026-10-18.md) contains **no approved actual CCPC Company/category Account or Company/beneficiary Department Cost Center rows**. No live master or approval authority has been read/assumed.
 
-## 2. Recommended Accounting authority and segregation — approval requested
+## 2. Owner-approved G1 separation principle — concrete actor/role assignments pending
 
 **Proposal, not an installed role grant.** Prefer distinct, explicitly authorized *responsibilities* even if Accounting later selects different final ERPNext role names. Proposed illustrative role labels: `CCPC Mapping Preparer`, `CCPC Accounting Mapping Approver`, and optional `CCPC Mapping Auditor`. **Do not automatically create or assign these roles yet.**
 
@@ -27,7 +27,7 @@
 
 **Explicit approval decisions still needed:** actual authorized personnel/users and their permitted Companies; whether one or two independent Accounting approvers are required; whether anyone holding Stockroom or requester roles is *categorically* ineligible to approve; System Manager emergency treatment; approver delegation, absence, revocation authority and least-privilege access. Recommend **two distinct logged-in user identities for prepare vs approve** as a minimum; mere role membership is not maker-checker separation. An Administrator emergency bypass must not silently activate mappings.
 
-## 3. Recommended immutable revision lifecycle — approval requested
+## 3. Owner-approved G2 immutable-version principle — activation details pending
 
 **Proposed lifecycle:** `Draft → Submitted for Accounting Review → Approved (future/current effective interval) → Superseded or Revoked`. `Rejected/Returned for Correction` leads to a new or editable draft, never a rewrite of approved source values. PR17 currently only supports inert Draft and **must keep rejecting all other states** until these decisions and automated security tests are approved.
 
@@ -40,7 +40,7 @@
 
 **Important unresolved design choice:** whether `Approved` plus effective timestamp is itself active, or whether a separate `Activated` state and second approval are required. Recommend **Approved + valid effective interval** with no manually editable `Active` flag, **only after** Accounting signs the cutoff/exception rules. No automatic action on current drafts.
 
-## 4. Recommended actual beneficiary Cost Center selection — approval requested
+## 4. Owner-approved G3 explicit selection principle — field and Section details pending
 
 **Confirmed policy, already owner-approved:** one correct Company/actual beneficiary Department allocation; when multiple approved Centers are legitimate, **positive validated selection of the specific approved C revision**. No first-match, requester-Department or Company-default fallback.
 
@@ -68,16 +68,16 @@
 - **Real issue:** future approved B/C builder + `before_submit` tests assert actual original Material Issue, Stock Ledger Entry and posted expense GL Account/Cost Center/Department, on same row with Equipment snapshot; verify no SLE/GL on all rejected cases, fail/retry and duplicate issue controls. These tests are **not** covered by PR17's previously passed 3 static + 6 schema tests.
 - **Returns:** physical Option A and original-cost reversal remain separate explicit development/release gates. No retroactive GL backfill.
 
-## 6. Approval checklist and next implementation boundary
+## 6. Owner-approved G1–G3 design direction and outstanding Accounting approvals
 
 Owner and the authorized Accounting lead should explicitly accept or correct each unapproved choice in a versioned GitHub decision record:
 
-- [ ] **G1 — maker/checker roles:** preparer vs independent Accounting approver vs optional auditor; authorized users/Companies, conflicts and System Manager emergency review.
-- [ ] **G2 — approval lifecycle:** frozen proposal, approved revision immutability, supersession/revocation audit, effective instants and non-retroactive activation; whether a fifth event ledger is needed.
-- [ ] **G3 — cost-center selector:** propose one explicit approved Center Mapping Revision Link on Withdrawal Slip; Department-only default with mandatory positive selection for multiple centers; decide who can choose/confirm, and whether Section is informational or accounting-keyed.
+- [x] **G1 — maker/checker design principle OWNER APPROVED:** preparer and independent Accounting approver; optional auditor. **Still pending:** exact roles, named users, Companies, conflicts and System Manager emergency policy.
+- [x] **G2 — immutable revision and audit design principle OWNER APPROVED.** **Still pending:** concrete activation, authorized approvers, timestamps/backdate/cutover rules, concurrent SQL locks and decision on separate event ledger.
+- [x] **G3 — positive explicit Center revision selection design principle OWNER APPROVED; Slip-level candidate selected for review.** **Still pending:** final source fieldname/chooser, Section participation, per-line exceptions and stable multi-center choice scope implementation.
 - [ ] **G4 — actual financial mapping values:** separately signed complete Company/exact leaf Item Group→Expense Account and Company/actual beneficiary Department→Cost Center crosswalks, including effective boundaries and exception reviewers; blank [B/C worksheet](WITHDRAWAL-ISSUE-B-C-MAPPING-APPROVAL-WORKSHEET-2026-10-18.md) has no approved rows.
 - [ ] **G5 — operations:** reviewed Github implementation and isolated genuine Frappe/ERPNext/MariaDB/SLE/GL tests, independent DEVELOPMENT target/origin/uncommitted work/backups and separately authorized DEV deployment/test; later separate PRODUCTION approval.
 
-**Recommendation for the next owner decision:** Approve **G1–G3 as design principles only** if agreeable, but continue to require actual Accounting signoff on users/Companies, G4 crosswalks and exceptions. Even such design approval must **not** be treated as authority to flip `approval_state` or enable production posting until security implementation and verification are separately authorized.
+**Owner decision now recorded:** G1–G3 **design principles approved** by the owner; [GitHub decision record](WITHDRAWAL-B-C-G1-G3-DESIGN-OWNER-APPROVAL-2026-10-18.md). This is NOT approval of actual Accounting users/Companies, G4 crosswalks, exceptions, `approval_state` activation or posting. [Separate review-only app draft PR #18](https://github.com/ccpcerp/ccpcerp/pull/18) contains pure G1–G3 policy helpers and source unit tests; CI not yet verified and no Frappe/GL integration.
 
 **Nothing implemented here:** no new app commit, login, role assignment, DocType field, revision activation, mapping record, SQL/site mutation, financial posting, DEVELOPMENT or PRODUCTION operation. No personal connected notes or unapproved live accounting masters consulted.
