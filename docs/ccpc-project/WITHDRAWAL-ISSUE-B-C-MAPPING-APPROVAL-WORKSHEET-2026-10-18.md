@@ -3,6 +3,12 @@
 **Prepared:** 2026-10-18. **Status: DRAFT FOR ACCOUNTING SIGN-OFF; NO MASTER MAPPINGS APPROVED HERE.**  
 **Scope:** Original controlled Withdrawal Slip → submitted Stock Entry `Material Issue`, downstream source-linked physical return design. **Not** an instruction to edit Company, Item, Item Group, Department, Cost Center, stock, GL, DEVELOPMENT or PRODUCTION.
 
+## Latest joint A+D review and B/C readiness (2026-10-18)
+
+- [Joint app draft PR #16](https://github.com/ccpcerp/ccpcerp/pull/16) at `827993e45ae9321e7a936f48f7fc3b17bf842099` reconciles PR #14's beneficiary Department with PR #15's Equipment-at-issue snapshots; all four isolated regression groups passed **72 mocked + 13 real Accounting/GL + 12 mocked Equipment + 13 real Equipment/SLE/GL tests**. **This is not evidence of approved Company/category expense-account or beneficiary Department→Cost Center mapping.** PR #16 remains draft/unmerged.
+- [B/C implementation-readiness and explicit decision register](WITHDRAWAL-ISSUE-B-C-IMPLEMENTATION-READINESS-AND-APPROVAL-GATE-2026-10-18.md) records which existing fields are reusable, unresolved B/C master authority/Section/selector decisions, an optional versioned mapping architecture **for approval**, source-lock implications if `work_for_section` is adopted, and detailed fail-closed test expectations. **No new mapping or schema has been approved.**
+- The remainder of this worksheet remains the blank, authoritative **request for actual Accounting approval**, not an import of default ERPNext settings or personal notes.
+
 ## Verified current code and test boundary
 
 - [Decision A review PR #14](https://github.com/ccpcerp/ccpcerp/pull/14) on `review/withdrawal-issue-accounting-ci-2026-10-17` at `ebeec379f623e8596c1d178ad7b45d0f8859c2e5` is **draft and unmerged**. [Disposable CI 39097918235](https://github.com/ccpcerp/ccpcerp/actions/runs/39097918235) passed **72 mocked + 13 real Frappe/ERPNext/MariaDB** tests, including actual expense GL beneficiary Department propagation.
@@ -51,7 +57,7 @@ Accounting decision points:
 3. **Negative C:** missing center, multiple candidates without explicit selection, changed/forged selection, wrong Company, disabled/group center and fallback to requester/company defaults all reject **before stock/GL**.
 4. **Concurrency/failure:** stale mapping or source change while issue is being created/submitted, double issuance, failed submission rollback, no orphan stock/GL, and retained cancellation behavior.
 5. **Return-source design only:** later independent physical return must credit the **actual originally posted** account and Cost Center, original beneficiary Department and original posted cost; never recalculate current Item/Department defaults. Return transactional code is a separate authorization and test gate.
-6. **PR #14 + PR #15 reconciliation:** review overlapping `withdrawal_slip_stock.py` logic and retest both Department and immutable Equipment issue-time snapshots together before any merge.
+6. **PR #14 + PR #15 reconciliation:** the combined [draft PR #16](https://github.com/ccpcerp/ccpcerp/pull/16) now has joint mocked and genuine ERPNext/GL tests **passed** for Decisions A+D; retain review, recheck its head and retest whenever approved B/C integration is added. These passes **do not** implement B/C, authorize a merge or remove DEVELOPMENT/PRODUCTION safeguards.
 
 ## 5. Release decision
 
