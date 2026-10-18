@@ -1,6 +1,6 @@
 # CCPC Withdrawal Slip B/C — controlled versioned mapping schema and control design (for review)
 
-**Prepared:** 2026-10-18 (Asia/Manila). **Decision state:** DESIGN PROPOSAL ONLY. The owner **already approved the controlled, versioned, Company-scoped arrangement** in [the architecture decision](WITHDRAWAL-ISSUE-B-C-VERSIONED-MAPPING-ARCHITECTURE-APPROVED-2026-10-18.md). The **specific four-DocType candidate, category/selector rules, effective-time semantics, permission model, and posting implementation below are NOT separately approved**. No CCPC live account/center mappings have been provided.
+**Prepared:** 2026-10-18 (Asia/Manila). **Updated review status:** **Four-DocType scope/revision structure and exact leaf Item Group/no inheritance were subsequently OWNER APPROVED for an inert GitHub code-review implementation**, with positive, validated C revision selection required for multi-Center cases. See [new exact owner decision](WITHDRAWAL-ISSUE-B-C-SCHEMA-DESIGN-OWNER-APPROVAL-2026-10-18.md) and [draft app PR #17](https://github.com/ccpcerp/ccpcerp/pull/17). The original [controlled/versioned architecture](WITHDRAWAL-ISSUE-B-C-VERSIONED-MAPPING-ARCHITECTURE-APPROVED-2026-10-18.md) remains in effect. **Detailed effective-time semantics, specific selection UI/granularity, Finance permissions, exceptions, real crosswalk rows and posting implementation remain NOT APPROVED.**
 
 **Release boundary:** **POSTING_NO_GO / PRODUCTION NO-GO / DEV_TARGET_ORIGIN_UNKNOWN_STOP**. This is documentation on the GitHub draft documentation branch, not application code, site schema, new permissions or financial transactions.
 
@@ -11,7 +11,7 @@
 - `Withdrawal Slip` has **requester** `department` / `section` and separate **beneficiary** `work_for_department` / `work_for_section`; `Withdrawal Slip Item` currently has `item_code` without a category or mapping revision. `CCPC Section` already links its Company and Department and has a `disabled` flag. **Neither the Section field nor Equipment's automatically supplied Section is automatically an approved Cost Center selector.**
 - [B/C signoff worksheet](WITHDRAWAL-ISSUE-B-C-MAPPING-APPROVAL-WORKSHEET-2026-10-18.md) still has unapproved, blank Company/category Account and Company/beneficiary Department Cost Center rows. No master values may be inferred from fixture defaults.
 
-## 2. Specific implementation candidate — FOUR logical DocTypes (NOT APPROVED)
+## 2. Owner-approved FOUR logical DocType design — inert GitHub draft review only
 
 Recommend two **stable scopes/keys** plus two **separately immutable revision records**, all private CCPC doctypes with server-enforced uniqueness and audit. Names and fieldnames in the following table are **proposed**, not existing records or approved schema.
 
@@ -26,19 +26,19 @@ Recommend two **stable scopes/keys** plus two **separately immutable revision re
 
 **Candidate key integrity:** database unique constraints for each normalized Scope key and `(scope, revision_no)`; when selector is unused, store a **defined non-null sentinel** rather than allowing NULLs to evade uniqueness. Reject duplicate scope or duplicate revision at the database as well as application layer. **Effective-interval overlaps cannot reliably be excluded by ordinary MariaDB UNIQUE indexes alone**; use scope-row locking and transaction-time overlap validation plus tests. Any actual SQL/DB index and naming-series design is subject to a separate reviewed migration and Frappe version check.
 
-## 3. Specific recommended rules to approve or amend (UNDECIDED)
+## 3. Detailed rules — approved items distinguished from open decisions
 
 | Gate | Proposed simplest safe rule | Why it is not yet authoritative |
 | --- | --- | --- |
-| **B1 material category** | Start with each Item's exact leaf **Item Group**, no parent inheritance and no silent Item-specific override; reject missing/unapproved category. Use the approved same-Company mapping. | Owner/Accounting has **not** chosen Item Group or hierarchy/override precedence. |
+| **B1 material category** | **OWNER APPROVED for reviewed initial design:** exact leaf **Item Group**, no parent inheritance, no Item-specific silent override. Still reject missing/unapproved category. | No actual Company/Item Group→Account crosswalk is yet signed or installed. |
 | **B2 account** | Each Company + approved category maps to precisely one explicitly approved active, non-group eligible P&L Expense Account for the relevant window; never auto-use Company Stock Adjustment. | Actual per-Company/category Account identifiers and allowed exceptions are **not supplied**. |
 | **C1 center** | Each Company + beneficiary Department has one active approved leaf Cost Center by default; no requester or Company fallback. | Actual Department→Center rows and multi-center structures are **not supplied**. |
-| **C2/C3 multiple centers** | For more than one approved center, **require positive, authorized explicit selection of a specific mapping revision**, stored on the Slip (or per line if Accounting so decides); validate `work_for_section` only if Accounting adopts it as a formal eligibility rule. | Section, Slip-versus-line granularity, eligible selector, approving user and source field remain **unapproved**. |
+| **C2/C3 multiple centers** | **OWNER APPROVED safety rule:** when several Centers are authorized, require positive, validated selection of the applicable **approved C revision**, never the first/default. | Exact selection source (Slip/row), Section eligibility, authority and audited field **remain unapproved**; draft PR #17 rejects active explicit-selector mode. |
 | **Approval workflow** | Proposed draft → submit for independent Accounting review → approved immutable revision → supersede/revoke with preserved prior evidence. Prohibit requester/issuer self-approval and direct role/permission bypass. | No real approving ERPNext Role name, approver group, segregation matrix or exception workflow authorized. |
 | **Effective-time rule** | Normalize timestamps to one explicitly declared timezone/UTC storage; recommend `[effective_from, effective_until)` and **forbid retrospective authorization of a transaction by newly approved backdated mappings**. Test submission-time approval status plus posting timestamp. | Exact date/time source, backposting/cutoff policy, future-dated approvals and timezone strategy await Accounting approval. |
 | **BC3 cutover** | Prospective controlled linked issues only; old submitted issues remain immutable; existing drafts either revalidate under newly approved B/C before posting or are withdrawn for fresh approval. | Effective cutover date and historical exception decisions are not approved. |
 
-**No defaults from these proposed rules may be activated until approved.** In particular, do not automatically equate `work_for_section` with a Cost Center, use an Equipment Section as explicit operator selection, or assume one department always has one center.
+**Owner-approved review direction:** exact leaf Item Group with no parent inheritance or Item-level silent override; positive explicit C revision selection for multi-center cases. **No mapping records or posting fallback may be activated until financial rows and remaining selection/approval controls are authorized.** In particular, do not automatically equate `work_for_section` with a Cost Center, use an Equipment Section as explicit operator selection, or assume one department always has one center.
 
 ## 4. Candidate security and lifecycle contract (approval required)
 
@@ -82,8 +82,8 @@ Existing [joint PR #16](https://github.com/ccpcerp/ccpcerp/pull/16) tests **72/7
 
 **Owner/Accounting must explicitly approve or correct these proposals before code implementation:**
 
-- [ ] Four-DocType scope+revision structure (or name a simpler equivalent with equally safe immutable revisions, scope locking and overlap control).
-- [ ] B1 exact leaf Item Group proposal, parent inheritance and any Item exception policy.
+- [x] Four-DocType scope+revision structure **approved for draft GitHub-only review**, not live schema migration, permissions, approval or posting.
+- [x] B1 exact **leaf Item Group** selection for the initial reviewed mapping design, with **no automatic parent inheritance or silent Item-specific override**; policy expansion still needs separate approval.
 - [ ] B2 signed Company/category/eligible Account crosswalk from [approval worksheet](WITHDRAWAL-ISSUE-B-C-MAPPING-APPROVAL-WORKSHEET-2026-10-18.md).
 - [ ] C1 signed Company/actual beneficiary Department/Cost Center crosswalk.
 - [ ] C2/C3 Department-only default, when explicit multi-center selection is required, Section eligibility and Slip-vs-line allocation scope.
@@ -91,4 +91,4 @@ Existing [joint PR #16](https://github.com/ccpcerp/ccpcerp/pull/16) tests **72/7
 - [ ] Effective timestamps, revision/supersede/revoke lifecycle, cutover and historical treatment (BC1/BC3).
 - [ ] Then authorize a focused new **GitHub draft review** implementing only approved choices; CI tests first, DEVELOPMENT pull/test only with verified target and backups. PRODUCTION approval remains separate.
 
-**No decision box above is checked by this document.** It converts the previously approved general architecture into a specific, inspectable proposal without guessing CCPC financial masters or granting deployment rights.
+**Two design boxes above are checked by the subsequent owner approval**, recorded separately in the decision link at the top. All unresolved Finance fields and controls remain unchecked. The present draft PR #17 is deliberately **inert**: no mapping approvals, row allocations, GL posting control or schema deployment was authorized by these checkboxes.
