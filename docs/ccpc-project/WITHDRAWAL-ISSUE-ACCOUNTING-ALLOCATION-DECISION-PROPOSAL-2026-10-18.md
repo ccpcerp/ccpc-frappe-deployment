@@ -1,6 +1,6 @@
 # Withdrawal Slip issue accounting — source verification and proposed allocation decisions
 
-**Date:** 2026-10-18. **State:** TECHNICAL REVIEW COMPLETE; ACCOUNTING RULES PROPOSED ONLY; NOT OWNER/ACCOUNTING-APPROVED. **No code, ERPNext role, master-data or deployed-site changes are authorized by this document.**
+**Date:** 2026-10-18. **State:** BENEFICIARY DEPARTMENT PRECEDENCE (DECISION A) OWNER APPROVED 2026-10-18; EXPENSE ACCOUNT, COST CENTER, EQUIPMENT GL TREATMENT (DECISIONS B–D) REMAIN PROPOSED AND UNAPPROVED. **No code, ERPNext role, master-data or deployed-site changes are authorized by this document.**
 
 ## Purpose and tested evidence
 
@@ -12,15 +12,15 @@ Pinned [ERPNext v16 Stock Entry defaults](https://github.com/frappe/erpnext/blob
 
 **Actual test outcome, NOT production claim:** On the disposable synthetic CI site, Department is active, but the **CCPC-linked Material Issue** has no Department on header/row/expense GL. An independent **native Material Issue with beneficiary Department explicitly populated passes** the real GL Department test. [Run 39085044119](https://github.com/ccpcerp/ccpcerp/actions/runs/39085044119): 72/72 mocked + 8/9 real MariaDB/ERPNext tests passed, overall **FAILED** by the deliberately strict CCPC issue-attribution assertion. No installed CCPC DEVELOPMENT/PRODUCTION accounting setup has been checked; Equipment was not configured as GL dimension in this CI site.
 
-## Decision A — beneficiary Department precedence (PROPOSED, NOT APPROVED)
+## Decision A — beneficiary Department precedence (OWNER APPROVED 2026-10-18; NOT IMPLEMENTED)
 
 1. The **actual beneficiary** is `work_for_department` when explicitly recorded and validated for the correct company. This is **not** the Slip's `department` unless it is in fact the beneficiary.
-2. When `work_for_department` is missing but a valid Equipment Registry record exists, propose `Equipment Registry.department` as the initial beneficiary. The existing Slip logic often fills this automatically; account for old records and missing fields separately.
+2. When `work_for_department` is missing but a valid Equipment Registry record exists, use `Equipment Registry.department` as the initial beneficiary. The existing Slip logic often fills this automatically; account for old records and missing fields separately.
 3. When both explicit `work_for_department` and Equipment Registry Department are present but differ, **stop automatic posting for a documented authorized review**. Do not silently override either with the requesting Department or Equipment field.
 4. When neither beneficiary source exists, **do not silently charge the requester**. Require a positively identified, validated beneficiary Department, or accounting-approved exception. A prefilled requestor Department is not a substitute for confirmation.
 5. Validate company ownership, active leaf Department, and immutable approved source intent; snapshot the resolved Department onto the submitted issue detail/header where the active Accounting Dimension is supported. If the required dimension is not configured, stop for configuration review rather than claim correct GL attribution.
 
-**Owner decision needed:** Approve/revise the precedence and mismatch/fallback handling before changing the posting builder.
+**OWNER APPROVED (2026-10-18):** The entire Decision A beneficiary-selection policy above, including precedence, Equipment fallback, mandatory conflict review and blocking when neither source establishes the beneficiary. Only business policy was approved; no financial posting implementation, configured roles, authorization-exception process or ERPNext site change has been approved. Conflicts require a separately authorized, audited resolution procedure before posting. Proceed to Decisions B–D for accounting review.
 
 ## Decision B — original expense account (PROPOSED CONTROL, MAPPING NOT YET PROVIDED)
 
@@ -50,4 +50,4 @@ Option A's accepted partial returns must refer to the exact original submitted i
 - Test true SLE/Bin/GL valuation and duplicate issue prevention, permissions, rollback, concurrent issue, later material return and cancellation with **same original** source accounting. Do not treat mocks as real database evidence.
 - Keep [draft PR #14](https://github.com/ccpcerp/ccpcerp/pull/14) **unmerged**; preserve its intentionally failing regression until allocation policy is approved and the implementation is tested.
 
-**Current status:** TEST-ONLY DIAGNOSIS COMPLETE. Proposed decisions A–D require owner/accounting determination. No application ledger-posting change authorized; no deployment/DB/role/account master-data changes. **POSTING_NO_GO / PRODUCTION NO-GO / DEV_TARGET_ORIGIN_UNKNOWN_STOP.**
+**Current status:** TEST-ONLY DIAGNOSIS COMPLETE. **Decision A owner-approved as business policy, not implemented or tested as posting behavior.** Decisions B–D still require owner/accounting determination, exact CCPC configured mappings remain unverified. No application ledger-posting change authorized; no deployment/DB/role/account master-data changes. **POSTING_NO_GO / PRODUCTION NO-GO / DEV_TARGET_ORIGIN_UNKNOWN_STOP.**
