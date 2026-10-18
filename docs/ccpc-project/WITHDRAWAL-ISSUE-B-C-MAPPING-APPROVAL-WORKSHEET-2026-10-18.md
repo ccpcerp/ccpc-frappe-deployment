@@ -3,6 +3,12 @@
 **Prepared:** 2026-10-18. **Status: DRAFT FOR ACCOUNTING SIGN-OFF; NO MASTER MAPPINGS APPROVED HERE.**  
 **Scope:** Original controlled Withdrawal Slip → submitted Stock Entry `Material Issue`, downstream source-linked physical return design. **Not** an instruction to edit Company, Item, Item Group, Department, Cost Center, stock, GL, DEVELOPMENT or PRODUCTION.
 
+## Accounting approval and multi-center selector design pending signoff
+
+A specific [maker–checker approval lifecycle, revision-effective-time and explicit beneficiary Cost Center selection proposal](WITHDRAWAL-B-C-ACCOUNTING-APPROVAL-AND-CENTER-SELECTION-DESIGN-2026-10-18.md) is ready for owner and Accounting review. **It is not approved**: no Accounting users/role permissions, activation/revocation method, audit-event storage, Cutoff timezone, Section policy, or selector field is authorized. The proposed model deliberately separates **one Department-only Center** from **multiple valid Center choice scopes**; the latter needs a distinct explicitly approved selection scope and positive choice of an eligible signed revision. The current PR17 design **still refuses all activation and explicit multi-Center scopes**.
+
+**Approval steps G1–G3 outstanding:** name the authorized preparer/independent approver and Company scope; approve immutable revision lifecycle/interval and revocation controls; decide whether the selector belongs to the whole Slip or item rows and whether `work_for_section` is informational or part of the financial scope. **B2/C1 signed actual financial mappings are still TO BE PROVIDED/NOT APPROVED.** Do not enable accounts or cost allocation because this design has been documented.
+
 ## Owner-approved schema review implemented as draft PR #17 (2026-10-18)
 
 The owner [approved the detailed four-DocType scope/revision design for inert GitHub review](WITHDRAWAL-ISSUE-B-C-SCHEMA-DESIGN-OWNER-APPROVAL-2026-10-18.md), including **exact leaf Item Group without automatic parent inheritance** and the rule that multiple eligible Centers require **positive, validated explicit approved C revision selection** (the actual Section/UI/selection authority remains unapproved). [App draft PR #17](https://github.com/ccpcerp/ccpcerp/pull/17) now holds four inactive, draft-only schema/controller definitions; see [PR17 review checkpoint](WITHDRAWAL-B-C-MAPPING-SCHEMA-GITHUB-REVIEW-CHECKPOINT-2026-10-18.md). The static schema run passed; disposable Frappe/MariaDB schema tests must be verified separately.
