@@ -37,14 +37,32 @@ Accounting decision points:
 3. Confirm Company ownership and active/non-group Cost Center at posting time; reject disabled, foreign-company, expired, missing, ambiguous or unsupported allocations.
 4. No fallback to the requesting Department's center or a generic Company default unless that exact mapping is affirmatively approved for the **beneficiary**.
 
-## 3. Implementation choices requiring separate owner/Accounting sign-off
+## 3. Read-only documentary evidence — candidate masters, **not approvals** (2026-10-18)
+
+The [existing shared **ERP Implementation** Google Sheet](https://docs.google.com/spreadsheets/d/1LFkBX1VzMGXHd9GVEF2lbGENAf1qa0ekBQSJTfsBock/edit) was discovered through the connected read-only Google Drive source. Google Drive metadata reported modified `2026-09-18T09:01:05Z`; this is an earlier **planning workbook**, **not** an exported verified current Account/Cost Center/Item Group master from CCPC's active ERPNext database. Do not automatically propagate any of its values into production, application code, fixtures for business acceptance, or signed mapping tables. No spreadsheet cells were changed.
+
+| Source / exact tab + cells | Observed documentary values | Why this is **not** an allocation approval |
+| --- | --- | --- |
+| `3.1 Chart of Accounts`, row 161 | `5140 - Repairs & Maintenance - CCPC` | Plausible repair expense candidate; not specifically mapped to Bearings, spare parts, categories or any Company/beneficiary |
+| Same tab, row 170 | `5149 - Laboratory Supplies` (no ` - CCPC` in the spreadsheet cell) | Potential naming inconsistency; requires exact current ERPNext Account name, company, type and approval |
+| Same tab, row 178 | `5400 - Stock Adjustment - CCPC` | Its presence as an account does **not** authorize use as a generic Material Issue expense fallback |
+| Same tab, row 19 | `1501 - Parts, Materials and Supplies - CCPC` | Inventory asset candidate, **not** automatically a row consumption expense account |
+| `3.2 Default Chart of Accounts`, row 13 | `Default Cost Center = Main - CCPC` | A default is **not** a beneficiary Department→Cost Center crosswalk; do not substitute it without explicit mapped approval |
+| `1.2 Item Groups`, rows 13–23, 36–54 | Includes `Bearings`, `Lubricants`, `Bearings & Bearing Accessories`, `Lubricants & Oil`, etc. | Overlapping names and differently structured numbered/unnumbered entries; Accounting must approve the **canonical category identifiers, hierarchical/inheritance policy and exact live Item Group names** before mapping |
+| `1.1 Company`, rows 16 and 20 | `Cagayan Corn Products Corporation (CCPC)`; `Ricor Mills Corporation (RMC)` | The inspected `3.1` table is explicitly CCPC-headed. A full RMC original issue accounting chart/crosswalk was **not evidenced** in this workbook search |
+
+**GitHub source comparison:** `ccpcerp/setup.py` on [app PR #14](https://github.com/ccpcerp/ccpcerp/pull/14) defines a `WITHDRAWAL_SECTION_STRUCTURE` for CCPC and RMC Departments/Sections; **Section and Department do not provide an approved Cost Center link**. The existing `ccpcerp/patches/v1_0/create_intercompany_material_accounts.py` defines `5150 - Intercompany Materials Expense - <company abbreviation>` for an **intercompany billing purpose**, and includes four Company names (CCPC, RMC, GSL and WFC) as patch expectations, not verified live installed masters. **Do not treat account 5150 or this patch as a Decision B mapping for consumed original Withdrawal Slip materials**, or assume these four Companies are present in every target environment.
+
+**Recommended evidence-gathering order (no database/site actions approved here):** Accounting identifies which issue Companies are in scope and provides the latest authoritative, *sanitized* Account, Cost Center, Item Group and Department master extracts from the intended environment, with exact ERPNext identifiers, company, disabled/group flags, root type and effective dates. Confirm the existing workbook against those extracts, then sign B/C allocations separately. Item Group overlap and multi-center Department allocation must be resolved explicitly. A read-only site inspection requires verifying DEVELOPMENT target identity and authorizing a non-sensitive output procedure first; do not print site config, credentials, private business records or full database dumps.
+
+## 4. Implementation choices requiring separate owner/Accounting sign-off
 
 - **Mapping authority/storage:** existing master defaults versus a dedicated CCPC controlled mapping DocType/record; ownership, permission model, effective-dating and change audit; whether any migration is needed. **No choice made.**
 - **Snapshot and enforcement:** for each line resolve approved account and Cost Center before issue insert; store on Stock Entry Detail; at `before_submit` resolve/revalidate against the locked source and approved effective mapping; reject user-forged or cleared rows and mismatched source. Require actual GL debit to carry approved expense Account, Cost Center and Decision A Department. Avoid permission escalation to edit financial selections.
 - **Locking and change safety:** detect mapping changes between issue construction and submission; define whether approval records are immutable once referenced or versioned; preserve original actually **posted** account/center for later physical-return expense credit even if current mapping changes.
 - **Exceptions:** Accounting-approved review/override trail, scope and authorized users; no arbitrary correction account, custom duplicate GL posting, or historical backfill without separately approved design.
 
-## 4. Required isolated regression gates (NOT YET EXECUTED)
+## 5. Required isolated regression gates (NOT YET EXECUTED)
 
 1. **Positive:** two material categories map to different approved expense accounts; two Departments map to distinct Company centers; requester differs from actual beneficiary; assert real submitted Stock Entry item fields, SLE, posted expense GL account + Cost Center + Department and balance.
 2. **Negative B:** generic unapproved Company Stock Adjustment fallback, missing/ambiguous/disabled/group/Balance-Sheet/cross-company/inactive account, stale effective date, unauthorized row-account swap and direct Stock Entry bypass all reject **before stock/GL**.
@@ -53,7 +71,7 @@ Accounting decision points:
 5. **Return-source design only:** later independent physical return must credit the **actual originally posted** account and Cost Center, original beneficiary Department and original posted cost; never recalculate current Item/Department defaults. Return transactional code is a separate authorization and test gate.
 6. **PR #14 + PR #15 reconciliation:** review overlapping `withdrawal_slip_stock.py` logic and retest both Department and immutable Equipment issue-time snapshots together before any merge.
 
-## 5. Release decision
+## 6. Release decision
 
 **BLOCKED — POSTING_NO_GO / PRODUCTION NO-GO / DEV_TARGET_ORIGIN_UNKNOWN_STOP.**
 
