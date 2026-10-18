@@ -19,8 +19,9 @@
 
 ## Verification and remaining test gate
 
-- Read-back **verified exact GitHub source/blob hashes**, branch origin and draft PR head. Static inventory found **15 defined test methods**, not 15 test passes.
-- No GitHub Actions workflow was successfully created for PR #18 and **NO executed CI, Python unit-test run, Frappe site run, MariaDB or GL test result is claimed for the new helper**. An attempted separate Actions file creation did not succeed; do not imply Actions is set up. Require reviewed tests/CI before adopting helper in any live issue or mapping activation.
+- **New verified, executed isolated Python tests on 2026-10-18:** Re-fetched both PR18 source files from exact app head `f08765c4d6c81665f216081d2dc16a6796c289fb`; copied to a local isolated temporary test directory and independently checked each copy with `git hash-object`. **Both hashes matched the corresponding live GitHub blobs exactly:** module `d7c3cdf99c871c470c66cfd00f480900b6c8e6e4`; unit test `f1c15df37c5dc6104995eb1c8530e3b8005ba16e`.
+- Ran **Python 3.13.5**, `python -m unittest discover -s <isolated test directory> -p 'test_bc_mapping_policy_static.py' -v`, output **`Ran 15 tests ... OK` (15/15 passed)**. Both files also passed `python -m compileall -q`. Tests covered maker/checker identity fail-closed checks, timezone-aware UTC normalized half-open intervals, approval-vs-posting timestamp checks, forged/mixed/ambiguous Cost Center choices. This is **real isolated local standard-library execution** of source-identical Github blobs, not merely 15 method definitions.
+- Updated [draft app PR #18](https://github.com/ccpcerp/ccpcerp/pull/18) body with exact hash verification, reproducible command, result and qualification. **No GitHub Actions workflow was successfully created; no GitHub-hosted CI or genuine Frappe/MariaDB GL test has run for PR18.** Do not treat Python-only tests as permission, role, database-locking or stock/GL integration proof.
 - Prior PR #17 genuine [6/6 database schema tests](https://github.com/ccpcerp/ccpcerp/actions/runs/39107359756) and [3/3 static schema tests](https://github.com/ccpcerp/ccpcerp/actions/runs/39107359784) passed on **prior PR17 head**, not on PR18 helper. They do not validate G1–G3 workflows or GL.
 
 ## Unresolved Finance/release gates
@@ -31,4 +32,4 @@
 - Signed B2 Company/exact leaf Item Group→Expense Account and C1 Company/beneficiary Department→Cost Center rows in [blank B/C worksheet](WITHDRAWAL-ISSUE-B-C-MAPPING-APPROVAL-WORKSHEET-2026-10-18.md); none supplied or inferred.
 - Review/merge of dependent drafts, independently verified DEVELOPMENT target/origin/dirty work/backups and explicit separate PRODUCTION approval. No automatic Codex reporter, personal notes, deployment, or posting.
 
-**Next safe step:** Obtain reviewed static-unit execution for PR18 and exact Finance/Accounting approval identity/Company scope decisions; only then design secure server-side workflow/selection integration, separately test it with synthetic real Frappe/ERPNext/MariaDB stock/GL cases and obtain release permission.
+**Next safe step:** Obtain a separately reviewed GitHub-hosted CI execution of PR18's already locally passed 15 tests when an authorized Actions workflow can be installed; obtain exact Finance/Accounting approval identities, Company permissions, effective-date/cutover and mapping rows before any server-side workflow/selection activation. Then separately test real Frappe/ERPNext/MariaDB security, concurrency, SLE and GL on a disposable runner and obtain DEV/PROD-specific approval.
