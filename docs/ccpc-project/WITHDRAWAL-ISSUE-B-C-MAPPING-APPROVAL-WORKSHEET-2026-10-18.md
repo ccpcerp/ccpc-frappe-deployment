@@ -1,5 +1,11 @@
 # CCPC Withdrawal Slip Material Issue — Decisions B/C Accounting mapping approval worksheet
 
+## Initial mapping intake workbook prepared — read-only masters required
+
+The owner asked to prepare the initial B/C mapping table for review. A 9-sheet **unapproved candidate Excel workbook** (`CCPC_BC_Initial_Financial_Mapping_Review_2026-10-18.xlsx`) was generated as a chat attachment, with empty B/C financial mapping rows, 5 blank Company/Item Group/Account/Department/Cost Center intake tabs, review readiness checks and a maker–checker signoff log. It is **not a signed or activated financial mapping and is not stored as a GitHub binary**.
+
+[Verified minimum-field master intake requirements and handling rules](WITHDRAWAL-B-C-INITIAL-MAPPING-MASTER-INTAKE-2026-10-18.md). The actual current Company, exact **leaf** Item Group, eligible Expense Account, beneficiary Department and active Company Cost Center names cannot be verified from reviewed GitHub records; use **authorized read-only ERPNext master exports**, not example names or CI fixture defaults. Do not upload sensitive exports to public GitHub issues. **G4 rows below remain entirely TO BE PROVIDED / NOT APPROVED** until the exact candidate mapping crosswalk receives authorized Accounting signoff.
+
 ## Open Accounting signoff tracker — GitHub Issue #25
 
 [**Issue #25: B/C Accounting authority, effective rules, explicit Center selection and signed mappings**](https://github.com/ccpcerp/ccpc-frappe-deployment/issues/25) is the **OPEN** tracked gate for unresolved G1 role/Company/user authority, G2 activation/cutover/retrospective posting/effective-time and revocation policy, G3 Slip-or-line center choice and Section behavior, and actual G4 Company/leaf Item Group→Expense Account and Company/beneficiary Department→Cost Center approved crosswalks. Opening the issue is **not** Accounting approval and does not supply mapping rows. Keep any sensitive real business data/identities in appropriately access-controlled records; do not include credentials, production exports, or unreviewed private data in issue comments.
