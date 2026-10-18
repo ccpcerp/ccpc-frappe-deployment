@@ -13,7 +13,7 @@
 ## Not decided or not implemented
 
 - Exact CCPC Department–Cost Center crosswalk for each Company, whether Section contributes to selection, the source-of-truth master-data design, selection workflow, accounting exception authority, historical corrections and how to address already-posted entries.
-- Decision D: whether Equipment should be a formally configured GL Accounting Dimension or a separately retained operational cost tag. No Equipment schema or GL dimension deployment is approved.
+- **Decision D — OWNER APPROVED 2026-10-18:** Equipment is an **operational maintenance-cost attribution field with auditable source links**; no Equipment GL Accounting Dimension is required initially. See [Decision D approval checkpoint](WITHDRAWAL-ISSUE-ACCOUNTING-DECISION-D-APPROVED-2026-10-18.md). Reporting logic, integrations, master-data procedures and Equipment GL dimension configuration remain unimplemented and unapproved for deployment.
 - App [draft PR #14](https://github.com/ccpcerp/ccpcerp/pull/14) is **unmerged/test-only**: [disposable run 39085044119](https://github.com/ccpcerp/ccpcerp/actions/runs/39085044119) passed 72/72 mocked and 8/9 genuine integration tests, with the strict original linked issue Department GL assertion still failing (native ERPNext explicit Department control passed). No evidence of correct actual CCPC master-data mappings or deployed posting behavior.
 
 **Safety:** This is only a recorded owner business decision. No application transactional changes, Accounting Dimension configuration, account or Cost Center master-data edits, permissions, migrations, DEVELOPMENT or PRODUCTION actions were made. **POSTING_NO_GO / PRODUCTION NO-GO / DEV_TARGET_ORIGIN_UNKNOWN_STOP.**
