@@ -1,4 +1,4 @@
-# CCPC ERPNext — Official Item Group naming standard (v1.0)
+# CCPC ERPNext — Official Item Group naming standard (v1.1)
 
 **Owner-approved business classification decision:** 2026-10-19 (Asia/Manila).
 
@@ -8,7 +8,7 @@
 
 **Naming source:** owner's previously corrected 131-name working workbook `CCPC_131_Item_Groups_Spelling_Reviewed_2026-10-19.xlsx`. Final clear spelling correction at officialization: `Canvass & Textile Materials` → `Canvas & Textile Materials`. No other spelling/wording changes, category mergers, deletions or additions; the official list is alphabetized. This master decision supersedes the provisional 42-name and 131-name **review** proposals, but does not change or validate any previously observed 147 Item Group field labels in pasted Item data.
 
-**Manifest SHA256:** `e0c4c3c5f225f60ac2601c838c24f2510462c9d9914daff1cb3cb050b60a19d1` over UTF-8 official names joined by LF with a final LF (no numbering or header).
+**Manifest SHA256:** `67fd5c68e7c68593c8fcfb6b98fb1fb103aa5682eda672e32ecc28eb0eabbcd0` over UTF-8 official names joined by LF with a final LF (no numbering or header).
 
 ## Official names — all are planned leaf groups under `All Item Groups`
 
@@ -126,7 +126,7 @@
 | 110 | Seals & Gaskets | All Item Groups | 0 |
 | 111 | Seals & O-Rings | All Item Groups | 0 |
 | 112 | Security Hardware | All Item Groups | 0 |
-| 113 | Shafting | All Item Groups | 0 |
+| 113 | Shafts | All Item Groups | 0 |
 | 114 | Steel Shafting | All Item Groups | 0 |
 | 115 | Steel Valves & Fittings | All Item Groups | 0 |
 | 116 | Structural Steel Materials | All Item Groups | 0 |
@@ -145,6 +145,12 @@
 | 129 | Wood & Bamboo Materials | All Item Groups | 0 |
 | 130 | Wood & Panel Materials | All Item Groups | 0 |
 | 131 | Wood Coatings | All Item Groups | 0 |
+
+## v1.1 owner-approved amendment — 2026-10-19
+
+In the follow-up conversation, the owner accepted changing the official category **`Shafting` → `Shafts`** for finished mechanical shaft components while keeping **`Steel Shafting`** as a distinct category for shaft stock. All other 130 Item Group names, the 131-name count, the flat `All Item Groups` parent arrangement and `is_group=0` values remain unchanged. This **v1.1** document and the matching conversation-only `CCPC_Official_Item_Groups_v1.1_2026-10-19.xlsx` and `CCPC_Official_Item_Group_Names_v1.1_2026-10-19.csv` supersede v1.0 for the official target naming standard. The updated manifest is `67fd5c68e7c68593c8fcfb6b98fb1fb103aa5682eda672e32ecc28eb0eabbcd0` (LF-separated UTF-8 labels, final LF).
+
+**Important:** This is an approved **target name**, **not** permission to rename an existing live `Shafting` Item Group. Verify the DEVELOPMENT group, linked Items and accounting/reporting dependencies before any live operation. No DEVELOPMENT or PRODUCTION data was accessed or changed.
 
 ## Implementation boundary and next verified step
 
