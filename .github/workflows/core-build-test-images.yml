@@ -93,7 +93,7 @@ jobs:
           docker buildx du
 
       - name: Build
-        uses: docker/bake-action@v7.3.0
+        uses: docker/bake-action@v7.5.0
         with:
           source: .
           push: true
