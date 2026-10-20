@@ -1,5 +1,27 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-20 REAL FINANCE MAKER/CHECKER → WITHDRAWAL → GL PASSED
+
+**Verified GitHub app milestone, not a design sketch:** [App draft PR #19](https://github.com/ccpcerp/ccpcerp/pull/19) branch `review/bc-original-issue-allocation-2026-10-20` HEAD **`7881ae5412657b0b355f4b49e6ae2a8ebf21ed37`**, targeting PR #18 review branch. Confirmed OPEN / DRAFT / UNMERGED. After owner's repeated direction to CONTINUE and reach production readiness, implemented actual independent Finance mapping approval service and posting-date cutoff fix in GitHub, with no site changes.
+
+**Actual new code and tests:**
+- Commit `faa01c185d6ae049051bbd66c6bc02ed35bed271`: `ccpcerp/ccpc_erp/bc_mapping_workflow.py` provides authenticated, POST-only Company/exact leaf Item Group/beneficiary Department `propose_mapping`, `get_mapping_review`, and `approve_mapping`. Uses real ERPNext User+Role+explicit Company User Permission checks, maker/checker must be two distinct logged-in users, reviewer snapshot/modified token, Company/scope/revision locks, approved interval overlap prevention, Company Account/Center leaf/Expense-root checks, server-controlled approver/time, and atomic Version audit. Only deliberate reviewed approval action writes Approved directly to SQL; **ordinary Draft-only controller still blocks direct status saves**. Real operational users/Company grants, cutover policy and crosswalk G4 remain separately release-approved, not silently generated.
+- Commits `6dbb0af8a77de64c062c2d3f27a2a73726024cfc` and `bb4097e325e90d5867942eda6e77d959399e8a9e`: original issue **server stamps** current site-local posting date/time and B/C resolver evaluates **actual voucher posting instant** rather than wall clock. Strict initial conservative review path rejects client backdating, stale/future posting; formal G2 fiscal-period exception policy still unsigned.
+- Commit `7881ae5412657b0b355f4b49e6ae2a8ebf21ed37`: genuine disposable ERPNext/MariaDB test now calls real proposal/review/approval actions with two distinct synthetic Finance User identities and **no direct SQL Approved injection**. It tests self-approval refusal, stale snapshot refusal, approval replay refusal, Version audit identity, actual subsequent Withdrawal posting and correct Item Group + B/C revisions, Department, Expense and Center rows, Bin reduction, expense GL amount, duplicate issue denial.
+
+**INDEPENDENTLY VERIFIED test evidence:** Hosted disposable Frappe v16 / ERPNext v16 / MariaDB GitHub [Actions run 39398137497](https://github.com/ccpcerp/ccpcerp/actions/runs/39398137497) **completed SUCCESS** for exact `7881ae5`. Job log says **`Ran 2 tests ... OK`**, both:
+1. Missing approved map → rejected without stock/GL issue.
+2. Real draft Finance proposal → separate reviewer approves through actual service → original Withdrawal posts submitted Material Issue with accurate source/mapping references, stock reduction and expense GL, replay denied. Negative review tests run within positive case.
+**Not mocked, not a live CCPC mapping signoff, not persistent DEVELOPMENT acceptance.** Prior [Actions 39374083431](https://github.com/ccpcerp/ccpcerp/actions/runs/39374083431) also passed 2/2 but had a simulated SQL approval shortcut; **latest 39398137497 supersedes that limitation**.
+
+**Remaining delivery gates, no circular reset:**
+1. Review G1/G2/G3 approval service edge cases: real Company scope grants/role revocation, concurrency/overlap, cross-Company and illicit direct API attempts, historical posting cutoff; future edits must create new revisions without retroactive GL rewriting. Verify immutability/audit storage and mapping schema/index performance; do not claim these are passed merely from 2 positive/negative integration methods.
+2. G4: owner/authorized Accounting must sign exact **Company + leaf Item Group → real Expense Account** and **Company + beneficiary Department → real Cost Center** mapping rows, designate genuine distinct ERPNext Finance users and approved time/selector policy for later controlled DEVELOPMENT/PRODUCTION activation. **Do not reopen approved CoA taxonomy or report scope.**
+3. Finish actual intercompany Material Billing Batch → linked Sales/Purchase Invoices, accepted return/cancellation accounting and the four required day-one reports: Department, Equipment/Job Order, intercompany withdrawal/billing, all-Company P&L expenses **separately** from Withdrawal stock consumption with GL/SLE reconciliation.
+4. Check safe DEVELOPMENT site origin, Git branch/status, backups/shared host; with **separate** permission run focused persistent acceptance, then record all defects/fixes back in GitHub. PRODUCTION only after independent release/backup restoration/rollback readiness and explicit owner authorization.
+
+**Status:** Real isolated Finance approval→Withdrawal→stock/GL milestone **PASS**; ongoing PR still draft/no merge; DEVELOPMENT and PRODUCTION untouched. `POSTING_NO_GO` / `PRODUCTION NO-GO` until remaining security, live signed accounts, reports and release gates close.
+
 ## VERIFIED REAL DATABASE MILESTONE — B/C Withdrawal-to-GL 2/2 PASS — 2026-10-20
 
 **Authoritative app source:** GitHub app draft [PR #19](https://github.com/ccpcerp/ccpcerp/pull/19) on `review/bc-original-issue-allocation-2026-10-20`, verified app head **`c539695d5170d13b40c125ab6c3490f7b34275ef`**; branch targets prior PR #18 review branch, remains OPEN, DRAFT, UNMERGED. Not deployed to DEVELOPMENT/PRODUCTION.
