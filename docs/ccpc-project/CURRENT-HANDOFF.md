@@ -1,5 +1,13 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## OWNER SETUP CAPACITY — 2026-10-20
+
+The owner confirmed they are working alone on the ERPNext **project setup** and will be accountable for initial Company-specific Expense Account and Cost Center business decisions, user-access planning, acceptance testing and production go-live decisions. Do not repeatedly ask for a new full accounting department or reopen approved COA/Item Group design.
+
+**Outstanding, not approved:** the original B/C policy requires a genuinely independent preparer/checker. The owner currently has no separate preparer. Therefore independence is not yet met and no financial mapping revision may be activated on this basis; see the updated [Accounting approval issue #25](https://github.com/ccpcerp/ccpc-frappe-deployment/issues/25). Existing Draft-only state, deployment restrictions and financial posting stop remain in place. Also distinguish solo project setup from future operational stockroom staffing: current Withdrawal Slip issuance requires a separate actual issuer identity from the request creator. No app code, role grants or site data were changed.
+
+Next clarify: whether the owner is alone **only with configuration**, or will also be the sole **requester and Stockroom issuer in daily operations**. This prevents redesigning peer controls unnecessarily. Continue towards one integrated Withdrawal-to-GL milestone, not more generic prototypes.
+
 ## SHIP-FIRST GATE — stop accumulating isolated B/C prototypes, finish one Withdrawal-to-GL release path — 2026-10-20
 
 **Owner escalation:** Owner explicitly requests **PRODUCTION READINESS** and objects to years of repetitive isolated testing without an actionable delivery direction. This instruction takes precedence over older historical exploratory tasks below: measure progress in a **working end-to-end Withdrawal → stock/GL → intercompany billing → four management reports**, not number of new helpers/tests/checklists. **Do not restart COA, taxonomy, or report scope; do not create another pure synthetic code/test tranche as the next milestone.** This is a prioritization change, **not approval to weaken financial controls or deploy.**
