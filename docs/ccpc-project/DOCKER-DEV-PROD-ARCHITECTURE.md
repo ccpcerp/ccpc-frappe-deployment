@@ -2,6 +2,14 @@
 
 > **Status:** Documented checkpoint, 2026-10-10. This is a synthesis of prior CCPC investigation and tracked configuration—not a fresh live Docker inspection. Where runtime details have not been checked, they are explicitly marked **verify before use**. This document is **not** permission to change PRODUCTION, recreate containers, migrate sites, restore databases, or alter backups.
 
+## Owner-stated future server plan — 2026-10-20 (PLANNED, NOT IMPLEMENTED)
+
+The owner plans to commission a **separate physical PRODUCTION server once CCPC ERPNext reaches production readiness**. After a separately authorized, backed-up, validated production cutover, the **existing Ubuntu server is intended to become a DEVELOPMENT and testing server**. This is the owner's stated direction, not evidence that hardware has been purchased, networks/backup/restore are designed, or any migration has occurred. There is **no authorized implementation date or cutover command**.
+
+**Present-day boundary remains unchanged:** the existing host still contains both DEVELOPMENT and PRODUCTION Docker Compose projects. All activities on this host must preserve PRODUCTION containers, MariaDB, site data, credentials, network and backups until a completed, independently verified and explicitly approved production migration. The plan does **not** retroactively make the host disposable.
+
+For a future migration, separately review infrastructure sizing, network/DNS and LAN access, dedicated site/database/volumes, four-part backup and isolated restore, roles/permissions, downtime and rollback, and post-cutover separation before authorizing any move. Do not clone actual production business data into ordinary DEV test fixtures. A GitHub/ChatGPT review connection does not itself grant direct SSH/container access; operator-run tasks and site mutations require their own approval.
+
 ## 1. Executive overview
 
 CCPC runs DEVELOPMENT and PRODUCTION as **separate Docker Compose projects on the same Ubuntu host**. Their distinct Compose namespaces and application sites are important operational boundaries, but they **share the host kernel and Docker daemon**; this is **not** equivalent to physical or VM-level isolation.
