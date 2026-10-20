@@ -1,5 +1,24 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## CODE MILESTONE — PR #19 source-lock and pure account-row bridge, 22 tests — 2026-10-20
+
+**GitHub-first continuation under the owner's existing GitHub-only B/C synthetic implementation approval:** Re-read current workflow and rolling handoff, checked draft [PR #19](https://github.com/ccpcerp/ccpcerp/pull/19) from `review/bc-original-issue-allocation-2026-10-20`, verified base `review/bc-approval-selector-policy-2026-10-18`, and inspected inherited Draft-only mapping DocTypes and schema. **No need to re-approve existing Item Groups / Charts of Accounts or rescope the four approved reports.**
+
+**New actual app commits, verified on GitHub branch:** `7646021c935429d4066ea16b09396ae65c695ee2` (pure prepare-row bridge), `2762e8bb80459889b9625dd293586648c373a0e4` (4 additional bridge tests), `743db44e9e8930b59540cffa7f85b815b2490da8` (inert locked source master lookup), and **latest branch tip** `aa4bc96c068b7fbb139fce5a431ec2552217cb7c` (6 additional SQL-boundary tests). PR #19 description updated; it remains **DRAFT, OPEN, UNMERGED** and targets PR #18 review branch, not default. None of these files are hooked into stock posting.
+
+- Existing `bc_issue_allocation.py`: added `prepare_original_issue_accounting_rows`, a **pure** copier of newly constructed source-linked Material Issue detail rows that fills only signed-evidence-derived `expense_account` and `cost_center` from `IssueRowAllocation`. It rejects pre-populated values, forged Item/source pairs, missing and duplicate rows; original inputs are not mutated. **This is not authoritative without a server-side signed mapping resolver.**
+- New `bc_issue_locked_source.py`: a non-hooked source-master reader intended to be called **only** inside an existing authenticated issue transaction holding the locked Withdrawal Slip. Uses parameterized, deterministic `FOR UPDATE` reads of the actual beneficiary Department, stock Items and exact leaf Item Groups, preventing trust in client-provided Item category and rejecting invalid/missing/duplicate/inactive or other-Company source facts. It **does not** validate ERPNext Accounting approver roles, look up B/C signed revisions, authorize posting, or lock external cross-company accounting masters.
+- Synthetic tests updated/added in `test_bc_issue_allocation_static.py` and `test_bc_issue_locked_source_static.py`.
+
+**Source-identical test evidence (LOCAL ISOLATED, not GitHub Actions):** `PYTHONPATH=. python -m unittest discover -s ccpcerp/ccpc_erp -p 'test_bc_issue*_static.py' -v` executed in isolated local copy -> **22 tests PASS** (16 allocation/bridge plus 6 fake SQL-boundary), `compileall -q` PASS. Independently fetched all four files back through GitHub; `git hash-object` of the locally executed files matches respective actual Git blobs:
+`bc_issue_allocation.py` `762e42096b7b03a8dd969fc6d87bade4116e3a71`;
+`test_bc_issue_allocation_static.py` `2e3029e7a1db2cbcb512de6c307e8f90a3d315b3`;
+`bc_issue_locked_source.py` `116fe0a08b5369654707640d80c14ea63ce89152`;
+`test_bc_issue_locked_source_static.py` `8d73102cf77e20affb887f0fa8f16255023b057a`.
+**These tests do NOT verify a genuine Frappe / MariaDB server, transaction-lock behavior, posting hook, Stock Ledger or GL entries**. No actual accounting mapping records (G1–G4) are signed. Financial [Issue #25](https://github.com/ccpcerp/ccpc-frappe-deployment/issues/25) still gates real activation.
+
+**Next ONE engineering step (do not restart design):** Build an authenticated **Company-scoped, locked B/C revision and Account/Cost Center evidence adapter** that accepts neither user-supplied `Approved` status nor client-supplied account/center, and enforces real authorized maker–checker, effective windows and source provenance; keep mapping states Draft-only until separate Accounting signoff. Then integrate into `_build_material_issue` and `before_submit` **under a reviewed fail-closed gate**, add source revision tamper tests plus disposable genuine Frappe v16/MariaDB/SLE/GL tests, and review rollback/concurrency. Actual Company + exact Item Group → Expense Account and Company + beneficiary Department → Cost Center approval source plus G1–G4 decisions remain unresolved and cannot be invented. Future DEVELOPMENT acceptance and PRODUCTION remain separate, explicitly approved gates. **No DEVELOPMENT or PRODUCTION changes here; no merge or release; POSTING_NO_GO / PRODUCTION NO-GO.**
+
 ## CODE MILESTONE — B/C synthetic original-issue allocation review PR #19 — 2026-10-20
 
 **Owner's explicit authorization:** On 2026-10-20 the owner approved **GitHub-only synthetic implementation/testing** for the pending original Withdrawal Slip Material Issue **Expense Account (B) and Cost Center (C)** integration. **No DEVELOPMENT pull, real-site migration, financial posting, PRODUCTION change, app merge or release authorized.**
