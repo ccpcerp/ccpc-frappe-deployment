@@ -1,5 +1,23 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-20 FINANCE MAPPING LIFECYCLE — GitHub REVIEW IMPLEMENTED, NEW CI PENDING
+
+**Delivery target unchanged:** a genuinely usable, audited Withdrawal→stock/GL→intercompany invoices→four owner-confirmed reports. Do not restart Chart of Accounts, Item Groups, Withdrawal design or reporting scope. Strict Company-scoped Finance maker/checker and independent Stockroom operator remain mandatory for PRODUCTION.
+
+**Latest independently verified app GitHub state:** [draft PR #19](https://github.com/ccpcerp/ccpcerp/pull/19), review branch `review/bc-original-issue-allocation-2026-10-20`, HEAD **`53ab180d2572def75beff9a0dbd0eb8b927977da`**, DRAFT/OPEN/UNMERGED, targeting PR #18 branch. This is new code review work on GitHub only; **no DEVELOPMENT or PRODUCTION pulls, migrations, transactions, restarts, or role grants**.
+
+**New lifecycle implementation (NOT YET CI VALIDATED):**
+- `ccpcerp/ccpc_erp/bc_mapping_lifecycle.py` provides authenticated POST-only preparer proposals and independent checker approval for **future-effective replacement** and **future or approval-instant retirement** of an existing open-ended Approved Expense or Center revision. Only one open-ended Approved mapping per scope; closed historical Approved rows remain for previous transaction provenance. Uses existing revision fields `supersedes` and `revocation_reason`; **no new schema table/field or patch** introduced.
+- The old Approved revision is never rewritten as unapproved: it receives a strictly non-retroactive `effective_until`; a replacement is Approved from exactly that boundary, whereas a retirement produces a signed `Revoked` decision record with no active replacement. Both predecessor closure and successor/retirement decision receive signed-context `Version` audit records in one protected transaction/savepoint. Failure inserting the audit rolls back the lifecycle writes; historical GL is not updated.
+- Initial approval `approve_mapping` now refuses a lifecycle-linked Draft, requiring the separate reviewer action. `get_mapping_review` exposes the old revision, action and retirement reason so the checker sees the actual signed target.
+- The original issue resolver excludes *historically expired* Approved rows from current actor/master validation and verifies that selected mappings remain effective at actual submission time, rejecting vouchers stalled across a cutover rather than allowing stale posting.
+- Extended real disposable ERPNext/MariaDB CI test module: replacement with historical actual GL preservation, audit-insertion failure rollback, old/new boundary adjacency and replay denial; independent retirement approval, audit, and no further material issue. Workflow path triggers include lifecycle module and mapping revision JSON.
+
+**Test status distinction:** previous [Actions #39401522104](https://github.com/ccpcerp/ccpcerp/actions/runs/39401522104) genuinely passed **4/4** on **older app SHA `994d37b`**; **not evidence of new lifecycle code passing**. The latest lifecycle [Actions #39404938099](https://github.com/ccpcerp/ccpcerp/actions/runs/39404938099), triggered on exact current `53ab180d`, was **PENDING** at handoff update. Intermediate runs were superseded/canceled as the GitHub branch advanced. Do not report lifecycle real-DB pass until the newest run completes successfully and its logs are independently reviewed. No local/persistent DEVELOPMENT or PRODUCTION test.
+
+**Exact next step:** inspect that run's job logs; fix any genuine issue on this same review branch and rerun disposable database coverage. After **verified** lifecycle pass, continue existing intercompany Material Billing Batch real Sales/Purchase invoices and return/cancellation accounting, followed by four preapproved reports and controlled DEVELOPMENT acceptance. G2 fiscal/backdate policy exceptions, G3 multi-center selector, signed G4 real Company/account/Center crosswalk and real Finance identities are still release gates; do not silently populate or infer them. No merge or PRODUCTION approval.
+
+
 ## 2026-10-20 FINANCE SECURITY/ROLE/AUDIT REVIEW — real 4/4 CI PASS
 
 **OWNER GOAL:** deliver a fully working PRODUCTION-ready system, not another loop of Chart of Accounts/Item Group design or endless disconnected mock tests. The owner is the sole DEVELOPMENT decision-maker only; actual PRODUCTION requires distinct authenticated Finance maker/checker and Stockroom requester/issuer. Do not reopen those decisions.
