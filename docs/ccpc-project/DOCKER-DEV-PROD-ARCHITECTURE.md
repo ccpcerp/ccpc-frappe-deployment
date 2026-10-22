@@ -2,6 +2,17 @@
 
 > **Status:** Documented checkpoint, 2026-10-10. This is a synthesis of prior CCPC investigation and tracked configuration—not a fresh live Docker inspection. Where runtime details have not been checked, they are explicitly marked **verify before use**. This document is **not** permission to change PRODUCTION, recreate containers, migrate sites, restore databases, or alter backups.
 
+## 2026-10-22 dedicated PRODUCTION server preparation checkpoint — staging authorized, no cutover
+
+The owner now requests **preparing a separate new PRODUCTION server**, with the goal of leaving the existing `ccpcerpserver` for more extensive DEVELOPMENT/testing **only after an approved and verified cutover**. This authorization covers planning and non-destructive, new-server setup/inspection; it does **not** authorize copying/restoring live ERPNext data, redirecting DNS/traffic, changing the existing PRODUCTION stack, migrating sites, or retiring old PROD. Live production cutover will require its own explicit approval and proven backup/restore/rollback.
+
+**Fresh operator-supplied read-only inventory from the current Ubuntu server:**
+- `docker compose ls --all`: production Compose project `frappe_docker` has nine running and one exited container, and DEVELOPMENT `frappe_docker_devcontainer` has four running containers.
+- `docker ps -a`: production's exited container is `frappe_docker-configurator-1`, `Exited (0)` (normal for a completed one-time configurator); the other nine run, production MariaDB shows `healthy`. These data points do not establish a complete ERPNext service health check.
+- `docker ps` on DEVELOPMENT: `frappe_docker_devcontainer-frappe-1` is running with published ports `127.0.0.1:8000-8005` and `127.0.0.1:9000-9005`; Redis cache, Redis queue and MariaDB containers are also running. This **verifies currently listed Docker published ports are loopback-only** and supersedes the earlier unverified runtime port-exposure remediation status; it is not a complete network-security audit.
+
+**First step on NEW server, not existing ccpcerpserver:** establish whether the new physical machine is actually provisioned and can be accessed with Ubuntu; inspect hostname, OS, CPU/RAM, storage and LAN addressing **without printing credentials, detailed environment variables or tokens**. Plan dedicated Docker stack, files, DNS and verified Synology/off-host backup without copying production data until a distinct approved migration window. Existing DEVELOPMENT and PRODUCTION remain untouched. ChatGPT GitHub connector has no SSH or physical-host control.
+
 ## Owner-stated future server plan — 2026-10-20 (PLANNED, NOT IMPLEMENTED)
 
 The owner plans to commission a **separate physical PRODUCTION server once CCPC ERPNext reaches production readiness**. After a separately authorized, backed-up, validated production cutover, the **existing Ubuntu server is intended to become a DEVELOPMENT and testing server**. This is the owner's stated direction, not evidence that hardware has been purchased, networks/backup/restore are designed, or any migration has occurred. There is **no authorized implementation date or cutover command**.
