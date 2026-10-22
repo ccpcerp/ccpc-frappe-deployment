@@ -1,5 +1,11 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-22 NEW HOST UFW POLICY RETAINED — DOCKER CONTAINER INVENTORY NEXT
+
+**Operator-reported Step 63 read-only firewall output on dedicated new `ccpcerp-prod`:** `sudo ufw status verbose` returned `Status: active`, `Logging: on (low)`, `Default: deny (incoming), allow (outgoing), deny (routed)`, and a single listed rule `22/tcp ALLOW IN 192.168.50.0/24`. Thus the previously authorized LAN-limited SSH rule and UFW defaults remain visible after installing Docker 29.9.2 and starting Docker/containerd. **Caution:** UFW alone does not prove Docker-published container ports are LAN-limited, since Docker modifies packet-filtering/forwarding rules. No firewall policy changes made in this step. Existing `ccpcerpserver` PROD+DEV, DNS, backups, production data and cutover remain untouched.
+
+**Next single read-only check on NEW host:** `sudo docker ps --all --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'` to inventory any running/stopped containers and their published ports without creating or changing a container. Later separately inspect listening sockets, Docker firewall configuration and published-port policy before any ERPNext containers are launched. Do not change UFW, reboot, restart Docker or publish ports yet.
+
 ## 2026-10-22 NEW HOST DOCKER AND CONTAINERD ACTIVE — FIREWALL CHECK NEXT
 
 **Owner-provided Step 62 live evidence from dedicated `ccpcerp-prod`:** `systemctl is-active docker containerd` returned `active` and `active`, confirming both Docker Engine and the containerd service are running after the verified 7-package installation. This is service-state verification only; **no `docker info`, container listing, or firewall exposure verification yet**, and no ERPNext application or migration has been deployed on the new host. Docker and Compose packages installed: Docker Engine 29.9.2, Docker Compose plugin 5.6.1. Existing `ccpcerpserver` PROD+DEV, DNS, data, backups and cutover remain untouched.
