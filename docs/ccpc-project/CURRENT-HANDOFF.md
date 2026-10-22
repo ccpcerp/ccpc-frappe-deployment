@@ -1,5 +1,10 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-22 NEW HOST NVME/LVM STORAGE VERIFIED — VG FREE SPACE CHECK PENDING
+
+**Operator-provided read-only `lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINTS` from dedicated `ccpcerp-prod`:** one `nvme0n1` NVMe disk 931.5G; `nvme0n1p1` 1G vfat mounted at `/boot/efi`; `nvme0n1p2` 2G ext4 at `/boot`; `nvme0n1p3` 928.5G `LVM2_member`; `ubuntu--vg-ubuntu--lv` 800G ext4 mounted at `/`. This matches the intended ~800G root LVM storage plan. **~128.5G is the difference between the partition/PV and the LV**, but exact **volume group free extents are not yet verified**, so no claim that all that amount is allocatable; no filesystem resize, partition change or Docker storage path decision has been executed. **Next safe one-step read-only command:** `sudo vgs -o vg_name,vg_size,vg_free` to confirm exact free VG capacity before finalizing storage design. No requirement to resize root before Docker; backups must eventually be external to this single SSD, with restoration tested before future cutover. Existing `ccpcerpserver` is untouched. Previous SSH, firewall reboot verification, and owner-completed ER7206 DHCP reservation remain current.
+
+
 ## 2026-10-22 NEW HOST ER7206 DHCP RESERVATION OPERATOR-COMPLETED — STORAGE INSPECTION NEXT
 
 **Owner confirmation:** The owner reports that they have **completed a DHCP address reservation on a TP-Link ER7206 router** for the new, separate `ccpcerp-prod` server. The intended host values previously obtained by read-only inspection are NIC `enp5s0`, MAC `30:56:0f:38:df:ce`, assigned LAN IP `192.168.50.186`, and gateway `192.168.50.1`. The router reservation UI has **not** been independently inspected, and lease-renewal persistence has not been tested; do not claim those additional verifications. Keep Ubuntu configured for DHCP rather than setting a conflicting static IP.
