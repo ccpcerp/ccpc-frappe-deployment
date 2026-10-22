@@ -2,6 +2,10 @@
 
 > **Status:** Documented checkpoint, 2026-10-10. This is a synthesis of prior CCPC investigation and tracked configuration—not a fresh live Docker inspection. Where runtime details have not been checked, they are explicitly marked **verify before use**. This document is **not** permission to change PRODUCTION, recreate containers, migrate sites, restore databases, or alter backups.
 
+## 2026-10-22 NEW PRODUCTION hardware OS decision — Windows 11 replacement APPROVED
+
+The owner's new separate PRODUCTION computer currently ships with Windows 11. The owner **explicitly approved replacing Windows 11 completely** because the machine is dedicated to ERPNext PRODUCTION. Proposed new Linux hostname: `ccpcerp-prod` (distinct from existing `ccpcerpserver`); chosen installation baseline: **Ubuntu Server 24.04 LTS (64-bit Intel/AMD if hardware compatible)** with a verified official ISO. This is an **installation plan, not a completed OS installation**. Before destructive installation: verify backup of anything worth keeping, identify exact internal disk(s), ensure external NAS/backup drives are disconnected, validate hardware compatibility and obtain installation media. Do not copy PRODUCTION credentials or data, change current server, or transfer DNS/services until the distinct release/cutover review. An OS replacement authorization for the NEW computer is not authorization to erase the existing server or any backup disk.
+
 ## 2026-10-22 dedicated PRODUCTION server preparation checkpoint — staging authorized, no cutover
 
 The owner now requests **preparing a separate new PRODUCTION server**, with the goal of leaving the existing `ccpcerpserver` for more extensive DEVELOPMENT/testing **only after an approved and verified cutover**. This authorization covers planning and non-destructive, new-server setup/inspection; it does **not** authorize copying/restoring live ERPNext data, redirecting DNS/traffic, changing the existing PRODUCTION stack, migrating sites, or retiring old PROD. Live production cutover will require its own explicit approval and proven backup/restore/rollback.
