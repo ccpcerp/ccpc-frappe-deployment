@@ -2,6 +2,12 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 73 — NO IPV6 DEFAULT ROUTE; GLOBAL IPV6 ADDRESS CHECK NEXT
+
+**Operator-provided read-only `ip -6 route show default` on the new dedicated `ccpcerp-prod` returned no routes.** This verifies that the current IPv6 routing table has **no default route**. Step 72 showed only link-local IPv6 on `enp5s0` and retained IPv4 `192.168.50.186/24`; no IPv6 default route does not prove there are no global/ULA IPv6 addresses on other interfaces, on-link IPv6 reachability, or future Docker IPv6 port exposure. Do not disable IPv6 or change routing/firewall rules based on this result. This supports pursuing reviewed explicit IPv4 host binding in the future ERPNext Compose configuration, with additional source-network/firewall restrictions rather than relying solely on host bind addresses.
+
+**Next one read-only operator step on the NEW host:** `ip -6 -br address show scope global` to inventory non-link-local IPv6 addresses across all interfaces. Afterward shift to Compose/firewall policy review; no unnecessary repeated IPv6 preflights. **No containers, ERPNext install, production restore, database migration, DNS cutover, or existing `ccpcerpserver` PROD/DEV changes were made.**
+
 ## 2026-10-23 STEP 72 — LAN NIC ADDRESSES VERIFIED; IPV6 DEFAULT ROUTE NEXT
 
 **Operator-provided read-only `ip -br addr show dev enp5s0` on the distinct new `ccpcerp-prod` host:** `enp5s0 UP 192.168.50.186/24 metric 100 fe80::3256:fff:fe38:dfce/64`. The NIC is UP and still has the intended DHCP-assigned LAN IPv4 address; the only IPv6 address shown **on this NIC** is link-local (`fe80::/10`). The output does not prove whether other interfaces have IPv6 addresses, whether an IPv6 default route exists, or whether a router reservation survives a lease renewal. For future ERPNext frontend publication, an explicit host bind to `192.168.50.186` is a candidate, subject to reviewed Compose and firewall configuration and source-network restrictions. **Host address binding alone is not an access-control rule**; Docker port publishing may bypass host UFW's normal INPUT filtering. No firewall, Docker daemon, container, ERPNext, DNS, backup or old-server change was executed.
