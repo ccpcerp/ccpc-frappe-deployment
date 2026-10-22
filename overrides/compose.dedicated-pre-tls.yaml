@@ -1,0 +1,14 @@
+# Dedicated ccpcerp-prod host PRE-TLS ONLY.
+# This file is opt-in via CCPC_DEPLOYMENT_PROFILE=dedicated-pre-tls
+# and must be layered last after compose.lan-production.yaml.
+# No employee-facing HTTP/HTTPS port is published by this profile.
+services:
+  frontend:
+    ports: !override
+      - "127.0.0.1:8080:8080/tcp"
+
+  db:
+    environment:
+      # Override the generic MariaDB template's unsafe password fallback.
+      # The secret must be provided securely at runtime, never committed.
+      MYSQL_ROOT_PASSWORD: "${DB_PASSWORD:?Dedicated production requires a nonempty DB_PASSWORD}"
