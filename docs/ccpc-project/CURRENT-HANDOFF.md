@@ -1,5 +1,11 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-22 NEW HOST DOCKER CANDIDATE VERSIONS VERIFIED — APT SIMULATION NEXT
+
+Step 58: Operator ran `sudo apt update` on new `ccpcerp-prod` host. Docker's Noble repository fetched InRelease and stable/amd64 package index without errors; 7 Ubuntu package upgrades remained pending. Step 59: Operator ran `apt-cache policy` on five official Docker packages. None installed. Candidate versions: docker-ce and docker-ce-cli `5:29.9.2-1~ubuntu.24.04~noble`; containerd.io `2.4.2-3~ubuntu.24.04~noble`; docker-buildx-plugin `0.38.1-1~ubuntu.24.04~noble`; docker-compose-plugin `5.6.1-1~ubuntu.24.04~noble`. All candidates came from `https://download.docker.com/linux/ubuntu` Noble stable amd64. Docker is not yet installed, and no application containers or network ports were touched.
+
+Next one read-only step on NEW host: `apt-get -s install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin`. Examine exactly what installation/removals/upgrades would occur. Do not execute a real installation until separately reviewed, as Docker daemon startup can affect forwarding and firewall rules; Docker published ports can bypass UFW. Existing PROD and DEV on `ccpcerpserver`, backup state, DNS and cutover remain untouched. Docker official references: https://docs.docker.com/engine/install/ubuntu/ and https://docs.docker.com/engine/network/packet-filtering-firewalls/ .
+
 ## 2026-10-22 DOCKER APT SOURCE VERIFIED — PACKAGE INDEX REFRESH NEXT
 
 **Owner-provided Step 57 live output on the distinct new Ubuntu host `ccpcerp-prod`:** `/etc/apt/sources.list.d/docker.sources` exists and contains exactly the intended deb822 fields: `Types: deb`, `URIs: https://download.docker.com/linux/ubuntu`, `Suites: noble`, `Components: stable`, `Architectures: amd64`, `Signed-By: /etc/apt/keyrings/docker.asc`. The Docker signing-key fingerprint was verified in Step 56 as `9DC8 5822 9FC7 DD38 854A E2D8 8D81 803C 0EBF CD88`. Thus the APT source **file contents** are verified from the operator terminal; **the repository metadata has not yet been fetched and verified by APT**. No Docker Engine, Compose, Buildx, container/site or network-port deployment has occurred. Existing `ccpcerpserver` PRODUCTION and DEVELOPMENT remain untouched; no DNS, data copy or cutover action.
