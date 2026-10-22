@@ -1,5 +1,12 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-22 DEDICATED HOST LAN INTERFACE AND GATEWAY IDENTIFIED — DHCP RESERVATION NOT YET CONFIGURED
+
+**Operator-reported read-only inspection of `ccpcerp-prod`:** `ip -brief link show dev enp5s0` returned interface `enp5s0 UP`, MAC `30:56:0f:38:df:ce`. `ip -4 route show default` returned `default via 192.168.50.1 dev enp5s0 proto dhcp src 192.168.50.186 metric 100`. The gateway is `192.168.50.1`, but this alone does **not verify** which network appliance issues DHCP leases. The server still has DHCP-assigned `192.168.50.186`; no persistent MAC/IP reservation has yet been created. The owner is being guided to identify the router's DHCP/Address Reservation interface using a Windows browser on the local network without modifying DHCP scope, other devices, DNS, or WAN settings. Proposed binding: MAC `30:56:0f:38:df:ce` -> IPv4 `192.168.50.186`, conditional on confirming DHCP service ownership and no conflicting reservation. Do not configure a conflicting static IP directly on Ubuntu.
+
+**Other verified context:** Following an approved reboot of the distinct new host, Windows SSH access succeeded using the dedicated ED25519 key; `uptime -s` showed `2026-10-22 08:02:48 UTC`; `sudo ufw status verbose` showed UFW still active, with LAN-scoped SSH and default incoming deny. The monitor/keyboard may be disconnected for normal headless operation while kept available for emergencies. No Docker, ERPNext installation, backup restore, DNS/traffic changes, or changes to the existing `ccpcerpserver` PRODUCTION or DEVELOPMENT systems.
+
+
 ## 2026-10-22 NEW PRODUCTION HOST REBOOT AND FIREWALL PERSISTENCE PASSED — HEADLESS OPERATION POSSIBLE
 
 **Operator-provided post-reboot evidence on separate new host `ccpcerp-prod`:** After a controlled `sudo reboot`, the owner successfully reconnected from Windows PowerShell and reached `ccpcadmin@ccpcerp-prod:~$`. Read-only `uptime -s` returned **2026-10-22 08:02:48 UTC**, confirming the recent reboot. Post-reboot `sudo ufw status verbose` showed **Status: active**, **Logging: on (low)**, **Default: deny (incoming), allow (outgoing), disabled (routed)**, and the SSH rule **`22/tcp ALLOW IN 192.168.50.0/24`**. Thus the LAN key-only remote access and UFW rule persistence have been operator verified across reboot. Separate earlier tests after SSH service reload verified key-only access succeeded and password-only access failed with `Permission denied (publickey)`.
