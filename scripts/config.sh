@@ -48,6 +48,23 @@ ERP_ACCESS_URL="http://ccpcerp.com"
 export HTTP_PUBLISH_PORT="${HTTP_PUBLISH_PORT:-80}"
 HEALTHCHECK_URL="http://127.0.0.1:$HTTP_PUBLISH_PORT"
 
+# The existing shared-host LAN deployment remains the default.
+# Opt in explicitly ONLY when preparing the separate, dedicated production host.
+# This is a host-local, pre-TLS profile, not the final employee-facing HTTPS service.
+case "${CCPC_DEPLOYMENT_PROFILE:-legacy-lan}" in
+  legacy-lan)
+    ;;
+  dedicated-pre-tls)
+    COMPOSE_FILE_ARGS+=(-f overrides/compose.dedicated-pre-tls.yaml)
+    HEALTHCHECK_URL="http://127.0.0.1:8080"
+    ERP_ACCESS_URL="http://127.0.0.1:8080 (host-local preparation only; not HTTPS)"
+    ;;
+  *)
+    printf 'Unsupported CCPC_DEPLOYMENT_PROFILE: %s\n' "$CCPC_DEPLOYMENT_PROFILE" >&2
+    return 1
+    ;;
+esac
+
 # Build logs
 LOG_DIR="logs"
 
