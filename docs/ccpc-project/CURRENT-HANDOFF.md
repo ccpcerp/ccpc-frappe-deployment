@@ -1,10 +1,8 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
-## 2026-10-22 NEW HOST IPV6 FIREWALL VERIFIED — IPV4 FILTER INSPECTION NEXT
+## 2026-10-22 NEW PRODUCTION HOST: IPV4 FILTER VERIFIED — NAT CHECK NEXT
 
-**Owner-provided Step 66 `sudo ip6tables -S` output on separate `ccpcerp-prod`:** IPv6 base policies `-P INPUT DROP`, `-P FORWARD DROP`, `-P OUTPUT ACCEPT`. The INPUT chain traverses UFW6 input chains; `ufw6-before-input` accepts loopback, ESTABLISHED/RELATED, necessary ICMPv6/neighbor-discovery/DHCPv6 and selected multicast traffic, then jumps to `ufw6-user-input`. No explicit TCP/22 IPv6 allow rule in the supplied rules. Hence unsolicited IPv6 SSH is not explicitly allowed through these chains and should fall under INPUT DROP (based on the displayed ip6tables rules); this is configuration review, not a remotely tested IPv6 access probe. `sshd` does listen on `[::]:22`. FORWARD traverses `DOCKER-USER` and `DOCKER-FORWARD` **ahead of UFW6 forward chains**; Docker bridge/published-port filtering must be evaluated independently. `docker ps -a` was empty in Step 64, and there were no other application listeners in Step 65. No firewall or SSH configuration changes made. Existing `ccpcerpserver` PROD/DEV, production data, NAS, DNS and cutover are untouched.
-
-**Next one read-only check on new server:** `sudo iptables -S` to inspect the IPv4 INPUT/FORWARD policies, UFW hooks and Docker chains, then separately inspect NAT and proposed port bindings before starting any ERPNext container. Docker documentation confirms published bridge-container traffic can bypass ordinary UFW filtering: https://docs.docker.com/engine/network/packet-filtering-firewalls/ . Preserve key-only SSH and IPv4 LAN-only access; do not disable firewall, Docker iptables management or IPv6 without explicit controlled review.
+**Active new-host setup checkpoint:** [PRODUCTION-HOST-SETUP-HANDOFF.md](PRODUCTION-HOST-SETUP-HANDOFF.md). Step 67 verified IPv4 INPUT/FORWARD DROP and LAN-only SSH; Docker FORWARD rules precede UFW. No containers. **Next:** `sudo iptables -t nat -S` (read-only). All previous main-handoff sections remain below; Step 66 detail was preserved in the linked operations file. Existing `ccpcerpserver` PROD+DEV untouched.
 
 ## 2026-10-22 NEW HOST LISTENING SOCKETS VERIFIED — IPV6 FILTER REVIEW NEXT
 
