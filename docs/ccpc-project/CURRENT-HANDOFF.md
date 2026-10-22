@@ -1,8 +1,8 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
-## 2026-10-22 NEW PRODUCTION HOST: IPV4 NAT VERIFIED — IPV6 NAT CHECK NEXT
+## 2026-10-22 NEW PRODUCTION HOST: IPV6 NAT VERIFIED — DOCKER BRIDGE CHECK NEXT
 
-**Active new-host setup checkpoint:** [PRODUCTION-HOST-SETUP-HANDOFF.md](PRODUCTION-HOST-SETUP-HANDOFF.md). Step 68 verified Docker's default IPv4 bridge MASQUERADE rule, no DNAT/published-container ports, and confirmed empty containers; Step 67 verified IPv4 INPUT/FORWARD DROP and LAN-only SSH, with Docker FORWARD before UFW. **Next:** `sudo ip6tables -t nat -S` (read-only). Recent new-host checkpoint details (Steps 53–67) are preserved in the linked operations file; older historical sections remain below. Existing `ccpcerpserver` PROD+DEV untouched.
+**Active new-host setup checkpoint:** [PRODUCTION-HOST-SETUP-HANDOFF.md](PRODUCTION-HOST-SETUP-HANDOFF.md). Step 69 verified IPv6 NAT has no DNAT or masquerading rules; Step 68 verified the IPv4 Docker bridge MASQUERADE rule and no DNAT/published-container ports; no containers present. **Next:** `sudo docker network inspect bridge` (read-only). Recent new-host checkpoint details (Steps 53–67) are preserved in the linked operations file; older historical sections remain below. Existing `ccpcerpserver` PROD+DEV untouched.
 
 ## 2026-10-22 NEW PRODUCTION HOST CPU VERIFIED — DOCKER PRESENCE CHECK NEXT
 
