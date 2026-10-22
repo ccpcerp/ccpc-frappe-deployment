@@ -1,5 +1,9 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-23 NEW PRODUCTION HOST STEP 72 — LAN IPV4 AND LINK-LOCAL IPV6 VERIFIED; ROUTE CHECK NEXT
+
+**Latest operator-reported read-only evidence on distinct `ccpcerp-prod`:** `ip -br addr show dev enp5s0` shows `enp5s0 UP`, `192.168.50.186/24 metric 100`, and only `fe80::3256:fff:fe38:dfce/64` IPv6 on this NIC (link-local, not globally routable). The server's intended IPv4 remains assigned, but DHCP reservation persistence has not been tested. Step 71 found no daemon.json; Docker default bridge host bind is all-addresses and tracked frontend Compose override lacks an explicit host IP. **Next one read-only host check:** `ip -6 route show default`. Then review explicit Compose frontend binding, Docker source-network controls/IPv6 exposure, and backup/recovery gates before any ERPNext deployment. **No containers, migrations, published ports, DNS cutover, or existing `ccpcerpserver` PROD/DEV changes were authorized or made.** See [PRODUCTION-HOST-SETUP-HANDOFF.md](PRODUCTION-HOST-SETUP-HANDOFF.md).
+
 ## 2026-10-22 NEW PRODUCTION HOST: DAEMON CONFIG ABSENT — LAN IP CHECK NEXT
 
 **Active new-host setup checkpoint:** [PRODUCTION-HOST-SETUP-HANDOFF.md](PRODUCTION-HOST-SETUP-HANDOFF.md). Step 71 confirmed `/etc/docker/daemon.json` is absent on new `ccpcerp-prod`, normal for fresh Docker. We will favor explicitly reviewed Compose host-IP bindings rather than unnecessary daemon-wide changes. Step 70 found default Docker bridge bind-all and tracked frontend Compose ports with no host IP; MariaDB template has a fallback password that must not be used. No containers/published ports. **Next:** `ip -br addr show dev enp5s0` (read-only) to verify current NIC IPv4/IPv6 for access design. Details in dedicated host handoff. Recent new-host checkpoint details (Steps 53–67) are preserved in the linked operations file; older historical sections remain below. Existing `ccpcerpserver` PROD+DEV untouched.
