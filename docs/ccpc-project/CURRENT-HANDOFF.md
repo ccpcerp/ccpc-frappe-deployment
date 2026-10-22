@@ -1,8 +1,8 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
-## 2026-10-22 NEW PRODUCTION HOST: IPV6 NAT VERIFIED — DOCKER BRIDGE CHECK NEXT
+## 2026-10-22 NEW PRODUCTION HOST: BRIDGE VERIFIED — SECURE PORT BINDING NEXT
 
-**Active new-host setup checkpoint:** [PRODUCTION-HOST-SETUP-HANDOFF.md](PRODUCTION-HOST-SETUP-HANDOFF.md). Step 69 verified IPv6 NAT has no DNAT or masquerading rules; Step 68 verified the IPv4 Docker bridge MASQUERADE rule and no DNAT/published-container ports; no containers present. **Next:** `sudo docker network inspect bridge` (read-only). Recent new-host checkpoint details (Steps 53–67) are preserved in the linked operations file; older historical sections remain below. Existing `ccpcerpserver` PROD+DEV untouched.
+**Active new-host setup checkpoint:** [PRODUCTION-HOST-SETUP-HANDOFF.md](PRODUCTION-HOST-SETUP-HANDOFF.md). Step 70 verified the empty Docker default bridge (IPv4 172.17.0.0/16, IPv6 off), with default host port binding 0.0.0.0. Read-only GitHub inspection found the tracked frontend Compose ports omit an explicit host IP, and MariaDB has an unsafe fallback password. No containers or published ports. **Next:** check for Docker daemon.json (read-only), then design explicitly limited port bindings. Details in the linked dedicated host handoff. Recent new-host checkpoint details (Steps 53–67) are preserved in the linked operations file; older historical sections remain below. Existing `ccpcerpserver` PROD+DEV untouched.
 
 ## 2026-10-22 NEW PRODUCTION HOST CPU VERIFIED — DOCKER PRESENCE CHECK NEXT
 
