@@ -1,5 +1,14 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-22 NEW PRODUCTION SERVER PREPARATION AUTHORIZED — EXISTING PROD PRESERVED
+
+The owner explicitly requests beginning to set up a **separate dedicated PRODUCTION physical server now**, intending to reuse the current `ccpcerpserver` for DEVELOPMENT and deeper integration testing once a separately approved and verified production cutover has completed. This is **authorization for preparatory planning and new-server non-destructive inspection only**, not live PRODUCTION migration, backup/restore/data copying, DNS cutover, application deployment, or old-site shutdown. New hardware provisioning, OS, resources, storage, network, DNS and backup access are **not yet observed**. The existing production stack continues to be protected on the shared Ubuntu host.
+
+New operator-provided read-only inventory shows `frappe_docker` 9 running services including healthy MariaDB and the one-shot configurator `Exited (0)`; `frappe_docker_devcontainer` all 4 containers running. DEVELOPMENT's running published ports are loopback bound (`127.0.0.1:8000-8005`, `127.0.0.1:9000-9005`), resolving the earlier uncertain Docker runtime port binding check, **not a blanket security clearance**. Production+DEV still share the Docker daemon and kernel.
+
+Architecture documentation updated and independently committed at `c21895b1f30386853022cf55ea714ea96aee5493`: [DOCKER-DEV-PROD-ARCHITECTURE.md](DOCKER-DEV-PROD-ARCHITECTURE.md). Next single operator step: establish whether the **new separate server** exists and has an accessible Ubuntu console/SSH, then do read-only OS/resource/network inventory **on the new machine only**. Do NOT execute it blindly on the existing `ccpcerpserver`. GitHub code work remains source of truth, but physical host control remains with the operator. Existing billing-affected GitHub Actions are still blocked; PR #20 untested, PR #19 Finance real DB 6/6 prior pass retained. No production modifications or migration.
+
+
 ## 2026-10-20 OWNER FUTURE TWO-SERVER PLAN — ACKNOWLEDGED, NOT CUT OVER
 
 **Owner-stated deployment intention:** Once CCPC ERPNext is production-ready, move PRODUCTION to a **new separate physical server**, leaving the **current Ubuntu host dedicated to DEVELOPMENT/testing**. Recorded and committed in [DOCKER-DEV-PROD-ARCHITECTURE.md](DOCKER-DEV-PROD-ARCHITECTURE.md) on docs review branch, commit `c958e6a16dd6527c94618787ff7ec44b79928ff1`. No cutover date, new host setup, server access delegation, build/migration, or PROD release approved or completed. The presently documented operational state remains DEV and PROD Compose projects on **one physical Ubuntu server**. All live PRODUCTION data, services, credentials and backups remain protected until a separately authorized, verified migration.
