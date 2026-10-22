@@ -1,5 +1,10 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-22 NEW PRODUCTION SERVER OS DECISION — APPROVED WINDOWS REPLACEMENT, INSTALL PENDING
+
+The owner confirmed that the separate, future PRODUCTION-only computer currently has **Windows 11** and explicitly approved **replacing Windows 11 completely**. Plan: install **Ubuntu Server 24.04 LTS**, use distinct hostname `ccpcerp-prod` (existing old machine `ccpcerpserver` remains unchanged), then separately harden/deploy/test new infrastructure before any approved PRODUCTION cutover. Hardware compatibility, installer/actual disk selection, ISO and installation completion have **not** been verified; before erase, back up any wanted new-PC files and disconnect backups/NAS storage. Owner consent is scoped ONLY to new hardware's Windows replacement, not erasing any other server or disk. Architecture update verified at `d7d898f2cc614d841e5197cedef4686b84b464a2`. No production database/containers/data/DNS changed. GitHub Actions blocked on billing, PR #20 current invoice tests not executed. Next single step: obtain official Ubuntu Server 24.04 amd64 ISO and create bootable USB on Windows, taking care to select the USB drive, not an internal/backup drive.
+
+
 ## 2026-10-22 NEW PRODUCTION SERVER PREPARATION AUTHORIZED — EXISTING PROD PRESERVED
 
 The owner explicitly requests beginning to set up a **separate dedicated PRODUCTION physical server now**, intending to reuse the current `ccpcerpserver` for DEVELOPMENT and deeper integration testing once a separately approved and verified production cutover has completed. This is **authorization for preparatory planning and new-server non-destructive inspection only**, not live PRODUCTION migration, backup/restore/data copying, DNS cutover, application deployment, or old-site shutdown. New hardware provisioning, OS, resources, storage, network, DNS and backup access are **not yet observed**. The existing production stack continues to be protected on the shared Ubuntu host.
