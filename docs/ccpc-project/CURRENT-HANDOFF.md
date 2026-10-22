@@ -1,5 +1,9 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-23 NEW PRODUCTION HOST STEP 73 — NO IPV6 DEFAULT ROUTE; ADDRESS INVENTORY NEXT
+
+**Latest operator-provided Step 73 `ip -6 route show default` on separate new `ccpcerp-prod` printed no routes**, verifying no configured IPv6 default route in the current table. Prior Step 72 retained IPv4 `192.168.50.186/24` with only link-local IPv6 shown on `enp5s0`. This alone does not rule out global/ULA IPv6 on other interfaces or on-link access. **Next one read-only step:** `ip -6 -br address show scope global`, then finalize design review of explicitly IPv4-bound ERPNext frontend, Docker source-network filtering and IPv6 ingress policy before launching containers. Docker, SSH, UFW, NAS, backups, ERPNext app/database, DNS cutover, and old `ccpcerpserver` PROD+DEV were not changed. More detail: [PRODUCTION-HOST-SETUP-HANDOFF.md](PRODUCTION-HOST-SETUP-HANDOFF.md).
+
 ## 2026-10-23 NEW PRODUCTION HOST STEP 72 — LAN IPV4 AND LINK-LOCAL IPV6 VERIFIED; ROUTE CHECK NEXT
 
 **Latest operator-reported read-only evidence on distinct `ccpcerp-prod`:** `ip -br addr show dev enp5s0` shows `enp5s0 UP`, `192.168.50.186/24 metric 100`, and only `fe80::3256:fff:fe38:dfce/64` IPv6 on this NIC (link-local, not globally routable). The server's intended IPv4 remains assigned, but DHCP reservation persistence has not been tested. Step 71 found no daemon.json; Docker default bridge host bind is all-addresses and tracked frontend Compose override lacks an explicit host IP. **Next one read-only host check:** `ip -6 route show default`. Then review explicit Compose frontend binding, Docker source-network controls/IPv6 exposure, and backup/recovery gates before any ERPNext deployment. **No containers, migrations, published ports, DNS cutover, or existing `ccpcerpserver` PROD/DEV changes were authorized or made.** See [PRODUCTION-HOST-SETUP-HANDOFF.md](PRODUCTION-HOST-SETUP-HANDOFF.md).
