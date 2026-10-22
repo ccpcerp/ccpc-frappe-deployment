@@ -1,5 +1,11 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-22 NEW HOST DOCKER ENGINE INSTALLED — DAEMON STATUS PENDING
+
+**Operator-provided Step 60/61 evidence on dedicated `ccpcerp-prod`:** APT installation simulation showed 7 new packages, no upgrades or removals; operator then explicitly confirmed the matching real installation. `sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin` finished successfully, downloading 102 MB and installing seven packages: `docker-ce` / `docker-ce-cli` 29.9.2, `containerd.io` 2.4.2, `docker-buildx-plugin` 0.38.1, `docker-compose-plugin` 5.6.1, `docker-ce-rootless-extras` 29.9.2 and `pigz` 2.8. APT showed **0 upgraded, 7 newly installed, 0 removed, 7 not upgraded**; Docker and containerd systemd unit symlinks were created. No errors in output; service activity, socket exposure, firewall effects and usability are **not yet verified**. No ERPNext site deployed, no containers started intentionally, and no DNS/backup/old `ccpcerpserver` PROD/DEV changes.
+
+**Next one safe read-only command on the new host:** `systemctl is-active docker containerd` to confirm actual daemon and runtime status without starting or changing anything. Afterward verify SSH/UFW and Docker networking prior to publishing any ports. GitHub-first rules remain in force; no production migration or cutover approved.
+
 ## 2026-10-22 NEW HOST DOCKER CANDIDATE VERSIONS VERIFIED — APT SIMULATION NEXT
 
 Step 58: Operator ran `sudo apt update` on new `ccpcerp-prod` host. Docker's Noble repository fetched InRelease and stable/amd64 package index without errors; 7 Ubuntu package upgrades remained pending. Step 59: Operator ran `apt-cache policy` on five official Docker packages. None installed. Candidate versions: docker-ce and docker-ce-cli `5:29.9.2-1~ubuntu.24.04~noble`; containerd.io `2.4.2-3~ubuntu.24.04~noble`; docker-buildx-plugin `0.38.1-1~ubuntu.24.04~noble`; docker-compose-plugin `5.6.1-1~ubuntu.24.04~noble`. All candidates came from `https://download.docker.com/linux/ubuntu` Noble stable amd64. Docker is not yet installed, and no application containers or network ports were touched.
