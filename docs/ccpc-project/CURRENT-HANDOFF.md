@@ -1,5 +1,11 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-22 DOCKER CONTAINER INVENTORY EMPTY — LISTENING PORTS NEXT
+
+**Operator-provided Step 64 evidence from dedicated new server `ccpcerp-prod`:** `sudo docker ps --all --format 'table {{.Names}}\\t{{.Status}}\\t{{.Ports}}'` returned exactly the `NAMES STATUS PORTS` header without any container rows. Thus there are **no Docker containers, running or stopped, and no container-published ports associated with Docker containers** at the time of the check. Docker and containerd services were previously verified active, and UFW previously remained active with `deny incoming`, `deny routed` and `22/tcp ALLOW IN 192.168.50.0/24`. Neither that UFW rule listing nor the empty container inventory establishes that all host listening ports or possible future Docker publishes are secured. No application deployment or site/DB/data migration, DNS cutover, existing-host `ccpcerpserver` PROD+DEV change, backup change or firewall edit occurred in Step 64.
+
+**Next single read-only command on the new host:** `sudo ss -lntup` to inspect listening TCP/UDP sockets, local bind addresses and associated processes without changing networking. Then separately review Docker's NAT/filter policy and explicit port-bind plan before any ERPNext container starts. Preserve the existing LAN-only SSH and UFW policy. Do not publish application ports or assume UFW restricts Docker-published ports without further controls.
+
 ## 2026-10-22 NEW HOST UFW POLICY RETAINED — DOCKER CONTAINER INVENTORY NEXT
 
 **Operator-reported Step 63 read-only firewall output on dedicated new `ccpcerp-prod`:** `sudo ufw status verbose` returned `Status: active`, `Logging: on (low)`, `Default: deny (incoming), allow (outgoing), deny (routed)`, and a single listed rule `22/tcp ALLOW IN 192.168.50.0/24`. Thus the previously authorized LAN-limited SSH rule and UFW defaults remain visible after installing Docker 29.9.2 and starting Docker/containerd. **Caution:** UFW alone does not prove Docker-published container ports are LAN-limited, since Docker modifies packet-filtering/forwarding rules. No firewall policy changes made in this step. Existing `ccpcerpserver` PROD+DEV, DNS, backups, production data and cutover remain untouched.
