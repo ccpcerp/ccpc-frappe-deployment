@@ -1,8 +1,8 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
-## 2026-10-22 NEW PRODUCTION HOST: BRIDGE VERIFIED — SECURE PORT BINDING NEXT
+## 2026-10-22 NEW PRODUCTION HOST: DAEMON CONFIG ABSENT — LAN IP CHECK NEXT
 
-**Active new-host setup checkpoint:** [PRODUCTION-HOST-SETUP-HANDOFF.md](PRODUCTION-HOST-SETUP-HANDOFF.md). Step 70 verified the empty Docker default bridge (IPv4 172.17.0.0/16, IPv6 off), with default host port binding 0.0.0.0. Read-only GitHub inspection found the tracked frontend Compose ports omit an explicit host IP, and MariaDB has an unsafe fallback password. No containers or published ports. **Next:** check for Docker daemon.json (read-only), then design explicitly limited port bindings. Details in the linked dedicated host handoff. Recent new-host checkpoint details (Steps 53–67) are preserved in the linked operations file; older historical sections remain below. Existing `ccpcerpserver` PROD+DEV untouched.
+**Active new-host setup checkpoint:** [PRODUCTION-HOST-SETUP-HANDOFF.md](PRODUCTION-HOST-SETUP-HANDOFF.md). Step 71 confirmed `/etc/docker/daemon.json` is absent on new `ccpcerp-prod`, normal for fresh Docker. We will favor explicitly reviewed Compose host-IP bindings rather than unnecessary daemon-wide changes. Step 70 found default Docker bridge bind-all and tracked frontend Compose ports with no host IP; MariaDB template has a fallback password that must not be used. No containers/published ports. **Next:** `ip -br addr show dev enp5s0` (read-only) to verify current NIC IPv4/IPv6 for access design. Details in dedicated host handoff. Recent new-host checkpoint details (Steps 53–67) are preserved in the linked operations file; older historical sections remain below. Existing `ccpcerpserver` PROD+DEV untouched.
 
 ## 2026-10-22 NEW PRODUCTION HOST CPU VERIFIED — DOCKER PRESENCE CHECK NEXT
 
