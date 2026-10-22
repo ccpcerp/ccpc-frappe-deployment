@@ -1,5 +1,12 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-22 NEW HOST ER7206 DHCP RESERVATION OPERATOR-COMPLETED — STORAGE INSPECTION NEXT
+
+**Owner confirmation:** The owner reports that they have **completed a DHCP address reservation on a TP-Link ER7206 router** for the new, separate `ccpcerp-prod` server. The intended host values previously obtained by read-only inspection are NIC `enp5s0`, MAC `30:56:0f:38:df:ce`, assigned LAN IP `192.168.50.186`, and gateway `192.168.50.1`. The router reservation UI has **not** been independently inspected, and lease-renewal persistence has not been tested; do not claim those additional verifications. Keep Ubuntu configured for DHCP rather than setting a conflicting static IP.
+
+**Next safe step:** inspect the new host storage read-only with `lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINTS`; confirm root partition/LVM and free capacity before deciding whether to extend LVM or where to keep persistent Docker/ERPNext data and backups. No storage change approved or executed at this stage. Previous operator checks verified passphrase-protected SSH key-only access and rejection of password-only login, active UFW with only LAN-subnet SSH allowed, and successful access after reboot. Existing `ccpcerpserver` PRODUCTION and DEVELOPMENT remain untouched. Separate later authorization is required for production data transfer and cutover.
+
+
 ## 2026-10-22 DEDICATED HOST LAN INTERFACE AND GATEWAY IDENTIFIED — DHCP RESERVATION NOT YET CONFIGURED
 
 **Operator-reported read-only inspection of `ccpcerp-prod`:** `ip -brief link show dev enp5s0` returned interface `enp5s0 UP`, MAC `30:56:0f:38:df:ce`. `ip -4 route show default` returned `default via 192.168.50.1 dev enp5s0 proto dhcp src 192.168.50.186 metric 100`. The gateway is `192.168.50.1`, but this alone does **not verify** which network appliance issues DHCP leases. The server still has DHCP-assigned `192.168.50.186`; no persistent MAC/IP reservation has yet been created. The owner is being guided to identify the router's DHCP/Address Reservation interface using a Windows browser on the local network without modifying DHCP scope, other devices, DNS, or WAN settings. Proposed binding: MAC `30:56:0f:38:df:ce` -> IPv4 `192.168.50.186`, conditional on confirming DHCP service ownership and no conflicting reservation. Do not configure a conflicting static IP directly on Ubuntu.
