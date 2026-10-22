@@ -1,6 +1,12 @@
 # CCPC ERPNext — Dedicated PRODUCTION Host Setup Handoff
 
-**Current operational checkpoint, 2026-10-22.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
+**Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
+
+## 2026-10-23 STEP 72 — LAN NIC ADDRESSES VERIFIED; IPV6 DEFAULT ROUTE NEXT
+
+**Operator-provided read-only `ip -br addr show dev enp5s0` on the distinct new `ccpcerp-prod` host:** `enp5s0 UP 192.168.50.186/24 metric 100 fe80::3256:fff:fe38:dfce/64`. The NIC is UP and still has the intended DHCP-assigned LAN IPv4 address; the only IPv6 address shown **on this NIC** is link-local (`fe80::/10`). The output does not prove whether other interfaces have IPv6 addresses, whether an IPv6 default route exists, or whether a router reservation survives a lease renewal. For future ERPNext frontend publication, an explicit host bind to `192.168.50.186` is a candidate, subject to reviewed Compose and firewall configuration and source-network restrictions. **Host address binding alone is not an access-control rule**; Docker port publishing may bypass host UFW's normal INPUT filtering. No firewall, Docker daemon, container, ERPNext, DNS, backup or old-server change was executed.
+
+**Next single read-only check on NEW host:** `ip -6 route show default` to see whether the host currently has an IPv6 default route. After reviewing, design the new host's secure LAN-facing publication and source restrictions before any container is launched. Existing `ccpcerpserver` PRODUCTION and DEVELOPMENT remain untouched.
 
 ## 2026-10-22 STEP 71 — NO DAEMON.JSON; HOST ADDRESS CHECK NEXT
 
