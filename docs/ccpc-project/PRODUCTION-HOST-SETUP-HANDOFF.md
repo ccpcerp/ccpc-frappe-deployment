@@ -2,6 +2,14 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 93 PASSED — NO PROJECT FILES PRESENT; CONTROLLED SOURCE CHECKOUT NEXT
+
+Owner ran `find "$HOME/ccpc-frappe-deployment" -mindepth 1 -maxdepth 1 ! -name .git -print` on `ccpcadmin@ccpcerp-prod`; terminal returned directly to prompt with **no output**. This verifies, at inspection time, that the just-cloned repository directory contained no root entries other than `.git`. Step 92 independently verified branch `security/dedicated-production-pre-tls-2026-10-23`, HEAD `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`, and origin `git@github.com:ccpcerp/ccpc-frappe-deployment.git`. GitHub PR #27 remains OPEN/DRAFT/UNMERGED at that SHA. No checkout performed yet.
+
+**Next Step 94 on NEW host only:** use a read-only command guard to recheck the exact HEAD, branch, and that worktree is still vacant except `.git`, then run `git -C "$HOME/ccpc-frappe-deployment" restore --source=HEAD --staged --worktree -- .` to populate *only* this new-host clone with its already downloaded pinned source. Git's `--no-checkout` clone starts with staged deletions; restoring both index and worktree from pinned HEAD is a non-forced way to materialize the already verified commit without switching branches or reaching the network. If any guard fails, **STOP**; do not overwrite any existing files. Afterwards review status and key tracked files separately. The operator controls execution and must paste output; no claim of successful checkout until then.
+
+Checkout is **not** approval to run Docker Compose, start containers, install ERPNext, migrate/restore any data, alter firewall/DNS, modify the old PROD+DEV host, or cut over production traffic. No live changes are authorized by this milestone.
+
 ## 2026-10-23 STEP 92 PASSED — NEW-HOST CLONED BRANCH, HEAD, ORIGIN VERIFIED; CHECKOUT NOT DONE
 
 Owner ran the three read-only Git commands on `ccpcadmin@ccpcerp-prod` in `/home/ccpcadmin/ccpc-frappe-deployment` and provided:
