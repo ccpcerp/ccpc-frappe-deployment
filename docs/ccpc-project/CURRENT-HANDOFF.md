@@ -1,5 +1,9 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-23 NEW HOST SSH RECONNECTED — CUSTOM WINDOWS KEY LOCATION RECORDED
+
+**Owner confirmed successful SSH login to `ccpcadmin@ccpcerp-prod:~$` (new dedicated PRODUCTION host at `192.168.50.186`).** From Windows PowerShell, the standard `ssh ccpcadmin@192.168.50.186` attempt was rejected with `Permission denied (publickey)`; the successful command explicitly supplied a custom-named private key: `ssh -i "$env:USERPROFILE\.ssh\ccpcerp_prod_ed25519" ccpcadmin@192.168.50.186`. The Windows `.ssh` directory contains this key filename and corresponding `.pub`; **no key content or passphrase was accessed, copied or committed**. If a Windows SSH session drops again, use this explicit command to reconnect, without changing SSH server policy. SSH is currently restored and Step 81 is **still pending**: run `find "$HOME" -maxdepth 4 -type d -name .git -print` on `ccpcerp-prod` and paste result. No application deployment, DNS cutover, firewall, old-host PROD+DEV or server operations performed. Full [PRODUCTION-HOST-SETUP-HANDOFF.md](PRODUCTION-HOST-SETUP-HANDOFF.md).
+
 ## 2026-10-23 REFOCUS — DEFER INTERMITTENT OLD-HOST ACCESS DIAGNOSTIC; RESUME NEW HOST PREPARATION
 
 **Owner instruction:** the current `http://ccpcerp.com/` site is not having access problems now; **do not wait for a new outage** or keep investigating it during new-host setup. Preserve Step 76–79 facts below for optional diagnostic if an actual failure recurs. Verified current LAN router DNS resolves existing ERP host to `192.168.50.166`, HTTP 200 worked, HTTPS TCP 443 failed, and browser stayed on `http://`; intermittent root cause remains unknown. Do **not** alter old-host DNS/router/ERPNext/HTTP/HSTS or claim current service is encrypted.
