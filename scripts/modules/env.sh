@@ -8,6 +8,10 @@
 ###########################################
 backup_env() {
 
+  if [[ "${CCPC_DEPLOYMENT_PROFILE:-legacy-lan}" == "dedicated-pre-tls" ]]; then
+    error "Dedicated profile prohibits .env backup copies"
+  fi
+
   header "Backup Configuration"
 
   mkdir -p "$BACKUP_DIR"
@@ -25,6 +29,10 @@ backup_env() {
 # Update Environment Configuration
 ###########################################
 update_env() {
+
+  if [[ "${CCPC_DEPLOYMENT_PROFILE:-legacy-lan}" == "dedicated-pre-tls" ]]; then
+    error "Dedicated profile prohibits editing checkout .env"
+  fi
 
   local IMAGE_TAG="$1"
 
@@ -59,6 +67,11 @@ update_env() {
 # Restore Configuration
 ###########################################
 restore_env() {
+
+  if [[ "${CCPC_DEPLOYMENT_PROFILE:-legacy-lan}" == "dedicated-pre-tls" ]]; then
+    warn "Dedicated profile: no .env backup to restore; review container and database state before recovery"
+    return 0
+  fi
 
   if [ ! -f "$BACKUP_FILE" ]; then
     error "Backup file not found: $BACKUP_FILE"
