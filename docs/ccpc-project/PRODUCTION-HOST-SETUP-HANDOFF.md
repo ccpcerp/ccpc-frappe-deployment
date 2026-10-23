@@ -2,6 +2,19 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 117 OWNER APPROVED — GUARDED CIFS PACKAGE INSTALL ON NEW HOST ONLY
+
+Owner explicitly replied **"aPPROVED"** to the question: "Do you approve installing `cifs-utils`, `libtalloc2`, and `libwbclient0` on `ccpcerp-prod`?" This approval authorizes **only** installation of the three named packages on the separate NEW host and post-install package/helper verification, subject to a same-session safety preflight.
+
+The Step 116 read-only APT simulation indicated:
+- `cifs-utils=2:7.0-2ubuntu0.6`
+- `libtalloc2=2.4.2-1build2`
+- `libwbclient0=2:4.19.5+dfsg-4ubuntu9.8`
+
+All three **new**, zero upgrades, zero removals, seven other packages not upgraded. Confirm new host hostname, unchanged original PR #27 and isolated PR #29 branch/commits/clean trees and absent review `.env`; re-run exact-version **no-install-recommends, no-upgrade, no-remove** APT simulation and compare the `Inst` package list and summary to this specific three-new/zero-upgrade/zero-removal plan **before sudo installation**. Stop if any package is already installed or any result differs. Then operator may run one explicit `sudo apt-get install` invocation with version-pinned three packages and the same safeguards. Use the terminal's direct sudo password prompt if necessary, never paste credentials in chat. Verify exact dpkg installed versions and existence of `/usr/sbin/mount.cifs`. Host package installation can invoke normal package maintainer scripts; no production container operations are approved.
+
+**Step 117 remains PENDING OPERATOR OUTPUT**; do not claim actual package installation has happened merely from approval. No `apt update` or other package upgrades, Docker start/build, NAS mount, credentials, `/etc/fstab`, crontab/backups, Git merge, old shared PROD/DEV changes or production deployment authorized. Separate NAS share/recovery procedures and backup validation still required. The relevant GitHub PR #27 and stacked PR #29 were independently verified OPEN/DRAFT/UNMERGED at pinned `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f` and `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`.
+
 ## 2026-10-23 STEP 116 PASSED — APT SIMULATION: THREE NEW PACKAGES, ZERO UPGRADES OR REMOVALS
 
 Owner ran the approved **unprivileged, no-mutation** command on NEW `ccpcadmin@ccpcerp-prod`:
