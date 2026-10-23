@@ -234,6 +234,22 @@ RUN --mount=type=ssh,required=true,uid=1000,gid=1000 \
 
 FROM base AS backend
 
+# This final stage publishes the same build arguments checked against the
+# checked-out application commits and ERPNext patch/overlay in the builder.
+# These OCI labels are claims about build inputs, NOT an independent
+# signature/attestation of the produced image or approval for deployment.
+ARG EXPECTED_FRAPPE_SHA
+ARG EXPECTED_ERPNEXT_SHA
+ARG EXPECTED_CCPC_SHA
+ARG EXPECTED_ERPNEXT_PATCH_SHA
+ARG EXPECTED_ERPNEXT_OVERLAY_STATE_SHA
+
+LABEL org.ccpc.frappe.sha="${EXPECTED_FRAPPE_SHA}" \
+      org.ccpc.erpnext.sha="${EXPECTED_ERPNEXT_SHA}" \
+      org.ccpc.ccpcerp.sha="${EXPECTED_CCPC_SHA}" \
+      org.ccpc.erpnext.patch.sha256="${EXPECTED_ERPNEXT_PATCH_SHA}" \
+      org.ccpc.erpnext.overlay.sha256="${EXPECTED_ERPNEXT_OVERLAY_STATE_SHA}"
+
 USER frappe
 
 COPY --from=builder --chown=frappe:frappe /home/frappe/frappe-bench /home/frappe/frappe-bench
