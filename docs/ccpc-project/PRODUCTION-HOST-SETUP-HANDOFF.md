@@ -2,6 +2,30 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 120 PASSED — TEMPORARY READ-ONLY SMB3.1.1 CIFS MOUNT AND CLEAN UNMOUNT
+
+Owner executed the previously reviewed/approved Step 120 command on dedicated NEW host `ccpcadmin@ccpcerp-prod` and returned exact status lines:
+
+```text
+PASS: Server and Git checkpoints verified
+PASS: Protected credentials and mountpoint verified
+Testing temporary read-only CIFS mount...
+PASS: Correct Synology backup share
+PASS: CIFS filesystem verified
+PASS: Read-only mount verified
+PASS: Temporary NAS share unmounted
+PASS: Step 120 completed
+ccpcadmin@ccpcerp-prod:~$
+```
+
+**PASS — operator-provided command verifier:** temporary CIFS mount succeeded to precisely `//192.168.50.132/ccpcerp-prod_backups` at `/mnt/ccpcerp-prod_backups`, using the root-protected credential file, explicit `vers=3.1.1,sec=ntlmssp,ro,nosuid,nodev,noexec`. Filesystem source and type (`cifs`) matched the expected values; `findmnt` VFS options included `ro`; command automatically unmounted and checked mountpoint inactive before final PASS. This is a point-in-time confirmation that the account authenticated successfully and the dedicated SMB share is reachable for read-only mounting. No password, file listings, backup contents or secrets were exposed in transcript; no write test, new share file modification, permanent mount or `fstab` change was requested/performed. Existing old PROD/DEV environment and Synology `erpnext_backups` remain out of scope.
+
+**Unverified:** write permission and durability; isolation from other shares under authenticated SMB session (only DSM UI previews verified); backup scripts, retries, retention, full/restorable four-artifact backups, NAS-restore drill, image provenance, TLS/network safety and migration rollback/release readiness. Dedicated NAS credential remains private on NEW server only, no off-host escrow validated.
+
+**Next separate consent gate — propose Step 121:** ONE-TIME temporary **read/write** CIFS mount **only** of `//192.168.50.132/ccpcerp-prod_backups` on NEW host; verify exact source and filesystem, create a uniquely named test file in a private test directory **on that new share only**, read it back, ensure file flushed and remove only the exact test file/directory created by this test; unmount with failure reporting and verify mountpoint inactive. Stop before any destructive operation if expected state differs; never remove a preexisting path or enumerate legacy data. This step requires **new explicit approval** before executing. If any file cleanup fails, leave it and report exact status before retrying. Do not mount old share, modify `fstab`, run backup jobs, change NAS users/groups, Docker or deploy.
+
+**GitHub state checked with connected tools:** deployment PR #27 OPEN/DRAFT/UNMERGED at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`; dependent PR #29 OPEN/DRAFT/UNMERGED at `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`. Documentation update only on `docs/ccpc-checkpoint-2026-10-10`; no deployment code changes or merges.
+
 ## 2026-10-23 STEP 120 OWNER APPROVED — TEMPORARY READ-ONLY CIFS MOUNT AND UNMOUNT ONLY
 
 Owner replied **"aPPROVED"** to the explicit authorization request for a **temporary read-only CIFS mount** on the NEW `ccpcerp-prod` host, targeting solely `//192.168.50.132/ccpcerp-prod_backups`, using the independently staged protected credentials, verifying exact CIFS source / read-only state, and **unmounting after verification**. Authorization is for this single bounded connection test only; old shared PROD/DEV and `//192.168.50.132/erpnext_backups` are prohibited targets. No `fstab` edits, persistent mount, share data writes/listings, scheduled backup jobs, NAS permissions changes, Docker/Compose operations or production deployment are authorized.
