@@ -83,7 +83,7 @@ def verify_attestation(a: CaptureAttestation) -> None:
         raise core.BackupSafetyError("Wrong Frappe or MariaDB service")
     if not IMAGE_DIGEST_RE.fullmatch(a.image_digest):
         raise core.BackupSafetyError("Unpinned container image")
-    if not all((
+    if not all(flag is True for flag in (
         a.site_volume_verified,
         a.database_volume_verified,
         a.writes_quiesced,
@@ -100,7 +100,9 @@ def _safe_capture_root(root: Path) -> Path:
         raise core.BackupSafetyError("Capture root must be absolute and not a symlink")
     try:
         info = root.lstat()
-    except OSError as exc:
+        if ".." in root.parts or root.resolve(strict=True) != root:
+            raise core.BackupSafetyError("Noncanonical capture root")
+    except (OSError, RuntimeError) as exc:
         raise core.BackupSafetyError("Capture root unavailable") from exc
     if (
         not stat.S_ISDIR(info.st_mode)
