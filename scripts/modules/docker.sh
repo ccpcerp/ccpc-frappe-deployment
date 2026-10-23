@@ -7,9 +7,61 @@
 ###########################################
 # Run Docker Compose
 ###########################################
-ccpc_compose() {
+# Dedicated-host secrets are never stored in this repository's .env file.
+# This guard is opt-in and leaves the legacy-lan path unchanged.
+verify_dedicated_env_file() {
+  local secret_path="${CCPC_DEDICATED_ENV_FILE:-}"
+  local repo_root resolved_path parent_dir uid
 
-  docker compose "${COMPOSE_FILE_ARGS[@]}" "$@"
+  [[ "$secret_path" == /* ]] ||
+    error "Dedicated profile requires an absolute CCPC_DEDICATED_ENV_FILE path"
+
+  [[ ! -L "$secret_path" && -f "$secret_path" && -r "$secret_path" ]] ||
+    error "Dedicated environment file must be a readable regular file (not a symlink)"
+
+  [[ ! ${DB_PASSWORD+x} ]] ||
+    error "Unset DB_PASSWORD in the shell; dedicated credentials must come from the protected file"
+
+  repo_root=$(git rev-parse --show-toplevel 2>/dev/null) ||
+    error "Cannot identify the deployment Git checkout"
+  repo_root=$(realpath -e -- "$repo_root") ||
+    error "Cannot resolve the deployment Git checkout"
+  resolved_path=$(realpath -e -- "$secret_path") ||
+    error "Cannot resolve the dedicated environment file"
+
+  case "$resolved_path" in
+    "$repo_root"|"$repo_root"/*)
+      error "Dedicated environment file must be outside the Git checkout"
+      ;;
+  esac
+
+  [[ ! -e "$repo_root/.env" && ! -L "$repo_root/.env" ]] ||
+    error "Dedicated profile forbids a checkout .env file"
+
+  uid=$(id -u)
+  parent_dir=$(dirname -- "$resolved_path")
+
+  [[ "$(stat -c %u -- "$resolved_path")" == "$uid" &&
+     "$(stat -c %a -- "$resolved_path")" == "600" ]] ||
+    error "Dedicated environment file must be owned by this user and mode 0600"
+
+  [[ "$(stat -c %u -- "$parent_dir")" == "$uid" &&
+     "$(stat -c %a -- "$parent_dir")" == "700" ]] ||
+    error "Dedicated environment directory must be owned by this user and mode 0700"
+
+  CCPC_VERIFIED_ENV_FILE="$resolved_path"
+}
+
+ccpc_compose() {
+  if [[ "${CCPC_DEPLOYMENT_PROFILE:-legacy-lan}" == "dedicated-pre-tls" ]]; then
+    verify_dedicated_env_file
+    [[ -n "${CUSTOM_TAG:-}" ]] ||
+      error "Dedicated profile requires an explicit CUSTOM_TAG (no default image)"
+
+    docker compose --env-file "$CCPC_VERIFIED_ENV_FILE" "${COMPOSE_FILE_ARGS[@]}" "$@"
+  else
+    docker compose "${COMPOSE_FILE_ARGS[@]}" "$@"
+  fi
 }
 
 ###########################################
