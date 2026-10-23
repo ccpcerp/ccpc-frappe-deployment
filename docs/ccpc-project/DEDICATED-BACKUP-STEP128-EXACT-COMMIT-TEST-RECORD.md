@@ -1,43 +1,63 @@
-# Step 128 — Exact GitHub blob offline verification checkpoint
+# Step 128 — Full exact-GitHub-blob offline regression verification
 
-**2026-10-23 — PARTIAL REGRESSION VERIFICATION; NO DEPLOYMENT OR LIVE DATA.** Owner replied **"Approved"** to running the exact PR #30 GitHub revision offline and its existing regressions before any DEVELOPMENT integration. This document distinguishes what actually ran from tests that remain pending.
+**2026-10-23 — COMPLETED offline-only regression checkpoint: 75/75 PASS. NOT DEPLOYED OR PRODUCTION-READY.**
 
-## Source-of-truth and execution environment
+Owner approved the Step 128 objective: test the exact draft PR #30 files **offline**, including the previous backup publication/capture regressions, before any DEVELOPMENT test, NAS action, code merge or PRODUCTION operation. This document supersedes its earlier *42/42 partial* checkpoint: the **remaining 33 tests were subsequently completed successfully in the same isolated test environment**.
 
-- Independently verified GitHub PR #30 **OPEN/DRAFT/UNMERGED**, branch `feature/dedicated-prod-backup-safety-2026-10-23`, pinned head `27b8344529e133887c040a12e104254390a9b6a6`, base `security/dedicated-prod-external-env-2026-10-23` (open/draft PR #29). PR #29 at `bd92ade7ac859b9f6b21b157bdc1629e93f4540c` is stacked on open/draft PR #27 at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`. Source files and GitHub-first workflow reviewed using connected GitHub tools.
-- **Offline disposable tooling, outside both CCPC hosts:** Python **3.13.5**, test files in a local sandbox directory `/mnt/data/step128`. No Docker daemon, Frappe database, site, Synology, NAS credentials or backup filesystem was contacted. This path is a sandbox test path, **not** a deployable artifact or server path.
-- Container direct outbound GitHub DNS resolution was unavailable. Exact Step 127 policy module and tests were reconstructed locally from the GitHub content that was authored and fetched in the prior review; Step 125 module/tests had been retained locally from their previous offline verification. **Each of these four test inputs was checked with Git `hash-object` and exactly matched the GitHub `fetch_file` blob SHA at the pinned PR #30 head**:
+## 1. GitHub branch / trust scope
 
-| Exact committed file | GitHub/local matching Git blob SHA |
+- Source of truth: `ccpcerp/ccpc-frappe-deployment`, draft PR [#30](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/30), branch `feature/dedicated-prod-backup-safety-2026-10-23`, head **`27b8344529e133887c040a12e104254390a9b6a6`**. At review completion PR #30 was OPEN/DRAFT/UNMERGED based on `security/dedicated-prod-external-env-2026-10-23` (PR #29, head `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`), stacked on PR #27 at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`. The code PRs were **not modified** by this test.
+- The isolated runtime could not resolve outbound `github.com`. The eight committed Python files were obtained/recreated from the connected GitHub source and previous locally preserved files, **then verified individually byte-for-byte using Git `hash-object` against each exact connected GitHub `fetch_file` blob**. This verifies tested **file identity**, without claiming a normal `git clone` or a live GitHub Actions checkout.
+- Environment: Python **3.13.5**, disposable local `/mnt/data/step128` workspace, **outside any CCPC host or NAS**. All test inputs synthetic; Docker inspection and Frappe bench executor are mocked/injected. No backend/database connection, Synology SMB mount, credentials, Frappe site backup, Docker daemon, live ERPNext or production records used.
+
+## 2. The eight exact-tested blob identities
+
+| File | Verified Git blob SHA |
 | --- | --- |
-| `scripts/dedicated_backup_policy.py` | `9de6d269dcb90ba70302795a7dbb8149ebf5a2b4` |
-| `tests/test_dedicated_backup_policy.py` | `adf9e0e53ca875317a0316d78aa5845e0db200d9` |
+| `scripts/dedicated_backup_core.py` | `3650e0acf0832173606d9a8c5ed4c1990b6fc362` |
+| `tests/test_dedicated_backup_core.py` | `6e6d3ec23ec8ae2b41622a071847906abe08b012` |
+| `scripts/dedicated_backup_capture.py` | `710eb63531a8521af62d708a8e12267f4d968a24` |
+| `tests/test_dedicated_backup_capture.py` | `4453a7d237fcb6577e93b0c396d049e157b2f8fd` |
 | `scripts/dedicated_backup_runtime.py` | `d94648baf0aa6385cce04e4e45e49e0466a63e65` |
 | `tests/test_dedicated_backup_runtime.py` | `e4463e96a524a7c0fba2cd97ec5636cc0944095b` |
+| `scripts/dedicated_backup_policy.py` | `9de6d269dcb90ba70302795a7dbb8149ebf5a2b4` |
+| `tests/test_dedicated_backup_policy.py` | `adf9e0e53ca875317a0316d78aa5845e0db200d9` |
 
-## Tests actually executed against identical committed bytes
+Exact blob SHA equality was verified by local `git hash-object` and previously connected `fetch_file` results. No files were modified between verification and the final test.
+
+## 3. Full combined observed test result
+
+Executed in isolated disposable tooling:
 
 ```text
 cd /mnt/data/step128
 PYTHONPATH=. python -m unittest discover -s tests -p 'test_dedicated_backup_*.py' -q
 ----------------------------------------------------------------------
-Ran 42 tests in 0.028s
+Ran 75 tests in 0.128s
 
 OK
 
 python -m compileall -q scripts tests
-PASS: offline Python compilation
+PASS: all eight source/test modules compile
 ```
 
-**PASS:** 15 Step 127 policy unit tests and 27 Step 125 runtime identity unit tests. The Step 127 verification gap described in `DEDICATED-BACKUP-STEP127-POLICY-REVIEW.md` is **now closed for these exact two newly committed files**: its actual **15** tests were executed against byte-matched GitHub code. Earlier 20 offline prototype cases remain **separate historical evidence**, not a claim of 20 tests in the committed file.
+| Committed suite | Actual tests passed |
+| --- | ---: |
+| Step 123 — Core four-artifact verification and fail-closed publication | 13 |
+| Step 124 — Frappe capture adapter; mocked executor/attestor | 20 |
+| Step 125 — Docker/site runtime inventory; mocked Docker responses | 27 |
+| Step 127 — Approved manifest, exact mounts, consistency policy claims | 15 |
+| **Combined exact-byte regression** | **75/75 passed** |
 
-**NOT RERUN:** Step 123 four-artifact/NAS publication module plus its 13 tests, and Step 124 Frappe capture adapter plus its 20 tests. They are part of PR #30 but their full files were not available to this isolated test runner; the earlier test reports remain history, **not** a single combined 75-test run. The connector showed the files are present in PR #30; do not claim 75/75 passed. A fully verified suite still needs all four original modules and all four tests in one SHA-pinned checkout.
+This resolves the Step 127 note's prior test execution gap: the **actual GitHub-committed policy test file has 15 tests**, and all 15 passed along with the other 60. The earlier 20-test prototype was a distinct prior artifact and is NOT part of the 75.
 
-## Safety and correctness limitations
+## 4. Blocking issues untouched by successful unit tests
 
-- These were **synthetic/mocked unit tests**, not actual Frappe v16 DB integration, trustworthy Docker release manifest/provenance, live site and volume inspection, verified quiescence, files consistency, complete NAS backup, CIFS publication or a restore drill.
-- Step 127 policy returns `ValidatedRelease.trusted_runtime=False`, `MountAssessment.backup_ready=False` and `ConsistencyAssessment.writes_quiesced=False/backup_ready=False`. The live Step 125 verifier remains **unwired** to Step 127's new named logs mount policy; it still requires exactly one backend mount and may reject the intended Docker image with an auto-created logs volume. No named logs volume was added to Compose.
-- No trusted approval channel for manifest digests, immutable image/build provenance, actual Compose hash, real Frappe v16 backup wrapper, consistency hold, failure redaction, retention, scheduled jobs or recovery key escrow was installed/tested.
-- No updates to any GitHub **code** branches in Step 128; PR #27/#29/#30 remain draft/unmerged. No DEVELOPMENT pull, service restart, Docker build, PRODUCTION migration/deployment, mount, NAS write/delete, cron, backup, restore or old production operations were performed.
+- Tests are synthetic/mock only. No actual Frappe v16 `bench backup --with-files` against MariaDB, no simultaneous uploads/accounting/stock transaction consistency proof, no validation of Frappe's old-backup cleanup `delete_temp_backups()` on a disposable running site, and no full four-artifact application restore.
+- Step 125 runtime verifier currently rejects any extra backend volume, whereas Step 127 policy proposes exactly two **named** `sites` and `logs` volumes; no Compose named `logs` mapping or integration has been made. This **source integration mismatch is not tested away** by separate mocked PASS results.
+- The trusted image/release manifest does not yet exist: immutable reviewed image IDs, provenance label, independently approved configuration hashes, trusted manifest digest/approval channel and operational site-volume mappings remain unverified.
+- Step 127 `backup_ready=False`, `writes_quiesced=False` and related gates remain deliberately false. No verified DB/file freeze mechanism, complete writer inventory, side-effect/filters/encryption proof, or trusted capture runner is connected.
+- Step 123's remote CIFS `renameat2(RENAME_NOREPLACE)` behavior, mount-replacement races, crash-consistent publication, restoration, NAS retention, monitoring/alerts and key escrow remain untested or unimplemented.
+- Neither PR #27/#29/#30 was merged; **no** new host or old host was inspected or changed, no Docker services altered, no NAS mount or write, no `/etc/fstab`/cron changes, no backups/restores/deletions in Step 128.
 
-**Next precise gate:** Run the entire **four-suite, exact SHA-pinned** PR #30 offline regression set (expected historical total 13+20+27+15 = 75 tests, but actual test count must be discovered from that checkout), inspect any failures, then update this record with observed output. If direct isolated GitHub checkout remains inaccessible, preserve this **42/42 partial checkpoint** instead of claiming full verification. No real host action should be requested merely to satisfy offline test completion.
+**Next recommended approval gate:** A **separate GitHub-only implementation/review** to reconcile Step 125's runtime volume inventory with Step 127's exact named logs policy and independently approved manifest contract, plus offline synthetic regression tests. The first **real DEVELOPMENT or disposable-Frappe integration** must still receive separate owner approval with verified safety/isolation, clean Git status, an explicit backup/rollback plan and no production impact. Production changes require later dedicated approval.
