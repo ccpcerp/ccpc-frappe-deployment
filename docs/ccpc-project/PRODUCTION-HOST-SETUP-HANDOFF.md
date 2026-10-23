@@ -2,6 +2,20 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 105 PASSED — PR #29 REVIEW WORKTREE CHECKED OUT CLEANLY
+
+Operator executed the approved, guarded checkout command on the separate NEW-host directory `/home/ccpcadmin/ccpc-pr29-review`. Guard clauses required the original `/home/ccpcadmin/ccpc-frappe-deployment` to be clean at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`, branch `security/dedicated-production-pre-tls-2026-10-23`, and review clone to be a non-symlink, expected GitHub origin, branch `security/dedicated-prod-external-env-2026-10-23`, pinned HEAD `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`, with empty working root except `.git`. No STOP printed; checkout via `git restore --source=HEAD --staged --worktree -- .` completed and returned:
+
+```text
+## security/dedicated-prod-external-env-2026-10-23...origin/security/dedicated-prod-external-env-2026-10-23
+```
+
+**Pass:** checkout of PR #29's source into **separate review tree** with no modified/untracked files shown. Guarded command makes no changes to original source tree. GitHub connector independently confirmed PR #29 still OPEN/DRAFT/UNMERGED at `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`; ref matches. No Docker service, database, secret file, merge, or deployment was performed.
+
+**Next one Step 106 — guarded, credential-free checked-in regression test on NEW host:** confirm review and original HEAD/branch and both clean worktrees; confirm review `.env` absent; `bash -n` the five exact source/test files; then, from the review clone only, invoke `env -u DB_PASSWORD -u CCPC_DEDICATED_ENV_FILE -u CCPC_DEPLOYMENT_PROFILE -u CUSTOM_TAG -u CUSTOM_IMAGE -u IMAGE_NAME bash tests/test_dedicated_env_security.sh`. The GitHub-reviewed test sources libs, stubs Docker with a shell function, makes a `mktemp -d` scratch directory and writes only `DB_PASSWORD=TEST_PLACEHOLDER_NOT_REAL` inside it; its `EXIT` trap deletes **only that scratch directory**. It checks protected path/mode, rejection rules, image/tag selection, no dedicated `.env` backups, and legacy Compose unchanged; no live Docker Compose is executed. Print its PASS/FAIL output, then confirm clean review Git status; stop on any failure. **Do not** run deployment scripts, Docker up/build, use real credentials, change either checkout, touch shared live PROD/DEV, DNS/firewall, or restore/migrate/cut over.
+
+**Test scripts not yet run on the NEW host:** awaiting owner Step 106 terminal evidence. Docker Compose merge test for PR #29 remains pending and must use a disposable, external, correctly permissioned environment *after* Step 106.
+
 ## 2026-10-23 STEP 104 PASSED — PR #29 REVIEW REPOSITORY CLONED WITHOUT CHECKOUT
 
 Owner manually ran the guarded, read-only Git object clone command on **new** host `ccpcadmin@ccpcerp-prod`, targeting only `$HOME/ccpc-pr29-review`. Terminal reports Git remote enumeration / transfer / delta resolution at 100% and:
