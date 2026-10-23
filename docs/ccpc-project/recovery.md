@@ -1,6 +1,6 @@
 # CCPC ERP Recovery Guide
 
-*Last updated: 2026-09-02*
+*Legacy backup/recovery procedures last verified: 2026-09-02. New-host design cross-reference added: 2026-10-23.*
 
 ## Dedicated new-host backup design — 2026-10-23
 
