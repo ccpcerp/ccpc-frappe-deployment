@@ -2,6 +2,27 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 110 PASSED BY OPERATOR OUTPUT — ISOLATED REVIEW PROJECT, EXPECTED NAMED VOLUMES AND NO BIND MOUNTS
+
+Owner ran the approved, non-deploying Step 110 on NEW host `ccpcadmin@ccpcerp-prod`, using the separate review checkout `/home/ccpcadmin/ccpc-pr29-review`. The command included guards for original clean PR #27 checkout at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`, review clean PR #29 checkout at `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`, absence of review `.env`, disposable `DB_PASSWORD=CCPC_DUMMY_CONFIG_ONLY` in private external temporary `compose.env`, and `ccpc_compose config --format json` piped straight to fixed-output Python assertions.
+
+Reported terminal output:
+
+```text
+PASS: Isolated review project name
+PASS: Three expected named volumes
+PASS: Correct service mounts; no bind mounts
+PASS: Step 110 validation completed
+## security/dedicated-prod-external-env-2026-10-23...origin/security/dedicated-prod-external-env-2026-10-23
+ccpcadmin@ccpcerp-prod:~$
+```
+
+**Pass as terminal-reported:** Compose review project resolved to `ccpc-pr29-review`; expected named volumes are `sites`, `db-data`, `redis-queue-data`, with generated names `ccpc-pr29-review_sites`, `ccpc-pr29-review_db-data`, `ccpc-pr29-review_redis-queue-data`; all seven application containers mount sites at `/home/frappe/frappe-bench/sites`, `db` mounts db-data at `/var/lib/mysql`, `redis-queue` mounts redis-queue-data at `/data`; no extra bind mounts in reviewed effective model. **No actual volumes were created.** Terminal paste contains garbled/truncated middle commands but coherent fixed PASS output and clean Git status. Real cleanup not independently verified beyond the intended narrow trap; no real credentials, container create/up, migration or restoration.
+
+**Independent GitHub review:** PR #29 and PR #27 still draft, open and unmerged at pinned commits above. Existing docs `docs/04-operations/recovery.md` list a generic environment `.env` and aspirational restoration time targets; this is **legacy/general guidance, not a tested new-host recovery plan**. `docs/04-operations/deployment-guide.md` and `docs/04-operations/release-process.md` show `./scripts/rollback.sh <previous-tag>` as rollback, but source `scripts/rollback.sh` invokes `deploy_release` and hence **runs migrations again**; it does not reverse database migrations or guarantee transaction/data recovery. Dedicated PR #29's `restore_env` intentionally performs no state rollback. Treat dedicated deployment rollback/recovery as **UNRESOLVED** until an explicit safe procedure, backup integrity and restore drill are reviewed. Do not use generic rollback.sh as a substitute for a database rollback.
+
+**Next Step 111 recommendation:** a **read-only Docker daemon inventory on the NEW host only**, verifying its Docker context is local and checking for existing container/volume/network project namespace collisions for `ccpc-frappe-deployment` (expected original checkout directory name) and `ccpc-pr29-review` (test checkout name) before choosing explicit production project names. Report fixed-status findings only; do not run `docker compose up`, create/delete volumes, set production credentials, modify any checkout, or touch old PROD/DEV. Verify all previous review guards first; on unexpected Docker context or existing resources, STOP and investigate before changes.
+
 ## 2026-10-23 STEP 109 PASSED — EMPTY EXTERNAL DB_PASSWORD REJECTED BY REAL COMPOSE
 
 Owner ran the guarded, non-deploying negative test from separate review checkout `/home/ccpcadmin/ccpc-pr29-review` on the NEW `ccpcadmin@ccpcerp-prod` host. The command guarded the original checkout at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`, review checkout at `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`, clean branches and absent review `.env`. It created a temporary private directory and `compose.env` containing only `DB_PASSWORD=`, sourced the opt-in dedicated config/Compose wrapper with explicit dummy image/tag, and checked that real `ccpc_compose config --quiet` failed with the specific required-password message while keeping the expanded Compose configuration and error details out of terminal output.
