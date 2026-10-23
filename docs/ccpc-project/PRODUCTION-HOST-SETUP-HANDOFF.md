@@ -2,6 +2,18 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 95 PASSED — CONFIG SCRIPT BASH SYNTAX VERIFIED; COMPOSE VERSION NEXT
+
+Owner ran `bash -n "$HOME/ccpc-frappe-deployment/scripts/config.sh" && echo "PASS: scripts/config.sh syntax"` on new dedicated `ccpcerp-prod` and reported `PASS: scripts/config.sh syntax` with return to shell prompt. **Verified from terminal:** Bash parser accepted the checked-out config script. This does not execute the script, validate selected `CCPC_DEPLOYMENT_PROFILE` behavior, evaluate Compose interpolation, verify port bindings, or prove deployability.
+
+Connected GitHub checked draft PR #27 on 2026-10-23: still OPEN/DRAFT/UNMERGED at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`. Its `overrides/compose.dedicated-pre-tls.yaml` uses Compose's `!override` tag for loopback frontend binding and a required `DB_PASSWORD` interpolation. **Do not run `docker compose config` or print an expanded Compose model before reviewing secret handling.**
+
+**Next Step 96, one read-only operator check on the NEW host:**
+```bash
+docker compose version
+```
+Report the version or exact error so Compose `!override` support can be assessed before any model validation. Version command does not launch the stack, manipulate containers, or read `.env`. Preserve no-change boundaries: no `docker compose up`, deployment, migration, restore, credential display, DNS/firewall edits, old PROD/DEV changes, or cutover.
+
 ## 2026-10-23 STEP 94 PASSED — DEDICATED-HOST CHECKOUT COMPLETE; REVIEW VALIDATION NEXT
 
 Owner manually executed the guarded new-host checkout command at `ccpcadmin@ccpcerp-prod`, requiring exact current branch `security/dedicated-production-pre-tls-2026-10-23`, pinned local HEAD `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`, and no pre-existing worktree files outside `.git`. The guarded command then ran `git -C "$repo" restore --source=HEAD --staged --worktree -- .`, followed by `git status --short --branch`. Owner supplied output:
