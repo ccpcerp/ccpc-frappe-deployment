@@ -2,6 +2,31 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 114 PASSED — NEW HOST HAS NO CIFS CLIENT, MOUNT TARGET OR FSTAB ENTRY
+
+Owner performed the approved read-only package, helper, mountpoint and `/etc/fstab` inspection on NEW `ccpcadmin@ccpcerp-prod`. Terminal output:
+
+```text
+=== CIFS package ===
+INFO: cifs-utils is not installed
+INFO: CIFS mounting helper not found
+
+=== Intended backup mount point ===
+INFO: Backup directory does not exist
+
+=== Existing fstab entry ===
+INFO: No matching legacy NAS entry in fstab
+
+PASS: Step 114 read-only inspection completed
+ccpcadmin@ccpcerp-prod:~$
+```
+
+**Verified from operator output:** no installed `cifs-utils` package, no `mount.cifs` helper in either checked `/usr/sbin` or `/sbin`, no existing `/mnt/erpnext_backups` directory, and no matching `//192.168.50.132/erpnext_backups` + `/mnt/erpnext_backups` row in readable `/etc/fstab`. This does not certify `/etc/fstab` contains no *other* network mount configuration. Combined with Steps 112–113: no mounted NFS/SMB filesystem, NAS TCP/445 reachable. Nothing installed, mounted, written, or reconfigured.
+
+**Safety choice:** Keep the old shared-host production backup location and schedules untouched. Prefer a **separate new-host NAS share and limited backup account**, with independently reviewed NAS permissions and a distinct host-side mount path, rather than reusing old production's `erpnext_backups` path and retention space. No NAS share or account creation has been approved. Dedicated Frappe backup sets must cover database, site config, public and private files; protected external Compose credential recovery must be secured off-host separately. Backups must validate exact mounted CIFS source and never silently write to an unmounted local directory; test full restore before reliance. Current generic rollback script does not reverse DB migrations.
+
+**Next single Step 115 — no-modification APT prerequisite review:** On the NEW host only, check `apt-cache policy cifs-utils`, `dpkg --print-architecture`, and whether `cifs-utils` is held using `apt-mark showhold`, with no `apt update`, `apt install` or file modifications. Report package candidate and repository metadata status without assuming it is available. Explicit separate owner approval is needed before any package installation, NAS mount, credentials, `fstab` change or backup scheduling. Stacked draft PR #29 and PR #27 remain open, unmerged and undeployed at latest verified commits `bd92ade7ac859b9f6b21b157bdc1629e93f4540c` and `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`.
+
 ## 2026-10-23 STEP 113 PASSED — NAS SMB TCP REACHABLE; CIFS CLIENT NOT FOUND
 
 Owner ran the authorized read-only NAS connectivity check on NEW `ccpcadmin@ccpcerp-prod`. Supplied terminal output:
