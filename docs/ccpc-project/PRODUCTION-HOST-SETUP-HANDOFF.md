@@ -2,6 +2,16 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 111b OWNER-APPROVED — RESTRICTED SUDO READ-ONLY DOCKER INVENTORY
+
+The project owner explicitly replied **"Approved"** to the question: "Do you approve using `sudo` solely for this read-only Docker inventory on `ccpcerp-prod`?" This approval is narrowly limited to **read-only Docker API listings and verification**, executed manually by `ccpcadmin` on the NEW server, with no generalized privilege expansion and no current Docker resource changes.
+
+GitHub connector independently reverified PR #29 OPEN/DRAFT/UNMERGED at `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`, parent PR #27 OPEN/DRAFT/UNMERGED at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`. The prior Step 111 failure was permissions, Step 111a establishes local Docker socket owned root:docker 0660 and daemon active; this does not yet tell us what containers, volumes, or networks exist.
+
+**Next one operator command, Step 111b, still NOT EXECUTED:** check hostname `ccpcerp-prod`, original and review branch/commits and clean Git status, no Docker host/context overrides, Docker binary `/usr/bin/docker`; use `sudo -- /usr/bin/docker -H unix:///var/run/docker.sock` only with `container ls -a -q`, `volume ls -q`, `network ls -q`, plus name-only listings to count whether either `ccpc-frappe-deployment` or `ccpc-pr29-review` has any Compose-labeled or expected-name container, volume, or network. Never dump `docker inspect` or environment config, passwords, image details or other private metadata. Output only static success/error labels or count summaries. If any scoped resources exist, report `REVIEW` and do not try to clean/remove them. Sudo password, if requested, is entered directly in terminal, never pasted in chat. The Docker host is explicitly pinned to the local Unix socket so `sudo` cannot silently target a remote Docker context.
+
+**Scope boundary:** sudo read-only inventory approval does **not** approve changing socket ownership/modes, adding `ccpcadmin` to Docker group, launching containers, creating volumes or Docker networks, building/pulling images, writing real credentials, restoring databases, running migrations, modifying either original or review checkout, altering old PROD/DEV, or merging/cutting over. Await terminal output before documenting an inventory result.
+
 ## 2026-10-23 STEP 111a PASSED — DOCKER SOCKET PERMISSIONS DIAGNOSED, INVENTORY STILL BLOCKED
 
 Owner executed the approved **no-sudo/no-Docker-API** diagnostic on NEW `ccpcadmin@ccpcerp-prod`. Terminal reports:
