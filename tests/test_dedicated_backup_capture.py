@@ -112,6 +112,8 @@ class CaptureOfflineTests(unittest.TestCase):
                  "no_partial_backup_filters", "encryption_disabled")
         for field in flags:
             self.reject(lambda: self.call(attest=lambda: dataclasses.replace(self.runtime, **{field: False})))
+        for field in flags:
+            self.reject(lambda: self.call(attest=lambda: dataclasses.replace(self.runtime, **{field: "yes"})))
         self.assertFalse(self.output.exists())
 
     def test_attestation_must_be_object(self):
@@ -130,6 +132,17 @@ class CaptureOfflineTests(unittest.TestCase):
         self.root.rename(actual)
         self.root.symlink_to(actual, target_is_directory=True)
         self.reject(self.call)
+
+    def test_reject_symlinked_parent_of_capture_root(self):
+        parent = self.root.parent
+        actual = parent.with_name(parent.name + "-real")
+        parent.rename(actual)
+        parent.symlink_to(actual, target_is_directory=True)
+        try:
+            self.reject(self.call)
+        finally:
+            parent.unlink()
+            actual.rename(parent)
 
     def test_reject_target_directly_on_nas(self):
         with patch.object(core, "NAS_MOUNT", self.root):
