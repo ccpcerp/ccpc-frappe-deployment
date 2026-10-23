@@ -1,5 +1,9 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-23 NEW HOST STEP 81 COMPLETED — NO HOME GIT CHECKOUT FOUND
+
+Owner ran `find "$HOME" -maxdepth 4 -type d -name .git -print` on distinct `ccpcerp-prod` and received no output. No Git metadata detected in the inspected four-level HOME scope. This does not rule out repositories elsewhere. **Next single read-only step:** `git --version` from the new host to verify availability of Git before choosing a fresh review checkout and private-repo authentication method. Existing PROD+DEV, DNS, Docker, UFW and app data unchanged. Keep draft PR #27 (pre-TLS Compose) and #28 (HTTPS gateway) as GitHub-only review artifacts; no migration/deployment approved. Detailed handoff: [PRODUCTION-HOST-SETUP-HANDOFF.md](PRODUCTION-HOST-SETUP-HANDOFF.md).
+
 ## 2026-10-23 NEW HOST SSH RECONNECTED — CUSTOM WINDOWS KEY LOCATION RECORDED
 
 **Owner confirmed successful SSH login to `ccpcadmin@ccpcerp-prod:~$` (new dedicated PRODUCTION host at `192.168.50.186`).** From Windows PowerShell, the standard `ssh ccpcadmin@192.168.50.186` attempt was rejected with `Permission denied (publickey)`; the successful command explicitly supplied a custom-named private key: `ssh -i "$env:USERPROFILE\.ssh\ccpcerp_prod_ed25519" ccpcadmin@192.168.50.186`. The Windows `.ssh` directory contains this key filename and corresponding `.pub`; **no key content or passphrase was accessed, copied or committed**. If a Windows SSH session drops again, use this explicit command to reconnect, without changing SSH server policy. SSH is currently restored and Step 81 is **still pending**: run `find "$HOME" -maxdepth 4 -type d -name .git -print` on `ccpcerp-prod` and paste result. No application deployment, DNS cutover, firewall, old-host PROD+DEV or server operations performed. Full [PRODUCTION-HOST-SETUP-HANDOFF.md](PRODUCTION-HOST-SETUP-HANDOFF.md).
