@@ -2,6 +2,14 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 90 PASSED — NEW-HOST REPOSITORY TARGET AVAILABLE; NO CLONE YET
+
+Owner ran the Step 90 read-only path existence/symlink check on `ccpcadmin@ccpcerp-prod`. Terminal returned exactly `TARGET AVAILABLE: /home/ccpcadmin/ccpc-frappe-deployment`. This confirms the proposed *new-host* directory was not present when checked; no claim is made about filesystem state beyond that check, and no files were created. Step 89 already verified SSH-based private repository read access at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`.
+
+Connected GitHub independently rechecked draft PR #27 on 2026-10-23: `security/dedicated-production-pre-tls-2026-10-23` is still OPEN/UNMERGED with HEAD `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`.
+
+**Next Step 91 — optional operator-executed safe source-only clone on the new host:** guard against a now-occupied path, then `git clone --no-checkout --single-branch --branch security/dedicated-production-pre-tls-2026-10-23` from `git@github.com:ccpcerp/ccpc-frappe-deployment.git` into `$HOME/ccpc-frappe-deployment`, with explicit named `~/.ssh/ccpc_github_deploy_ed25519`, SSH `IdentitiesOnly=yes`, `BatchMode=yes`, `StrictHostKeyChecking=yes`, `HostKeyAlgorithms=ssh-ed25519`. Because `--no-checkout` avoids populating the worktree, the subsequent step must independently verify local HEAD exactly matches expected commit before considering a controlled checkout. This clone only downloads repository objects and writes to the checked-available new-host directory; it is **not deployment approval**. Do not run Compose, Docker build, Frappe, database operations, migrations, backups/restores, DNS/firewall changes, or modify old live PROD/DEV. Clone execution remains operator-controlled; wait for command output.
+
 ## 2026-10-23 STEP 89 PASSED — NEW-HOST PRIVATE GITHUB BRANCH READ ACCESS VERIFIED; NO CLONE
 
 Owner executed the exact `GIT_SSH_COMMAND="ssh -i $HOME/.ssh/ccpc_github_deploy_ed25519 -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o HostKeyAlgorithms=ssh-ed25519" git ls-remote --heads git@github.com:ccpcerp/ccpc-frappe-deployment.git security/dedicated-production-pre-tls-2026-10-23` on `ccpcadmin@ccpcerp-prod`. Terminal returned:
