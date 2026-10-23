@@ -2,6 +2,26 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 109 PASSED — EMPTY EXTERNAL DB_PASSWORD REJECTED BY REAL COMPOSE
+
+Owner ran the guarded, non-deploying negative test from separate review checkout `/home/ccpcadmin/ccpc-pr29-review` on the NEW `ccpcadmin@ccpcerp-prod` host. The command guarded the original checkout at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`, review checkout at `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`, clean branches and absent review `.env`. It created a temporary private directory and `compose.env` containing only `DB_PASSWORD=`, sourced the opt-in dedicated config/Compose wrapper with explicit dummy image/tag, and checked that real `ccpc_compose config --quiet` failed with the specific required-password message while keeping the expanded Compose configuration and error details out of terminal output.
+
+Terminal output:
+
+```text
+PASS: Empty database password correctly rejected
+## security/dedicated-prod-external-env-2026-10-23...origin/security/dedicated-prod-external-env-2026-10-23
+ccpcadmin@ccpcerp-prod:~$
+```
+
+**Passed as terminal-reported:** empty **value**, not merely unset variable, fails the real dedicated Compose interpolation guard. The owner paste again contains a garbled middle portion of the command; the two final outcomes and returned shell prompt are coherent, but no claim that the exact source command bytes were independently reconstructed. Temporary dummy directory removal was specified via narrow EXIT trap; it was not independently inventoried. **No real secrets or Docker service start, build, database migration, data restoration or production modification.**
+
+**Independently verified current GitHub state:** draft PR #29 remains OPEN/DRAFT/UNMERGED at `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`, dependent on draft PR #27 OPEN/DRAFT/UNMERGED at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`. Original new-host checkout remains pinned to PR #27; separate review checkout remains on PR #29.
+
+**Next release-safety issue discovered in source review (NOT fixed, NOT runtime-tested):** `scripts/modules/deployment.sh:deploy_release` still calls `deploy_containers` → `verify_containers` → `run_migrations` → `health_check` in order. In the dedicated path, `scripts/modules/env.sh:restore_env` deliberately emits a warning and returns without restoring a file, because there is no dedicated `.env` backup; the other modules call this helper on deployment, container-state and migration failure, then abort. No atomic automatic rollback of containers, images, volumes, or Frappe database changes exists in that path. **Success of Steps 106–109 does not authorize a deployment or establish recoverability.** A reviewed, operator-driven backup/restore and rollback strategy—including migration failure handling, image provenance and volumes—must precede any live rollout; do not switch over production on these static checks alone.
+
+**Recommended next single Step 110:** before any Docker operation, inspect the **effective named volumes, bind mounts and Compose project namespace** on the separate PR #29 review checkout, using only another temporary dummy external environment file and fixed-output Python JSON assertions; do not print the entire Compose file or interpolate real credentials. This will inform the backup/restore and project-isolation plan. No merges or host changes beyond the already authorized isolated review tests.
+
 ## 2026-10-23 STEP 108 PASSED BY OPERATOR OUTPUT — EFFECTIVE DEDICATED COMPOSE JSON ASSERTIONS
 
 Operator executed guarded, non-deploying Step 108 from the **separate** PR #29 review checkout `/home/ccpcadmin/ccpc-pr29-review` on NEW host `ccpcadmin@ccpcerp-prod`. The command checked the untouched original checkout pinned to PR #27 commit `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`, clean review checkout pinned to PR #29 commit `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`, and absence of review `.env`. It used a `mktemp -d` directory, disposable `DB_PASSWORD=CCPC_DUMMY_CONFIG_ONLY` file, sourced `scripts/config.sh`, `scripts/lib.sh`, `scripts/modules/docker.sh`, and piped actual `ccpc_compose config --format json` directly into a fixed-output Python verifier, not displaying expanded Compose config. Terminal output:
