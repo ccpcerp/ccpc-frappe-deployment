@@ -2,6 +2,30 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 91 PASSED — NEW-HOST REPOSITORY CLONED WITH NO CHECKOUT
+
+Owner executed on `ccpcadmin@ccpcerp-prod` the guarded `git clone --no-checkout --single-branch --branch security/dedicated-production-pre-tls-2026-10-23` via the dedicated `ccpc_github_deploy_ed25519` SSH identity, targeting the previously vacant `/home/ccpcadmin/ccpc-frappe-deployment`. The owner supplied Git terminal output:
+
+```text
+Cloning into '/home/ccpcadmin/ccpc-frappe-deployment'...
+remote: Enumerating objects: 12354, done.
+remote: Counting objects: 100% (355/355), done.
+remote: Compressing objects: 100% (32/32), done.
+remote: Total 12354 (delta 338), reused 325 (delta 323), pack-reused 11999 (from 2)
+Receiving objects: 100% (12354/12354), 10.52 MiB | 4.19 MiB/s, done.
+Resolving deltas: 100% (6407/6407), done.
+```
+
+**Verified from owner terminal:** Git completed the object-transfer/delta-resolution steps and returned to the shell without a reported error. Because the clone used `--no-checkout`, normal project working-tree file checkout was intentionally deferred. Local HEAD / branch / origin still require an explicit read-only verification on the new host. Independently, GitHub shows draft PR #27 branch `security/dedicated-production-pre-tls-2026-10-23` at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f` (OPEN/UNMERGED).
+
+**Next one Step 92 (read-only verification, no checkout or changes):**
+```bash
+git -C "$HOME/ccpc-frappe-deployment" branch --show-current
+git -C "$HOME/ccpc-frappe-deployment" rev-parse --verify HEAD
+git -C "$HOME/ccpc-frappe-deployment" remote get-url origin
+```
+Expected branch `security/dedicated-production-pre-tls-2026-10-23`, full commit `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`, origin `git@github.com:ccpcerp/ccpc-frappe-deployment.git`. Inspect actual operator output before any checkout or Compose validation. No Docker, containers, services, production records, DEVELOPMENT state, migrations, backups, firewall/DNS or live cutover changed or authorized.
+
 ## 2026-10-23 STEP 90 PASSED — NEW-HOST REPOSITORY TARGET AVAILABLE; NO CLONE YET
 
 Owner ran the Step 90 read-only path existence/symlink check on `ccpcadmin@ccpcerp-prod`. Terminal returned exactly `TARGET AVAILABLE: /home/ccpcadmin/ccpc-frappe-deployment`. This confirms the proposed *new-host* directory was not present when checked; no claim is made about filesystem state beyond that check, and no files were created. Step 89 already verified SSH-based private repository read access at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`.
