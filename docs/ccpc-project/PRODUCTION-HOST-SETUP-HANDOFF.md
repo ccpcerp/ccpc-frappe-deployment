@@ -2,6 +2,22 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 107 PASSED BY OPERATOR OUTPUT — REAL COMPOSE PARSED EXTERNAL DUMMY CONFIG
+
+Owner executed Step 107 in a guarded child shell on the **new dedicated** `ccpcadmin@ccpcerp-prod` host from isolated PR #29 checkout `/home/ccpcadmin/ccpc-pr29-review`; supplied resulting terminal:
+
+```text
+PASS: Dedicated Compose model parsed with external dummy credentials
+## security/dedicated-prod-external-env-2026-10-23...origin/security/dedicated-prod-external-env-2026-10-23
+ccpcadmin@ccpcerp-prod:~$
+```
+
+**Passed as terminal-reported:** Docker Compose's real `config --quiet` accepted the five-file `dedicated-pre-tls` model with `CCPC_DEDICATED_ENV_FILE` pointing to temporary, 0600, locally created `DB_PASSWORD=CCPC_DUMMY_CONFIG_ONLY` under private `mktemp -d` directory, and `CUSTOM_IMAGE=ccpcerp`, `CUSTOM_TAG=review-only-tag`. The originating command included pinned commit and clean-worktree checks, `unset DB_PASSWORD`, sourced reviewed `scripts/config.sh`, `scripts/lib.sh` and `scripts/modules/docker.sh`, called `ccpc_compose config --quiet`, and had a trap removing only temporary dummy file/directory. **Transcript qualification:** the owner's pasted interactive command contains a garbled/truncated line near the end, but the complete expected success line, clean branch-tracking status and returned shell prompt are present. Avoid claiming independent proof of the exact full command byte sequence or of post-test removal beyond intended trap. No real credentials or Docker deployment involved.
+
+**Independently checked GitHub:** stacked [draft PR #29](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/29) OPEN/DRAFT/UNMERGED at `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`, parent draft PR #27 at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`. This validation is **Compose parsing only**, not proof that image identity, loopback-only host port and MariaDB password interpolation are correct in effective JSON, nor actual runtime isolation.
+
+**Next one Step 108 — non-deploying effective model assertions on new host only:** repeat a guarded isolated PR #29 `ccpc_compose config --format json` with private temporary external dummy secret, `set -o pipefail`, and pipe **directly** to a local Python JSON validator (never dump expanded Compose config). Assert exactly the expected published frontend port `127.0.0.1:8080:8080/tcp`, no host-published ports for other services, all seven Frappe/ERPNext services using `ccpcerp:review-only-tag` instead of fallback images, and MariaDB `MYSQL_ROOT_PASSWORD` equal to **known dummy** `CCPC_DUMMY_CONFIG_ONLY`. Print only static PASS/FAIL labels. The dummy file must remain external to both checkout directories, owned by user, 0600 under 0700 temp directory, and be deleted by narrowly scoped EXIT trap. No production password, environment dump, `docker compose up`, changes to originals/old PROD+DEV, firewall/DNS, migrations/restoration, merge or cutover.
+
 ## 2026-10-23 STEP 106 PASSED — PINNED PR #29 REGRESSIONS PASS ON NEW HOST, NO DOCKER INVOCATION
 
 Owner ran the guarded test on **new** `ccpcadmin@ccpcerp-prod`, within separately checked-out `/home/ccpcadmin/ccpc-pr29-review`. Operator command checked original `/home/ccpcadmin/ccpc-frappe-deployment` remains at original clean PR #27 branch `security/dedicated-production-pre-tls-2026-10-23` HEAD `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`; isolated review remains clean on PR #29 branch `security/dedicated-prod-external-env-2026-10-23` HEAD `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`, with no checkout `.env`. Output:
