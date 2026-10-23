@@ -12,6 +12,7 @@ source scripts/modules/env.sh
 source scripts/modules/deployment.sh
 
 CCPC_DEPLOYMENT_PROFILE=dedicated-pre-tls
+IMAGE_NAME=ccpcerp
 unset DB_PASSWORD || true
 
 scratch=$(mktemp -d)
@@ -55,11 +56,19 @@ reject_ambient_password() {
 expect_rejected "ambient DB_PASSWORD" reject_ambient_password
 unset CUSTOM_TAG || true
 expect_rejected "missing explicit image tag" ccpc_compose config --quiet
+CUSTOM_TAG=review-only-tag
+export CUSTOM_TAG
+expect_rejected "missing explicit image name" ccpc_compose config --quiet
+CUSTOM_IMAGE=unexpected-image
+expect_rejected "wrong image name" ccpc_compose config --quiet
+CUSTOM_IMAGE="$IMAGE_NAME"
+export CUSTOM_IMAGE
 
 docker() {
   [[ "$1" == "compose" && "$2" == "--env-file" &&
      "$3" == "$CCPC_DEDICATED_ENV_FILE" ]] || return 85
   [[ "${CUSTOM_TAG:-}" == "review-only-tag" ]] || return 86
+  [[ "${CUSTOM_IMAGE:-}" == "$IMAGE_NAME" ]] || return 87
   return 0
 }
 
@@ -82,10 +91,11 @@ wait_for_services() { :; }
 verify_containers() { :; }
 run_migrations() { :; }
 health_check() { :; }
-unset CUSTOM_TAG
+unset CUSTOM_TAG CUSTOM_IMAGE
 deploy_release review-only-tag
-[[ "$CUSTOM_TAG" == "review-only-tag" ]]
+[[ "$CUSTOM_TAG" == "review-only-tag" && "$CUSTOM_IMAGE" == "$IMAGE_NAME" ]]
 [[ "$(declare -p CUSTOM_TAG)" == *" -x "* ]]
+[[ "$(declare -p CUSTOM_IMAGE)" == *" -x "* ]]
 printf '%s\n' 'PASS: dedicated release skips .env backup/edit and exports explicit tag'
 
 # The old profile must retain the original docker compose argument order.
