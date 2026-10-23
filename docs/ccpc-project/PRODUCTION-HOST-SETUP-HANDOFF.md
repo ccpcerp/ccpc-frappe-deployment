@@ -2,6 +2,31 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 121 PASSED — DEDICATED NAS SHARE READ/WRITE SMOKE TEST AND CLEANUP
+
+After separate owner approval, operator ran the bounded Step 121 command on the **new** `ccpcadmin@ccpcerp-prod` host (terminal echo of pasted multiline source was partly garbled, but command's fixed output completed). User returned:
+
+```text
+PASS: Server and Git checkpoints verified
+PASS: Protected credentials and mountpoint verified
+Testing temporary read/write CIFS mount...
+PASS: Correct CIFS share mounted read/write
+PASS: Test file written, flushed and read back
+PASS: Test file removed
+PASS: Test directory removed
+PASS: Temporary NAS share unmounted
+PASS: Step 121 completed
+ccpcadmin@ccpcerp-prod:~$
+```
+
+**PASS — operator-provided fixed-status verifier, not an independent shell session:** On NEW host only, protected credentials and expected mountpoint passed checks; temporary SMB3.1.1 `rw,nosuid,nodev,noexec` CIFS mount of `//192.168.50.132/ccpcerp-prod_backups` succeeded at `/mnt/ccpcerp-prod_backups` with exact share and fstype checked before any write. Unique scratch directory `.ccpc-step121-XXXXXXXX` with `check.txt` was created there; data written, flushed (`sync -f`), read back using `cmp`; only this file and directory were removed; mount was unmounted with subsequent mountpoint inactivity check and completion PASS. No production business data or legacy backup share accessed by test code; no `fstab` edit, permanent mount, backup schedule, Docker or ERPNext deployment. Authenticated write was demonstrated on the **dedicated new share**, not proven across power failures/durable disaster recovery.
+
+**Cumulative NAS preparation status:** Synology new share `ccpcerp-prod_backups`, dedicated `ccpcerp_prod_backup` user, DSM-reported SMB-only application permission and scoped share ACLs; new host root-only `/etc/ccpc-prod-nas/credentials` (0600 under 0700 directory), root-only mountpoint `/mnt/ccpcerp-prod_backups`; successful temporary RO Step 120 and RW Step 121 with cleanup. Existing original production on `ccpcerpserver` and old `erpnext_backups` share untouched by authorized actions. Special NAS `homes` entry was previously `Default` and not certified explicit denial.
+
+**Backup design next, review only:** Per authoritative `docs/ccpc-project/recovery.md`, a valid Frappe/ERPNext business-data backup needs **four non-empty artifacts** (compressed MariaDB DB, site config, public files, private files) plus secure environment recovery and an isolated restore test. New host is **NOT** serving ERPNext, and deployment PR #27 and dependent PR #29 are **OPEN/DRAFT/UNMERGED**, so do not blindly copy older host backup scripts, enable cron or mount persistence, or claim backup readiness. Next recommended milestone is a **GitHub-first read-only review/design** of new-host fail-closed backup/restore flow, including authenticating and verifying exact mount, preventing local fallback writes, private staging and atomic publish, checksum manifest, retention boundaries, monitoring and recovery test. No actual automation or production deployment without separate explicit owner authorization. Environment file encryption and off-host recovery for NAS credentials require a separate plan.
+
+**GitHub status independently rechecked:** PR #27 OPEN/DRAFT/UNMERGED at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`; dependent PR #29 OPEN/DRAFT/UNMERGED at `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`. Documentation update committed to `docs/ccpc-checkpoint-2026-10-10` only.
+
 ## 2026-10-23 STEP 121 EXPLICITLY APPROVED — BOUNDED NAS READ/WRITE SMOKE TEST; NOT YET EXECUTED
 
 Owner responded **"Approved"** to the separate Step 121 gate after Step 120 succeeded: a **single temporary read/write CIFS mount** of NEW dedicated Synology share `//192.168.50.132/ccpcerp-prod_backups` on NEW host `ccpcadmin@ccpcerp-prod`, confirm exact CIFS source and RW mode, create and read back **one unique temporary test file** under a unique temporary directory owned by this operation on the **NEW SHARE ONLY**, flush file data, remove just that exact test file/directory, then unmount and verify inactive. Existing PROD/DEV, older `erpnext_backups` share, `erpbackup` account, NAS shared `docker` folder, application data, and production deployment are excluded. No persistent mount or `/etc/fstab` change, backup schedule, restoration, data cleanup, Docker action or Git merge is authorized.
