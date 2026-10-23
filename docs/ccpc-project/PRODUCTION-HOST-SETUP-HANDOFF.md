@@ -2,6 +2,23 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 111 BLOCKED — DOCKER API SOCKET ACCESS DENIED; NO INVENTORY
+
+Owner manually attempted the approved **read-only** Docker-daemon inventory on new host `ccpcadmin@ccpcerp-prod`. The pasted terminal shows the source command's guard checks and local Docker-context check, followed by:
+
+```text
+permission denied while trying to connect to the docker API at unix:///var/run/docker.sock
+ccpcadmin@ccpcerp-prod:~$
+```
+
+**Status: BLOCKED, NOT PASSED.** The Docker daemon refused the invoking user's API access. The command stopped before returning its per-project container, named-volume and network counts; **no evidence yet about existing Docker resources or project-namespace collisions**. Its intended operations were query-only. The command paste contains interactive garbling, so the precise byte sequence of each guard is not independently assured. No image/volume/container creations, real credentials, Git checkouts or production service changes were instructed or reported.
+
+**Do not** run `sudo docker`, loosen `/var/run/docker.sock` permissions, add `ccpcadmin` to the `docker` group, or change the daemon until owner separately reviews and approves the privilege implications; Docker daemon access generally grants root-equivalent control.
+
+**Next one Step 111a:** operator runs a **no-sudo, no Docker API** diagnostic on new host: `id -nG`; `stat -Lc` the `/var/run/docker.sock` type/mode/owner/group; inspect `docker context show` and `docker context inspect` endpoint (client-only); optionally `systemctl is-active docker` (service status only). Do not expose SSH keys, passwords, full environment or Docker configuration. If the context is not the expected `unix:///var/run/docker.sock`, STOP. Await operator output, then decide whether a narrowly scoped privileged **read-only** inventory merits separate consent. Never infer that lack of user permission means Docker is stopped or that Docker volumes are absent.
+
+**Verified GitHub continuity:** draft PR #29 `security/dedicated-prod-external-env-2026-10-23` remains OPEN/DRAFT/UNMERGED at `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`; parent draft PR #27 remains OPEN/DRAFT/UNMERGED at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`. Steps 106–110 were separate, credential-free, non-deploying reviews; rollback/migration and reliable backup/recovery remain unresolved.
+
 ## 2026-10-23 STEP 110 PASSED BY OPERATOR OUTPUT — ISOLATED REVIEW PROJECT, EXPECTED NAMED VOLUMES AND NO BIND MOUNTS
 
 Owner ran the approved, non-deploying Step 110 on NEW host `ccpcadmin@ccpcerp-prod`, using the separate review checkout `/home/ccpcadmin/ccpc-pr29-review`. The command included guards for original clean PR #27 checkout at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`, review clean PR #29 checkout at `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`, absence of review `.env`, disposable `DB_PASSWORD=CCPC_DUMMY_CONFIG_ONLY` in private external temporary `compose.env`, and `ccpc_compose config --format json` piped straight to fixed-output Python assertions.
