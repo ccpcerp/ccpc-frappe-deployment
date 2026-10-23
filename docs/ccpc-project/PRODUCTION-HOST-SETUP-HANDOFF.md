@@ -2,6 +2,26 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 111b PASSED — NO MATCHING CONTAINERS, VOLUMES OR NETWORKS FOR TWO REVIEW PROJECTS
+
+Owner completed the **separately approved**, read-only local Docker inventory via `sudo` on NEW `ccpcadmin@ccpcerp-prod`. User-supplied terminal shows:
+
+```text
+PASS: Authorized local Docker inventory access
+PASS: No matching Docker resources for ccpc-frappe-deployment
+PASS: No matching Docker resources for ccpc-pr29-review
+PASS: Step 111b read-only inventory completed
+ccpcadmin@ccpcerp-prod:~$
+```
+
+**Passed as operator-reported:** for both `ccpc-frappe-deployment` (original checkout's default project namespace) and `ccpc-pr29-review` (isolated review checkout's namespace), there were **zero matches** among Docker container, volume and network listings for the command's Compose project-label and project-name-prefix filters. This reduces risk of project/volume collision; it does **not** establish that the daemon has no Docker resources in other namespaces or that future permanent production namespace is fixed. The owner supplied only final output, not the entire executed shell transcript; treat results as reported and scoped to the reviewed command. No Docker resources were changed or provisioned by the read-only listing, and no permanent change to `ccpcadmin` privileges was authorized. Prior `ccpcadmin` local-socket permission denial remains expected absent sudo.
+
+**GitHub state independently verified on 2026-10-23:** draft PR #29 `security/dedicated-prod-external-env-2026-10-23` OPEN/DRAFT/UNMERGED at `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`, stacked on draft PR #27 `security/dedicated-production-pre-tls-2026-10-23` OPEN/DRAFT/UNMERGED at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`. Original and review checkouts remain expected pinned and separate, no approved merger, image build, Docker starts, real credentials, database migration or recovery actions.
+
+**Recovery review remains open:** On PR #29, `scripts/rollback.sh` calls `deploy_release` which calls migrations; this **does not reverse migrated database state**. Generic `docs/04-operations/recovery.md` lists a Synology NAS for DB/public/private file backups and broad RTO targets but does **not** verify any backup mount, schedule, off-host copy, restoration drill or the new host's external secret-file recovery. Do not treat recovery as tested.
+
+**Next recommended Step 112, no elevated Docker access or host changes:** read-only local filesystem / disk and mounted off-host backup destination inventory on **new host only** using `df -hT / "$HOME"`, `lsblk` output for mounts and `findmnt -t nfs,nfs4,cifs` to check whether an off-host backup target is already mounted. Display only filesystem types/mount targets and capacity; do not expose credentials, mount options or protected file contents. If no NAS mount exists, report unverified rather than mounting it. No backup jobs, secrets, permissions, disk changes, Docker operations, or old PROD/DEV access.
+
 ## 2026-10-23 STEP 111b OWNER-APPROVED — RESTRICTED SUDO READ-ONLY DOCKER INVENTORY
 
 The project owner explicitly replied **"Approved"** to the question: "Do you approve using `sudo` solely for this read-only Docker inventory on `ccpcerp-prod`?" This approval is narrowly limited to **read-only Docker API listings and verification**, executed manually by `ccpcadmin` on the NEW server, with no generalized privilege expansion and no current Docker resource changes.
