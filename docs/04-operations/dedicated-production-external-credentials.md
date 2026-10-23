@@ -22,8 +22,10 @@ This candidate changes the **dedicated opt-in path only**:
 - Checkout `.env` is rejected in dedicated mode, as is an ambient `DB_PASSWORD`.
 - The dedicated release process supplies the image `CUSTOM_TAG` only in the
   deployment process environment and **skips** legacy `backup_env` / `update_env`.
-  Separate manual Compose commands must supply an explicit, reviewed `CUSTOM_TAG`;
-  there is no persisted implicit image tag.
+  It also exports `CUSTOM_IMAGE` as the reviewed `IMAGE_NAME` (`ccpcerp`) so Compose
+  cannot silently choose its default Frappe/ERPNext image. Separate manual Compose
+  commands must supply both an explicit reviewed `CUSTOM_TAG` and matching
+  `CUSTOM_IMAGE`; there is no persisted implicit image selection.
 - Legacy `legacy-lan` still uses its original `.env` backup, edit and Compose argument
   paths; **do not apply this review branch to the old host**.
 - On a dedicated deployment failure, the existing helper emits a warning and does not
