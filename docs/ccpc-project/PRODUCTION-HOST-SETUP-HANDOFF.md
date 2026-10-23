@@ -2,6 +2,43 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 99 PASSED BY REPORTED ASSERTIONS — MERGED COMPOSE PORT BINDINGS ARE LOOPBACK-ONLY
+
+On the NEW `ccpcadmin@ccpcerp-prod` checkout of pinned branch `security/dedicated-production-pre-tls-2026-10-23` at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`, the operator ran the approved Step 99: Compose `config --format json` with `--env-file /dev/null` and disposable command-scoped `DB_PASSWORD=CCPC_CONFIG_CHECK_NOT_REAL`, `CUSTOM_TAG=config-check-only`, piping structured output directly into a Python assertion script. Terminal showed both expected checks:
+
+```text
+PASS: Frontend binds only 127.0.0.1:8080
+PASS: No other services publish host ports
+```
+
+**Passed as reported:** merged Compose model was accepted and the Python validator reported precisely one frontend TCP mapping on `127.0.0.1:8080` → `8080`, with no other host-published ports from any service. **Transcript qualification:** the owner's pasted command has an apparently truncated/garbled line near the Python `frontend_ok` expression (`)   sys.exit(1): Could not validate Compose port information")`); this is not interpreted as a separate validation failure, since the two PASS outputs were produced, but the exact unabridged pasted script cannot be independently reconstructed from that transcript. No full interpolated Compose output was shown and no real credentials were supplied. This is a **static merged-model assertion only**—not a live Docker binding, UFW isolation, TLS verification, or production deployment. GitHub PR #27 remains open/draft/unmerged at the checked commit.
+
+**Next Step 100 — verify the required dedicated-host DB password safeguard rejects an unset value (NEW host only).** Run `docker compose --env-file /dev/null ... config --quiet` with `DB_PASSWORD` deliberately removed via `env -u DB_PASSWORD`, but capture all errors into a temporary Bash variable (do not print). Check for the exact message `Dedicated production requires a nonempty DB_PASSWORD` and a nonzero exit. Print only fixed PASS/FAIL status. `CUSTOM_TAG=config-check-only` remains disposable, there is no real DB password, and the full merged config must never be displayed. This is a negative validation test; a *correct rejection* is PASS. If negative test fails, stop and investigate before configuring any secret.
+
+Suggested controlled command:
+```bash
+(
+  cd "$HOME/ccpc-frappe-deployment" || exit 1
+  [ "$(git rev-parse --verify HEAD)" = "0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f" ] || { echo "STOP: Unexpected Git commit"; exit 1; }
+  result=$(env -u DB_PASSWORD CUSTOM_TAG=config-check-only docker compose --env-file /dev/null \
+    -f compose.yaml \
+    -f overrides/compose.mariadb.yaml \
+    -f overrides/compose.redis.yaml \
+    -f overrides/compose.lan-production.yaml \
+    -f overrides/compose.dedicated-pre-tls.yaml \
+    config --quiet 2>&1)
+  code=$?
+  if [ "$code" -ne 0 ] && [[ "$result" == *"Dedicated production requires a nonempty DB_PASSWORD"* ]]; then
+    echo "PASS: Missing DB_PASSWORD is rejected for dedicated production"
+  else
+    echo "FAIL: Password safeguard not verified"
+    exit 1
+  fi
+)
+```
+
+**Safety boundaries:** do not echo `$result`, show `.env`, reveal/enter a real DB password, run `docker compose up`, build, deploy, migrate, restore, change DNS/firewall, touch the existing PROD/DEV host, or cut over users. A pass would prove only missing-value rejection under this dummy validation environment, not strength, lifecycle, or secure production provisioning.
+
 ## 2026-10-23 STEP 98 PASSED — FIVE-FILE COMPOSE MODEL PARSED WITH DISPOSABLE PLACEHOLDERS
 
 Owner ran the approved Step 98 on the NEW `ccpcadmin@ccpcerp-prod` host: guarded exact pinned HEAD `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`, disposable command-scoped `DB_PASSWORD=CCPC_CONFIG_CHECK_NOT_REAL` and `CUSTOM_TAG=config-check-only`, `docker compose --env-file /dev/null` with all five files in their approved order, and `config --quiet`. Terminal output:
