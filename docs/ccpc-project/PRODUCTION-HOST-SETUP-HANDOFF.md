@@ -2,6 +2,37 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 115 PASSED — CIFS PACKAGE CANDIDATE AVAILABLE, INSTALLATION NOT AUTHORIZED
+
+Owner performed the approved **read-only** APT package inspection on NEW `ccpcadmin@ccpcerp-prod`. Terminal reported:
+
+```text
+=== System architecture ===
+amd64
+
+=== CIFS package availability ===
+cifs-utils:
+  Installed: (none)
+  Candidate: 2:7.0-2ubuntu0.6
+  Version table:
+     2:7.0-2ubuntu0.6 500
+        500 http://ph.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages
+        500 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages
+     2:7.0-2build1 500
+        500 http://ph.archive.ubuntu.com/ubuntu noble/main amd64 Packages
+
+=== Package hold status ===
+PASS: cifs-utils is not held
+
+PASS: Step 115 read-only package inspection completed
+```
+
+**Passed as owner-reported:** Ubuntu amd64 system has no installed `cifs-utils`; local APT metadata names candidate `2:7.0-2ubuntu0.6` in Noble updates/security; package is not held. This is package *metadata only*, not proof installation will work or that proposed dependencies, package scripts or unrelated upgrades are acceptable. No `apt update`, installation, NAS mount, secrets, `/etc/fstab`, cron or Docker operations performed.
+
+**Next single Step 116 — simulated package plan only, NO sudo/installation:** guard host `ccpcerp-prod`; invoke `LC_ALL=C apt-get --simulate -o Debug::NoLocking=1 --no-install-recommends install cifs-utils` to inspect planned package installs/upgrades/removals and dependency effects. Do not run `apt update`, `apt install`, `sudo`, mount, copy credentials or change the old host. Operator should paste simulation output for review. **Separate explicit owner approval** required before actual `cifs-utils` installation on the new host.
+
+**Unchanged deployment gates:** draft PR #27 at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f` and stacked draft PR #29 at `bd92ade7ac859b9f6b21b157bdc1629e93f4540c` independently confirmed OPEN/DRAFT/UNMERGED in GitHub. New server Synology TCP/445 is reachable but no share mounted, authenticated, verified for writes or approved for use. Dedicated isolated NAS backup destination, least-privilege account, robust backup/restore and rollback, and explicit production deployment authorization remain pending.
+
 ## 2026-10-23 STEP 114 PASSED — NEW HOST HAS NO CIFS CLIENT, MOUNT TARGET OR FSTAB ENTRY
 
 Owner performed the approved read-only package, helper, mountpoint and `/etc/fstab` inspection on NEW `ccpcadmin@ccpcerp-prod`. Terminal output:
