@@ -2,6 +2,19 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 GITHUB-ONLY DEDICATED PRODUCTION PRE-TLS PORT PROFILE — DRAFT PR #27
+
+**Owner requested GitHub-only preparation and asked for standard ports. Decision/recommendation:** Standard **TCP 443 HTTPS** as the eventual employee-facing `https://ccpcerp.com` LAN endpoint; TCP 80 only optional later for redirect; internal ERPNext HTTP 8080, DB 3306 and Redis 6379 stay unexposed from LAN. HTTPS requires trusted certificates and a separately reviewed TLS reverse proxy; **PR #27 does not implement HTTPS, 443 or a live LAN endpoint**.
+
+**Implementation committed and connector-verified in deployment repo on new feature branch `security/dedicated-production-pre-tls-2026-10-23`, based on `main` (not the unmerged docs checkpoint):** final commit `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`. Draft PR: https://github.com/ccpcerp/ccpc-frappe-deployment/pull/27 (base `main`, draft). Exactly three changed files, 3 commits ahead, 0 behind:
+- `overrides/compose.dedicated-pre-tls.yaml`: **opt-in last overlay** replaces frontend mapping with `127.0.0.1:8080:8080/tcp` (no 80 or 443 published) and requires nonempty `DB_PASSWORD` at Compose interpolation for new-host profile instead of relying on old MariaDB fallback.
+- `scripts/config.sh`: old `legacy-lan` remains default, preserving old host's four-file Compose selection; explicit `CCPC_DEPLOYMENT_PROFILE=dedicated-pre-tls` appends fifth file and changes loopback health URL to `127.0.0.1:8080`; unrecognized profile rejected.
+- `docs/04-operations/dedicated-production-port-profile.md`: describes staged/target ports, TLS/CA plan, private DB/Redis, source filtering, secrets, backups, no deployment/cutover.
+
+**Verification:** GitHub connector refetch and compare verified all three files, branch and draft PR; structural/static assertions for default profile, host binding, health URL, required DB password and no 80/443 binding all passed. A locally reconstructed shell/YAML sample also passed `bash -n`, profile selection checks, invalid-profile negative check and YAML parse, but those test copies' Git blob hashes did not match GitHub's exact blobs, so **do not count this as exact-GitHub-source Bash/Compose testing**. GitHub commit status returned no reported status checks at review; actual Docker Compose resolution, CI, TLS, backup/restore and runtime are **not tested**. There were **no SSH, UFW, Docker daemon/Compose runtime, container, NAS, database, DNS, PRODUCTION or DEVELOPMENT server changes**.
+
+**Next:** Review draft PR #27 and separately obtain approval for a safe exact-code syntax/Compose validation in a reviewed environment. Design cert trust and HTTPS reverse proxy/source filtering as a second, explicit new-host-only change; do not start new host stack or touch old `ccpcerpserver` until separately approved.
+
 ## 2026-10-23 STEP 74 — NO NON-LINK-LOCAL IPV6 ADDRESSES; COMPOSE DESIGN REVIEWED
 
 **Operator-provided read-only command on the new dedicated `ccpcerp-prod`:** `ip -6 -br address show scope global` returned no output. Together with Step 73 (no IPv6 default route) and Step 72 (`enp5s0 UP 192.168.50.186/24`, link-local `fe80::3256:fff:fe38:dfce/64` only on this NIC), this supports an IPv4 LAN-facing initial design. This snapshot does **not** prove future Docker-published ports cannot expose IPv6, or that IPv6 on-link traffic is impossible. No reason to disable IPv6 or edit the Docker daemon. Operator did not make any host changes.
