@@ -2,6 +2,37 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 100 PASSED — MISSING DB_PASSWORD ENFORCEMENT CONFIRMED; SECRET INVENTORY NEXT
+
+Owner provided the expected exact status after manually running the Step 100 negative test on NEW `ccpcadmin@ccpcerp-prod` with the five-file dedicated profile, `env -u DB_PASSWORD`, `--env-file /dev/null`, dummy `CUSTOM_TAG=config-check-only`, `config --quiet`, error-output captured without display:
+
+```text
+PASS: Missing DB_PASSWORD is rejected for dedicated production
+```
+
+The result supports a guarded assertion that Compose returned nonzero and its captured diagnostic contained `Dedicated production requires a nonempty DB_PASSWORD`. **Passed for missing/unset password only**; no real credential has been entered, printed, stored, or verified, and the actual deployment remains unapproved. This does not independently test an explicitly empty password, password strength, secret file ownership or backup, nor live database behavior. Connected GitHub also verified `.gitignore` on the source branch includes `.env`, but its existence or absence on the new host is not yet known. Draft PR #27 remains OPEN/DRAFT/UNMERGED at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`.
+
+**Next single Step 101 (read-only, NEW host only):** inspect whether checkout `.env` is absent, a regular existing path, or a symlink; independently verify `.env` is ignored by Git. Never display the contents of any `.env`. Suggested command:
+```bash
+(
+  repo="$HOME/ccpc-frappe-deployment"
+  if [ -L "$repo/.env" ]; then
+    echo "STOP: .env is a symlink; inspect before making any changes"
+  elif [ -e "$repo/.env" ]; then
+    echo "NOTICE: .env already exists; do not overwrite"
+  else
+    echo "PASS: No .env path exists in the new-host checkout"
+  fi
+
+  if git -C "$repo" check-ignore -q -- .env; then
+    echo "PASS: .env is excluded by Git ignore rules"
+  else
+    echo "STOP: .env is not ignored by Git"
+  fi
+)
+```
+This is a **presence/ignore-status check only**, not an instruction to create or edit secrets in the repository. If a file exists or is symlinked, stop and review safely without dumping it. Design owner-controlled production secret provisioning and Compose environment delivery explicitly before any deployment. Do not ask the owner to paste passwords into chat; no containers, migration, data restoration, firewall/DNS edits, old PROD/DEV changes or cutover.
+
 ## 2026-10-23 STEP 99 PASSED BY REPORTED ASSERTIONS — MERGED COMPOSE PORT BINDINGS ARE LOOPBACK-ONLY
 
 On the NEW `ccpcadmin@ccpcerp-prod` checkout of pinned branch `security/dedicated-production-pre-tls-2026-10-23` at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`, the operator ran the approved Step 99: Compose `config --format json` with `--env-file /dev/null` and disposable command-scoped `DB_PASSWORD=CCPC_CONFIG_CHECK_NOT_REAL`, `CUSTOM_TAG=config-check-only`, piping structured output directly into a Python assertion script. Terminal showed both expected checks:
