@@ -6,7 +6,7 @@
 
 **Operator confirmed successful reconnection** to the separate new server, reaching the shell prompt `ccpcadmin@ccpcerp-prod:~$`, after an earlier Windows SSH session reset (`client_loop: send disconnect: Connection reset`). Bare `ssh ccpcadmin@192.168.50.186` returned `Permission denied (publickey)`. Windows file inventory (filenames only) showed `ccpcerp_prod_ed25519`, its `.pub`, `config`, and `known_hosts*` in the user's `.ssh` directory. The explicit key command **worked** in Windows PowerShell:
 
-`ssh -i "$env:USERPROFILE\\.ssh\\ccpcerp_prod_ed25519" ccpcadmin@192.168.50.186`
+`ssh -i "$env:USERPROFILE\.ssh\ccpcerp_prod_ed25519" ccpcadmin@192.168.50.186`
 
 **Continuity rule:** use the above explicit `-i` key path for reconnection from this Windows profile, or inspect a separately verified SSH alias; do not assume default-key discovery. **The GitHub record contains only key filename/path and command—not private/public key contents, passphrase, fingerprint or credentials.** SSH key-only server configuration is unchanged. No server configuration, networking, Docker, database, PROD/DEV or DNS operations were performed.
 
