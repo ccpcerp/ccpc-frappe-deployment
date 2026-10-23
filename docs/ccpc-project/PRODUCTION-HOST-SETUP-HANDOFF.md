@@ -2,6 +2,21 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 119 EXPLICITLY APPROVED — STAGE ROOT-ONLY CIFS CREDENTIAL AND MOUNTPOINT, NO MOUNT
+
+Owner replied **"Approved"** to: "Do you approve creating the protected credential file and mount directory on `ccpcerp-prod`?" The concrete configuration approved:
+- NEW HOST ONLY: `ccpcadmin@ccpcerp-prod` (`ccpcerpserver` old PROD/DEV excluded);
+- NAS SMB share (not yet mounted): `//192.168.50.132/ccpcerp-prod_backups`;
+- NAS dedicated non-administrator account: `ccpcerp_prod_backup`, account rights checked in DSM Step 118;
+- proposed local mount directory: `/mnt/ccpcerp-prod_backups`, root-owned mode `0700`;
+- proposed local credential storage: root-owned private directory `/etc/ccpc-prod-nas` mode `0700` and its credential file `/etc/ccpc-prod-nas/credentials` mode `0600`, outside both Git checkouts. A static username field and password entered privately via masked interactive `read` directly in the user's TTY under elevated shell, with a confirmation prompt; never put password into chat, shell command text, command arguments, exported environment, GitHub or displayed output. This is **local file staging**, not a verified off-host credential recovery copy.
+
+**Next one operator command (Step 119, NOT YET EXECUTED):** guard hostname, current operator and both pinned clean Git review checkouts, absence of symlinks/existing target paths; authenticate with sudo; in a fixed privileged script check targets again and prompt NAS password twice with no echo; create the private directory and unmounted mountpoint with root-only access; write the credential file with process-local shell builtin `printf` and noclobber, keep file 0600 root-owned; verify only mode/ownership/mount-not-active (never print credential contents). Failure should STOP. Require the operator to paste **only nonsensitive status lines**. Never request or echo actual NAS password. Operator may be asked for their sudo password separately by sudo; it is not the NAS password. Exact file/path creation must be checked from command output before marking complete.
+
+**Approval excludes:** actual CIFS mount, `/etc/fstab` edit, NAS ACL/account changes, copying credentials from old host, background backup job/cron, database backup or restoration, file retention/deletion, Docker/Compose start/build, migrations, merges or production deployment. These require independent later reviews/approvals. No guarantee of NAS credentials validity or share access until controlled subsequent tests.
+
+**GitHub state verified:** deployment PR #27 OPEN/DRAFT/UNMERGED at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`; dependent PR #29 OPEN/DRAFT/UNMERGED at `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`.
+
 ## 2026-10-23 STEP 118l PASSED BY OWNER REPORT — SAVED SMB-ONLY APPLICATION ACCESS
 
 Owner responded **"Confirmed only SMB = Allow. the rest are Deny"** after being instructed to reopen `Control Panel → User & Group → User → ccpcerp_prod_backup → Applications` and verify the saved state. Record as **PASS as operator-reported post-save/reopen** for application rights: SMB allowed, all ten other displayed DSM applications denied (AFP, DSM, FTP, File Station, Note Station, SFTP, Synology Photos, Synology Drive, Universal Search, rsync). Unlike earlier editable screenshots, the owner confirms the saved setting; no independent new screenshot or actual SMB-login test has been supplied. Do not equate DSM displayed application settings with successfully authenticated SMB access.
