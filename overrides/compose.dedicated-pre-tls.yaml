@@ -12,3 +12,14 @@ services:
       # Override the generic MariaDB template's unsafe password fallback.
       # The secret must be provided securely at runtime, never committed.
       MYSQL_ROOT_PASSWORD: "${DB_PASSWORD:?Dedicated production requires a nonempty DB_PASSWORD}"
+
+  # Dedicated-host-only explicit replacement for the image-declared logs VOLUME.
+  # The backend verifier requires these two named RW mounts, and no others.
+  # This does NOT change the image's other service instances or start a backup.
+  backend:
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+      - logs:/home/frappe/frappe-bench/logs
+
+volumes:
+  logs:
