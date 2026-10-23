@@ -2,6 +2,18 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 118b — NEW NAS SHARE PER-USER PERMISSIONS SCREENSHOT REVIEWED; GROUP REVIEW PENDING
+
+Owner provided DSM screenshot titled **"Edit Shared Folder ccpcerp-prod_backups"**, `Permissions` tab with dropdown set to `Local users`. This is strong UI evidence the separate `ccpcerp-prod_backups` shared folder has now been created; no new-host SMB mount or direct authenticated test has occurred. The screenshot shows:
+- A username truncated as `ccpcerp_prod...` has user-level `Read/Write` checked and preview `Read/Write`; its complete spelling and group memberships remain **unverified**.
+- Existing legacy host backup account `erpbackup` has effective preview `No Access` and neither `No Access` nor `Read/Write` checkbox ticked in visible screenshot; this means no visible user-granted permission, not proof of an explicit deny independent of group permission.
+- `admin` and `cmmsadmin` preview `Read/Write` via `Group Permis...` inheritance; do **not** change preexisting admin permissions without separate review.
+- Other visible normal accounts show `No Access`; only a subset of 39 accounts is visible in screenshot. Do not infer the entire user list or all group effective access.
+
+**Assessment:** proposed new share access appears suitably isolated from `erpbackup` based on displayed per-user preview, but NOT yet complete until group permissions and new service account's access to the *old* `erpnext_backups` are checked. Next one **read-only DSM UI inspection**: while editing the **new** `ccpcerp-prod_backups` share, switch the `Local users` dropdown to **Local groups** and share screenshot of group Preview, No Access, Read/Write across all groups. Make no checkbox changes. The group tab is distinct from top-level `Advanced Permissions` and `NFS Permissions` tabs; for now inspect groups only. Do not paste passwords, account secrets or backup contents. Then verify via separate read-only old-share permissions later that new account cannot access the old production backups. Avoid modifying `erpnext_backups` and `erpbackup`.
+
+PR #27 `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f` and stacked PR #29 `bd92ade7ac859b9f6b21b157bdc1629e93f4540c` rechecked OPEN/DRAFT/UNMERGED on GitHub. This NAS UI review does not authorize or accomplish server mount, credentials, backup jobs, recovery drill or deployment.
+
 ## 2026-10-23 STEP 118a — EXISTING NAS BACKUP USER IDENTIFIED; SEPARATE PERMISSIONS REQUIRED
 
 Owner provided screenshot of Synology DSM **shared-folder user permissions** listing `erpbackup` with the `Read/Write` checkbox checked. It also displays admin-type users with effective `Read/Write` via group permissions (e.g. `admin`, `cmmsadmin`). Owner asked whether to copy permissions from existing `erpnext_backups` to newly proposed `ccpcerp-prod_backups`.
