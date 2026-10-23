@@ -2,6 +2,14 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 118a — EXISTING NAS BACKUP USER IDENTIFIED; SEPARATE PERMISSIONS REQUIRED
+
+Owner provided screenshot of Synology DSM **shared-folder user permissions** listing `erpbackup` with the `Read/Write` checkbox checked. It also displays admin-type users with effective `Read/Write` via group permissions (e.g. `admin`, `cmmsadmin`). Owner asked whether to copy permissions from existing `erpnext_backups` to newly proposed `ccpcerp-prod_backups`.
+
+**Decision/recommendation, not yet applied:** DO NOT copy the old share's access grants. Preserve `erpbackup` and all settings on existing `erpnext_backups` unchanged (legacy PRODUCTION backups). Use a **separate least-privileged new NAS account** proposed as `ccpcerp_prod_backup`, with `Read/Write` restricted to new `ccpcerp-prod_backups`; explicitly prevent it from accessing the old `erpnext_backups` share, and prevent old `erpbackup` from accessing the new share. DSM permission priority is `No access > Read/Write > Read-only`, including inherited group permissions, per official Synology docs. Administrator accounts inheriting administrative group access are not a reason to alter old share administrator groups or broadly grant access to the new backup service account.
+
+**Pending clarification/safe next step:** Screenshot alone does NOT prove which share's permissions are currently being edited. If screenshot is legacy `erpnext_backups`, do not change any checkbox. If it is **new share wizard** `ccpcerp-prod_backups`, do not assign `erpbackup` Read/Write; review **Local groups** permissions and proposed service account before saving. Obtain a screenshot of the new shared-folder permission wizard or header **without credentials**. No share or account creation has been confirmed. No other NAS changes, mounting, backup scheduling, data restoration or deployment authorized.
+
 ## 2026-10-23 STEP 118 — NAS ADMIN ACCESS CONFIRMED; NEW SHARED-FOLDER NAME PROPOSED, NOT YET CREATED
 
 Owner supplied a Synology DSM **File Station** screenshot showing visible top-level entry `erpnext_backups` together with unrelated file shares, and stated: **"I can create ccpcerp-prod_backups, I have full access to synology NAS"**. This establishes owner-reported DSM administrative access and their preferred exact proposed share name `ccpcerp-prod_backups` (superseding preliminary `ccpc_prod_backups` proposal). It does **not** confirm creation of a new share, permissions, NAS storage volume, quota, snapshots or credentials. Avoid treating the existing `erpnext_backups` shared folder (old shared-host PROD) as the new backup destination.
