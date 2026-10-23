@@ -2,6 +2,26 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 104 PASSED — PR #29 REVIEW REPOSITORY CLONED WITHOUT CHECKOUT
+
+Owner manually ran the guarded, read-only Git object clone command on **new** host `ccpcadmin@ccpcerp-prod`, targeting only `$HOME/ccpc-pr29-review`. Terminal reports Git remote enumeration / transfer / delta resolution at 100% and:
+
+```text
+Cloning into '/home/ccpcadmin/ccpc-pr29-review'...
+Receiving objects: 100% (12402/12402), 10.53 MiB | 4.30 MiB/s, done.
+Resolving deltas: 100% (6436/6436), done.
+Review branch:
+security/dedicated-prod-external-env-2026-10-23
+Review commit:
+bd92ade7ac859b9f6b21b157bdc1629e93f4540c
+```
+
+**Verified:** new review clone's terminal-reported branch and HEAD match expected pinned GitHub PR #29; connector independently reverified draft PR #29 remains OPEN/DRAFT/UNMERGED at that HEAD, based on draft PR #27 at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`. Clone command specified `--no-checkout`, so **worktree files were not intentionally materialized**. The pasted interactive terminal command text had a garbled/truncated portion; resulting Git output is coherent, but **re-run all safety guards before a file checkout**. Owner has not run a PR #29 Compose test and no dummy or real password was created.
+
+**Next Step 105 — operator-only guarded source-file checkout, in review clone only:** verify the **original** `$HOME/ccpc-frappe-deployment` is still on branch `security/dedicated-production-pre-tls-2026-10-23` at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f` and has zero `git status --porcelain` output; verify review clone HEAD `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`, branch `security/dedicated-prod-external-env-2026-10-23`, origin `git@github.com:ccpcerp/ccpc-frappe-deployment.git`, and root has **no entries except `.git`**. STOP on any mismatch. Only then `git -C "$review" restore --source=HEAD --staged --worktree -- .`, followed by `git -C "$review" status --short --branch`. A clean branch-tracking line with no changed files is expected. This performs *Git source checkout only*, not Docker, secret provisioning, service management, merge, or deployment. One operator step at a time.
+
+**Strict boundaries:** No changes to original cloned deployment code, old shared PROD+DEV, credentials, Docker containers, databases, firewall/DNS, or production cutover. Do not assume the worktree is empty simply because `--no-checkout` was requested; test before restoring any files.
+
 ## 2026-10-23 STEP 104 OWNER APPROVAL — SEPARATE PR #29 REVIEW-ONLY CLONE, NO CHECKOUT YET
 
 Owner explicitly replied "Approved" to a **separate, temporary review checkout on the NEW `ccpcerp-prod` server for credential-free, non-deploying Compose tests of draft PR #29**. This authorizes a separate *test directory only*, not updating the existing pinned deployment checkout, starting Docker, creating real secrets, changing old PROD/DEV, migrating/restoring, DNS/firewall edits, merging, or a production cutover.
