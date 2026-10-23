@@ -1,5 +1,9 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-23 NEW HOST STEP 82 VERIFIED — GIT AVAILABLE; CHECK REMOTE BRANCH ACCESS
+
+Owner ran `git --version` on dedicated new `ccpcerp-prod` (`192.168.50.186`), obtaining **`git version 2.43.0`**. Git installed; no `.git` checkout within inspected HOME scope from Step 81. GitHub connector reconfirmed draft PR #27 still open/unmerged at `security/dedicated-production-pre-tls-2026-10-23` (`0bf8c6a2...`), draft PR #28 open/unmerged (`622e41e4...`). **Next one read-only command** on the new host: `GIT_TERMINAL_PROMPT=0 git ls-remote --heads https://github.com/ccpcerp/ccpc-frappe-deployment.git security/dedicated-production-pre-tls-2026-10-23`, to establish remote read access before authorizing any local checkout. The test may be unable to authenticate if the repo is private; do not disclose tokens/keys. No server, old PROD+DEV, Docker, firewall, DNS, merge or deployment changes. Detailed handoff: [PRODUCTION-HOST-SETUP-HANDOFF.md](PRODUCTION-HOST-SETUP-HANDOFF.md).
+
 ## 2026-10-23 NEW HOST STEP 81 COMPLETED — NO HOME GIT CHECKOUT FOUND
 
 Owner ran `find "$HOME" -maxdepth 4 -type d -name .git -print` on distinct `ccpcerp-prod` and received no output. No Git metadata detected in the inspected four-level HOME scope. This does not rule out repositories elsewhere. **Next single read-only step:** `git --version` from the new host to verify availability of Git before choosing a fresh review checkout and private-repo authentication method. Existing PROD+DEV, DNS, Docker, UFW and app data unchanged. Keep draft PR #27 (pre-TLS Compose) and #28 (HTTPS gateway) as GitHub-only review artifacts; no migration/deployment approved. Detailed handoff: [PRODUCTION-HOST-SETUP-HANDOFF.md](PRODUCTION-HOST-SETUP-HANDOFF.md).
