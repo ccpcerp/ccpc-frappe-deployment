@@ -2,6 +2,28 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 117 PASSED BY OPERATOR OUTPUT — CIFS CLIENT PACKAGES INSTALLED ON NEW HOST
+
+Owner executed the previously approved and guarded Step 117 package-install procedure on NEW `ccpcadmin@ccpcerp-prod`. Owner supplied the following post-installation terminal output, with returned shell prompt:
+
+```text
+=== Verifying installation ===
+PASS: cifs-utils installed at approved version
+PASS: libtalloc2 installed at approved version
+PASS: libwbclient0 installed at approved version
+PASS: CIFS mounting helper available
+PASS: Step 117 installation verified
+ccpcadmin@ccpcerp-prod:~$
+```
+
+**Status PASS as owner-reported:** `dpkg-query` confirmed the three **approved versions** (`cifs-utils=2:7.0-2ubuntu0.6`, `libtalloc2=2.4.2-1build2`, `libwbclient0=2:4.19.5+dfsg-4ubuntu9.8`) installed, and the `mount.cifs` helper was executable. The user provided the post-install verifier only, not the complete APT log or preflight transcript; do not independently assert that no incidental maintainer scripts ran or that an unrelated package upgrade did not occur without an additional package-history read-only audit. This is the intended package-only preparation milestone; no NAS share mount, credentials, `/etc/fstab`, backup/cron, Docker service or deployment was instructed.
+
+**GitHub source status independently reverified:** draft PR #27 OPEN/DRAFT/UNMERGED at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`; draft stacked PR #29 OPEN/DRAFT/UNMERGED at `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`. Neither branch was merged or deployed. The new server now has CIFS mounting *capability*, not a mounted or validated NAS backup destination.
+
+**Recommended Step 118 — NAS-side read-only design confirmation, no modifications:** ask owner to open existing Synology DSM interface and check whether a **separate dedicated new-server backup shared folder** and least-privilege account already exist or need to be provisioned. The older shared production host uses `//192.168.50.132/erpnext_backups`, and its existing backup/retention must stay unchanged. Proposed *new* dedicated share name `ccpc_prod_backups` (subject to owner review) and new-host mount target `/mnt/ccpc_prod_backups` are DESIGN-ONLY, not verified or created. Prefer account access only to the new share, deny access to existing production backups, ensure server-side NAS retention and snapshot/restore controls independently, and later use protected root-only host credential file. No NAS creation, permissions change, SMB share mount, directory creation, copying secrets, modifying `fstab`, or enabling jobs without a separate concrete owner approval and reviewed procedure.
+
+**Remaining release blockers:** Dedicated off-host backup and secured credential recovery, exact mount-source verification, complete four-artifact Frappe backup test and isolated restore drill, schema/migration-safe rollback, production identity/provenance, TLS/network restrictions, final review and separately authorized deployment/cutover.
+
 ## 2026-10-23 STEP 117 OWNER APPROVED — GUARDED CIFS PACKAGE INSTALL ON NEW HOST ONLY
 
 Owner explicitly replied **"aPPROVED"** to the question: "Do you approve installing `cifs-utils`, `libtalloc2`, and `libwbclient0` on `ccpcerp-prod`?" This approval authorizes **only** installation of the three named packages on the separate NEW host and post-install package/helper verification, subject to a same-session safety preflight.
