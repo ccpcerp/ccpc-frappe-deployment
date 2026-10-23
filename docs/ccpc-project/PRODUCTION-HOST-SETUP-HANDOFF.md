@@ -2,6 +2,22 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 89 PASSED — NEW-HOST PRIVATE GITHUB BRANCH READ ACCESS VERIFIED; NO CLONE
+
+Owner executed the exact `GIT_SSH_COMMAND="ssh -i $HOME/.ssh/ccpc_github_deploy_ed25519 -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o HostKeyAlgorithms=ssh-ed25519" git ls-remote --heads git@github.com:ccpcerp/ccpc-frappe-deployment.git security/dedicated-production-pre-tls-2026-10-23` on `ccpcadmin@ccpcerp-prod`. Terminal returned:
+
+```text
+0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f        refs/heads/security/dedicated-production-pre-tls-2026-10-23
+```
+
+**Passed:** this proves the dedicated new-host SSH key authenticates to GitHub and can read the intended private deployment repository's specific development branch; reported SHA matches GitHub's independently verified branch ref `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`. Draft PR #27 is still OPEN/UNMERGED. It does not show a local clone, site deployment, resolved Docker Compose model, or any change to running infrastructure; repository-deploy-key read-only permissions were selected by owner and are not independently checkable through the connected API.
+
+**Next single Step 90:** read-only check whether proposed new-host checkout location `$HOME/ccpc-frappe-deployment` already exists (including symlink) before considering any `git clone`; stop if occupied. Example:
+```bash
+if [ -e "$HOME/ccpc-frappe-deployment" ] || [ -L "$HOME/ccpc-frappe-deployment" ]; then printf 'TARGET EXISTS: do not overwrite\n'; ls -ld -- "$HOME/ccpc-frappe-deployment"; else printf 'TARGET AVAILABLE: %s\n' "$HOME/ccpc-frappe-deployment"; fi
+```
+After output is reviewed, prepare a separately approved pinned-branch clone, explicitly scoped to the new host, and verify the checkout HEAD and working-tree status before running any build or Compose validation. No clone, checkout, Docker execution, old production/DEVELOPMENT change, DNS, firewall, database, backup, or cutover is authorized by this read-access milestone.
+
 ## 2026-10-23 STEP 88 COMPLETE — GITHUB SSH AUTHENTICATION VERIFIED; STEP 89 REPOSITORY READ CHECK NEXT
 
 Owner provided the exact new-host terminal response after accepting GitHub's official ED25519 host fingerprint on `ccpcadmin@ccpcerp-prod`:
