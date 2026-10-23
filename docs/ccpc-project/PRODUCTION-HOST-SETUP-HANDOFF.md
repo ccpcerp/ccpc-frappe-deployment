@@ -2,6 +2,28 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 108 PASSED BY OPERATOR OUTPUT — EFFECTIVE DEDICATED COMPOSE JSON ASSERTIONS
+
+Operator executed guarded, non-deploying Step 108 from the **separate** PR #29 review checkout `/home/ccpcadmin/ccpc-pr29-review` on NEW host `ccpcadmin@ccpcerp-prod`. The command checked the untouched original checkout pinned to PR #27 commit `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`, clean review checkout pinned to PR #29 commit `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`, and absence of review `.env`. It used a `mktemp -d` directory, disposable `DB_PASSWORD=CCPC_DUMMY_CONFIG_ONLY` file, sourced `scripts/config.sh`, `scripts/lib.sh`, `scripts/modules/docker.sh`, and piped actual `ccpc_compose config --format json` directly into a fixed-output Python verifier, not displaying expanded Compose config. Terminal output:
+
+```text
+PASS: Frontend loopback-only port
+PASS: No other published host ports
+PASS: All application images use the expected name and tag
+PASS: External dummy database password correctly mapped
+PASS: Step 108 validation completed
+## security/dedicated-prod-external-env-2026-10-23...origin/security/dedicated-prod-external-env-2026-10-23
+ccpcadmin@ccpcerp-prod:~$
+```
+
+**Passed as terminal-reported:** effective Docker Compose model defines exactly one `127.0.0.1:8080` frontend publication; no other service publishes host ports; the seven CCPC application services use `ccpcerp:review-only-tag`; and the merged DB service contains `MYSQL_ROOT_PASSWORD=CCPC_DUMMY_CONFIG_ONLY` loaded from the protected external dummy file. Git worktree reports clean. The pasted interactive command text includes a garbled/truncated portion after the scratch-file definition; the expected validation messages are coherent but do **not** independently establish an exact unabridged command byte sequence. Temporary file removal was specified by an EXIT trap, not independently inventoried. No real credentials, Docker up/build, migration, restore, firewall/DNS edit or cutover performed.
+
+**GitHub state reverified:** draft PR #29 `security/dedicated-prod-external-env-2026-10-23` OPEN/DRAFT/UNMERGED at `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`; parent draft PR #27 OPEN/DRAFT/UNMERGED at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`.
+
+**Next one Step 109 — negative test for an explicitly EMPTY password through the protected external file:** only in the isolated review checkout, recheck both Git branch/commits/clean status and no `.env`; create temporary `0700` directory plus `0600` external environment file containing *only* `DB_PASSWORD=`. Unset ambient `DB_PASSWORD` and set explicit `CCPC_DEPLOYMENT_PROFILE=dedicated-pre-tls`, `CUSTOM_IMAGE=ccpcerp`, `CUSTOM_TAG=review-only-tag`. Source reviewed modules; run `ccpc_compose config --quiet` capturing combined output **in memory without displaying it**, expect **nonzero** and the specific `Dedicated production requires a nonempty DB_PASSWORD` interpolation error. Print only fixed PASS/FAIL, exit 1 on any unexpected result; narrow EXIT trap deletes only dummy file/directory. This proves empty-value handling under real Compose; it does not measure password strength or runtime secret safety. Do not provision real secrets or run live services.
+
+**Outstanding approval/release gates:** Independent PR review, implementation and validation of real secret generation/protection/off-host recovery, failure/rollback/migrations/backup plan, image provenance, runtime networking/TLS and actual deployment approval. Existing PROD/DEV and pinned original new-host checkout remain out of scope.
+
 ## 2026-10-23 STEP 107 PASSED BY OPERATOR OUTPUT — REAL COMPOSE PARSED EXTERNAL DUMMY CONFIG
 
 Owner executed Step 107 in a guarded child shell on the **new dedicated** `ccpcadmin@ccpcerp-prod` host from isolated PR #29 checkout `/home/ccpcadmin/ccpc-pr29-review`; supplied resulting terminal:
