@@ -1,11 +1,14 @@
 """No Docker daemon, NAS, secrets or production host: synthetic inspection only."""
 import json
+import dataclasses
+import hashlib
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
 
 from scripts import dedicated_backup_runtime as runtime
+from scripts import dedicated_backup_policy as policy
 
 
 class RuntimeVerificationTests(unittest.TestCase):
@@ -15,8 +18,10 @@ class RuntimeVerificationTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.sites = self.root / "sites"
         self.database = self.root / "database"
+        self.logs = self.root / "logs"
         self.sites.mkdir()
         self.database.mkdir()
+        self.logs.mkdir()
         (self.sites / runtime.EXPECTED_SITE).mkdir()
         (self.sites / runtime.EXPECTED_SITE / "site_config.json").write_text('{"a":"synthetic"}')
         self.name = "ccpc-dedicated"
@@ -25,9 +30,21 @@ class RuntimeVerificationTests(unittest.TestCase):
         self.img_db = "sha256:" + "e" * 64
         self.hash_backend = "1" * 64
         self.hash_db = "2" * 64
-        self.expected = runtime.ApprovedRuntime(
-            self.name, self.img_backend, self.img_db, self.hash_backend,
-            self.hash_db, self.name + "_sites", self.name + "_db-data"
+        self.manifest = {
+            "schema_version": 1, "release_id": "ccpc-offline-demo-release-00001",
+            "deployment_commit": "9" * 40, "frappe_sha": policy.FRAPPE_SHA,
+            "erpnext_sha": policy.ERPNEXT_SHA, "ccpc_sha": policy.CCPC_SHA,
+            "patch_sha256": policy.PATCH_SHA256, "overlay_sha256": policy.OVERLAY_SHA256,
+            "host": policy.HOST, "site": policy.SITE, "profile": policy.PROFILE,
+            "compose_project": self.name, "backend_image_id": self.img_backend,
+            "db_image_id": self.img_db, "backend_config_hash": self.hash_backend,
+            "db_config_hash": self.hash_db,
+            "sites_volume": self.name + "_sites", "db_volume": self.name + "_db-data",
+            "backend_logs_volume": self.name + "_logs",
+        }
+        raw = json.dumps(self.manifest, sort_keys=True).encode()
+        self.expected = policy.validate_reviewed_release(
+            raw, independently_approved_sha256=hashlib.sha256(raw).hexdigest()
         )
         self.containers = {}
         for ident, svc, img, h in (
@@ -38,6 +55,10 @@ class RuntimeVerificationTests(unittest.TestCase):
             mounts = [{"Type": "volume", "Name": self.name + ("_db-data" if svc == "db" else "_sites"),
                        "Destination": runtime.DB_DESTINATION if svc == "db" else runtime.SITE_DESTINATION,
                        "Source": str(self.database if svc == "db" else self.sites), "RW": True}]
+            if svc == "backend":
+                mounts.append({"Type": "volume", "Name": self.name + "_logs",
+                               "Destination": runtime.LOG_DESTINATION,
+                               "Source": str(self.logs), "RW": True})
             self.containers[ident] = {
                 "Id": ident, "Image": img, "Config": {"Labels": {
                     "com.docker.compose.project": self.name, "com.docker.compose.service": svc,
@@ -57,6 +78,8 @@ class RuntimeVerificationTests(unittest.TestCase):
                                          "Labels": {"com.docker.compose.project": self.name, "com.docker.compose.volume": "sites"}},
             self.expected.db_volume: {"Name": self.expected.db_volume, "Mountpoint": str(self.database),
                                       "Labels": {"com.docker.compose.project": self.name, "com.docker.compose.volume": "db-data"}},
+            self.expected.backend_logs_volume: {"Name": self.expected.backend_logs_volume, "Mountpoint": str(self.logs),
+                                                "Labels": {"com.docker.compose.project": self.name, "com.docker.compose.volume": "logs"}},
         }
         self.calls = []
 
@@ -87,7 +110,7 @@ class RuntimeVerificationTests(unittest.TestCase):
         self.assertTrue(e.database_volume_verified)
         self.assertFalse(e.backup_ready)
         self.assertFalse(e.writes_quiesced or e.no_partial_backup_filters or e.encryption_disabled)
-        self.assertEqual(len(self.calls), 8)
+        self.assertEqual(len(self.calls), 9)
         self.assertTrue(all(c[:3] in (("docker", "container", "ls"),
                                            ("docker", "container", "inspect"),
                                            ("docker", "image", "inspect"),
@@ -100,24 +123,34 @@ class RuntimeVerificationTests(unittest.TestCase):
 
     def test_unapproved_expected_release_ids_rejected(self):
         for bad in ("mariadb:11.8", "sha256:zz", "sha256:" + "F" * 64):
-            bad_exp = runtime.ApprovedRuntime(self.name, bad, self.img_db,
-                                              self.hash_backend, self.hash_db,
-                                              self.expected.sites_volume, self.expected.db_volume)
+            bad_exp = dataclasses.replace(self.expected, backend_image_id=bad)
             with self.assertRaises(runtime.RuntimeRejected):
                 runtime.verify_runtime(bad_exp, self.query, hostname=lambda: runtime.EXPECTED_HOST)
         self.assertEqual(self.calls, [])
 
     def test_reject_unsafe_project_and_volume_names(self):
         for project in ("prod/unsafe", "", "CCPC", "x" * 65):
-            bad = runtime.ApprovedRuntime(project, self.img_backend, self.img_db,
-                                           self.hash_backend, self.hash_db,
-                                           self.expected.sites_volume, self.expected.db_volume)
+            bad = dataclasses.replace(self.expected, project=project)
             with self.assertRaises(runtime.RuntimeRejected):
                 runtime.verify_runtime(bad, self.query, hostname=lambda: runtime.EXPECTED_HOST)
-        self.expected = runtime.ApprovedRuntime(self.name, self.img_backend, self.img_db,
-                                                 self.hash_backend, self.hash_db, "oldprod_sites",
-                                                 self.expected.db_volume)
+        self.expected = dataclasses.replace(self.expected, sites_volume="oldprod_sites")
         self.reject()
+        self.assertEqual(self.calls, [])
+
+    def test_release_policy_required_before_docker(self):
+        for value in (None, {}, self.manifest, object()):
+            with self.assertRaises(runtime.RuntimeRejected):
+                runtime.verify_runtime(value, self.query, hostname=lambda: runtime.EXPECTED_HOST)
+        self.assertEqual(self.calls, [])
+
+    def test_invalid_review_digest_and_preauthorized_release_rejected(self):
+        for bad in (dataclasses.replace(self.expected, manifest_sha256="0"),
+                    dataclasses.replace(self.expected, trusted_runtime=True),
+                    dataclasses.replace(self.expected, backup_ready=True),
+                    dataclasses.replace(self.expected, backend_logs_volume="anonymous")):
+            with self.assertRaises(runtime.RuntimeRejected):
+                runtime.verify_runtime(bad, self.query, hostname=lambda: runtime.EXPECTED_HOST)
+        self.assertEqual(self.calls, [])
 
     def test_missing_docker_containers_rejected(self):
         self.ids = [self.ids[0]]
@@ -184,6 +217,45 @@ class RuntimeVerificationTests(unittest.TestCase):
         self.containers[self.ids[0]]["Mounts"][0]["Type"] = "volume"
         self.containers[self.ids[0]]["Mounts"].append({"Type": "bind", "Destination": "/var/run/docker.sock"})
         self.reject()
+
+    def test_backend_missing_named_logs_volume_rejected(self):
+        self.containers[self.ids[0]]["Mounts"].pop()
+        self.reject()
+
+    def test_backend_anonymous_logs_volume_rejected(self):
+        self.containers[self.ids[0]]["Mounts"][1].update(
+            Name="anonymous-backup-log-volume")
+        self.reject()
+
+    def test_backend_unexpected_extra_volume_rejected(self):
+        self.containers[self.ids[0]]["Mounts"].append({
+            "Type": "volume", "Name": "unapproved", "Destination": "/tmp/surprise",
+            "Source": "/var/lib/docker/volumes/unapproved/_data", "RW": True,
+        })
+        self.reject()
+
+    def test_backend_duplicate_mount_destination_rejected(self):
+        self.containers[self.ids[0]]["Mounts"][1]["Destination"] = runtime.SITE_DESTINATION
+        self.reject()
+
+    def test_backend_logs_volume_wrong_labels_rejected(self):
+        self.volumes[self.expected.backend_logs_volume]["Labels"]["com.docker.compose.volume"] = "sites"
+        self.reject()
+
+    def test_backend_logs_path_symlink_rejected(self):
+        actual = self.root / "actual-logs"
+        self.logs.rename(actual)
+        self.logs.symlink_to(actual, target_is_directory=True)
+        self.reject()
+
+    def test_backend_logs_volume_readonly_rejected(self):
+        self.containers[self.ids[0]]["Mounts"][1]["RW"] = False
+        self.reject()
+
+    def test_inspected_named_logs_volume_missing_rejected(self):
+        del self.volumes[self.expected.backend_logs_volume]
+        with self.assertRaises(runtime.RuntimeRejected):
+            self.verify()
 
     def test_volume_provenance_rejected(self):
         self.volumes[self.expected.sites_volume]["Labels"]["com.docker.compose.project"] = "legacy"
