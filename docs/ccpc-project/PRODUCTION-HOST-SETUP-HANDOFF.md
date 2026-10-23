@@ -2,6 +2,10 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 81 COMPLETE — NO GIT CHECKOUT FOUND UNDER HOME (FOUR LEVELS)
+
+Owner ran `find "$HOME" -maxdepth 4 -type d -name .git -print` at `ccpcadmin@ccpcerp-prod:~$`; **output was empty**. This verifies no `.git` directory within four levels of the current user's HOME at check time, not an exhaustive scan of other filesystem locations or hidden repo configurations. Existing live `ccpcerpserver` PROD+DEV remains unchanged; new `ccpcerp-prod` has not been used to deploy ERPNext. Preparation can use a separately reviewed new clone later without overwriting uncommitted files. **Next one read-only operator check:** `git --version` on `ccpcerp-prod` to confirm the Git client is available before planning authenticated access to the private GitHub deployment repository and exact-code Docker Compose validation. Do not clone, change branches, pull, create containers, modify firewall/DNS or deploy yet.
+
 ## 2026-10-23 STEP 81 SSH RECONNECT — WINDOWS CUSTOM KEY VERIFIED
 
 **Operator confirmed successful reconnection** to the separate new server, reaching the shell prompt `ccpcadmin@ccpcerp-prod:~$`, after an earlier Windows SSH session reset (`client_loop: send disconnect: Connection reset`). Bare `ssh ccpcadmin@192.168.50.186` returned `Permission denied (publickey)`. Windows file inventory (filenames only) showed `ccpcerp_prod_ed25519`, its `.pub`, `config`, and `known_hosts*` in the user's `.ssh` directory. The explicit key command **worked** in Windows PowerShell:
