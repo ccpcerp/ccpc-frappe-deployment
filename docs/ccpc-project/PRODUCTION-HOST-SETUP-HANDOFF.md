@@ -2,6 +2,18 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 98 PASSED — FIVE-FILE COMPOSE MODEL PARSED WITH DISPOSABLE PLACEHOLDERS
+
+Owner ran the approved Step 98 on the NEW `ccpcadmin@ccpcerp-prod` host: guarded exact pinned HEAD `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`, disposable command-scoped `DB_PASSWORD=CCPC_CONFIG_CHECK_NOT_REAL` and `CUSTOM_TAG=config-check-only`, `docker compose --env-file /dev/null` with all five files in their approved order, and `config --quiet`. Terminal output:
+
+```text
+PASS: Five-file Compose model parsed with disposable placeholders
+```
+
+**Passed:** Compose accepts the opt-in five-file syntax/interpolation/merge structure when dummy values are supplied and without attempting deployment. This is **not** proof that port publishing is restricted to loopback, real production credentials are provisioned securely, containers can start, app image is correct or TLS works. The configuration was not printed and the placeholder was not persisted. GitHub confirms draft PR #27 is still open/unmerged at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`; `overrides/compose.dedicated-pre-tls.yaml` uses `ports: !override` to prescribe `127.0.0.1:8080:8080/tcp`. Redis and MariaDB overrides do not prescribe host-published database/Redis ports.
+
+**Next single Step 99 — inspect only effective Compose published ports on the NEW host.** Re-run `docker compose --env-file /dev/null ... config --format json` using only the disposable command-scoped placeholder password and image tag, pipe its JSON **directly to a local Python parser** rather than printing expanded config, and assert: frontend has precisely one `127.0.0.1:8080` → `8080/tcp` mapping; no other services have host-published ports. Parse and print only safe fixed PASS/FAIL messages without dumping JSON, `.env`, passwords or environment variables. Use `set -o pipefail` so Compose errors cannot be masked by the parser. If assertions fail, STOP before further operations and review without displaying secrets. No containers, databases, migrations, restores, firewall/DNS changes or old PROD/DEV/cutover operations authorized.
+
 ## 2026-10-23 STEP 97 PASSED — DEDICATED PROFILE FILE ORDER AND HEALTH TARGET VERIFIED
 
 On `ccpcadmin@ccpcerp-prod`, the operator ran the approved isolated child-shell `CCPC_DEPLOYMENT_PROFILE=dedicated-pre-tls` test sourcing only the reviewed `scripts/config.sh` and printing solely Compose filenames and the health target. Terminal output:
