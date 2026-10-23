@@ -2,6 +2,14 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 118 — NAS ADMIN ACCESS CONFIRMED; NEW SHARED-FOLDER NAME PROPOSED, NOT YET CREATED
+
+Owner supplied a Synology DSM **File Station** screenshot showing visible top-level entry `erpnext_backups` together with unrelated file shares, and stated: **"I can create ccpcerp-prod_backups, I have full access to synology NAS"**. This establishes owner-reported DSM administrative access and their preferred exact proposed share name `ccpcerp-prod_backups` (superseding preliminary `ccpc_prod_backups` proposal). It does **not** confirm creation of a new share, permissions, NAS storage volume, quota, snapshots or credentials. Avoid treating the existing `erpnext_backups` shared folder (old shared-host PROD) as the new backup destination.
+
+**Next one owner action, no final creation yet:** in DSM navigate `Control Panel → Shared Folder → Create → Create Shared Folder`, enter proposed name `ccpcerp-prod_backups` and optional description `Dedicated backup destination for new ccpcerp-prod host`, then share the first wizard page/settings screenshot **before clicking final Apply/Done**. Creating a *shared folder* is essential, not a regular subfolder inside `erpnext_backups`. Identify the intended NAS storage volume, encryption/snapshot/checksum/WriteOnce/Recycle Bin choices and access control before authorizing actual creation; do not improvise them from defaults. Do not paste credentials. Explicit approval and review needed for NAS share provisioning, account permissions, new-host mounting, SMB credentials, `/etc/fstab` or backup automation.
+
+**Last verified new-host setup:** Step 117 succeeded as owner-reported, exact CIFS client package versions installed and `mount.cifs` executable; new NAS destination not mounted or authenticated; new host DNS/firewall/TLS/recovery not release-ready. Draft PR #27 and stacked PR #29 remained OPEN/DRAFT/UNMERGED at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f` and `bd92ade7ac859b9f6b21b157bdc1629e93f4540c` respectively as of this session.
+
 ## 2026-10-23 STEP 117 PASSED BY OPERATOR OUTPUT — CIFS CLIENT PACKAGES INSTALLED ON NEW HOST
 
 Owner executed the previously approved and guarded Step 117 package-install procedure on NEW `ccpcadmin@ccpcerp-prod`. Owner supplied the following post-installation terminal output, with returned shell prompt:
