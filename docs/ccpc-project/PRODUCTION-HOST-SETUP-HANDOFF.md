@@ -2,6 +2,38 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 112 PASSED — NEW HOST STORAGE CAPACITY VERIFIED, NO NETWORK BACKUP MOUNT
+
+Owner ran the read-only filesystem and mount inspection on **new** host `ccpcadmin@ccpcerp-prod` and supplied this output:
+
+```text
+=== Local filesystem capacity ===
+Filesystem                        Type  Size  Used Avail Use% Mounted on
+/dev/mapper/ubuntu--vg-ubuntu--lv ext4  787G  7.1G  740G   1% /
+/dev/mapper/ubuntu--vg-ubuntu--lv ext4  787G  7.1G  740G   1% /
+
+=== Disk and mounted filesystem layout ===
+NAME                        SIZE FSTYPE      MOUNTPOINTS
+nvme0n1                   931.5G
+├─nvme0n1p1                   1G vfat        /boot/efi
+├─nvme0n1p2                   2G ext4        /boot
+└─nvme0n1p3               928.5G LVM2_member
+  └─ubuntu--vg-ubuntu--lv   800G ext4        /
+
+=== NFS / SMB backup mounts ===
+INFO: No NFS or SMB mounts detected
+
+PASS: Step 112 read-only storage inventory completed
+```
+
+**Passed as owner-reported:** root filesystem `ext4` on Ubuntu LVM (~787 GB usable filesystem, 740 GB available, 7.1 GB used at check), `nvme0n1` disk ~931.5 GB with `/boot`, EFI and LVM partitions, and **no currently mounted `nfs`, `nfs4`, or `cifs` filesystem**. This establishes space for future local staging but **not** recoverability from complete server or disk failure. It does not rule out an unmounted configured share or backups via network transports other than these mounts. No partitions, permissions, mounts, backups, credentials or services were changed.
+
+**Authoritative recovery reference (historical older shared PRODUCTION host, not automatically inherited by new server):** `docs/ccpc-project/recovery.md` on this docs branch, dated 2026-09-02, documents Synology share `//192.168.50.132/erpnext_backups`, old-host target `/mnt/erpnext_backups`, filesystem `cifs`, and root-owned credentials stored separately. It describes four backup artifacts (MariaDB, site config, public files, private files), local retention 7 days and NAS retention 30 days, exact mount-source verification to prevent backups silently falling onto local disk, staged partial-directory copy, completeness checks and atomic rename. The September 2 **manual** backup test passed on the old host; the then-new unattended 02:00 cron job was pending verification. None of these results prove the **new dedicated server** can reach or mount NAS or run backup/restore. Do not copy credentials or cron from the old machine automatically. Note the new-host PR #29 uses an externally protected secrets file, not a checkout `.env`.
+
+**Next one Step 113 — READ-ONLY NAS NETWORK REACHABILITY from new host only:** verify `hostname -s` is `ccpcerp-prod`, then use a single timed, unauthenticated TCP connection attempt to documented NAS address `192.168.50.132`, SMB port 445, with Python socket; print only fixed connection PASS/FAIL, no credentials, share listing or mount, and optionally check presence of local `mount.cifs` binary (not execute it). Success would indicate only TCP reachability, not NAS credentials, share authorization, writeability or reliable backups. No `sudo`, filesystem changes, NAS credential reads, or modifications. If unreachable, preserve existing firewall and network settings, and report pending network review.
+
+**Critical gates still pending:** reviewed off-host backup destination and protected secret recovery, actual backup script design for separate new host, restore drill, Docker runtime and migration-safe rollback, finalized image/project namespace, TLS and explicit production deployment approval. PR #27/#29 remain draft and unmerged.
+
 ## 2026-10-23 STEP 111b PASSED — NO MATCHING CONTAINERS, VOLUMES OR NETWORKS FOR TWO REVIEW PROJECTS
 
 Owner completed the **separately approved**, read-only local Docker inventory via `sudo` on NEW `ccpcadmin@ccpcerp-prod`. User-supplied terminal shows:
