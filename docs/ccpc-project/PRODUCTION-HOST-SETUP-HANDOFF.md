@@ -2,6 +2,23 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 118c PASSED — NAS BACKUP SHARED-FOLDER GROUP PERMISSIONS RESTRICTED
+
+Owner provided Synology DSM screenshot of **Edit Shared Folder ccpcerp-prod_backups → Permissions → Local groups**, displaying all four groups and the effective Preview column:
+
+| DSM local group | Preview | Direct grant shown |
+| --- | --- | --- |
+| `administrators` | `Read/Write` | Read/Write checked |
+| `http` | `No Access` | No visible grant |
+| `Maintenance` | `No Access` | No visible grant |
+| `users` | `No Access` | No visible grant |
+
+**Passed as screenshot-visible DSM effective permissions:** normal user group `users` and service groups `http`/`Maintenance` currently have no effective access to this *new* backup share; `administrators` retain expected NAS administrative Read/Write access. The screenshot does not show an explicit deny checked for the `users` group, only absence of access; do not equate a No Access preview with an explicit ACL deny. No group permission change is instructed or confirmed.
+
+In previous **new share** local-user screenshot, a truncated `ccpcerp_prod...` account shows Read/Write and the legacy backup account `erpbackup` shows preview No Access. **Next one read-only DSM check:** open the separate **existing** shared folder `erpnext_backups` → Permissions → Local users; search for the **new** `ccpcerp_prod...` backup account and inspect the **Preview** effective access. Expected `No Access`, with no grants. Do **not** change checkboxes or press Apply/Save; preserve existing PROD backup operation and all its ACLs. Screenshot should include share name, relevant account and preview but no credentials. Exact new service-account name and its DSM group membership still not fully established; follow up if old-share preview gives unexpected inherited access.
+
+Separate host `ccpcerp-prod` has only CIFS client installed, no verified NAS mount/credentials, no backup jobs; old PROD/DEV untouched by this step. GitHub PR #27 and PR #29 remain draft/unmerged as of the latest connector check at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f` and `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`.
+
 ## 2026-10-23 STEP 118b — NEW NAS SHARE PER-USER PERMISSIONS SCREENSHOT REVIEWED; GROUP REVIEW PENDING
 
 Owner provided DSM screenshot titled **"Edit Shared Folder ccpcerp-prod_backups"**, `Permissions` tab with dropdown set to `Local users`. This is strong UI evidence the separate `ccpcerp-prod_backups` shared folder has now been created; no new-host SMB mount or direct authenticated test has occurred. The screenshot shows:
