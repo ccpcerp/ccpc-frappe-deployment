@@ -2,6 +2,22 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 92 PASSED — NEW-HOST CLONED BRANCH, HEAD, ORIGIN VERIFIED; CHECKOUT NOT DONE
+
+Owner ran the three read-only Git commands on `ccpcadmin@ccpcerp-prod` in `/home/ccpcadmin/ccpc-frappe-deployment` and provided:
+```text
+security/dedicated-production-pre-tls-2026-10-23
+0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f
+git@github.com:ccpcerp/ccpc-frappe-deployment.git
+```
+These values **exactly match** the intended review branch, full pinned commit and repository origin. Independently verified on GitHub on 2026-10-23, draft PR #27 is still open/unmerged and its branch HEAD remains `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`. This verifies the *downloaded Git HEAD*, **not** a checked-out worktree, deployed configuration, or Docker Compose runtime.
+
+**Next single Step 93 — read-only worktree occupancy guard, on the NEW host only:**
+```bash
+find "$HOME/ccpc-frappe-deployment" -mindepth 1 -maxdepth 1 ! -name .git -print
+```
+**Expected:** no output for a clean `--no-checkout` clone. If anything is printed, stop and inspect before selecting a non-destructive checkout approach; do not discard local files. Only after confirmation plan a manual checkout of already downloaded reviewed code to this new host's directory. A Git checkout is **not** authorization to build or start Docker, migrate, restore, deploy, alter databases or backups, or change old live PROD/DEV, DNS, firewall or cutover. Preserve the one-step-at-a-time procedure.
+
 ## 2026-10-23 STEP 91 PASSED — NEW-HOST REPOSITORY CLONED WITH NO CHECKOUT
 
 Owner executed on `ccpcadmin@ccpcerp-prod` the guarded `git clone --no-checkout --single-branch --branch security/dedicated-production-pre-tls-2026-10-23` via the dedicated `ccpc_github_deploy_ed25519` SSH identity, targeting the previously vacant `/home/ccpcadmin/ccpc-frappe-deployment`. The owner supplied Git terminal output:
