@@ -2,6 +2,29 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 96 PASSED — DOCKER COMPOSE VERSION SUPPORTS !override; PROFILE SELECTION NEXT
+
+Owner executed `docker compose version` on the new `ccpcadmin@ccpcerp-prod` host and supplied exact output:
+```text
+Docker Compose version v5.6.1
+```
+**Verified operator evidence:** Docker Compose CLI reports v5.6.1. The official Docker Compose merge documentation states that `!override` requires Compose v2.24.4 or later (https://docs.docker.com/reference/compose-file/merge/). Therefore the host-reported Compose version meets the documented minimum for the reviewed `overrides/compose.dedicated-pre-tls.yaml` use of `ports: !override`. This is a *version prerequisite only*, not a successful merged/effective Compose-model test. GitHub draft PR #27 remains OPEN/UNMERGED at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`; its profile is not production-deployed.
+
+**Next one Step 97 (on NEW host only; no secrets):** evaluate only the already GitHub-reviewed `scripts/config.sh` in an isolated child Bash shell with `CCPC_DEPLOYMENT_PROFILE=dedicated-pre-tls`; print only selected Compose file paths and nonsecret host-local health target, not environment variable dumps:
+```bash
+CCPC_DEPLOYMENT_PROFILE=dedicated-pre-tls bash -c '
+  source "$1" || exit 1
+  printf "Compose file order:\n"
+  for ((i=1; i<${#COMPOSE_FILE_ARGS[@]}; i+=2)); do
+    printf "%s\n" "${COMPOSE_FILE_ARGS[i]}"
+  done
+  printf "Health target: %s\n" "$HEALTHCHECK_URL"
+' _ "$HOME/ccpc-frappe-deployment/scripts/config.sh"
+```
+Expected five files, last `overrides/compose.dedicated-pre-tls.yaml`, and `Health target: http://127.0.0.1:8080`. `source` executes the vetted configuration script only in the isolated shell; do not source arbitrary new files or print `.env`, `DB_PASSWORD`, interpolated Compose model, SSH keys, or other credentials. Do not yet run `docker compose config` on full project without an approved secure secret-handling procedure.
+
+**No deployment permission:** no containers, Docker changes, migrations, database restore, firewall/DNS edits, old PROD/DEV modifications, or production traffic cutover.
+
 ## 2026-10-23 STEP 95 PASSED — CONFIG SCRIPT BASH SYNTAX VERIFIED; COMPOSE VERSION NEXT
 
 Owner ran `bash -n "$HOME/ccpc-frappe-deployment/scripts/config.sh" && echo "PASS: scripts/config.sh syntax"` on new dedicated `ccpcerp-prod` and reported `PASS: scripts/config.sh syntax` with return to shell prompt. **Verified from terminal:** Bash parser accepted the checked-out config script. This does not execute the script, validate selected `CCPC_DEPLOYMENT_PROFILE` behavior, evaluate Compose interpolation, verify port bindings, or prove deployability.
