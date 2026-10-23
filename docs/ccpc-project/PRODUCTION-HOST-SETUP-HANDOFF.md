@@ -2,6 +2,16 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 118d PASSED — NEW NAS BACKUP ACCOUNT HAS NO ACCESS TO LEGACY PRODUCTION BACKUPS
+
+Owner supplied a Synology DSM screenshot titled **"Edit Shared Folder erpnext_backups"** at `Permissions → Local users`. The separate *new* backup service account, with its username **truncated** to `ccpcerp_pr...` in that screenshot, shows **Preview: No Access**, no visible direct user permissions, and no group-derived permissions. Existing `erpbackup` shows **Preview: Read/Write**, with direct Read/Write checkbox ticked. NAS administrative users `admin` and `cmmsadmin` retain Read/Write inherited from their groups. No modification to old PROD backup share settings was instructed or shown.
+
+**PASS, screenshot-visible logical share ACL isolation:** old `erpnext_backups` retains `erpbackup` Read/Write but shows the new service account with No Access; the new `ccpcerp-prod_backups` share had separately shown new account Read/Write, `erpbackup` No Access, normal `users` group No Access, administrators Read/Write. Do not conflate GUI Preview No Access with an explicit deny, or with a live SMB-authentication test. Real access remains **UNTESTED**. We must also validate NAS account membership so it does not accidentally inherit `administrators` privilege or other folder access, and ensure protected off-host recovery for backup access itself.
+
+**Next one READ-ONLY DSM UI verification, no modifications:** In `Control Panel → User & Group → User`, locate the separate new backup account (currently visually truncated `ccpcerp_pr...`), open its detail/Edit `Groups` or `User Groups` tab and inspect the full username and groups. Prefer only ordinary `users` membership, **not `administrators`**, `Maintenance`, or service/privileged groups. Screenshot full username and groups, but no password, MFA, recovery, credential or API fields; do not save changes. Then review other new-share security properties and approve mount credentials in distinct steps. The intended new NAS share is `//192.168.50.132/ccpcerp-prod_backups` (created in DSM as seen in Edit Shared Folder UI) and not currently mounted on new Linux host.
+
+**Release gates unchanged:** No NAS account login from the new host, no SMB share mount, backup job, secret provisioning, `fstab` entry, recovery drill, or production deployment. Draft PR #27 and stacked PR #29 remain OPEN/DRAFT/UNMERGED as of GitHub verification at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f` and `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`, respectively. Keep existing PROD/DEV and all legacy backups untouched.
+
 ## 2026-10-23 STEP 118c PASSED — NAS BACKUP SHARED-FOLDER GROUP PERMISSIONS RESTRICTED
 
 Owner provided Synology DSM screenshot of **Edit Shared Folder ccpcerp-prod_backups → Permissions → Local groups**, displaying all four groups and the effective Preview column:
