@@ -2,6 +2,23 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 88 COMPLETE — GITHUB SSH AUTHENTICATION VERIFIED; STEP 89 REPOSITORY READ CHECK NEXT
+
+Owner provided the exact new-host terminal response after accepting GitHub's official ED25519 host fingerprint on `ccpcadmin@ccpcerp-prod`:
+```text
+Warning: Permanently added 'github.com' (ED25519) to the list of known hosts.
+Hi ccpcerp/ccpc-frappe-deployment! You've successfully authenticated, but GitHub does not provide shell access.
+```
+The official GitHub ED25519 host fingerprint displayed immediately before confirmation was `SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU`, matching the previously verified expected value. The transcript now confirms SSH server authenticity was checked and the dedicated new-host deploy key was accepted by GitHub for the deployment repository. It does **not** yet show `git ls-remote` read authorization for the exact branch. Do not interpret “does not provide shell access” as an error; this is GitHub's normal successful SSH authentication greeting. The key's read-only setting remains owner-reported, not independently inspected via GitHub deploy-key settings.
+
+**GitHub verified again on 2026-10-23:** draft PR #27 is open and unmerged; branch `security/dedicated-production-pre-tls-2026-10-23` still at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`.
+
+**Next one read-only action, Step 89, on new host only:**
+```bash
+GIT_SSH_COMMAND="ssh -i $HOME/.ssh/ccpc_github_deploy_ed25519 -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o HostKeyAlgorithms=ssh-ed25519" git ls-remote --heads git@github.com:ccpcerp/ccpc-frappe-deployment.git security/dedicated-production-pre-tls-2026-10-23
+```
+Expected one line: `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f refs/heads/security/dedicated-production-pre-tls-2026-10-23` (tab separated). Verify actual terminal output before proceeding. No clone, new deployment, changes to existing production or DEVELOPMENT, DNS, firewall, database, Docker, or cutover have been authorized or carried out.
+
 ## 2026-10-23 STEP 88 — OWNER REPORTS GITHUB SSH KEY AUTHENTICATION CONFIRMED; REPOSITORY READ CHECK PENDING
 
 In the continuation supplied by the owner, the final status was **“Confirmed key authentication”** following Step 88's new-host command (`ssh -T -i "$HOME/.ssh/ccpc_github_deploy_ed25519" -o IdentitiesOnly=yes -o HostKeyAlgorithms=ssh-ed25519 git@github.com`). This is an **owner-reported successful GitHub SSH authentication**, not a terminal transcript inspected in this conversation; do not claim that repository read authorization or clone has been proven. Owner previously reported registering the repository-scoped deploy key with write access unchecked.
