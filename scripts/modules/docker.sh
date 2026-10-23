@@ -57,6 +57,8 @@ ccpc_compose() {
     verify_dedicated_env_file
     [[ -n "${CUSTOM_TAG:-}" ]] ||
       error "Dedicated profile requires an explicit CUSTOM_TAG (no default image)"
+    [[ -n "${IMAGE_NAME:-}" && "${CUSTOM_IMAGE:-}" == "$IMAGE_NAME" ]] ||
+      error "Dedicated profile requires an explicit CUSTOM_IMAGE matching IMAGE_NAME"
 
     docker compose --env-file "$CCPC_VERIFIED_ENV_FILE" "${COMPOSE_FILE_ARGS[@]}" "$@"
   else
