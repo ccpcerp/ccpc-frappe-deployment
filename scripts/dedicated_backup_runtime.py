@@ -17,12 +17,15 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
+from scripts import dedicated_backup_policy as policy
+
 EXPECTED_HOST = "ccpcerp-prod"
 EXPECTED_SITE = "ccpcerp.local"
 EXPECTED_PROFILE = "dedicated-pre-tls"
 EXPECTED_FRAPPE_SHA = "988e54f3c4c291e2077a83809663f123731abe76"
 SITE_DESTINATION = "/home/frappe/frappe-bench/sites"
 DB_DESTINATION = "/var/lib/mysql"
+LOG_DESTINATION = "/home/frappe/frappe-bench/logs"
 IMAGE_RE = re.compile(r"sha256:[a-f0-9]{64}\Z")
 HASH_RE = re.compile(r"[a-f0-9]{64}\Z")
 LABEL_SHA_RE = re.compile(r"[a-f0-9]{40}\Z")
@@ -32,19 +35,6 @@ ID_RE = re.compile(r"[a-f0-9]{12,64}\Z")
 
 class RuntimeRejected(RuntimeError):
     """Failure with intentionally nonsensitive diagnostics."""
-
-
-@dataclass(frozen=True)
-class ApprovedRuntime:
-    """Out-of-band, reviewed expectations; never derive these from Docker output."""
-
-    project: str
-    backend_image_id: str
-    db_image_id: str
-    backend_config_hash: str
-    db_config_hash: str
-    sites_volume: str
-    db_volume: str
 
 
 @dataclass(frozen=True)
@@ -70,19 +60,33 @@ class VerifiedIdentity:
         return False
 
 
-def _expect_config(expected: ApprovedRuntime) -> None:
-    if not isinstance(expected, ApprovedRuntime):
-        raise RuntimeRejected("Approved release expectation missing")
-    if not isinstance(expected.project, str) or not PROJECT_RE.fullmatch(expected.project):
+def _expect_config(expected: policy.ValidatedRelease) -> None:
+    """Accept a separately reviewed release-policy result, never raw Docker labels.
+
+    This cannot independently establish manifest approval/signature authenticity:
+    callers must obtain the manifest digest from a trusted external source.
+    """
+    if type(expected) is not policy.ValidatedRelease:
+        raise RuntimeRejected("Validated external release manifest required")
+    if (type(expected.release_id) is not str
+            or not policy.RELEASE_ID.fullmatch(expected.release_id)
+            or type(expected.manifest_sha256) is not str
+            or not HASH_RE.fullmatch(expected.manifest_sha256)
+            or type(expected.deployment_commit) is not str
+            or not policy.HEX40.fullmatch(expected.deployment_commit)
+            or expected.trusted_runtime is not False or expected.backup_ready is not False):
+        raise RuntimeRejected("Unapproved release identity or authorization flags")
+    if type(expected.project) is not str or not PROJECT_RE.fullmatch(expected.project):
         raise RuntimeRejected("Invalid approved Compose project")
     for name in (expected.backend_image_id, expected.db_image_id):
-        if not isinstance(name, str) or not IMAGE_RE.fullmatch(name):
+        if type(name) is not str or not IMAGE_RE.fullmatch(name):
             raise RuntimeRejected("Unpinned approved image")
     for label in (expected.backend_config_hash, expected.db_config_hash):
-        if not isinstance(label, str) or not HASH_RE.fullmatch(label):
+        if type(label) is not str or not HASH_RE.fullmatch(label):
             raise RuntimeRejected("Unapproved Compose configuration hash")
-    if (expected.sites_volume, expected.db_volume) != (
-        expected.project + "_sites", expected.project + "_db-data"
+    if (expected.sites_volume, expected.db_volume, expected.backend_logs_volume) != (
+        expected.project + "_sites", expected.project + "_db-data",
+        expected.project + "_logs"
     ):
         raise RuntimeRejected("Unexpected approved Compose volume names")
 
@@ -93,8 +97,8 @@ def _json_list(query: Callable[[list[str]], str], argv: list[str]) -> list[dict]
         if not isinstance(data, str) or len(data) > 1_000_000:
             raise ValueError("Oversized or non-text Docker response")
         out = json.loads(data)
-    except (ValueError, TypeError, OSError) as exc:
-        raise RuntimeRejected("Docker inspection unavailable") from exc
+    except (ValueError, TypeError, OSError, KeyError):
+        raise RuntimeRejected("Docker inspection unavailable") from None
     if not isinstance(out, list) or len(out) != 1 or not isinstance(out[0], dict):
         raise RuntimeRejected("Ambiguous Docker inspection")
     return out
@@ -112,7 +116,7 @@ def _labels(record: dict) -> dict:
 
 
 def _require_container(record: dict, *, service: str, container_id: str,
-                       expected: ApprovedRuntime, image_id: str,
+                       expected: policy.ValidatedRelease, image_id: str,
                        config_hash: str) -> None:
     actual_id = record.get("Id")
     if (not isinstance(actual_id, str) or len(actual_id) != 64
@@ -134,19 +138,8 @@ def _require_container(record: dict, *, service: str, container_id: str,
         raise RuntimeRejected("Unexpected privileged container")
 
 
-def _verify_mount(record: dict, *, volume_name: str, dest: str, source: str) -> None:
-    mounts = record.get("Mounts")
-    if not isinstance(mounts, list) or len(mounts) != 1:
-        raise RuntimeRejected("Container mount inventory is ambiguous")
-    mount = mounts[0]
-    if not isinstance(mount, dict) or (
-        mount.get("Type"), mount.get("Name"), mount.get("Destination"),
-        mount.get("Source"), mount.get("RW")
-    ) != ("volume", volume_name, dest, source, True):
-        raise RuntimeRejected("Container storage volume is not approved")
-
-
-def _volume_root(query: Callable[[list[str]], str], name: str, project: str, logical: str) -> Path:
+def _volume_record(query: Callable[[list[str]], str], name: str,
+                   project: str, logical: str) -> tuple[Path, dict]:
     volume = _single_inspect(query, "volume", name)
     if volume.get("Name") != name or not isinstance(volume.get("Labels"), dict):
         raise RuntimeRejected("Volume identity unavailable")
@@ -156,7 +149,7 @@ def _volume_root(query: Callable[[list[str]], str], name: str, project: str, log
     value = volume.get("Mountpoint")
     if not isinstance(value, str) or not value.startswith("/"):
         raise RuntimeRejected("Volume mountpoint unavailable")
-    return Path(value)
+    return Path(value), volume
 
 
 def _safe_dir(path: Path) -> None:
@@ -208,7 +201,7 @@ def _verify_image(query: Callable[[list[str]], str], image_id: str, *, frappe: b
             raise RuntimeRejected("Frappe source provenance not verified")
 
 
-def verify_runtime(expected: ApprovedRuntime, query: Callable[[list[str]], str],
+def verify_runtime(expected: policy.ValidatedRelease, query: Callable[[list[str]], str],
                    *, hostname: Callable[[], str] = socket.gethostname) -> VerifiedIdentity:
     """Verify independent read-only host, Docker and filesystem evidence.
 
@@ -243,11 +236,28 @@ def verify_runtime(expected: ApprovedRuntime, query: Callable[[list[str]], str],
                        image_id=expected.db_image_id, config_hash=expected.db_config_hash)
     _verify_image(query, expected.backend_image_id, frappe=True)
     _verify_image(query, expected.db_image_id, frappe=False)
-    sites = _volume_root(query, expected.sites_volume, expected.project, "sites")
-    database = _volume_root(query, expected.db_volume, expected.project, "db-data")
-    _safe_dir(database)
-    _verify_mount(backend, volume_name=expected.sites_volume, dest=SITE_DESTINATION, source=str(sites))
-    _verify_mount(db, volume_name=expected.db_volume, dest=DB_DESTINATION, source=str(database))
+    # All three named volumes must be observed explicitly. We do not treat an
+    # image-declared anonymous logs VOLUME as a valid substitute for review.
+    sites, site_record = _volume_record(query, expected.sites_volume, expected.project, "sites")
+    database, db_record = _volume_record(query, expected.db_volume, expected.project, "db-data")
+    logs, logs_record = _volume_record(query, expected.backend_logs_volume, expected.project, "logs")
+    for root in (sites, database, logs):
+        _safe_dir(root)
+    try:
+        layout = policy.verify_exact_mount_layout(
+            expected,
+            backend_mounts=backend.get("Mounts"),
+            db_mounts=db.get("Mounts"),
+            inspected_volumes={
+                expected.sites_volume: site_record,
+                expected.db_volume: db_record,
+                expected.backend_logs_volume: logs_record,
+            },
+        )
+    except policy.PolicyRejected:
+        raise RuntimeRejected("Unapproved Docker volume layout") from None
+    if layout.exact_layout is not True or layout.backup_ready is not False:
+        raise RuntimeRejected("Volume policy did not establish safe inventory")
     _verify_site_presence(sites)
     return VerifiedIdentity(EXPECTED_HOST, expected.project, EXPECTED_SITE,
                             EXPECTED_PROFILE, EXPECTED_FRAPPE_SHA,
