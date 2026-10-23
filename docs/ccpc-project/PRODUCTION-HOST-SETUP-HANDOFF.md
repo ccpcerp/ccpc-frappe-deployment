@@ -2,6 +2,23 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 103 PASSED — EXACT GITHUB CODE BLOBS TESTED IN ISOLATED CREDENTIAL-FREE WORKSPACE
+
+Owner requested "Continue" after Step 102. On 2026-10-23 ChatGPT rechecked the GitHub-first workflow, current production-host handoff, draft PR #29 and exact branch HEAD **`bd92ade7ac859b9f6b21b157bdc1629e93f4540c`**. PR #29 remains **OPEN/DRAFT/UNMERGED** with base `security/dedicated-production-pre-tls-2026-10-23` (draft PR #27). Its patch still contains six intended files and no old-host changes.
+
+To eliminate the earlier "tests were reconstructed, not exact" evidence gap, the five executable/supporting Bash files used by `tests/test_dedicated_env_security.sh` were fetched **directly from that exact pinned GitHub commit** and reproduced in a credential-free temporary local Git repository. Independent `git hash-object` compared each local file's **exact bytes** against its GitHub source blob:
+- `scripts/lib.sh`: `7f83828f99273445b6b95d171fb9f9b4862c0587`
+- `scripts/modules/docker.sh`: `453959daf3b548fa67f8bdc647be0f147acd603e`
+- `scripts/modules/env.sh`: `38a6fdef14abc9e61ae8425ab606dce6201290c1`
+- `scripts/modules/deployment.sh`: `ab862074235f174bf5de042ea7c6562965a34243`
+- `tests/test_dedicated_env_security.sh`: `d09081bf6a7c99af836d261881257debbd698dcb`
+
+All five source files passed actual `bash -n`. The **exact checked-in test script** ran using its built-in mock `docker` function, temporary dummy-only secret and isolated local Git repository; **exit code 0**. PASS assertions covered owner-only 0600/0700 external environment, reject relative/checkout/symlink/world-readable/world-searchable/ambient DB_PASSWORD, require explicit image tag and exact image name, pass environment file path to mocked Docker, forbid dedicated `.env` backup/edit and restore, export correct image/tag, preserve legacy-lan Compose call. No real password was used or displayed.
+
+**Scope limitation:** this tests five exact *Git blobs* in an independently initialized local Git repository, **not** the entire GitHub commit checked out via a remote clone. Docker CLI/Compose and ShellCheck are unavailable in this isolated testing environment; no real Docker Compose model, containers, DB integration, host network, backup/restore or TLS check was performed for PR #29. No new-host action performed. PR #29 description updated to reflect the improved evidence. The full new-host checkout is still pinned to pre-TLS draft PR #27 `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`, unchanged.
+
+**Next gate:** perform a non-deploying Compose interpolation/merge test against the exact proposed PR #29 checkout in an *approved isolated test environment* with a **dummy** owner-only external credential file and reviewed image/tag; separately assess failure/rollback handling. Never pull/switch code on the actual new production host, create real credentials, deploy, migrate, restore, change DNS/firewall or touch old PROD+DEV without explicit separate authorization. PR #27 and PR #29 remain unmerged/draft; no production-readiness claim.
+
 ## 2026-10-23 STEP 102 REVIEW HARDENING — IMAGE IDENTITY PINNED; DRAFT PR #29 UPDATED AND VERIFIED
 
 After the initial code-only review, source inspection identified that the base Compose image template can fall back to a generic Frappe/ERPNext image if `CUSTOM_IMAGE` is not explicitly selected. The **new-host-only** feature branch now:
