@@ -2,6 +2,16 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 104 OWNER APPROVAL — SEPARATE PR #29 REVIEW-ONLY CLONE, NO CHECKOUT YET
+
+Owner explicitly replied "Approved" to a **separate, temporary review checkout on the NEW `ccpcerp-prod` server for credential-free, non-deploying Compose tests of draft PR #29**. This authorizes a separate *test directory only*, not updating the existing pinned deployment checkout, starting Docker, creating real secrets, changing old PROD/DEV, migrating/restoring, DNS/firewall edits, merging, or a production cutover.
+
+GitHub connector reverified on 2026-10-23: draft PR #29 remains OPEN/DRAFT/UNMERGED on `security/dedicated-prod-external-env-2026-10-23` at `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`. Its base is `security/dedicated-production-pre-tls-2026-10-23`; parent PR #27 is OPEN/DRAFT/UNMERGED at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`. The current authoritative Step 103 notes pass of the exact-binary Bash fixtures in a credential-free local test and that *real* Compose validation of PR #29 remains pending.
+
+**Next single operator action, Step 104 (on NEW host only):** use a guarded `git clone --no-checkout --single-branch --branch security/dedicated-prod-external-env-2026-10-23` into the previously vacant `$HOME/ccpc-pr29-review`. Before cloning, verify `$HOME/ccpc-frappe-deployment` HEAD and branch remain exactly `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f` and `security/dedicated-production-pre-tls-2026-10-23`, no modifications/untracked files, and that target does not exist, including no symlink. Use previously verified, read-only `$HOME/.ssh/ccpc_github_deploy_ed25519` identity with `BatchMode=yes`, `IdentitiesOnly=yes`, strict host-key checking and pinned `ssh-ed25519` algorithm. On any STOP or error, do not overwrite or clean anything. A successful `--no-checkout` clone only fetches Git objects; **no worktree checkout or Compose execution**.
+
+After owner supplies terminal output, independently check new review clone's branch, HEAD, and remote before a guarded file checkout, then execute tests with disposable dummy values only. No real `DB_PASSWORD` or `.env` may be created or sent through chat.
+
 ## 2026-10-23 STEP 103 PASSED — EXACT GITHUB CODE BLOBS TESTED IN ISOLATED CREDENTIAL-FREE WORKSPACE
 
 Owner requested "Continue" after Step 102. On 2026-10-23 ChatGPT rechecked the GitHub-first workflow, current production-host handoff, draft PR #29 and exact branch HEAD **`bd92ade7ac859b9f6b21b157bdc1629e93f4540c`**. PR #29 remains **OPEN/DRAFT/UNMERGED** with base `security/dedicated-production-pre-tls-2026-10-23` (draft PR #27). Its patch still contains six intended files and no old-host changes.
