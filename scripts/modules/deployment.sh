@@ -15,6 +15,7 @@ deploy_release() {
     # The dedicated host must never back up or rewrite a password-containing .env.
     # CUSTOM_TAG is a command-scoped release input, not a persisted secret or tag file.
     verify_dedicated_env_file
+    export CUSTOM_IMAGE="$IMAGE_NAME"
     export CUSTOM_TAG="$IMAGE_TAG"
     info "Dedicated profile: external credentials; no .env copy or update"
   else
