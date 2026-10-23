@@ -2,6 +2,22 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 94 PASSED — DEDICATED-HOST CHECKOUT COMPLETE; REVIEW VALIDATION NEXT
+
+Owner manually executed the guarded new-host checkout command at `ccpcadmin@ccpcerp-prod`, requiring exact current branch `security/dedicated-production-pre-tls-2026-10-23`, pinned local HEAD `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`, and no pre-existing worktree files outside `.git`. The guarded command then ran `git -C "$repo" restore --source=HEAD --staged --worktree -- .`, followed by `git status --short --branch`. Owner supplied output:
+
+```text
+## security/dedicated-production-pre-tls-2026-10-23...origin/security/dedicated-production-pre-tls-2026-10-23
+```
+
+**Passed:** no STOP guard was printed; Git status shows the expected branch tracking its remote with no modified/untracked files listed. These are checked-out *Git source files only* in `/home/ccpcadmin/ccpc-frappe-deployment`. No Docker Compose model evaluated, service started, database operation, production deployment or old-host modification performed. GitHub independently reconfirmed draft PR #27 remains OPEN/UNMERGED at the pinned SHA, and inspected `scripts/config.sh`, `overrides/compose.dedicated-pre-tls.yaml`, and the dedicated pre-TLS policy at that branch.
+
+**Next Step 95 — read-only Bash parser check on the NEW host only:**
+```bash
+bash -n "$HOME/ccpc-frappe-deployment/scripts/config.sh" && echo "PASS: scripts/config.sh syntax"
+```
+This checks syntax without executing/sourcing the script or interpolating secrets. After observing the output, plan a separately controlled, secrets-safe Compose effective-model check when the appropriate configuration and permission are in place. Do not print `.env`, `DB_PASSWORD`, private keys or interpolated Compose configuration. No `docker compose up`, deployment, migration, restore, DNS, firewall, cutover, or old PROD/DEV operations are authorized.
+
 ## 2026-10-23 STEP 93 PASSED — NO PROJECT FILES PRESENT; CONTROLLED SOURCE CHECKOUT NEXT
 
 Owner ran `find "$HOME/ccpc-frappe-deployment" -mindepth 1 -maxdepth 1 ! -name .git -print` on `ccpcadmin@ccpcerp-prod`; terminal returned directly to prompt with **no output**. This verifies, at inspection time, that the just-cloned repository directory contained no root entries other than `.git`. Step 92 independently verified branch `security/dedicated-production-pre-tls-2026-10-23`, HEAD `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`, and origin `git@github.com:ccpcerp/ccpc-frappe-deployment.git`. GitHub PR #27 remains OPEN/DRAFT/UNMERGED at that SHA. No checkout performed yet.
