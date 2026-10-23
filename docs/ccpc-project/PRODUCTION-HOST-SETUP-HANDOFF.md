@@ -2,6 +2,40 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 106 PASSED — PINNED PR #29 REGRESSIONS PASS ON NEW HOST, NO DOCKER INVOCATION
+
+Owner ran the guarded test on **new** `ccpcadmin@ccpcerp-prod`, within separately checked-out `/home/ccpcadmin/ccpc-pr29-review`. Operator command checked original `/home/ccpcadmin/ccpc-frappe-deployment` remains at original clean PR #27 branch `security/dedicated-production-pre-tls-2026-10-23` HEAD `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`; isolated review remains clean on PR #29 branch `security/dedicated-prod-external-env-2026-10-23` HEAD `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`, with no checkout `.env`. Output:
+
+```text
+PASS: Five Bash files passed syntax validation
+PASS: owner-only external environment file accepted
+PASS: rejected relative path
+PASS: rejected file inside checkout
+PASS: rejected symlink
+PASS: rejected world-readable file
+PASS: rejected world-searchable parent
+PASS: rejected ambient DB_PASSWORD
+PASS: rejected missing explicit image tag
+PASS: rejected missing explicit image name
+PASS: rejected wrong image name
+PASS: dedicated Compose uses protected external env file
+PASS: rejected dedicated .env backup
+PASS: rejected dedicated .env editing
+PASS: dedicated recovery never copies a checkout .env
+[INFO] Dedicated profile: external credentials; no .env copy or update
+PASS: dedicated release skips .env backup/edit and exports explicit tag
+PASS: legacy-lan Compose invocation unchanged
+PASS: dedicated external environment regressions
+PASS: PR #29 security regression suite completed
+## security/dedicated-prod-external-env-2026-10-23...origin/security/dedicated-prod-external-env-2026-10-23
+```
+
+**Passed:** Bash syntax and all checked-in test assertions on the actual review checkout, with built-in mocked Docker and disposable `TEST_PLACEHOLDER_NOT_REAL` credential fixture. The owner pasted a garbled portion of the interactive command text but coherent, full expected test output; treat success as terminal-reported, not a reconstructed source command. No Docker Compose engine called by this test, no services started, and no real credentials used. GitHub independently verified PR #29 remains **OPEN/DRAFT/UNMERGED** at `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`.
+
+**Next one Step 107 — approved, non-deploying REAL Docker Compose model evaluation from isolated PR #29 checkout only.** Guard both repository commits/branches/clean status; require review checkout `.env` absent; create a **temporary** private `mktemp -d` directory outside both checkouts with `0700` directory and `0600` `compose.env` containing only `DB_PASSWORD=CCPC_DUMMY_CONFIG_ONLY`, never production credentials. Use the GitHub-reviewed `scripts/config.sh`, `scripts/lib.sh`, and `scripts/modules/docker.sh` sourced in a subshell, explicit `CCPC_DEPLOYMENT_PROFILE=dedicated-pre-tls`, `CCPC_DEDICATED_ENV_FILE` pointing to disposable file, `CUSTOM_IMAGE=ccpcerp`, `CUSTOM_TAG=review-only-tag`, and `unset DB_PASSWORD`. Run `ccpc_compose config --quiet`; optionally pipe `ccpc_compose config --format json` directly to a Python checker to assert frontend 127.0.0.1:8080 only, no DB/Redis exposed, all application images `ccpcerp:review-only-tag`, and MariaDB receives dummy password. **Never print expanded Compose JSON/environment or real secrets.** Bash trap removes *only* this temporary dummy file/directory; no deletion of either checkout. If guard or validation fails, stop and inspect only nonsecret output. User must supply terminal evidence; until then PR #29's real Compose resolution is **unverified**.
+
+**Boundaries unchanged:** no `docker compose up`, build, migrate, restore, actual secret provisioning, old shared PROD/DEV changes, DNS/firewall, PR merges, or live traffic cutover without separate approval.
+
 ## 2026-10-23 STEP 105 PASSED — PR #29 REVIEW WORKTREE CHECKED OUT CLEANLY
 
 Operator executed the approved, guarded checkout command on the separate NEW-host directory `/home/ccpcadmin/ccpc-pr29-review`. Guard clauses required the original `/home/ccpcadmin/ccpc-frappe-deployment` to be clean at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`, branch `security/dedicated-production-pre-tls-2026-10-23`, and review clone to be a non-symlink, expected GitHub origin, branch `security/dedicated-prod-external-env-2026-10-23`, pinned HEAD `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`, with empty working root except `.git`. No STOP printed; checkout via `git restore --source=HEAD --staged --worktree -- .` completed and returned:
