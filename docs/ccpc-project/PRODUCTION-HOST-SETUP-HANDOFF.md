@@ -2,6 +2,16 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 121 EXPLICITLY APPROVED — BOUNDED NAS READ/WRITE SMOKE TEST; NOT YET EXECUTED
+
+Owner responded **"Approved"** to the separate Step 121 gate after Step 120 succeeded: a **single temporary read/write CIFS mount** of NEW dedicated Synology share `//192.168.50.132/ccpcerp-prod_backups` on NEW host `ccpcadmin@ccpcerp-prod`, confirm exact CIFS source and RW mode, create and read back **one unique temporary test file** under a unique temporary directory owned by this operation on the **NEW SHARE ONLY**, flush file data, remove just that exact test file/directory, then unmount and verify inactive. Existing PROD/DEV, older `erpnext_backups` share, `erpbackup` account, NAS shared `docker` folder, application data, and production deployment are excluded. No persistent mount or `/etc/fstab` change, backup schedule, restoration, data cleanup, Docker action or Git merge is authorized.
+
+**Next operator command, yet to run:** replicate approved Step 120 guards (hostname and operator identity, PR #27 and #29 pinned clean Git checkpoints, root-owned `/etc/ccpc-prod-nas` 0700, `/etc/ccpc-prod-nas/credentials` 0600, `/mnt/ccpcerp-prod_backups` 0700, no symlinks and no existing mount). Use root-only credentials with `vers=3.1.1,sec=ntlmssp,rw,nosuid,nodev,noexec`. Verify `findmnt` reports **exact** expected source and fstype `cifs`, VFS `rw`, **before any create/write**. Create unique `.ccpc-step121-XXXXXXXX` directory via `mktemp -d` on the verified mount, one file inside using `noclobber`; flush via `sync -f`, compare readback, and only unlink that one test file and `rmdir` the unique created directory (no recursive rm or broader cleanup). An EXIT trap must check exact mounted source before file cleanup; unmount only mount created by this command, verify mountpoint inactive; return FAIL/STOP and preserve unexpected paths/state if verification or cleanup fails. Suppress raw mount error/credential content. Paste only fixed PASS/FAIL lines. No SMB isolation test for other shares is authorized in this step.
+
+**Outcome status:** APPROVED, **NOT EXECUTED / NOT TESTED**. Step 120 provided successful one-time read-only CIFS test; Step 121 will establish only smoke-tested RW on new share, not backup completeness, transaction consistency, off-host recovery or restore readiness.
+
+**GitHub status as rechecked:** PR #27 OPEN/DRAFT/UNMERGED at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`; stacked PR #29 OPEN/DRAFT/UNMERGED at `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`. No source app changes or deployments in this documentation update.
+
 ## 2026-10-23 STEP 120 PASSED — TEMPORARY READ-ONLY SMB3.1.1 CIFS MOUNT AND CLEAN UNMOUNT
 
 Owner executed the previously reviewed/approved Step 120 command on dedicated NEW host `ccpcadmin@ccpcerp-prod` and returned exact status lines:
