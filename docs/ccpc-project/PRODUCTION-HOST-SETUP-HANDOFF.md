@@ -2,6 +2,42 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 116 PASSED — APT SIMULATION: THREE NEW PACKAGES, ZERO UPGRADES OR REMOVALS
+
+Owner ran the approved **unprivileged, no-mutation** command on NEW `ccpcadmin@ccpcerp-prod`:
+
+```bash
+LC_ALL=C apt-get --simulate -o Debug::NoLocking=1 --no-install-recommends install cifs-utils
+```
+
+Terminal reported:
+
+```text
+NOTE: This is only a simulation!
+The following additional packages will be installed:
+  libtalloc2 libwbclient0
+Suggested packages:
+  smbclient winbind
+Recommended packages:
+  keyutils
+The following NEW packages will be installed:
+  cifs-utils libtalloc2 libwbclient0
+0 upgraded, 3 newly installed, 0 to remove and 7 not upgraded.
+Inst libtalloc2 (2.4.2-1build2 Ubuntu:24.04/noble [amd64])
+Inst libwbclient0 (2:4.19.5+dfsg-4ubuntu9.8 Ubuntu:24.04/noble-updates [amd64])
+Inst cifs-utils (2:7.0-2ubuntu0.6 Ubuntu:24.04/noble-updates, Ubuntu:24.04/noble-security [amd64])
+Conf libtalloc2 (2.4.2-1build2 Ubuntu:24.04/noble [amd64])
+Conf libwbclient0 (2:4.19.5+dfsg-4ubuntu9.8 Ubuntu:24.04/noble-updates [amd64])
+Conf cifs-utils (2:7.0-2ubuntu0.6 Ubuntu:24.04/noble-updates, Ubuntu:24.04/noble-security [amd64])
+PASS: Step 116 installation simulation completed
+```
+
+**Verified as owner-reported package plan, not installation:** new host `amd64` has `cifs-utils` absent and APT candidate 2:7.0-2ubuntu0.6. Simulated apt proposes **only three new packages** `cifs-utils`, `libtalloc2`, `libwbclient0`, with **zero upgrades**, **zero removals**, seven unrelated packages not upgraded. `--no-install-recommends` omits recommended `keyutils`; `smbclient` and `winbind` are merely suggested. The simulated state is not binding: actual APT resolution may change if repository metadata or installed packages change. No `apt update`, `sudo apt install`, service restart, credential creation, NAS mount or data change occurred.
+
+**Next mandatory approval gate:** request the owner's **separate explicit approval to install only the three simulated packages**, on the NEW `ccpcerp-prod` host, using `sudo apt-get install --no-install-recommends` with a guarded preflight and `--no-upgrade` or equivalent to avoid expanding to unrelated package upgrades. Never run package installation by implication from Step 116; stop if the actual plan differs. No NAS share mount, credentials, `/etc/fstab`, backup/cron, deployment, or old PROD/DEV modifications are approved by a package installation decision. After installation, verify `dpkg-query` and `/usr/sbin/mount.cifs` only, then plan isolated NAS access separately.
+
+**GitHub continuity:** PR #27 and stacked PR #29 remain OPEN/DRAFT/UNMERGED at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f` and `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`, respectively. Owner's successful NAS TCP/445 reachability does not validate SMB share authorization, mount safety, write access, or recoverability.
+
 ## 2026-10-23 STEP 115 PASSED — CIFS PACKAGE CANDIDATE AVAILABLE, INSTALLATION NOT AUTHORIZED
 
 Owner performed the approved **read-only** APT package inspection on NEW `ccpcadmin@ccpcerp-prod`. Terminal reported:
