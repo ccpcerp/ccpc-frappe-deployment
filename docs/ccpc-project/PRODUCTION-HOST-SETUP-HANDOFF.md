@@ -2,6 +2,31 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 119 PASSED — PRIVATELY STAGED NAS CREDENTIALS AND UNMOUNTED PATH ON NEW HOST
+
+Owner executed the **separately approved Step 119** on NEW `ccpcadmin@ccpcerp-prod` and supplied fixed-status output (NAS password was entered twice in hidden terminal prompts, **not shared**):
+
+```text
+PASS: Server and Git checkpoints verified
+[sudo] password for ccpcadmin:
+Enter the Synology backup account password.
+Input will be hidden.
+NAS password:
+Confirm NAS password:
+PASS: Protected credential directory
+PASS: Root-only NAS credential file
+PASS: Dedicated mount directory
+PASS: NAS share remains unmounted
+PASS: Step 119 preparation completed
+ccpcadmin@ccpcerp-prod:~$
+```
+
+**PASS based on operator-reported verifier:** original `$HOME/ccpc-frappe-deployment` still at pinned clean PR #27 commit `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`, review `$HOME/ccpc-pr29-review` at pinned clean PR #29 commit `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`; root-owned private `/etc/ccpc-prod-nas` directory mode `0700`, credential file `/etc/ccpc-prod-nas/credentials` mode `0600`, and root-owned mount directory `/mnt/ccpcerp-prod_backups` mode `0700`, all according to the command's fixed status. NAS mountpoint confirmed **not mounted**. Credentials are intentionally absent from all transcripts and GitHub. No actual SMB authentication, share permission check, credential validity or off-host credential escrow has yet been verified.
+
+**Next separate approval gate:** Ask owner for explicit authorization for a **one-time temporary read-only CIFS mount** of only `//192.168.50.132/ccpcerp-prod_backups` on NEW host at `/mnt/ccpcerp-prod_backups`, using the root-protected credential file and reviewed SMB 3.1.1 mount options; verify expected CIFS source / read-only status without printing secrets or listing private data, then **unmount during the same controlled operator step** with failure-safe stop. The named share and account have been checked in DSM; no actual mounting is yet authorized. A read-only mount tests authentication and share availability, but not actual write permissions, backup validity, or future reliable mounts. Prohibit touching the older `erpnext_backups` share/host, changing `/etc/fstab`, writing even smoke-test files, enabling backup automation, Docker/Compose actions or production deployment. If the mount or unmount fails, stop and preserve state for diagnosis rather than cleaning up destructively. Consider special cases (credential passwords with unusual encoding, SMB dialect compatibility) only after observing exact errors; do not expose secrets.
+
+**GitHub consistency verified:** PR #27 and dependent PR #29 remain OPEN/DRAFT/UNMERGED at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f` and `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`. Further gates: secure backup design, isolated restore testing, rollback for migrations, TLS/network hardening, final image verification, independently approved PRODUCTION cutover. DO NOT regard mere GitHub update as production release.
+
 ## 2026-10-23 STEP 119 EXPLICITLY APPROVED — STAGE ROOT-ONLY CIFS CREDENTIAL AND MOUNTPOINT, NO MOUNT
 
 Owner replied **"Approved"** to: "Do you approve creating the protected credential file and mount directory on `ccpcerp-prod`?" The concrete configuration approved:
