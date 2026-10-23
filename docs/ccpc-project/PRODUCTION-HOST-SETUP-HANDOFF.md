@@ -2,6 +2,20 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 102 REVIEW HARDENING — IMAGE IDENTITY PINNED; DRAFT PR #29 UPDATED AND VERIFIED
+
+After the initial code-only review, source inspection identified that the base Compose image template can fall back to a generic Frappe/ERPNext image if `CUSTOM_IMAGE` is not explicitly selected. The **new-host-only** feature branch now:
+- Requires `CUSTOM_IMAGE` to exactly equal the configured `IMAGE_NAME` in the dedicated `ccpc_compose` wrapper, **and** a nonempty explicit `CUSTOM_TAG`.
+- Exports `CUSTOM_IMAGE="$IMAGE_NAME"` alongside `CUSTOM_TAG="$IMAGE_TAG"` in the dedicated `deploy_release` path; the old `legacy-lan` path remains unchanged.
+- Extends the offline mocked-Docker regression suite to reject absent or mismatched custom image names and check both variables are exported for a reviewed release.
+- Updates the external-credentials documentation and draft PR description.
+
+**Latest independently verified GitHub ref and [draft PR #29](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/29):** `security/dedicated-prod-external-env-2026-10-23` HEAD **`bd92ade7ac859b9f6b21b157bdc1629e93f4540c`**, base `security/dedicated-production-pre-tls-2026-10-23` (PR #27), **OPEN/DRAFT/UNMERGED**, **6 changed files, 10 commits**. GitHub PR patches independently refetched and checked for image guard, release export, and tests.
+
+**Test precision:** `bash -n` and mocked regressions in a **local isolated reconstruction** passed including the new image-name tests. The exact GitHub checkout has not been executed in a real, credential-free CI/test environment; no Docker, image build, database, TLS, deployment, or restoration validation performed. Avoid representing this as validated production code.
+
+**Next gate:** independent source-level review and run tests from the exact pinned GitHub review commit in a credential-free test checkout, then review live rollout procedure and dedicated secret storage requirements. The existing dedicated host still has review branch PR #27 checked out at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`; no pull, branch switch, checkout update, `.env`, credential creation, container operation, old PROD/DEV change, DNS/firewall edit, or cutover has been authorized.
+
 ## 2026-10-23 STEP 102 CODE-ONLY IMPLEMENTATION COMPLETE — DEDICATED EXTERNAL SECRETS DRAFT PR #29
 
 Owner approved **preparing a separate GitHub-only security change** after Step 101 verified new-host `.env` absent and identified unsafe legacy `.env` backups. ChatGPT used the connected GitHub tools to create branch `security/dedicated-prod-external-env-2026-10-23` **from the exact draft PR #27 HEAD** `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`. Branch HEAD verified at **`ea0b7133d2746bca5904a69bab9790b1fa6578a5`**. A separate draft, **[PR #29](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/29)**, is **OPEN/UNMERGED**, head `security/dedicated-prod-external-env-2026-10-23`, base `security/dedicated-production-pre-tls-2026-10-23` (stacked onto OPEN/DRAFT PR #27; no merge to `main`). The GitHub PR patch was fetched and reviewed; code and doc commits were refetched successfully.
