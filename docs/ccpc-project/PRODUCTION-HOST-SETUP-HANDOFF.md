@@ -2,6 +2,21 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 102 CODE-ONLY IMPLEMENTATION COMPLETE — DEDICATED EXTERNAL SECRETS DRAFT PR #29
+
+Owner approved **preparing a separate GitHub-only security change** after Step 101 verified new-host `.env` absent and identified unsafe legacy `.env` backups. ChatGPT used the connected GitHub tools to create branch `security/dedicated-prod-external-env-2026-10-23` **from the exact draft PR #27 HEAD** `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`. Branch HEAD verified at **`ea0b7133d2746bca5904a69bab9790b1fa6578a5`**. A separate draft, **[PR #29](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/29)**, is **OPEN/UNMERGED**, head `security/dedicated-prod-external-env-2026-10-23`, base `security/dedicated-production-pre-tls-2026-10-23` (stacked onto OPEN/DRAFT PR #27; no merge to `main`). The GitHub PR patch was fetched and reviewed; code and doc commits were refetched successfully.
+
+**Changes already committed on this review-only branch:**
+- `scripts/modules/docker.sh`: exclusively for `CCPC_DEPLOYMENT_PROFILE=dedicated-pre-tls`, require explicit absolute `CCPC_DEDICATED_ENV_FILE` outside the checkout, normal file not symlinked, owned by current user mode 0600 with parent directory owned by user mode 0700; reject checkout `.env`, ambient `DB_PASSWORD`, missing explicit `CUSTOM_TAG`. Pass `--env-file` to Compose. Default `legacy-lan` wrapper unchanged.
+- `scripts/modules/deployment.sh`: dedicated release skips `.env` backup/rewrite, exports `CUSTOM_TAG` from explicitly chosen image tag in current process only; legacy path still calls existing `backup_env` and `update_env`.
+- `scripts/modules/env.sh`: dedicated guard rejects accidental `.env` backup/edit and avoids invalid `restore_env` of a non-existent backup on failure, warning that container/database recovery is separate. Legacy code remains.
+- `tests/test_dedicated_env_security.sh`: credential-free mocked-Docker tests for safe external file, paths, modes, symlink, ambient variable, tag, env backup/edit rejection, release path and legacy invocation.
+- `docs/04-operations/dedicated-production-external-credentials.md` explains limitations/secret handling; existing `docs/04-operations/dedicated-production-port-profile.md` now links this stacked review dependency.
+
+**Testing evidence, carefully scoped:** Bash parser (`bash -n`) and the security regression assertions passed in an **isolated local reconstruction of the changed functions** with a mocked `docker` function and dummy password, NOT as a checkout byte-verified against the new GitHub branch. Expected pass cases included 0600/0700, reject relative/checkout/symlink/world-readable/environment password/missing image tag, forbid dedicated `.env` backup/update, no `.env` restore, explicit image tag propagation, and original legacy Compose invocation. A full exact-GitHub-tree test, automated CI, real Docker runtime and database integration have **not** run. Do not claim production readiness.
+
+**Next engineering gate:** independent review of draft PR #29 and direct tests of the exact GitHub checkout in an isolated credential-free environment, including source-level checks, error-path behavior, effective Compose configuration with dummy values, and regression review. Decide/document password provenance/rotation/off-host recovery and safe migration/rollback procedures **before any credential provisioning**. New dedicated host `/home/ccpcadmin/ccpc-frappe-deployment` is **unchanged and remains pinned** to PR #27 commit `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`; **do not pull, switch, merge, or checkout PR #29 there without a separately reviewed plan and owner approval**. Old shared PROD+DEV unaffected. No secret files, containers, builds, data migrations/restores, DNS/firewall changes, or production cutover authorized.
+
 ## 2026-10-23 STEP 101 PASSED — .env ABSENT AND GIT-IGNORED; CREDENTIAL FLOW REVIEW REQUIRED
 
 Owner ran the approved read-only new-host check on `ccpcadmin@ccpcerp-prod` and returned exactly:
