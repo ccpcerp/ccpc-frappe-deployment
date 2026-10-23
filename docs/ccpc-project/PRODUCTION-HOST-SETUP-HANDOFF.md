@@ -2,6 +2,26 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 113 PASSED — NAS SMB TCP REACHABLE; CIFS CLIENT NOT FOUND
+
+Owner ran the authorized read-only NAS connectivity check on NEW `ccpcadmin@ccpcerp-prod`. Supplied terminal output:
+
+```text
+Checking Synology SMB connectivity...
+PASS: Synology NAS SMB port is reachable
+INFO: CIFS mount utility is not installed
+PASS: Step 113 read-only NAS connectivity check completed
+ccpcadmin@ccpcerp-prod:~$
+```
+
+**Scope of verified observation:** Python established an unauthenticated TCP connection to documented Synology NAS `192.168.50.132` port `445` within the command's timeout; this proves **network reachability only**, not SMB share visibility, NAS permissions, share writeability, backup artifact validity, or recovery. The invoking user's `command -v mount.cifs` returned absent, which suggests the CIFS userspace mount helper is unavailable in that user's PATH; package inventory remains pending and an absent helper **must not** trigger installation without separate review. There is **no CIFS/NFS network mount** on the new server as of Step 112. No NAS authentication, share browse/mount, firewall or package modifications, production backup or cron operation occurred.
+
+GitHub independently rechecked draft PR #29 OPEN/DRAFT/UNMERGED at `bd92ade7ac859b9f6b21b157bdc1629e93f4540c` and dependent draft PR #27 OPEN/DRAFT/UNMERGED at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`. Historical `docs/ccpc-project/recovery.md` identifies `//192.168.50.132/erpnext_backups` as the *old shared-host* source; do not automatically replicate existing root-owned SMB credentials, `/etc/fstab`, backup scripts, retention, or cron to the new server. Determine a dedicated, isolated NAS destination before configuring backups.
+
+**Next single Step 114 (read-only only):** check `cifs-utils` package installation and local apt candidate metadata without installing/updating packages, verify whether `/usr/sbin/mount.cifs` exists, and report whether `/mnt/erpnext_backups` is an existing directory and/or mountpoint using only boolean results. Verify if `/etc/fstab` contains a matching target or share *without printing its lines or mount options*, to avoid leaking credentials paths or other protected configuration. Do not run apt install/update, mount, create directories, edit fstab, read credential files, or touch the old PROD/DEV. The outcome informs a separate approved package/backup destination plan.
+
+**Unresolved before release:** secure off-host recovery location and credential provisioning, backup-and-restore drill for the dedicated host, migration-safe rollback, reviewed target Compose project/volume names, HTTPS and firewall, image provenance, separate deployment authorization.
+
 ## 2026-10-23 STEP 112 PASSED — NEW HOST STORAGE CAPACITY VERIFIED, NO NETWORK BACKUP MOUNT
 
 Owner ran the read-only filesystem and mount inspection on **new** host `ccpcadmin@ccpcerp-prod` and supplied this output:
