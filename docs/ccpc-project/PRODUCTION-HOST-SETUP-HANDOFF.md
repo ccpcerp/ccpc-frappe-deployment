@@ -2,6 +2,42 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 97 PASSED — DEDICATED PROFILE FILE ORDER AND HEALTH TARGET VERIFIED
+
+On `ccpcadmin@ccpcerp-prod`, the operator ran the approved isolated child-shell `CCPC_DEPLOYMENT_PROFILE=dedicated-pre-tls` test sourcing only the reviewed `scripts/config.sh` and printing solely Compose filenames and the health target. Terminal output:
+
+```text
+Compose file order:
+compose.yaml
+overrides/compose.mariadb.yaml
+overrides/compose.redis.yaml
+overrides/compose.lan-production.yaml
+overrides/compose.dedicated-pre-tls.yaml
+Health target: http://127.0.0.1:8080
+```
+
+**Passed:** five files selected in the intended order, with the dedicated opt-in override last and local health target `127.0.0.1:8080`. This does **not** verify the effective merged Compose model, that the frontend has only a loopback binding, real secret provisioning, database configuration, or running Docker behavior. Existing old-host legacy profile remains out of scope and no services were started. GitHub verified draft PR #27 stays OPEN/UNMERGED at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`.
+
+**Next Step 98 — non-deploying syntax/model check on the new host using a disposable, clearly non-production dummy password and image tag, never the real `DB_PASSWORD`:** inspect only the already reviewed five files in their verified order with `docker compose --env-file /dev/null ... config --quiet`. Supplying `--env-file /dev/null` avoids automatic parsing of any `.env` in the checkout, and `config --quiet` avoids printing interpolated configuration. A one-command process environment override provides `DB_PASSWORD=CCPC_CONFIG_CHECK_NOT_REAL` and `CUSTOM_TAG=config-check-only`. Ensure exact verified Git HEAD first. Do not persist placeholders in `.env` or treat resulting model as ready to deploy.
+
+Suggested operator command:
+```bash
+(
+  cd "$HOME/ccpc-frappe-deployment" || exit 1
+  [ "$(git rev-parse --verify HEAD)" = "0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f" ] || { echo "STOP: Unexpected HEAD"; exit 1; }
+  DB_PASSWORD=CCPC_CONFIG_CHECK_NOT_REAL CUSTOM_TAG=config-check-only \
+  docker compose --env-file /dev/null \
+    -f compose.yaml \
+    -f overrides/compose.mariadb.yaml \
+    -f overrides/compose.redis.yaml \
+    -f overrides/compose.lan-production.yaml \
+    -f overrides/compose.dedicated-pre-tls.yaml \
+    config --quiet && echo "PASS: Five-file Compose model parsed with disposable placeholders"
+)
+```
+
+**Strict limitation:** This is syntactic/Compose merge validation only; passing cannot demonstrate actual firewall isolation or safely provisioned credentials. Do not run `docker compose up`, generate real secrets, print `docker compose config` or environment values, deploy, restore, migrate, open ports, modify DNS/firewall/old PROD+DEV, or cut over production traffic. Review exact Step 98 output before moving to projected port inspection, still without real secrets.
+
 ## 2026-10-23 STEP 96 PASSED — DOCKER COMPOSE VERSION SUPPORTS !override; PROFILE SELECTION NEXT
 
 Owner executed `docker compose version` on the new `ccpcadmin@ccpcerp-prod` host and supplied exact output:
