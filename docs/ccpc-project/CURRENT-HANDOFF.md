@@ -1,5 +1,13 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-23 REFOCUS — DEFER INTERMITTENT OLD-HOST ACCESS DIAGNOSTIC; RESUME NEW HOST PREPARATION
+
+**Owner instruction:** the current `http://ccpcerp.com/` site is not having access problems now; **do not wait for a new outage** or keep investigating it during new-host setup. Preserve Step 76–79 facts below for optional diagnostic if an actual failure recurs. Verified current LAN router DNS resolves existing ERP host to `192.168.50.166`, HTTP 200 worked, HTTPS TCP 443 failed, and browser stayed on `http://`; intermittent root cause remains unknown. Do **not** alter old-host DNS/router/ERPNext/HTTP/HSTS or claim current service is encrypted.
+
+**Active work resumes on distinct new `ccpcerp-prod` at IPv4 `192.168.50.186`, for reliability-first local-LAN HTTPS TCP 443.** GitHub draft PR #27 contains the opt-in loopback-only TCP 8080 Compose profile and draft PR #28 contains host-level Caddy HTTPS/TLS/internal naming design; both verified OPEN/UNMERGED. Offline shell/YAML structural validation done, full effective Docker Compose validation and managed internal CA/DNS/backup acceptance remain pending. Neither host changed; no production deployment/cutover approved.
+
+**Next single read-only operator step on `ccpcerp-prod`**: `find "$HOME" -maxdepth 4 -type d -name .git -print` to determine whether a suitable isolated Git checkout already exists in the new host user's home before planning exact-code Compose validation. No clone, checkout, pull, migration, containers, firewall or DNS change now. Review any existing checkout and uncommitted work before using it.
+
 ## 2026-10-23 STEP 79 — BROWSER HTTP SCHEME CONFIRMED; DIAGNOSE DURING NEXT ACTUAL FAILURE
 
 **Owner's Windows browser stays at `http://ccpcerp.com/` when the URL is entered explicitly.** The earlier failed connection to HTTPS TCP 443 is real but an immediate browser automatic HTTPS upgrade was **not observed**, hence it cannot explain all reported intermittent access. Previous good DNS resolution (`192.168.50.1` -> current `192.168.50.166`) and HTTP 200 were measured only while working. Next **read-only diagnostic during the next actual failure**: compare ordinary DNS resolution/HTTP request with DNS-bypassing request to existing `192.168.50.166` preserving HTTP Host `ccpcerp.com` via `curl.exe --resolve`. Do not change live DNS/hosts or old `ccpcerpserver` PROD+DEV; new host `ccpcerp-prod` remains separate at `192.168.50.186`, no deployment/cutover. Both draft PR #27 (new host pre-TLS) and #28 (HTTPS design) remain unmerged. Details: [PRODUCTION-HOST-SETUP-HANDOFF.md](PRODUCTION-HOST-SETUP-HANDOFF.md).
