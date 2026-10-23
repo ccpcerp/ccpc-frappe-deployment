@@ -2,6 +2,16 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 81 SSH RECONNECT — WINDOWS CUSTOM KEY VERIFIED
+
+**Operator confirmed successful reconnection** to the separate new server, reaching the shell prompt `ccpcadmin@ccpcerp-prod:~$`, after an earlier Windows SSH session reset (`client_loop: send disconnect: Connection reset`). Bare `ssh ccpcadmin@192.168.50.186` returned `Permission denied (publickey)`. Windows file inventory (filenames only) showed `ccpcerp_prod_ed25519`, its `.pub`, `config`, and `known_hosts*` in the user's `.ssh` directory. The explicit key command **worked** in Windows PowerShell:
+
+`ssh -i "$env:USERPROFILE\\.ssh\\ccpcerp_prod_ed25519" ccpcadmin@192.168.50.186`
+
+**Continuity rule:** use the above explicit `-i` key path for reconnection from this Windows profile, or inspect a separately verified SSH alias; do not assume default-key discovery. **The GitHub record contains only key filename/path and command—not private/public key contents, passphrase, fingerprint or credentials.** SSH key-only server configuration is unchanged. No server configuration, networking, Docker, database, PROD/DEV or DNS operations were performed.
+
+**Pending Step 81, now that SSH is restored:** at `ccpcadmin@ccpcerp-prod:~$`, run read-only `find "$HOME" -maxdepth 4 -type d -name .git -print` to inventory Git checkouts before deciding how to validate the new-host Compose profile. Await operator's output.
+
 ## 2026-10-23 STEP 79 — BROWSER REMAINS HTTP; INTERMITTENT ROOT CAUSE STILL UNKNOWN
 
 **Owner observed after explicitly entering `http://ccpcerp.com` in the affected Windows browser that the displayed address remains `http://ccpcerp.com/`.** This rules out an immediate automatic browser upgrade to HTTPS **in that observation**, so the Step 78 unavailable TCP 443 does not yet explain the owner's intermittent HTTP availability. The user did not explicitly report a fresh successful load in this turn; do not infer continuous availability. Previous successful HTTP 200, resolver `192.168.50.1` mapping to `192.168.50.166`, and failed HTTPS connection still stand as distinct time-bound observations. Next diagnostic requires **evidence during an actual failure**, checking router DNS, ordinary HTTP request, and an HTTP request routed directly to `192.168.50.166` with hostname preserved via curl `--resolve`, to isolate resolver instability from connectivity/ERPNext errors. Do not modify browser security, DNS, router, old or new production server, Docker, TLS, firewall, or GitHub draft PRs #27/#28. No production operations authorized.
