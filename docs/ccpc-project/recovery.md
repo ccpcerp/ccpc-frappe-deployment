@@ -2,6 +2,12 @@
 
 *Last updated: 2026-09-02*
 
+## Dedicated new-host backup design — 2026-10-23
+
+**Separate future system, not a change to the active legacy backup workflow.** For the new `ccpcerp-prod` host and Synology `//192.168.50.132/ccpcerp-prod_backups` share, use [DEDICATED-PRODUCTION-BACKUP-RECOVERY-DESIGN-2026-10-23.md](DEDICATED-PRODUCTION-BACKUP-RECOVERY-DESIGN-2026-10-23.md) as the **Step 122 design proposal** and [PRODUCTION-HOST-SETUP-HANDOFF.md](PRODUCTION-HOST-SETUP-HANDOFF.md) for current verified status and approvals.
+
+The new host has passed temporary read-only and read/write CIFS smoke tests (Steps 120–121), **not** a complete four-artifact Frappe backup or restore. No new-host backup code, retention job, scheduler, persistent mount, site restore, application migration or production deployment is authorized/enabled by that design. The legacy `ccpcerpserver` / `erpnext_backups` procedures and retention described below remain independent, with their historic verification limitations preserved.
+
 ## Purpose
 
 This document defines the recovery and backup procedures for the CCPC
