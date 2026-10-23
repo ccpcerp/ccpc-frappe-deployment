@@ -2,6 +2,14 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 118j — DOCKER SHARE USER-SPECIFIC DENY STAGED AND APPROVED FOR SAVE; PERSISTENCE PENDING
+
+Owner screenshot of **Synology DSM → User & Group → User → `ccpcerp_prod_backup` → Permissions** shows the intended **new** NAS backup shared folder as truncated `ccpcerp-p...`, **Preview Read/Write**, user-level Read/Write checkbox checked; the distinct `docker` share now has **Preview No Access**, despite inherited **Group Permissions Read/Write**, because its **account-specific No Access** checkbox is ticked. Other visible shares have Preview No Access. The screenshot shows an enabled `Save` button, so this is a *staged edit*, **not proof of persisted permissions**. Earlier screenshot had `docker` Read/Write; this proposed user-level No Access resolves the identified overbroad grant if saved.
+
+**Next single approved manual action:** click `Save` to apply only the `ccpcerp_prod_backup` user's staged shared-folder ACL change, then **reopen** the account's `Permissions` tab and check that `docker` remains Preview **No Access** with explicit user No Access checked, and `ccpcerp-prod_backups` remains Preview **Read/Write**. If warning or unexpected behavior, STOP and report. Do not modify the NAS `users` group, old `erpbackup` account, existing `erpnext_backups` shared folder, or other NAS shares. Save approval is limited to the new account's permissions.
+
+**Additional caveats:** Special `homes` entry previously had Preview `Default` (not certified explicit denial). The new account's separate `Applications` tab showed SMB Allow, all ten others Deny in a dialog, but persistence of those settings and actual SMB authentication remain untested until account is reopened/tested. NO NAS mount, protected credentials, backup job, recovery drill, or ERPNext production deploy authorized. Draft GitHub PR #27 and PR #29 separately confirmed OPEN/DRAFT/UNMERGED at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f` and `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`.
+
 ## 2026-10-23 STEP 118i — REMAINING NAS SHARES REVIEWED; UNWANTED `docker` RW STILL REQUIRES DENY
 
 Owner provided two Synology DSM screenshots of user **`ccpcerp_prod_backup`**:
