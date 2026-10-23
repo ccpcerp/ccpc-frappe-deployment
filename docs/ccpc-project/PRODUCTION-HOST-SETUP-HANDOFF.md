@@ -2,6 +2,29 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 111a PASSED — DOCKER SOCKET PERMISSIONS DIAGNOSED, INVENTORY STILL BLOCKED
+
+Owner executed the approved **no-sudo/no-Docker-API** diagnostic on NEW `ccpcadmin@ccpcerp-prod`. Terminal reports:
+
+```text
+Current user:
+ccpcadmin
+User groups:
+ccpcadmin adm cdrom sudo dip plugdev lxd
+Docker socket:
+Type: socket | Mode: 660 | Owner: root | Group: docker
+PASS: Docker client uses local socket
+Docker service status:
+active
+ccpcadmin@ccpcerp-prod:~$
+```
+
+**Status:** Docker systemd service **active**; Docker CLI's selected context is local `unix:///var/run/docker.sock`; socket permission `0660` and ownership `root:docker` exclude `ccpcadmin` (not a docker group member). This explains Step 111's `permission denied` response. The user is in the `sudo` Unix group but no sudo authorization command or elevated Docker inventory has been attempted; sudo privileges and any password prompt must not be assumed. This is an access-control block, not proof Docker is unhealthy or of any existing/absent containers, networks, images, or volumes. Owner paste contained minor garbled tail of command, but all expected diagnostic result lines are present.
+
+**Next approval gate:** Ask owner for **separate explicit approval to run a narrowly scoped, read-only Docker inventory with sudo on NEW host only**, with local Docker context and a fixed set of `docker ps`, `docker volume ls`, `docker network ls` queries (no arbitrary Docker command access by automation). If approved, supply one guarded operator command with no Docker mutation, no credentials/config dump, no `docker compose up`, and no changes to privileges, Docker group or socket; run only on `ccpcerp-prod`. Owner must provide the output for review. Do not run sudo Docker merely based on original non-deploying test approval.
+
+**Unchanged gates:** Separate review repository PR #29 `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`, original pinned PR #27 `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`, both PRs OPEN/DRAFT/UNMERGED at last GitHub connector check; no production services/container start, real credentials, DB migration/restore, Git merge, DNS/firewall or traffic cutover. Recovery/backup plans and database-safe rollback remain unresolved.
+
 ## 2026-10-23 STEP 111 BLOCKED — DOCKER API SOCKET ACCESS DENIED; NO INVENTORY
 
 Owner manually attempted the approved **read-only** Docker-daemon inventory on new host `ccpcadmin@ccpcerp-prod`. The pasted terminal shows the source command's guard checks and local Docker-context check, followed by:
