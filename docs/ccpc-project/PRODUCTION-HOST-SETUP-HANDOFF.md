@@ -2,6 +2,23 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-23 STEP 101 PASSED — .env ABSENT AND GIT-IGNORED; CREDENTIAL FLOW REVIEW REQUIRED
+
+Owner ran the approved read-only new-host check on `ccpcadmin@ccpcerp-prod` and returned exactly:
+
+```text
+PASS: No .env path exists in the new-host checkout
+PASS: .env is excluded by Git ignore rules
+```
+
+**Verified from terminal:** `/home/ccpcadmin/ccpc-frappe-deployment/.env` is absent at this checkpoint (including an existing symlink), and `git check-ignore -q -- .env` succeeds. No real production credential has been created or supplied. Git ignore rules prevent accidental ordinary inclusion in Git, **but are not secret storage protection**.
+
+**Important new GitHub code-review finding before provisioning any secrets:** the checked-out review branch's `scripts/deploy.sh` invokes `deploy_release`, whose `scripts/modules/deployment.sh` calls `backup_env` and `update_env` before deployment. `scripts/modules/env.sh` has `backup_env` run `mkdir -p "$BACKUP_DIR"` and `cp .env "$BACKUP_FILE"` into `backups/env.TIMESTAMP.bak`; `update_env` requires `.env` in checkout and rewrites its `CUSTOM_TAG`. This means **placing `DB_PASSWORD` in checkout `.env` would cause password-containing backup copies** during later deployments, regardless of Git ignore. Simply moving all variables into an external file would *not* work unchanged with the current `update_env` expectation. No current-source modification was made and no execution of `deploy.sh` was authorized. These scripts are not yet approved for the dedicated host; old shared PROD/DEV must remain untouched.
+
+**Required next engineering decision / Step 102:** before creating real credentials, review and choose a dedicated-host **opt-in** credential and deployment flow that keeps the DB secret outside the Git checkout, maintains restrictive file ownership and access, prevents untracked backup/log secret copies, accommodates the current `.env` and `CUSTOM_TAG` release mechanism or safely replaces it, and preserves existing `legacy-lan` behavior. Prefer a focused, GitHub-only implementation on a separate review branch with static tests and explicit owner authorization **before** any new-host rollout. A stop/go approval for this **code-only security change** is needed; do not infer authorization to change server secrets from successful read-only tests.
+
+**Outstanding release gates:** PR #27 `security/dedicated-production-pre-tls-2026-10-23` remains OPEN/DRAFT/UNMERGED at `0bf8c6a2fdef5146344492c6ac1bfe4c25ac7b2f`. Passing local Compose syntax and port assertions is not production-ready: no runtime binding check, TLS/reverse proxy, backup/restore rehearsal, credential mechanism, app image validation, or cutover approval. No Docker up/build, migrations/restores, old-host changes, firewall/DNS changes, or live user traffic move.
+
 ## 2026-10-23 STEP 100 PASSED — MISSING DB_PASSWORD ENFORCEMENT CONFIRMED; SECRET INVENTORY NEXT
 
 Owner provided the expected exact status after manually running the Step 100 negative test on NEW `ccpcadmin@ccpcerp-prod` with the five-file dedicated profile, `env -u DB_PASSWORD`, `--env-file /dev/null`, dummy `CUSTOM_TAG=config-check-only`, `config --quiet`, error-output captured without display:
