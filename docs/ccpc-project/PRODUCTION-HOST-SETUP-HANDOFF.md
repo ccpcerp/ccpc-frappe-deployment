@@ -2,6 +2,22 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-24 STEP 136 — OWNER-APPROVED 3 TO 4 GIB STATIC VM RAM CHANGE VERIFIED
+
+**Owner authorization and Windows execution, 2026-10-24:** After a Windows Task Manager memory assessment showed **16.0 GiB DDR4 installed, 8.3 GiB available**, with both Hyper-V VMs previously Off, the owner explicitly approved increasing only `CCPC-Step136-LAB` **static startup RAM from 3 GiB to 4 GiB**. The previously supplied owner-run guarded Administrator PowerShell checked target name, Off state, `DynamicMemoryEnabled=False`, 3 GiB prior startup size, at least 6 GiB Windows RAM available, and exactly two checkpoints including `CCPC-Step136-PreDocker-2026-10-24`; it then used `Set-VMMemory -VMName 'CCPC-Step136-LAB' -StartupBytes 4GB` and read back the result. The owner pasted this successful post-change output:
+
+```text
+Name          : CCPC-Step136-LAB
+State         : Off
+StartupRAM_GB : 4
+DynamicMemory : False
+Checkpoints   : 2
+```
+
+**Verified scope:** Owner-reported Hyper-V configuration now specifies **4 GiB static startup RAM**, and VM remained **Off** with **two checkpoints preserved**. The older 3 GiB allocation and pre-change RAM caution are historical measurements and are superseded by this specific approved change. There is **no evidence yet of a successful Ubuntu guest boot with 4 GiB or of actual Windows available memory after restart**. No change to other VM, networking, virtual disk limit, checkpoint data, Docker/Compose, CCPC DEVELOPMENT, PRODUCTION or NAS. G0 remains PARTIAL; G2 Compose render NOT EXECUTED.
+
+**Next safe gate:** For the next separately authorized lab session, perform a **guarded restart of this named VM only**, reconfirm the Private switch and post-start Windows free memory, then verify inside guest using `free -h` and `hostnamectl --static` at the local serial console. Stop and review if Windows host headroom is inadequate; no full ERPNext stack is approved by the extra 1 GiB. Avoid any checkpoint restore/delete/merge; maintain already approved manual storage thresholds and user-operated shutdown.
+
 ## 2026-10-24 STEP 136 — POST-HARDWARE-ATTEMPT RAM AND VM-OFF CHECK
 
 **Owner-reported boot and read-only Windows PowerShell inventory, 2026-10-24:** An attempted addition of two spare 4 GiB DDR4 sticks was **reported by the owner as unsuccessful/defective**; the PC was restarted with its original **two 8 GiB Kingston DDR4-2666** DIMMs only. `Get-CimInstance Win32_PhysicalMemory` showed two populated records, `ChannelA-DIMM1` 8 GiB and `ChannelA-DIMM2` 8 GiB, both Kingston, `Speed=ConfiguredClockSpeed=2666`; installed **16 GiB**, Windows usable **15.93 GiB**, Windows available **5.32 GiB** at this snapshot. `Get-VM` reported both `CCPC-Step136-LAB` and `Windows 10 MSIX packaging environment` **Off**, each assigned **0 GiB**. This confirms restored 16 GiB detection and no guest RAM assignment while off; it does **not** prove memory stability under diagnostics or assess exact cause of spare-stick failure.
