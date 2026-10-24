@@ -120,6 +120,19 @@ expect_rejected "caller --project-name= override" ccpc_compose config --project-
 expect_rejected "caller -p override" ccpc_compose -p unexpected config --quiet
 expect_rejected "caller -punexpected override" ccpc_compose up -punexpected
 printf '%s\n' 'PASS: dedicated Compose blocks project override flags'
+# A caller must not append another Compose file, env file, project directory,
+# or profile, including after the subcommand or in --option=value form.
+expect_rejected "caller --file" ccpc_compose --file unexpected.yaml config --quiet
+expect_rejected "caller --file=" ccpc_compose config --file=unexpected.yaml
+expect_rejected "caller -f" ccpc_compose -f unexpected.yaml config --quiet
+expect_rejected "caller -funexpected" ccpc_compose up -funexpected.yaml
+expect_rejected "caller --env-file" ccpc_compose --env-file /tmp/fake.env config --quiet
+expect_rejected "caller --env-file=" ccpc_compose up --env-file=/tmp/fake.env
+expect_rejected "caller --project-directory" ccpc_compose --project-directory /tmp/fake config --quiet
+expect_rejected "caller --project-directory=" ccpc_compose ps --project-directory=/tmp/fake
+expect_rejected "caller --profile" ccpc_compose --profile unreviewed up -d
+expect_rejected "caller --profile=" ccpc_compose ps --profile=unreviewed
+printf '%s\n' 'PASS: dedicated Compose rejects caller file, env and profile selectors'
 DOCKER_HOST=tcp://192.0.2.1:2375 expect_rejected "remote DOCKER_HOST override" ccpc_compose config --quiet
 DOCKER_CONTEXT=remote expect_rejected "remote DOCKER_CONTEXT override" ccpc_compose config --quiet
 TEST_DOCKER_CONTEXT=remote expect_rejected "selected nondefault Docker context" ccpc_compose config --quiet
