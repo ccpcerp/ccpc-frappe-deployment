@@ -37,9 +37,15 @@ This candidate changes the **dedicated opt-in path only**:
 A future separately approved provisioning procedure could choose a private location such as
 `/home/ccpcadmin/.config/ccpc-prod/compose.env`, with the parent directory **0700** and
 the file **0600** owned by `ccpcadmin`. This is an *example path only*.
-The protected file would supply at minimum `DB_PASSWORD` and any later reviewed
-non-secret Compose interpolation variables. Avoid `CUSTOM_TAG` in the protected file:
-the reviewed release tag is supplied explicitly at invocation.
+The current staged allowlist permits **only one `DB_PASSWORD=` assignment**,
+optionally with blank lines or full-line comments. Other keys (including every
+`COMPOSE_*` project/file/profile control and `CUSTOM_TAG`) are rejected;
+there is deliberately no extension mechanism until a separately reviewed
+change establishes the exact need. The file must be nonempty, at most 4096 bytes,
+use Unix line endings and contain no NUL bytes. Compose still interprets the
+password's value according to its env-file syntax; test the effective model with
+synthetic values before any release. The reviewed release tag is supplied
+explicitly at invocation, not via this secret file.
 
 The operator must generate the password locally with a secure method that does not
 expose it in Bash history, process arguments, terminal output, GitHub, chat, logs, or
