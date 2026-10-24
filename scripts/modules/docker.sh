@@ -127,8 +127,8 @@ ccpc_compose() {
     local argument
     for argument in "$@"; do
       case "$argument" in
-        -p*|--project-name|--project-name=*)
-          error "Dedicated Compose forbids caller project-name overrides"
+        -p*|--project-name|--project-name=*|-f*|--file|--file=*|--env-file|--env-file=*|--project-directory|--project-directory=*|--profile|--profile=*)
+          error "Dedicated Compose forbids caller project/file/env/profile overrides"
           return 1
           ;;
       esac
