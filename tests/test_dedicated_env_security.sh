@@ -14,6 +14,7 @@ source scripts/modules/deployment.sh
 CCPC_DEPLOYMENT_PROFILE=dedicated-pre-tls
 IMAGE_NAME=ccpcerp
 unset DB_PASSWORD DOCKER_HOST DOCKER_CONTEXT TEST_DOCKER_CONTEXT TEST_DOCKER_ENDPOINT || true
+unset COMPOSE_PROJECT_NAME COMPOSE_FILE COMPOSE_PROFILES || true
 
 scratch=$(mktemp -d)
 trap 'rm -rf -- "$scratch"' EXIT
