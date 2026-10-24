@@ -52,6 +52,26 @@ verify_dedicated_env_file() {
   CCPC_VERIFIED_ENV_FILE="$resolved_path"
 }
 
+# The dedicated deployment must not silently target a remote Docker Engine.
+# A context name alone is insufficient: require the built-in default context to
+# resolve to the expected LOCAL Unix socket. No container is started by this check.
+verify_dedicated_local_docker_target() {
+  local selected_context endpoint
+
+  [[ ! ${DOCKER_HOST+x} && ! ${DOCKER_CONTEXT+x} ]] ||
+    error "Dedicated profile forbids DOCKER_HOST/DOCKER_CONTEXT overrides"
+
+  selected_context=$(docker context show 2>/dev/null) ||
+    error "Cannot determine Docker context"
+  [[ "$selected_context" == "default" ]] ||
+    error "Dedicated profile requires Docker default context"
+
+  endpoint=$(docker context inspect default --format '{{.Endpoints.docker.Host}}' 2>/dev/null) ||
+    error "Cannot verify Docker default endpoint"
+  [[ "$endpoint" == "unix:///var/run/docker.sock" ]] ||
+    error "Dedicated profile requires local Docker Unix socket"
+}
+
 ccpc_compose() {
   if [[ "${CCPC_DEPLOYMENT_PROFILE:-legacy-lan}" == "dedicated-pre-tls" ]]; then
     verify_dedicated_env_file
@@ -60,6 +80,7 @@ ccpc_compose() {
     [[ -n "${IMAGE_NAME:-}" && "${CUSTOM_IMAGE:-}" == "$IMAGE_NAME" ]] ||
       error "Dedicated profile requires an explicit CUSTOM_IMAGE matching IMAGE_NAME"
 
+    verify_dedicated_local_docker_target
     docker compose --env-file "$CCPC_VERIFIED_ENV_FILE" "${COMPOSE_FILE_ARGS[@]}" "$@"
   else
     docker compose "${COMPOSE_FILE_ARGS[@]}" "$@"
