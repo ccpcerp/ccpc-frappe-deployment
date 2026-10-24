@@ -80,6 +80,12 @@ ccpc_compose() {
     [[ -n "${IMAGE_NAME:-}" && "${CUSTOM_IMAGE:-}" == "$IMAGE_NAME" ]] ||
       error "Dedicated profile requires an explicit CUSTOM_IMAGE matching IMAGE_NAME"
 
+    # Prevent inherited Compose variables from redirecting the project, file
+    # model, or service selection behind this dedicated-only wrapper.
+    [[ ! ${COMPOSE_PROJECT_NAME+x} && ! ${COMPOSE_FILE+x} &&
+       ! ${COMPOSE_PROFILES+x} ]] ||
+      error "Dedicated profile forbids ambient Compose project/file/profile overrides"
+
     verify_dedicated_local_docker_target
     docker compose --env-file "$CCPC_VERIFIED_ENV_FILE" "${COMPOSE_FILE_ARGS[@]}" "$@"
   else
