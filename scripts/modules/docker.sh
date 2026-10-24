@@ -94,6 +94,10 @@ build_image() {
 
   header "Build Image"
 
+  if [[ "${CCPC_DEPLOYMENT_PROFILE:-legacy-lan}" == "dedicated-pre-tls" ]]; then
+    verify_dedicated_local_docker_target
+  fi
+
   CACHE_BUST=$(date +%s)
 
   local BUILD_SSH_KEY="${CCPC_BUILD_SSH_KEY:-$HOME/.ssh/id_ed25519_ccpc_backup}"
@@ -139,6 +143,10 @@ verify_image() {
   local IMAGE_TAG="$1"
 
   header "Verify Image"
+
+  if [[ "${CCPC_DEPLOYMENT_PROFILE:-legacy-lan}" == "dedicated-pre-tls" ]]; then
+    verify_dedicated_local_docker_target
+  fi
 
   if ! docker image inspect "$IMAGE_NAME:$IMAGE_TAG" >/dev/null 2>&1; then
     error "Image verification failed: $IMAGE_NAME:$IMAGE_TAG"
