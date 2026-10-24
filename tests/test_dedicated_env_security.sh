@@ -115,6 +115,11 @@ CUSTOM_TAG=review-only-tag
 export CUSTOM_TAG
 ccpc_compose config --quiet
 printf '%s\n' 'PASS: dedicated Compose uses explicit candidate project name and protected env file'
+expect_rejected "caller --project-name override" ccpc_compose --project-name unexpected config --quiet
+expect_rejected "caller --project-name= override" ccpc_compose config --project-name=unexpected
+expect_rejected "caller -p override" ccpc_compose -p unexpected config --quiet
+expect_rejected "caller -punexpected override" ccpc_compose up -punexpected
+printf '%s\n' 'PASS: dedicated Compose blocks project override flags'
 DOCKER_HOST=tcp://192.0.2.1:2375 expect_rejected "remote DOCKER_HOST override" ccpc_compose config --quiet
 DOCKER_CONTEXT=remote expect_rejected "remote DOCKER_CONTEXT override" ccpc_compose config --quiet
 TEST_DOCKER_CONTEXT=remote expect_rejected "selected nondefault Docker context" ccpc_compose config --quiet
