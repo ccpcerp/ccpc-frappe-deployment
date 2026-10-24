@@ -2,6 +2,12 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-24 STEP 136 — WINDOWS HOST RAM RECHECK BLOCKS VM EXPANSION
+
+**Owner-reported read-only Windows Administrator PowerShell evidence (2026-10-24):** installed `InstalledRAM_GB: 16`; OS-visible `WindowsUsableRAM_GB: 15.93`; currently available `WindowsAvailableRAM_GB: 1.92`; named `CCPC-Step136-LAB` state `Running`, static assigned/startup memory both `3` GiB, `DynamicMemory: False`. Top individually listed process working sets: ChatGPT 0.60/0.23 GiB, explorer 0.52, Chrome 0.50/0.28/0.28, `u568864` 0.27, Defender `MsMpEng` 0.24. These individual process working-set values do not explain total host memory pressure or represent exclusive allocations; no process was ended and no setting was changed.
+
+**Capacity disposition:** The owner's requested potential **3 GiB increase to 6 GiB** is **NOT authorized or recommended with only 1.92 GiB Windows physical RAM currently available**. Even a 1 GiB increase would significantly reduce headroom. Preserve the existing 3 GiB static VM allocation and all disk/checkpoint/network invariants. Next single diagnostic: read-only aggregate RAM by process name and state/memory of all Hyper-V VMs, preferably while the current VM stays Running, then decide whether closing optional workloads or separately approved sizing is feasible. Do not turn on dynamic memory, force-stop apps/VMs or increase RAM on this evidence alone. **G0 remains PARTIAL and G2 not executed.**
+
 ## 2026-10-24 STEP 136 — READ-ONLY PINNED SOURCE AND LAB CAPACITY REVIEW
 
 **Authorization boundary and status (2026-10-24):** After owner approval to continue, ChatGPT performed a **connected GitHub read-only source/testing-plan review** only. No Docker daemon, `docker compose`, package installation, source transfer, network interface change, VM memory change, checkpoint operation, DEVELOPMENT/PRODUCTION/NAS access or in-guest test was executed. Preserve the separate, manual approval requirement for each future command class under ISO-06. **G0 PARTIAL; G1 source review performed; G2 Compose render NOT EXECUTED.**
