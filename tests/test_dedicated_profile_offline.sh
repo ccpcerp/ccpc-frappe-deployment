@@ -14,11 +14,11 @@ run_profile() {
   else
     clean_env+=("CCPC_DEPLOYMENT_PROFILE=$profile")
   fi
-  env "\${clean_env[@]}" bash -c '
+  env "${clean_env[@]}" bash -c '
     set -euo pipefail
     source scripts/config.sh
     printf "health=%s\n" "$HEALTHCHECK_URL"
-    printf "%s\n" "\${COMPOSE_FILE_ARGS[@]}"
+    printf "%s\n" "${COMPOSE_FILE_ARGS[@]}"
   '
 }
 
@@ -41,7 +41,7 @@ grep -Fqx '    ports: !override' overrides/compose.dedicated-pre-tls.yaml ||
   { echo "FAIL: explicit published port override absent" >&2; exit 1; }
 grep -Fqx '      - "127.0.0.1:8080:8080/tcp"' overrides/compose.dedicated-pre-tls.yaml ||
   { echo "FAIL: dedicated port is not local-only" >&2; exit 1; }
-grep -Fqx '      MYSQL_ROOT_PASSWORD: "\${DB_PASSWORD:?Dedicated production requires a nonempty DB_PASSWORD}"' overrides/compose.dedicated-pre-tls.yaml ||
+grep -Fqx '      MYSQL_ROOT_PASSWORD: "${DB_PASSWORD:?Dedicated production requires a nonempty DB_PASSWORD}"' overrides/compose.dedicated-pre-tls.yaml ||
   { echo "FAIL: nonempty dedicated DB password guard absent" >&2; exit 1; }
 
 printf '%s\n' 'PASS: PR #27 profile and source guard smoke tests (STATIC only; Compose v2 not run)'
