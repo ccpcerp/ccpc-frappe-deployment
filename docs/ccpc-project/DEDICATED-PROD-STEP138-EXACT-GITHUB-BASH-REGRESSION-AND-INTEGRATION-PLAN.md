@@ -1,6 +1,6 @@
 # Step 138 — Exact GitHub Bash regression and safe PR stack integration plan
 
-**2026-10-24 — owner-approved GitHub-only follow-up to Step 137.** Status: **STAGED AND OFFLINE TESTED; NOT MERGED OR DEPLOYED**. No existing PR review head, Docker host, GitHub Actions runner, DEVELOPMENT, PRODUCTION, NAS, VPN, SSH credential or business record modified. No paid CI run requested.
+**2026-10-24 — owner-approved GitHub-only follow-up to Step 137.** Status: **STAGED, OFFLINE TESTED AND CONSOLIDATED ON A SEPARATE REVIEW BRANCH; NOT MERGED OR DEPLOYED**. No existing PR review head, Docker host, GitHub Actions runner, DEVELOPMENT, PRODUCTION, NAS, VPN, SSH credential or business record modified. No paid CI run requested.
 
 ## A. Frozen original stack and review heads
 
@@ -59,3 +59,26 @@ Proposed future controlled integration after an explicit owner/reviewer approval
 ## E. Evidence and publication
 
 Review branch ref comparisons from GitHub showed **PR #27 review branch ahead by 3 commits, 1 file added** and **PR #29 review branch ahead by 4 commits, 2 files modified** as of initial branch comparison (one additional test sanitization commit subsequently advanced PR #29 review head). Corrected PR #27 and updated PR #29 source files were re-fetched / verified by content blob hashes. The production release boundary remains closed.
+
+## F. Same-session Step 138 continuation — consolidation branch CREATED and verified
+
+The owner approved continuing the **GitHub-only review and integration assessment**. A **separate**, non-destructive consolidation branch was created from the original immutable draft PR #30 commit, rather than moving the original stacked PR heads:
+
+- **Branch:** `review/dedicated-prod-stack-consolidation-2026-10-24`
+- **Base (original PR #30):** `fd751ab7c39c252e469e1d59d6ebbb1408381061`
+- **Verified review HEAD:** `08d725255263ebff9216e7e3b89727b4bf72f792`
+- **GitHub compare:** 3 commits ahead, 0 behind; **only three changed files** against PR #30:
+  - `tests/test_dedicated_profile_offline.sh` newly added, blob `dd7a400b42574a23d1a2c118bbbdf3468f0eb51e`.
+  - `scripts/modules/docker.sh` reviewed target guard, blob `72381c1e23e6ca8959dfed7bd17286316536b43a`.
+  - `tests/test_dedicated_env_security.sh` strengthened mocked tests, blob `ba0f24eec0900e00385f38650a1d7fd3e0fb95d7`.
+
+**Independent combined local smoke verification:** constructed one separate temporary `git init` fixture holding those **exact Git blob bytes**, plus unchanged exact PR #30 `scripts/config.sh`, `scripts/lib.sh`, `scripts/modules/env.sh`, `scripts/modules/deployment.sh`, and `overrides/compose.dedicated-pre-tls.yaml` (blob `14fd89a3c2371104f464964137483de9f4a35861`). Both commands passed in this single synthetic workspace:
+
+```bash
+bash tests/test_dedicated_profile_offline.sh
+bash tests/test_dedicated_env_security.sh
+```
+
+The second test used only Docker-function mocks with dummy, disposable `DB_PASSWORD=TEST_PLACEHOLDER_NOT_REAL`; no Docker Engine/Compose, Frappe, network, NAS, paid GitHub Actions, DEVELOPMENT or PRODUCTION execution. This **did not re-run Step 133's 135 Python tests**, nor the full checked-out merged GitHub repository, image provenance validation, Compose v2 merge, live socket identity or restore drill. Treat the observed result as **exact-source Bash regression PASS only**, not general deployment approval.
+
+**Final integration assessment:** The consolidation branch safely demonstrates the patch overlay without rewriting any PR ancestors. Preserve this branch and its source SHAs. A later branch promotion must separately review host compatibility (default local Docker socket), run the full combined regression at a reviewed clean checkout, refresh historical source-pinned evidence, and plan a non-destructive stack merge/PR rebase under explicit owner approval. **PR #27/#29/#30 remain OPEN/DRAFT/UNMERGED and original heads unchanged.** No automatic CI/merge/deploy scheduled.
