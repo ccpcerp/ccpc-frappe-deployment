@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+# shellcheck shell=bash
 # PR #27: source-only smoke tests. No Docker daemon, network, image build or secrets.
 set -euo pipefail
 
