@@ -37,6 +37,34 @@ expect_rejected() {
 verify_dedicated_env_file
 printf '%s\n' 'PASS: owner-only external environment file accepted'
 
+# The --env-file must not import Docker Compose controls or unrelated keys.
+# All fixture values are disposable placeholders; never print file contents.
+reject_env_contents() {
+  local label="$1" contents="$2"
+  printf '%s' "$contents" > "$CCPC_DEDICATED_ENV_FILE"
+  expect_rejected "$label" verify_dedicated_env_file
+}
+reject_env_contents "missing database password key" $'# only a comment\n'
+reject_env_contents "empty database password" $'DB_PASSWORD=\n'
+reject_env_contents "quoted empty database password" $'DB_PASSWORD=""\n'
+reject_env_contents "duplicate database password" $'DB_PASSWORD=FAKE\nDB_PASSWORD=ALSO_FAKE\n'
+reject_env_contents "Compose project key in protected file" $'DB_PASSWORD=FAKE\nCOMPOSE_PROJECT_NAME=unexpected\n'
+reject_env_contents "Compose file key in protected file" $'DB_PASSWORD=FAKE\nCOMPOSE_FILE=unexpected.yaml\n'
+reject_env_contents "Compose profiles key in protected file" $'DB_PASSWORD=FAKE\nCOMPOSE_PROFILES=debug\n'
+reject_env_contents "other Compose option in protected file" $'DB_PASSWORD=FAKE\nCOMPOSE_IGNORE_ORPHANS=true\n'
+reject_env_contents "unreviewed release tag in protected file" $'DB_PASSWORD=FAKE\nCUSTOM_TAG=unexpected\n'
+reject_env_contents "shell export directive in protected file" $'export DB_PASSWORD=FAKE\n'
+reject_env_contents "CRLF credential file" $'DB_PASSWORD=FAKE\r\n'
+printf 'DB_PASSWORD=FAKE\000COMPOSE_PROJECT_NAME=unexpected\n' > "$CCPC_DEDICATED_ENV_FILE"
+expect_rejected "NUL byte credential file" verify_dedicated_env_file
+printf 'DB_PASSWORD=%4096s\n' FAKE > "$CCPC_DEDICATED_ENV_FILE"
+expect_rejected "oversized credential file" verify_dedicated_env_file
+
+printf '%s\n' '# reviewed comment' '' 'DB_PASSWORD=TEST_PLACEHOLDER_NOT_REAL' > "$CCPC_DEDICATED_ENV_FILE"
+verify_dedicated_env_file
+printf '%s\n' 'PASS: protected file accepts only one DB_PASSWORD plus comments'
+printf '%s\n' 'DB_PASSWORD=TEST_PLACEHOLDER_NOT_REAL' > "$CCPC_DEDICATED_ENV_FILE"
+
 CCPC_DEDICATED_ENV_FILE=relative.env expect_rejected "relative path" verify_dedicated_env_file
 CCPC_DEDICATED_ENV_FILE="$repo/compose.yaml" expect_rejected "file inside checkout" verify_dedicated_env_file
 ln -s -- "$scratch/secure/dedicated.env" "$scratch/secure/link.env"
