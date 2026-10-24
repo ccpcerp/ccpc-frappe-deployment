@@ -129,6 +129,7 @@ ccpc_compose() {
       case "$argument" in
         -p*|--project-name|--project-name=*)
           error "Dedicated Compose forbids caller project-name overrides"
+          return 1
           ;;
       esac
     done
