@@ -90,6 +90,10 @@ DOCKER_CONTEXT=remote expect_rejected "remote DOCKER_CONTEXT override" ccpc_comp
 TEST_DOCKER_CONTEXT=remote expect_rejected "selected nondefault Docker context" ccpc_compose config --quiet
 TEST_DOCKER_ENDPOINT=ssh://lab@example.invalid expect_rejected "nonlocal default Docker endpoint" ccpc_compose config --quiet
 TEST_DOCKER_ENDPOINT=tcp://127.0.0.1:2375 expect_rejected "TCP default Docker endpoint" ccpc_compose config --quiet
+COMPOSE_PROJECT_NAME=unreviewed expect_rejected "ambient Compose project" ccpc_compose config --quiet
+COMPOSE_FILE=unexpected.yaml expect_rejected "ambient Compose file" ccpc_compose config --quiet
+COMPOSE_PROFILES=unexpected expect_rejected "ambient Compose profiles" ccpc_compose config --quiet
+printf '%s\n' 'PASS: dedicated Compose rejects inherited project, file and profile selectors'
 printf '%s\n' 'PASS: dedicated Compose rejects remote or unreviewed Docker targets'
 
 # These paths use raw Docker CLI calls, not ccpc_compose. They must fail
