@@ -103,8 +103,9 @@ docker() {
     printf '%s\n' "${TEST_DOCKER_ENDPOINT:-unix:///var/run/docker.sock}"
     return 0
   fi
-  [[ "${1:-}" == "compose" && "${2:-}" == "--env-file" &&
-     "${3:-}" == "$CCPC_DEDICATED_ENV_FILE" ]] || return 85
+  [[ "${1:-}" == "compose" && "${2:-}" == "--project-name" &&
+     "${3:-}" == "ccpc_prod_erpnext" && "${4:-}" == "--env-file" &&
+     "${5:-}" == "$CCPC_DEDICATED_ENV_FILE" ]] || return 85
   [[ "${CUSTOM_TAG:-}" == "review-only-tag" ]] || return 86
   [[ "${CUSTOM_IMAGE:-}" == "$IMAGE_NAME" ]] || return 87
   return 0
@@ -113,7 +114,7 @@ docker() {
 CUSTOM_TAG=review-only-tag
 export CUSTOM_TAG
 ccpc_compose config --quiet
-printf '%s\n' 'PASS: dedicated Compose uses protected external env file and local Docker socket'
+printf '%s\n' 'PASS: dedicated Compose uses explicit candidate project name and protected env file'
 DOCKER_HOST=tcp://192.0.2.1:2375 expect_rejected "remote DOCKER_HOST override" ccpc_compose config --quiet
 DOCKER_CONTEXT=remote expect_rejected "remote DOCKER_CONTEXT override" ccpc_compose config --quiet
 TEST_DOCKER_CONTEXT=remote expect_rejected "selected nondefault Docker context" ccpc_compose config --quiet
