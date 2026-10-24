@@ -92,6 +92,16 @@ TEST_DOCKER_ENDPOINT=ssh://lab@example.invalid expect_rejected "nonlocal default
 TEST_DOCKER_ENDPOINT=tcp://127.0.0.1:2375 expect_rejected "TCP default Docker endpoint" ccpc_compose config --quiet
 printf '%s\n' 'PASS: dedicated Compose rejects remote or unreviewed Docker targets'
 
+# These paths use raw Docker CLI calls, not ccpc_compose. They must fail
+# before any image inspection or build when the target is untrusted.
+DOCKER_HOST=tcp://192.0.2.1:2375 expect_rejected "remote image inspection" verify_image review-only-tag
+DOCKER_CONTEXT=remote expect_rejected "remote image context" verify_image review-only-tag
+TEST_DOCKER_ENDPOINT=ssh://lab@example.invalid expect_rejected "nonlocal image endpoint" verify_image review-only-tag
+DOCKER_HOST=tcp://192.0.2.1:2375 expect_rejected "remote image build" build_image
+DOCKER_CONTEXT=remote expect_rejected "remote build context" build_image
+TEST_DOCKER_ENDPOINT=tcp://127.0.0.1:2375 expect_rejected "nonlocal build endpoint" build_image
+printf '%s\n' 'PASS: dedicated image inspect/build reject unreviewed Docker targets'
+
 expect_rejected "dedicated .env backup" backup_env
 expect_rejected "dedicated .env editing" update_env another-tag
 unset BACKUP_FILE || true
