@@ -2,6 +2,24 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-24 STEP 136 — PROPOSED HOST STORAGE AND LAB RESOURCE GUARDRAILS
+
+**Scope of approval (2026-10-24):** Following the owner-approved off-when-idle operating rule, the owner approved **defining resource safeguards** for the Windows 11 Pro host and the isolated Hyper-V `CCPC-Step136-LAB`. This authorizes a **documentation proposal and read-only resource inventory**; it is not approval for specific previously unstated numerical thresholds, host quotas, resource changes, scheduled automation, Docker install, package/network access, or any CCPC infrastructure action. All limits below are **proposed for owner confirmation after measuring current actual usage**.
+
+**Verified machine limits and earlier observations:** lab VM Gen 2, 4 virtual CPUs, 3 GiB static RAM (`DynamicMemoryEnabled=False`), one dynamically expanding 60 GiB max VHDX with AVHDX checkpoint children under `C:\CCPC-Step136-Lab`, automatic checkpoints disabled, two preserved Standard checkpoints (original automatic and pre-Docker named). Windows host had `C:` **128 GB free** in last read-only inspection (not a reserved quota). Ubuntu guest earlier showed about 2.5 GiB RAM available and 50 GiB free in ext4 root; not sufficient evidence that a full ERPNext stack fits. No new disks, snapshots, CPU or memory allocations should be assumed.
+
+**Proposed operational limits — NOT YET APPROVED AS THRESHOLDS:**
+
+| Signal | Proposed review/caution threshold | Proposed mandatory pause threshold | Response |
+| --- | --- | --- | --- |
+| Host `C:` free capacity | Check before every separately approved state-changing test; review when under **80 GiB** free | **Below 60 GiB** free: do not start further guest state-changing tests; orderly stop lab when safe | Owner reviews lab footprint; no automatic deletion, AVHDX manipulation or unrelated Windows cleanup |
+| Total measured `C:\CCPC-Step136-Lab` directory regular-file sizes, including VHDX/AVHDX and checkpoint state | **25 GiB** used | **40 GiB** used: pause growth-generating tests | Read-only `Get-ChildItem -File -Recurse` inventory and owner review; size-of-files is an approximation, not an allocated disk quota |
+| Lab CPU / RAM | Keep existing **4 vCPU / 3 GiB static RAM** | Any proposed increase requires separate approval and host free-memory review | No automatic host resource reallocation; plan light static checks only until capacity is reassessed |
+| Virtual disk capacity | Retain **60 GiB** guest virtual disk ceiling | No expansion, added disks, or new unreviewed checkpoints | Retain existing two checkpoint identities and original disk chain; restoring/merging/removing checkpoints separately approval-gated |
+| Lab uptime | Use only for active, separately authorized tests | Idle: normal clean Ubuntu shutdown policy already approved | Monthly governance review from 2026-11-24; no unattended shutdown or file cleanup |
+
+**Measurement gate:** Before owner acceptance of these numerical floors, run read-only Windows PowerShell to show current host free bytes/GB and aggregate lab-folder file sizes, without enumerating file names, user files, secrets or directories elsewhere. Validate the use of `C:` only and path `C:\CCPC-Step136-Lab`. Record latest measurements and owner decision. Thresholds are **administrative stop rules**, not technical enforcement. A pause means preserving both checkpoints and all working data; no automatic cleanup. No VM/host changes are authorized by this entry. **G0 ISO-05/ISO-06 remain PARTIAL.**
+
 ## 2026-10-24 STEP 136 — OWNER-APPROVED SHUTDOWN-WHEN-IDLE POLICY
 
 **Owner decision (2026-10-24):** The accountable CCPC project owner explicitly approved the **operating policy** that isolated Windows Hyper-V VM `CCPC-Step136-LAB` should be **shut down when no active laboratory testing or approved setup work is taking place**, rather than left running indefinitely. This is a **human-operated practice**, not an instruction to shut down the lab immediately, a cron/scheduled task, a forced idle timeout, or a newly authorized automatic power-control mechanism. No shutdown was executed under this approval and the most recent verified VM state after checkpoint preparation was `Running`.
