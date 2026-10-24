@@ -2,6 +2,12 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-24 STEP 136 — 4 GIB HYPER-V BOOT AND HOST MEMORY VERIFIED
+
+**Owner-pasted Windows PowerShell results, 2026-10-24:** Following the expressly approved static RAM increase, the owner executed a previously approved guarded start on **`CCPC-Step136-LAB` only**. The owner reported `Get-VM` output `CCPC-Step136-LAB Running` with **`AssignedGB 4`**, and a subsequent read-only Windows OS available physical-memory reading of **`4.96 GB`**. This confirms successful **Hyper-V start and assignment of 4 GiB** while the Windows host still had reported available memory at this instant. It does not yet independently confirm Linux guest login, guest-visible RAM or sustained Windows responsiveness.
+
+**Next one-step verification:** Connect to the existing local PuTTY serial COM1 named pipe `\\.\pipe\ccpc-step136-console` (serial speed 115200) and run `free -h` inside Ubuntu. Expect usable memory somewhat below 4 GiB due to guest/kernel reservations. Do not assume successful guest boot merely from `Running` Hyper-V state. No further VM memory changes, checkpoint manipulations, network operations, Docker/Compose tests, or CCPC DEVELOPMENT/PRODUCTION/NAS access are authorized by this boot result. Keep approved manual host RAM/disk safeguards, user-controlled poweroff and monthly reviews in effect. **G0 PARTIAL; G2 NOT EXECUTED.**
+
 ## 2026-10-24 STEP 136 — OWNER-APPROVED 3 TO 4 GIB STATIC VM RAM CHANGE VERIFIED
 
 **Owner authorization and Windows execution, 2026-10-24:** After a Windows Task Manager memory assessment showed **16.0 GiB DDR4 installed, 8.3 GiB available**, with both Hyper-V VMs previously Off, the owner explicitly approved increasing only `CCPC-Step136-LAB` **static startup RAM from 3 GiB to 4 GiB**. The previously supplied owner-run guarded Administrator PowerShell checked target name, Off state, `DynamicMemoryEnabled=False`, 3 GiB prior startup size, at least 6 GiB Windows RAM available, and exactly two checkpoints including `CCPC-Step136-PreDocker-2026-10-24`; it then used `Set-VMMemory -VMName 'CCPC-Step136-LAB' -StartupBytes 4GB` and read back the result. The owner pasted this successful post-change output:
