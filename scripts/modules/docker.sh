@@ -49,10 +49,9 @@ verify_dedicated_env_file() {
      "$(stat -c %a -- "$parent_dir")" == "700" ]] ||
     error "Dedicated environment directory must be owned by this user and mode 0700"
 
-  # The protected file is deliberately a single-purpose DB credential.
-  # Docker Compose can also consume COMPOSE_* project/profile controls from
-  # --env-file, so accepting arbitrary keys would defeat the ambient guards.
-  # Do not source, eval, print, or log the password.
+  # This protected file has one purpose: supply the DB password. Compose
+  # accepts COMPOSE_* controls from --env-file, so other keys are forbidden.
+  # Do not source, eval, echo, or log any secret values.
   local file_size nonnul_bytes line password_count=0
   file_size=$(stat -c %s -- "$resolved_path") ||
     error "Cannot size dedicated environment file"
@@ -65,179 +64,10 @@ verify_dedicated_env_file() {
     error "Dedicated environment file must not contain NUL bytes"
 
   while IFS= read -r line || [[ -n "$line" ]]; do
-    [[ "$line" != *
-}
-
-# The dedicated deployment must not silently target a remote Docker Engine.
-# A context name alone is insufficient: require the built-in default context to
-# resolve to the expected LOCAL Unix socket. No container is started by this check.
-verify_dedicated_local_docker_target() {
-  local selected_context endpoint
-
-  [[ ! ${DOCKER_HOST+x} && ! ${DOCKER_CONTEXT+x} ]] ||
-    error "Dedicated profile forbids DOCKER_HOST/DOCKER_CONTEXT overrides"
-
-  selected_context=$(docker context show 2>/dev/null) ||
-    error "Cannot determine Docker context"
-  [[ "$selected_context" == "default" ]] ||
-    error "Dedicated profile requires Docker default context"
-
-  endpoint=$(docker context inspect default --format '{{.Endpoints.docker.Host}}' 2>/dev/null) ||
-    error "Cannot verify Docker default endpoint"
-  [[ "$endpoint" == "unix:///var/run/docker.sock" ]] ||
-    error "Dedicated profile requires local Docker Unix socket"
-}
-
-ccpc_compose() {
-  if [[ "${CCPC_DEPLOYMENT_PROFILE:-legacy-lan}" == "dedicated-pre-tls" ]]; then
-    verify_dedicated_env_file
-    [[ -n "${CUSTOM_TAG:-}" ]] ||
-      error "Dedicated profile requires an explicit CUSTOM_TAG (no default image)"
-    [[ -n "${IMAGE_NAME:-}" && "${CUSTOM_IMAGE:-}" == "$IMAGE_NAME" ]] ||
-      error "Dedicated profile requires an explicit CUSTOM_IMAGE matching IMAGE_NAME"
-
-    # Prevent inherited Compose variables from redirecting the project, file
-    # model, or service selection behind this dedicated-only wrapper.
-    [[ ! ${COMPOSE_PROJECT_NAME+x} && ! ${COMPOSE_FILE+x} &&
-       ! ${COMPOSE_PROFILES+x} ]] ||
-      error "Dedicated profile forbids ambient Compose project/file/profile overrides"
-
-    verify_dedicated_local_docker_target
-    docker compose --env-file "$CCPC_VERIFIED_ENV_FILE" "${COMPOSE_FILE_ARGS[@]}" "$@"
-  else
-    docker compose "${COMPOSE_FILE_ARGS[@]}" "$@"
-  fi
-}
-
-###########################################
-# Build Image
-###########################################
-build_image() {
-
-  header "Build Image"
-
-  if [[ "${CCPC_DEPLOYMENT_PROFILE:-legacy-lan}" == "dedicated-pre-tls" ]]; then
-    verify_dedicated_local_docker_target
-  fi
-
-  CACHE_BUST=$(date +%s)
-
-  local BUILD_SSH_KEY="${CCPC_BUILD_SSH_KEY:-$HOME/.ssh/id_ed25519_ccpc_backup}"
-  local BUILD_KNOWN_HOSTS="${CCPC_BUILD_KNOWN_HOSTS:-$HOME/.ssh/known_hosts}"
-
-  if [ ! -r "$BUILD_SSH_KEY" ]; then
-    error "CCPC build SSH key is not readable: $BUILD_SSH_KEY"
-  fi
-
-  if [ ! -r "$BUILD_KNOWN_HOSTS" ]; then
-    error "SSH known_hosts file is not readable: $BUILD_KNOWN_HOSTS"
-  fi
-
-  if ! ssh-keygen -F github.com -f "$BUILD_KNOWN_HOSTS" >/dev/null; then
-    error "github.com is not present in $BUILD_KNOWN_HOSTS"
-  fi
-
-  info "Building image: $IMAGE_NAME:$NEXT_TAG"
-
-  docker buildx build \
-    --load \
-    --build-arg CACHE_BUST="$CACHE_BUST" \
-    --build-arg FRAPPE_BRANCH="$FRAPPE_REF" \
-    --build-arg EXPECTED_FRAPPE_SHA="$FRAPPE_SHA" \
-    --build-arg EXPECTED_ERPNEXT_SHA="$ERPNEXT_SHA" \
-    --build-arg EXPECTED_ERPNEXT_PATCH_SHA="$ERPNEXT_PATCH_SHA" \
-    --build-arg EXPECTED_ERPNEXT_OVERLAY_STATE_SHA="$ERPNEXT_OVERLAY_STATE_SHA" \
-    --build-arg EXPECTED_CCPC_SHA="$CCPC_SHA" \
-    --ssh "default=$BUILD_SSH_KEY" \
-    --secret "id=github_known_hosts,src=$BUILD_KNOWN_HOSTS" \
-    --secret id=apps_json,src=apps.json \
-    --tag "$IMAGE_NAME:$NEXT_TAG" \
-    --file "$DOCKERFILE" .
-
-  success "Image built successfully"
-}
-
-###########################################
-# Verify Image
-###########################################
-verify_image() {
-
-  local IMAGE_TAG="$1"
-
-  header "Verify Image"
-
-  if [[ "${CCPC_DEPLOYMENT_PROFILE:-legacy-lan}" == "dedicated-pre-tls" ]]; then
-    verify_dedicated_local_docker_target
-  fi
-
-  if ! docker image inspect "$IMAGE_NAME:$IMAGE_TAG" >/dev/null 2>&1; then
-    error "Image verification failed: $IMAGE_NAME:$IMAGE_TAG"
-  fi
-
-  IMAGE_ID=$(docker image inspect \
-    --format '{{.Id}}' \
-    "$IMAGE_NAME:$IMAGE_TAG")
-
-  IMAGE_SIZE=$(docker image inspect \
-    --format '{{.Size}}' \
-    "$IMAGE_NAME:$IMAGE_TAG")
-
-  success "Image verified"
-
-  echo "Image ID : $IMAGE_ID"
-  echo "Size     : $IMAGE_SIZE bytes"
-}
-
-###########################################
-# Deploy Containers
-###########################################
-deploy_containers() {
-
-  header "Deploy Containers"
-
-  if ! ccpc_compose up -d; then
-    restore_env
-    error "Container deployment failed"
-  fi
-
-  success "Containers deployed"
-}
-
-###########################################
-# Wait for Services
-###########################################
-wait_for_services() {
-
-  header "Wait for Services"
-
-  echo "Waiting ${SERVICE_STARTUP_WAIT} seconds..."
-
-  sleep "$SERVICE_STARTUP_WAIT"
-
-  success "Services are ready for verification"
-}
-
-###########################################
-# Verify Containers
-###########################################
-verify_containers() {
-
-  header "Verify Containers"
-
-  if ! ccpc_compose ps --status running >/dev/null; then
-    restore_env
-    error "Unable to verify running containers"
-  fi
-
-  ccpc_compose ps
-
-  success "Containers are running"
-}
-\r'* ]] ||
+    [[ "$line" != *$'\r'* ]] ||
       error "Dedicated environment file must use Unix line endings"
     case "$line" in
-      ''|\#*)
-        ;;
+      ''|\#*) ;;
       DB_PASSWORD=*)
         password_count=$((password_count + 1))
         [[ "$password_count" -eq 1 && -n "${line#DB_PASSWORD=}" &&
