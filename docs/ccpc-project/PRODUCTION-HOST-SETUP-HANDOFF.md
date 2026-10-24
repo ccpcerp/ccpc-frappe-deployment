@@ -2,6 +2,12 @@
 
 **Current operational checkpoint, 2026-10-23.** This is the live companion to [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) for the separate `ccpcerp-prod` preparation. GitHub remains the authoritative documentation source; later completed checkpoints should go at the top of this file. This host is not yet carrying live production ERPNext traffic or data.
 
+## 2026-10-24 STEP 136 — POST-HARDWARE-ATTEMPT RAM AND VM-OFF CHECK
+
+**Owner-reported boot and read-only Windows PowerShell inventory, 2026-10-24:** An attempted addition of two spare 4 GiB DDR4 sticks was **reported by the owner as unsuccessful/defective**; the PC was restarted with its original **two 8 GiB Kingston DDR4-2666** DIMMs only. `Get-CimInstance Win32_PhysicalMemory` showed two populated records, `ChannelA-DIMM1` 8 GiB and `ChannelA-DIMM2` 8 GiB, both Kingston, `Speed=ConfiguredClockSpeed=2666`; installed **16 GiB**, Windows usable **15.93 GiB**, Windows available **5.32 GiB** at this snapshot. `Get-VM` reported both `CCPC-Step136-LAB` and `Windows 10 MSIX packaging environment` **Off**, each assigned **0 GiB**. This confirms restored 16 GiB detection and no guest RAM assignment while off; it does **not** prove memory stability under diagnostics or assess exact cause of spare-stick failure.
+
+**Disposition:** No physical RAM increase was achieved. Keep the existing previously verified **3 GiB static start allocation** for the lab; do **not** reconfigure Hyper-V VM memory or start Docker on the assumption of 24 GiB installed. The previously measured 5.32 GiB Windows available applies **while both VMs are Off**; expect reduced headroom when Ubuntu restarts. Neither VM was started or modified in this read-only check, and there is no approval for any RAM change, checkpoint manipulation, Docker/Compose operation, or CCPC DEV/PROD/NAS action. G0 remains PARTIAL.
+
 ## 2026-10-24 STEP 136 — WINDOWS HOST RAM RECHECK BLOCKS VM EXPANSION
 
 **Owner-reported read-only Windows Administrator PowerShell evidence (2026-10-24):** installed `InstalledRAM_GB: 16`; OS-visible `WindowsUsableRAM_GB: 15.93`; currently available `WindowsAvailableRAM_GB: 1.92`; named `CCPC-Step136-LAB` state `Running`, static assigned/startup memory both `3` GiB, `DynamicMemory: False`. Top individually listed process working sets: ChatGPT 0.60/0.23 GiB, explorer 0.52, Chrome 0.50/0.28/0.28, `u568864` 0.27, Defender `MsMpEng` 0.24. These individual process working-set values do not explain total host memory pressure or represent exclusive allocations; no process was ended and no setting was changed.
