@@ -124,6 +124,14 @@ ccpc_compose() {
     # dedicated host's actual existing Compose/volume inventory BEFORE rollout.
     # The hardcoded project prevents caller-selected project names in this path.
     local reviewed_project="ccpc_prod_erpnext"
+    local argument
+    for argument in "$@"; do
+      case "$argument" in
+        -p|-[pP]?*|--project-name|--project-name=*)
+          error "Dedicated Compose forbids caller project-name overrides"
+          ;;
+      esac
+    done
     docker compose --project-name "$reviewed_project" --env-file "$CCPC_VERIFIED_ENV_FILE" "${COMPOSE_FILE_ARGS[@]}" "$@"
   else
     docker compose "${COMPOSE_FILE_ARGS[@]}" "$@"
