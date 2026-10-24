@@ -120,7 +120,11 @@ ccpc_compose() {
       error "Dedicated profile forbids ambient Compose project/file/profile overrides"
 
     verify_dedicated_local_docker_target
-    docker compose --env-file "$CCPC_VERIFIED_ENV_FILE" "${COMPOSE_FILE_ARGS[@]}" "$@"
+    # REVIEW CANDIDATE ONLY: this proposed project must be compared with the
+    # dedicated host's actual existing Compose/volume inventory BEFORE rollout.
+    # The hardcoded project prevents caller-selected project names in this path.
+    local reviewed_project="ccpc_prod_erpnext"
+    docker compose --project-name "$reviewed_project" --env-file "$CCPC_VERIFIED_ENV_FILE" "${COMPOSE_FILE_ARGS[@]}" "$@"
   else
     docker compose "${COMPOSE_FILE_ARGS[@]}" "$@"
   fi
