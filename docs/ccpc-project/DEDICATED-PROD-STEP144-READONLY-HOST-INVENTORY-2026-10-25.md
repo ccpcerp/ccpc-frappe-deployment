@@ -1,5 +1,11 @@
 # Step 144 — Dedicated production host project/volume metadata-only inspection preparation
 
+## Later owner-executed, read-only SSH hostname verification (2026-10-25)
+
+**PASS — owner-provided Windows OpenSSH `-vvv` terminal output, not a ChatGPT-originated host connection:** The owner ran a one-shot SSH remote command using their existing protected Ed25519 private key for `ccpcadmin@192.168.50.186` with `hostnamectl --static`. After a successful local `ssh-keygen -y -f <private-key> > $null` check (Windows `$LASTEXITCODE=0`), the SSH diagnostic command showed successful remote session request, **exact stdout `ccpcerp-prod`**, and **`debug1: Exit status 0`**. Earlier debug showed the server offering/accepting the corresponding SSH public key, and the host key matched the client's saved known-hosts entry. The connection closing after the remote command is normal for noninteractive SSH; the earlier interactive-shell closure cause remains unverified. The key passphrase/private key were never supplied to ChatGPT.
+
+**Scope:** This verifies the *reported static hostname and successful one-shot SSH execution* at the observed time, not the machine's stronger provenance beyond SSH host-key continuity, current Docker socket/context, exact Compose project ID, running/stopped container labels, named Docker volumes, networks, DNS/TLS, backups or production readiness. **The full dedicated Docker metadata inventory helper has NOT been transferred or run.** Next approved read-only incremental check: on the same trusted Windows terminal, invoke `docker context show` as a single remote SSH command with the existing private-key path; expect `default`, otherwise STOP. Then independently check local Docker endpoint, and only later inspect names/labels. Do not run `docker compose up/down/config`, use sudo, change files, open remote Docker endpoint, run cleanup or deploy.
+
 **2026-10-25 | Owner-approved read-only inventory scope, GitHub-side preparation completed; ACTUAL HOST INVENTORY NOT PERFORMED.** This review does not merge PRs, approve the proposed Compose project name, transfer or execute anything on a CCPC host, or modify production/development/NAS/VM. GitHub connection has repository access but no SSH/host-terminal capability; the actual server state **cannot** be established from committed GitHub documents.
 
 ## Verified baseline
