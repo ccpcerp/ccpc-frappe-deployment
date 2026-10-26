@@ -1,6 +1,22 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-26 — First owner-reported all-green CircleCI Phase 2 isolated ERPNext integration pipeline
+
+**User evidence:** Screenshot from CircleCI project `CCPCerp_2026 / ccpcerp` shows **pipeline #9 SUCCESS** for GitHub review branch `review/circleci-isolated-erpnext-phase2-2026-10-26`, source commit `d90773e` (verified full SHA `d90773e271e837500a7e105c6c2c883cd44a4b9a`). Green `opt-in-isolated-erpnext` workflow took **7m 56s**; green `starter-validation` workflow took **7s**. The displayed timestamp is 2026-10-26 04:46:57–04:54:54 UTC.
+
+**Verified test scope from `.circleci/config.yml` at this exact source SHA:** disposable `ci-circleci.localhost` bench with Frappe version-16 / ERPNext version-16, MariaDB 11.8 and Redis; strict CircleCI org/project/branch/job/SHA/site preflight; Withdrawal Slip `test_withdrawal_slip`, `test_withdrawal_issue_safety`, `test_withdrawal_peer_issuance`, `test_withdrawal_real_ledger_integration`; intercompany `test_intercompany_material_billing_batch`, `test_intercompany_billing_approval_failures`, `test_intercompany_atomic_pair_database`, `test_intercompany_real_draft_invoice_database`; lightweight compilation and isolation-guard tests. Shell `set -euo pipefail` ensures failing module stops job, so the green job strongly indicates each configured module completed without test-runner failure. **Do not invent final per-test counts**: only the green status screenshot, not step logs or complete unittest summaries, was supplied for this final run.
+
+**Milestone:** Phase 2 **isolated CI configuration and its configured real-ERPNext database tests have reached green**, resolving earlier build #7 to #15 site-authentication, accounting fixture, immutable-provenance assertion, savepoint currency, and actual invoice Account-currency test fixture issues. The app review note was committed on `ccpcerp/ccpcerp` branch `review/circleci-isolated-erpnext-phase2-2026-10-26` at `1bca7957a2ffcded75f95df7d0b1ad210ddd7a3f` (**documentation-only** commit after the green tested source SHA `d90773e`). Distinguish source SHA tested from later docs-only HEAD.
+
+**Remaining critical limits:** CI maker/checker-approved B/C mapping records are synthetic/test-only, not evidence of genuine Finance approval workflow; real approval controllers still reject activated revisions. The real intercompany pair suite inserts draft ERPNext invoices from a simulated finalized batch, so it does not prove real source eligibility, full Finance transaction authorization, invoice submission, reversals, taxes, multilateral company workflows, or accounting deployment readiness. No CCPC DEVELOPMENT branch pull, git status, data/migration verification, production review or deployment took place. Do not claim production readiness or merge simply due to green CI.
+
+**Recommended next controlled milestone:** Preserve tested `d90773e` CI code checkpoint. Review Finance mapping approval design and source-to-billing integration requirements, then agree on a DEVELOPMENT-only integration validation plan. Before any DEVELOPMENT pull, confirm current branch, SHA, clean/unclean status and uncommitted changes; never overwrite. Separate explicit owner approval plus backup/recovery/rollback review would be required for any PRODUCTION deployment. No new automatic or paid CI workflows.
+
+---
+
+
+
 ## 2026-10-26 — CircleCI build #15: all intercompany SQL savepoint tests passed; genuine draft invoices blocked by test Account currency
 
 **Evidence:** User-uploaded `build_15_step_107_container_0.txt` documents disposable `ci-circleci.localhost` intercompany modules: `test_intercompany_material_billing_batch` **124/124 PASS**; `test_intercompany_billing_approval_failures` **5/5 PASS**; `test_intercompany_atomic_pair_database` **4/4 PASS**. The SQL module uses real MariaDB insert/savepoint/rollback of synthetic `ToDo` markers with mocked invoice objects, so this is verified rollback coverage but NOT proof of real Sales/Purchase Invoice drafts.
