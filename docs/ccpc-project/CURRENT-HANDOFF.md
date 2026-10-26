@@ -1,6 +1,20 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+
+## 2026-10-26 — Production backup local-artifact follow-up: Oct 26 four files present; Oct 25 absent at standard path
+
+**User-executed read-only command:** `docker exec frappe_docker-backend-1 sh -lc 'find /home/frappe/frappe-bench/sites/ccpcerp.local/private/backups -maxdepth 1 -type f (exact glob prefixes for Oct 25 / Oct 26) -printf "%f %s bytes" | sort'` returned **only** the October 26 local backup set, with exact files:
+```
+20261026_020002-ccpcerp_local-database.sql.gz 1206128 bytes
+20261026_020002-ccpcerp_local-files.tar 10240 bytes
+20261026_020002-ccpcerp_local-private-files.tar 20480 bytes
+20261026_020002-ccpcerp_local-site_config_backup.json 280 bytes
+```
+The Oct 25 `20261025_020002-ccpcerp_local-*` files **were absent** from the checked production-backend path at the time, despite the Oct 25 backup log previously reporting successful local creation. Do **not** infer root cause, deletion mechanism, irrecoverability, or presence elsewhere without further read-only checks. Oct 26 files are present/nonempty, **NOT YET format/hash/restore verified**; NAS Oct 25/26 still unverified absent from timestamp listing. Backup retention behavior (Frappe and host script) requires review before new backup invocations. Priority: preserve the existing Oct 26 set from future cleanup after cautious integrity check and separately approved, fail-closed copying to verified legacy NAS without overwrites or deletions. No live filesystem changes approved/executed.
+
+---
+
 ## 2026-10-26 — Legacy Synology NAS backup outage verified from root backup log; no repairs executed
 
 **Owner provided current read-only evidence from old shared `ccpcerpserver`:**
