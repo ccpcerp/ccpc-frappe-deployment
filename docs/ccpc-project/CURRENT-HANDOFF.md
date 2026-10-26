@@ -1,5 +1,20 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-26 — CircleCI build #11 reached 12/13 passing real-ledger cases; immutable provenance test assertion aligned
+
+**Observed user-provided CircleCI build #11 Step 106 log:** On disposable `ci-circleci.localhost`, mocked Withdrawal Slip suites all passed: `test_withdrawal_slip` 37/37, `test_withdrawal_issue_safety` 17/17, `test_withdrawal_peer_issuance` 18/18 (total **72/72**). `test_withdrawal_real_ledger_integration` passed **12 of 13** genuine-database cases, including actual stock/GL, native Department GL dimension, Equipment beneficiary/conflict, separate-user issuance protections, independent SQL rollback/commit visibility, two competing issuers with one submission, real WSGI HTTP/method/session/CSRF checks, and stock/GL cancellation. The suite exited 1 due to one test assertion failure; subsequent intercompany modules therefore **were not reached or verified**.
+
+**Sole failing test:** `test_x_forged_direct_voucher_department_rejected_before_ledger` tried to submit a saved draft Stock Entry whose detail Department had been changed to None. Real `doc.submit()` **rejected the forgery**, raising `frappe.ValidationError: Row 1: original issue-time Equipment or financial mapping provenance cannot be modified.` The test incorrectly expected the later Department-specific error (`[Dd]epartment`). GitHub runtime `withdrawal_slip_stock.validate_withdrawal_slip_stock_entry` calls `_validate_provenance_immutable(doc)` **before** `validate_issue_beneficiary`, so the observed validation sequence is correct. This was NOT a bypass or successfully posted forged voucher.
+
+**GitHub-only corrective test change:** app repository `ccpcerp/ccpcerp`, branch `review/circleci-isolated-erpnext-phase2-2026-10-26`, commit `63fa1e52e74ed86c1144718dfd40060df25aed24` updates the same test: explicitly confirm that `validate_issue_beneficiary(doc, slip)` rejects the forged detail with Department-related ValidationError, and separately confirm actual `doc.submit()` rejects it at the earlier immutable-provenance guard while asserting no Stock Ledger Entry or GL Entry. No business logic or financial safeguards changed. CI review record updated. Most recent review branch doc commit at checkpoint: `a65b42d30a303b3d98361ce7748def583e2a720c`.
+
+**Verification caveat:** GitHub file writes and commit are verified; this *new assertion* has **not yet been rerun**. CircleCI's simulated signed B/C Finance mappings are disposable test fixtures and do **not** validate or activate the real Finance mapping approval workflow. No merges, persistent DEVELOPMENT testing or PRODUCTION deployment were performed.
+
+**Next operator action:** Check remaining CircleCI Free plan credits and, only with separate manual-run authorization, trigger one new pipeline from latest review branch using it for both config and checkout with `run_integration=true` (do not rerun older SHA). Then inspect the first intercompany test step, report exact SQL / real draft invoice outcomes, and keep GitHub handoff current. Never relax live beneficiary, provenance, mapping approval, rollback or concurrency protections.
+
+---
+
+
 ## 2026-10-26 — CircleCI build #9 preflight failure; GitHub App organization-name guard corrected
 
 **Reported evidence:** user uploaded CircleCI `build_9_step_102_container_0.txt`, 34 bytes, containing only `Exited with code exit status 1`. No failing shell command, specific condition or subsequent test output was provided, so do **not** report any ERPNext/ledger results for build #9.
