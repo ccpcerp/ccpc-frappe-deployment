@@ -1,5 +1,19 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+
+## 2026-10-26 — CircleCI build #13: intercompany unit suites passed; SQL rollback fixture corrected
+
+**Owner-uploaded Step 107 log:** `ccpcerp.ccpc_erp.doctype.intercompany_material_billing_batch.test_intercompany_material_billing_batch` **124/124 PASS**; `test_intercompany_billing_approval_failures` **5/5 PASS**, including the cross-currency-denial case. Four tests in `test_intercompany_atomic_pair_database` then errored before reaching their intended database-savepoint/rollback assertions. The shared failure was the **correct runtime rejection** of missing or mismatched invoice currencies: the test's mocked `_get_company_invoice_defaults` returned two empty dictionaries, so issuing and requesting currencies were both `None`. No actual SQL rollback or savepoint success can be claimed from those four cases. The subsequent genuine draft-invoice test module was not executed in the uploaded step.
+
+**Review-only fix, committed and not rerun:** `ccpcerp/ccpcerp`, branch `review/circleci-isolated-erpnext-phase2-2026-10-26`, file `ccpcerp/ccpc_erp/doctype/intercompany_material_billing_batch/test_intercompany_atomic_pair_database.py`, fix commit `9233f0a3d44042b5b9a0820eb89f6a1ceef7f4d7`. The SQL test fixture now returns same nonblank synthetic currency `INR` in both mocked invoice-default dictionaries. The **runtime currency/FX denial was not modified or bypassed**. Application review notes updated at commit `99c9b2ddc65012650d0bca2f69f9144bb6de84ab`.
+
+**Test limits:** This SQL suite intentionally uses real MariaDB `ToDo` marker writes but mocks actual invoice objects, company defaults and batch save; even if green, it is only evidence of application-level savepoint rollback for markers under caught exceptions, not that a real ERPNext Sales/Purchase Invoice pair can be created. The later `test_intercompany_real_draft_invoice_database` module is essential. Finance mapping approvals remain disabled; CircleCI simulates signed mapping records only for isolated downstream stock/GL tests. No CircleCI pipeline was initiated by ChatGPT. No DEVELOPMENT/PRODUCTION changes, no merge.
+
+**Next action:** Following owner's manual controlled run, review all four atomic SQL results and then real draft-invoice insert/save validation; correct any new fixture gaps on the GitHub review branch without weakening business controls. Continue maintaining handoff after verified milestones.
+
+---
+
+
 ## 2026-10-26 — CircleCI build #11 reached 12/13 passing real-ledger cases; immutable provenance test assertion aligned
 
 **Observed user-provided CircleCI build #11 Step 106 log:** On disposable `ci-circleci.localhost`, mocked Withdrawal Slip suites all passed: `test_withdrawal_slip` 37/37, `test_withdrawal_issue_safety` 17/17, `test_withdrawal_peer_issuance` 18/18 (total **72/72**). `test_withdrawal_real_ledger_integration` passed **12 of 13** genuine-database cases, including actual stock/GL, native Department GL dimension, Equipment beneficiary/conflict, separate-user issuance protections, independent SQL rollback/commit visibility, two competing issuers with one submission, real WSGI HTTP/method/session/CSRF checks, and stock/GL cancellation. The suite exited 1 due to one test assertion failure; subsequent intercompany modules therefore **were not reached or verified**.
