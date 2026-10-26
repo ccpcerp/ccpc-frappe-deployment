@@ -1,5 +1,20 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-26 — CircleCI build #9 preflight failure; GitHub App organization-name guard corrected
+
+**Reported evidence:** user uploaded CircleCI `build_9_step_102_container_0.txt`, 34 bytes, containing only `Exited with code exit status 1`. No failing shell command, specific condition or subsequent test output was provided, so do **not** report any ERPNext/ledger results for build #9.
+
+**Likely cause, not yet runtime-confirmed:** the review branch's newly added fail-closed CircleCI preflight erroneously expected built-in `CIRCLE_PROJECT_USERNAME=ccpcerp` (the GitHub repository owner), whereas CircleCI documentation says GitHub App projects supply the **CircleCI organization name**. Project organization in the setup was `CCPCerp_2026`; the CircleCI project name is `ccpcerp`. This is a mismatch capable of causing silent `set -e` exit 1 before dependency installation. Verified doc: https://discuss.circleci.com/t/circle-project-username-circle-project-reponame-environment-variables-changing-for-projects-that-use-github-app-gitlab/50154/ and CircleCI built-in env reference.
+
+**GitHub-only correction:** On `ccpcerp/ccpcerp` branch `review/circleci-isolated-erpnext-phase2-2026-10-26`, updated `.circleci/config.yml` and `ccpcerp/ccpc_erp/ci_disposable_site_guard.py` to require exact `CIRCLE_PROJECT_USERNAME=CCPCerp_2026` while keeping `CIRCLE_PROJECT_REPONAME=ccpcerp`, exact branch/job/runner IDs/test site and checked-out SHA requirements. A diagnostic error label was added to each preflight check (no secrets printed); updated `.circleci/test_ci_disposable_site_guard.py` positive/negative assertions, explicitly rejecting the GitHub-owner value as the CircleCI org. Documented in `.circleci/PHASE2-REVIEW.md`. Latest verified app review commit at documentation checkpoint: `1de885354f9ba3923d191a20c52d1c0a10cd383b`.
+
+**Verification/risks:** repository files and commits updated in GitHub, but **no new CircleCI CLI schema validation or CI execution occurred** after this correction. The log alone does not prove which condition failed; this is a grounded likely fix based on the CircleCI GitHub App behavior and current code. Do not relax the finance-site gates or claim the real-ledger tests passed. No DEVELOPMENT or PRODUCTION changes, no automatic builds, no merges.
+
+**Next one-step operator instruction:** re-fetch the latest review branch `.circleci/config.yml` using the previously verified Windows `gh api ...` command, then `circleci config validate`. Check remaining Free credits. Only on explicit next manual test authorization, trigger a new pipeline from the current review branch with `run_integration=true`, never rerun an older SHA. A repeated preflight failure will now name the mismatched check.
+
+---
+
+
 
 ## 2026-10-26 — CircleCI build #7 fixes committed: strict runner/site guard + synthetic B/C accounting test data
 
