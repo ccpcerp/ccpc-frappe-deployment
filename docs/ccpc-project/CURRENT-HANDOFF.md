@@ -1,5 +1,21 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-26 — CircleCI Phase 2 reached Withdrawal Slip tests; two legacy mocked tests corrected for review
+
+**User-provided CircleCI build log:** the corrected Phase 2 job advanced past disposable Frappe/ERPNext setup into `ccpcerp.ccpc_erp.doctype.withdrawal_slip.test_withdrawal_slip`. Of its **37 executed tests, 35 passed and 2 errored**. The CI step then exited with status 1, so later withdrawal modules and intercompany modules were **not confirmed run**. This is no longer the earlier missing `crontab` error.
+
+1. `test_intercompany_material_issue_does_not_copy_requesting_department`: when constructing a mocked Stock Entry, recently introduced server timestamp stamping called Frappe `nowdate()`, which used patched `frappe.get_doc` and attempted to pickle a MagicMock into Redis, raising `_pickle.PicklingError`. The unit test targets separation of requesting vs actual beneficiary Department, not timestamp or accounting mapping logic.
+2. `test_material_issue_before_submit_captures_stockroom_user`: recently introduced `validate_original_issue_b_c` attempted beneficiary/accounting mapping checks on a minimal mock Withdrawal Slip lacking Work For Department. The fail-closed guard correctly rejected unknown beneficiary; that unit test targets stockroom user capture, not GL provenance.
+
+**GitHub review-only correction:** in `ccpcerp/ccpcerp` branch `review/circleci-isolated-erpnext-phase2-2026-10-26`, updated `ccpcerp/ccpc_erp/doctype/withdrawal_slip/test_withdrawal_slip.py` to patch timestamp stamping and B/C assignment only in the Department-isolation mock test, and to patch B/C validation only in the stockroom-user-capture mock test. Most recent app commit `3d4ac1f752416a0d5902327189bcbe77b1a8d1fa`. **No runtime posting, beneficiary enforcement, or accounting guard was removed or weakened.** Dedicated integration tests must still verify actual posting, mapping and lock behavior.
+
+**Validation boundary:** GitHub write succeeded. These changes have NOT yet been executed in CircleCI or accepted by persistent DEVELOPMENT. No CI rerun initiated, no PRODUCTION/DEVELOPMENT changes. The previous CircleCI CLI validation established config schema validity only and does not prove tests pass.
+
+**Next step:** Review available CircleCI Free credits and request operator approval before **one new manual pipeline** using the current review branch as both config and checkout and `run_integration=true`. Inspect any new test failure logs; distinguish fixture alignment from financial safeguard regression. Update the handoff following the next verified milestone.
+
+---
+
+
 ## 2026-10-26 — CircleCI Phase 2 checkpoint: CI prerequisite corrected; full ERPNext tests still pending
 
 **Current verified result:** CircleCI starter-validation passed on pipeline #2 (reported 7 seconds); the opt-in isolated ERPNext job failed at Frappe `bench init` before any ERPNext application test ran. User-provided job log established `FileNotFoundError: /usr/bin/crontab` from `bench.setup.backups()`. This is an ephemeral CI prerequisite failure, **not** a failed inventory/accounting test.
