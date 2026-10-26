@@ -1,6 +1,20 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-26 — Legacy Synology NAS backup outage verified from root backup log; no repairs executed
+
+**Owner provided current read-only evidence from old shared `ccpcerpserver`:**
+- `findmnt -M /mnt/erpnext_backups -n -o TARGET,SOURCE,FSTYPE` returned `/mnt/erpnext_backups //192.168.50.132/erpnext_backups cifs` **after** the owner reconnected the RJ45 cable on Oct 26; mounted source/type now matches the documented legacy backup share. This does not independently verify write access or backlog transfer.
+- NAS timestamped-directory listing ended at `2026-10-24_02-00`; Oct 25 and 26 timestamped directories absent.
+- Owner explained RJ45 disconnected Oct 25/26 and reconnected Oct 26.
+- Read-only `sudo tail -n 50 /var/log/erpnext_backup.log` showed Oct 24 `Backup completed successfully`. On Oct 25 at 02:00:02, production site `ccpcerp.local` completed a four-artifact local backup rooted at `/home/frappe/frappe-bench/sites/ccpcerp.local/private/backups/20261025_020002-ccpcerp_local`; script recorded all four artifacts verified, but at 02:00:23 `ERROR: /mnt/erpnext_backups is not a mounted filesystem. NAS copy aborted.`. Oct 26 followed same sequence with local prefix `20261026_020002-ccpcerp_local` and identical mount failure. Sizes reported: database approximately 1.2 MiB, public 10 KiB, private 20 KiB, config 280 B each.
+- **Interpretation:** scheduled local backups succeeded at the time and fail-closed NAS mount guard worked on Oct 25/26; neither set was published to NAS through this job. Continued presence/integrity of local artifacts, mount writability, logs after Oct 26 02:00 and full restoration are **NOT YET verified**. Do not assert data loss or automatic catch-up. These are legacy **PRODUCTION** backups, separate from the Oct 13 `development.localhost` local backup; Oct 23 NAS directory also absent from earlier timestamp listing, cause unverified.
+
+**Next single read-only operator check:** without reading database/config backup contents, list exact Oct 25/26 production local artifact filenames and byte sizes inside identified legacy `frappe_docker-backend-1` using `find` restricted to `/home/frappe/frappe-bench/sites/ccpcerp.local/private/backups` and exact timestamped prefixes. If all four from each date still present, independently plan a guarded non-destructive, no-retention NAS catch-up procedure only with separate operator approval. Avoid blindly rerunning production script, because it may create another backup and invoke 7-day local / 30-day NAS retention. No PRODUCTION/DEVELOPMENT/NAS mutations were performed in this discussion.
+
+---
+
+
 ## 2026-10-26 — Safe read-only DEVELOPMENT application checkout verification; no code pull
 
 **User-executed Ubuntu read-only checks:** `docker ps` showed `frappe_docker_devcontainer-frappe-1` and associated dev MariaDB/Redis containers up two weeks; a separate `frappe_docker-*` cluster including backend, frontend, scheduler and database was also running and remains off-limits. Inside the devcontainer, working directory `/workspace/development`; actual **DEVELOPMENT custom app** Git repository at `/workspace/development/frappe-bench/apps/ccpcerp` (not `/workspace/development/apps/ccpcerp`). The operator ran `GIT_OPTIONAL_LOCKS=0 git status --short --branch && git rev-parse HEAD` in that app checkout, obtaining:
