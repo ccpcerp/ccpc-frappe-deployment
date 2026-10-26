@@ -1,5 +1,18 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-26 — CircleCI build #7: all 72 mocks pass; real-ledger acceptance blocked by identity guard and missing approved test mapping
+
+**User-uploaded CircleCI build #7 log:** Withdrawal Slip `test_withdrawal_slip` **37/37 PASSED**; `test_withdrawal_issue_safety` **17/17 PASSED**; `test_withdrawal_peer_issuance` **18/18 PASSED** (72/72 mock regressions). Next `test_withdrawal_real_ledger_integration` ran 13 cases and reported **12 errors, 1 pass**, ending step with status 1; subsequent intercompany tests did not run.
+
+**Two distinct verified causes:** (1) eleven real-transaction probes deliberately fail in `setUp` outside the original `GITHUB_ACTIONS=true`, allowed review heads and exact `ci-withdrawal.localhost` site; CircleCI uses `ci-circleci.localhost`. The strict guard is valuable; do not remove/bypass it. The two intercompany DB modules have equivalent GitHub Actions-only restrictions and likewise need a reviewed explicit CI identity gate before executing in CircleCI. (2) `test_real_material_issue_updates_bin_sle_gl_and_blocks_second_issue` reached genuine B/C mapping resolution, but no `CCPC Expense Mapping Scope` existed for synthetic `_Test Company` and `_Test Item Group` (`MappingPolicyError: Expected exactly one locked CCPC Expense Mapping Scope.`). No real business ledger correctness was established. **Never bypass B/C mapping guard or silently use a fallback expense account**; the disposable fixture needs a valid synthetic maker/checker-approved mapping and Cost Center revision following production validation constraints.
+
+**Current action boundary:** no app code changed in response to build #7. GitHub and production business safeguards must remain intact while designing explicit provider/repository/branch/site identity gating and synthetic Finance approval fixture. No pipeline was triggered by ChatGPT. CircleCI Free credits after build #7 not reported.
+
+**Next:** On dedicated review branch inspect tests and Finance mapping DocTypes/setup, implement a *narrow* CircleCI-isolated gate rather than setting GitHub env flags, seed proper approved disposable B/C test mapping using distinct authorized synthetic users (or prove correct failure tests separately), and validate the config. Review changes before a credit-consuming manual test. Preserve DEVELOPMENT and PRODUCTION separation; no release acceptance.
+
+---
+
+
 ## 2026-10-26 — CircleCI Phase 2 reached Withdrawal Slip tests; two legacy mocked tests corrected for review
 
 **User-provided CircleCI build log:** the corrected Phase 2 job advanced past disposable Frappe/ERPNext setup into `ccpcerp.ccpc_erp.doctype.withdrawal_slip.test_withdrawal_slip`. Of its **37 executed tests, 35 passed and 2 errored**. The CI step then exited with status 1, so later withdrawal modules and intercompany modules were **not confirmed run**. This is no longer the earlier missing `crontab` error.
