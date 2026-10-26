@@ -1,6 +1,22 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-26 — CircleCI build #15: all intercompany SQL savepoint tests passed; genuine draft invoices blocked by test Account currency
+
+**Evidence:** User-uploaded `build_15_step_107_container_0.txt` documents disposable `ci-circleci.localhost` intercompany modules: `test_intercompany_material_billing_batch` **124/124 PASS**; `test_intercompany_billing_approval_failures` **5/5 PASS**; `test_intercompany_atomic_pair_database` **4/4 PASS**. The SQL module uses real MariaDB insert/savepoint/rollback of synthetic `ToDo` markers with mocked invoice objects, so this is verified rollback coverage but NOT proof of real Sales/Purchase Invoice drafts.
+
+**Next module blocked:** `test_intercompany_real_draft_invoice_database` **0/2 PASS**, both ending before genuine Sales Invoice insert finished. The fixture selected `_Test Receivable USD - _TC` whose Account currency is USD, while the synthetic Company/Sales Invoice currency is INR. ERPNext's real `validate_party_account_currency` correctly denied the mismatched receivable Account: `Party Account _Test Receivable USD - _TC currency (USD) and document currency (INR) should be same`. The second rollback test never reached its purchase-builder injected failure. No invoice pairing, corresponding rollback or GL absence is proven by these two cases.
+
+**GitHub review-only correction:** `ccpcerp/ccpcerp`, branch `review/circleci-isolated-erpnext-phase2-2026-10-26`, modified `ccpcerp/ccpc_erp/doctype/intercompany_material_billing_batch/test_intercompany_real_draft_invoice_database.py` so synthetic Receivable and Payable Accounts must match the actual Company's `Account.account_currency`; it explicitly asserts currency compatibility and fails if none exists. App fix commit `c2ff12d530a644a5afb54c10cacaec3fed5db7e6`. Updated `.circleci/PHASE2-REVIEW.md`, app review HEAD at checkpoint `d90773e271e837500a7e105c6c2c883cd44a4b9a`. Real ERPNext account validation was NOT bypassed. Runtime billing currency/FX controls, approval logic, rollback logic and Finance mapping approvals unchanged.
+
+**Validation caveats:** The new fixture patch was committed and reviewed against existing source but **has not been rerun** in CircleCI. A matching INR account may or may not be present for every synthetic test Company; fail explicitly if absent. Do not claim fully passing integration, invoice draft pair validity, invoice submission, or DEVELOPMENT/PRODUCTION readiness. Only owner-authorized manual CircleCI reruns on the current review branch and `run_integration=true`. No DEVELOPMENT or PRODUCTION changes or merges.
+
+**Next:** Once owner manually reruns a new current-SHA pipeline, inspect two genuine draft-invoice tests and update this handoff. Preserve native accounting-currency and all transaction-integrity checks.
+
+---
+
+
+
 ## 2026-10-26 — CircleCI build #13: intercompany unit suites passed; SQL rollback fixture corrected
 
 **Owner-uploaded Step 107 log:** `ccpcerp.ccpc_erp.doctype.intercompany_material_billing_batch.test_intercompany_material_billing_batch` **124/124 PASS**; `test_intercompany_billing_approval_failures` **5/5 PASS**, including the cross-currency-denial case. Four tests in `test_intercompany_atomic_pair_database` then errored before reaching their intended database-savepoint/rollback assertions. The shared failure was the **correct runtime rejection** of missing or mismatched invoice currencies: the test's mocked `_get_company_invoice_defaults` returned two empty dictionaries, so issuing and requesting currencies were both `None`. No actual SQL rollback or savepoint success can be claimed from those four cases. The subsequent genuine draft-invoice test module was not executed in the uploaded step.
