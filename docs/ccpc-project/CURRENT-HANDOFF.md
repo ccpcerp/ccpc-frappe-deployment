@@ -1,5 +1,18 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-26 — CircleCI Phase 2 checkpoint: CI prerequisite corrected; full ERPNext tests still pending
+
+**Current verified result:** CircleCI starter-validation passed on pipeline #2 (reported 7 seconds); the opt-in isolated ERPNext job failed at Frappe `bench init` before any ERPNext application test ran. User-provided job log established `FileNotFoundError: /usr/bin/crontab` from `bench.setup.backups()`. This is an ephemeral CI prerequisite failure, **not** a failed inventory/accounting test.
+
+**GitHub correction verified:** application repository `ccpcerp/ccpcerp`, branch `review/circleci-isolated-erpnext-phase2-2026-10-26`, configuration `.circleci/config.yml`, fix commit `c53eb55f69a9a76ddfaf2af7e01912ca46a303c1` installed the `cron` package in CircleCI's disposable container, adding `/usr/bin/crontab`. Follow-up review-documentation commit `6d79cd87fdf4b050bd8f1907dec6dc0edcb7e121`. The user subsequently ran `circleci config validate` against the freshly downloaded corrected file; CircleCI CLI 1.11.0 returned **`Config file ... is valid.`**. GitHub connector verified the branch content and commit. No CircleCI rerun was requested or executed after the fix.
+
+**Control boundaries:** Full integration remains manual, gated by boolean `run_integration=true` (default false). No credentials or connection to CCPC DEVELOPMENT or PRODUCTION, no deployment or migrations in those persistent environments. User confirms CircleCI Free, initially 29,999 of 30,000 credits left before the first full run; current remaining credit balance was **not** rechecked after failure. GitHub Actions remains blocked by billing-minute exhaustion; do not rerun it automatically. No assertion of passing integration tests or production readiness.
+
+**Next concrete step:** With user approval and after confirming available CircleCI free credits, trigger a single new manual pipeline on the current review branch using the same branch for config and checkout, with `run_integration=true`. Do **not** click rerun on the older failed SHA. Collect first failing step's complete log, distinguish additional CI prerequisites from application test failures, fix only the relevant review branch, and update this handoff after a verified milestone. The existing feature/review development program remains separate; no branch merges were performed for this CI work.
+
+---
+
+
 ## 2026-10-25 STEP 144A — ONE-SHOT NEW-HOST SSH HOSTNAME CHECK PASSED, DOCKER INVENTORY NOT RUN
 
 **Owner-provided Windows OpenSSH debug confirms authenticated, read-only single-command session to `ccpcadmin@192.168.50.186`: `hostnamectl --static` stdout was exactly `ccpcerp-prod`, and client returned `debug1: Exit status 0`.** The client had earlier matched its recorded host key and accepted the SSH key, while the owner separately verified local private-key unlock (`ssh-keygen -y ...` exit 0). Earlier interactive SSH closed before shell prompt; its root cause is still unknown, but normal end-of-command disconnect is expected for this successful one-shot execution. This **is user-pasted remote verification**, not an independently executed ChatGPT SSH session. No passphrase or secret was shared.
