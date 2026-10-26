@@ -1,6 +1,21 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-26 — Owner priority reset: FINISH DEVELOPMENT and DEDICATED PRODUCTION, not more backup triage
+
+**Owner explicit direction:** “I think we diverted again from the task, the goal should be to finish development and Production server”. This supersedes the recent conversational drift to routine legacy NAS diagnostics. Treat Oct 25–26 NAS outage, local Oct 26 four-file set and lack of verified restore as **recorded recovery risks/release gates**, not the default next task. Do not solicit more legacy backup shell commands unless a truly necessary safety gate blocks an approved operation.
+
+**Verified GitHub source baseline at focus reset:**
+- Application review branch `review/circleci-isolated-erpnext-phase2-2026-10-26` HEAD `c32f3f20bc3f0b5fa88f651d6dddee774b6cb2cb`. Earlier `d90773e271e837500a7e105c6c2c883cd44a4b9a` isolated CircleCI Phase 2 job was owner-reported green. New real Finance six-case CircleCI wiring on latest branch **NOT tested**; one manually authorized opt-in current-SHA CI result is next integration gate.
+- Persistently installed DEVELOPMENT checkout `/workspace/development/frappe-bench/apps/ccpcerp`, Git HEAD `806fa23516490ec7beefcff03a1baa09d722120e`, branch `review/intercompany-approval-failure-tests`; untracked `AGENTS.md` must be preserved. App review branch was 203 ahead, 0 behind at verification, but direct Git update not yet planned/authorized. Main site `development.localhost` installed Frappe 16.33.1, ERPNext 16.34.2, CCPC 0.0.1; two integration sites present. No DEV pull/migration, no PRODUCTION changes.
+- Separate dedicated PRODUCTION `ccpcerp-prod` host is **not deployed/live**. Infra PRs #27, #29, #30 were still open/draft/unmerged at this review; dedicated Compose project identity review branch `review/dedicated-compose-project-pin-2026-10-25` HEAD `dfb84fafff73c2eccecd01a48698779b334a5cb5`. Step136 isolated Hyper-V lab previously showed 4 GiB guest RAM and correct hostname; G0 still partial, offline G2 `docker-compose config` render unexecuted. Script/mock/offline successes are **not** real host/backup/restore/deployment acceptance.
+- Day-one functional target is **Withdrawal Slip → guarded Stockroom Material Issue → stock/GL/Department attribution → properly authorized B/C Finance mappings → intercompany billing/invoices/returns → four previously approved reports**. Preserve owner-accepted business requirements; do not restart Chart of Accounts/Item Group design. Before posting, require actual signed Company/Account/Cost Center mapping decisions and distinct Finance approver identity.
+- **Execution sequence:** (1) finish and validate missing application E2E/reporting on reviewed GitHub app branch, including the targeted genuine Finance CI rerun; (2) safely synchronize reviewed code and conduct persistent DEVELOPMENT acceptance preserving `AGENTS.md` and site data; (3) advance dedicated PRODUCTION source/Compose/security reviews and approved isolated render/rollback gates in parallel; (4) only after DEV PASS and restore-readiness, request separate owner approval to deploy/cutover PRODUCTION. No unattended or paid CI, unapproved NAS work, direct PRODUCTION deployment, blind `git pull`, destructive commands, or assumption that backup troubleshooting is the engineering priority.
+- **Next preferred user-facing step:** choose **one concrete forward development milestone**, not another backup listing. If operator action is indispensable, request only the exact necessary one (for example, current branch's opt-in CircleCI run), while continuing GitHub-side code/source review directly during chat.
+
+---
+
+
 
 ## 2026-10-26 — Production backup local-artifact follow-up: Oct 26 four files present; Oct 25 absent at standard path
 
