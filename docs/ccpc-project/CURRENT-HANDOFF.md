@@ -1,6 +1,29 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-26 — Owner approves next controlled Finance workflow / DEVELOPMENT milestone; six real maker-checker cases added to CircleCI review
+
+**Approval interpretation and GitHub verification:** After the screenshot-confirmed first all-green Phase 2 CircleCI run on tested application commit `d90773e271e837500a7e105c6c2c883cd44a4b9a`, owner replied **“Approved”** to advancing toward genuine Finance mapping validation and safe DEVELOPMENT acceptance. GitHub-first review independently verified:
+- Finance workflow **ALREADY EXISTS** in `ccpcerp/ccpc_erp/bc_mapping_workflow.py` and `bc_mapping_lifecycle.py` across both the earlier draft PR #19 Finance branch and the newer CircleCI review branch; those files have matching blobs. Draft-only revision-controller validation is intentional and does **not** mean the authenticated service is missing. Service-based approve/update writes are restricted and audited; UI ordinary saves cannot forge Approved state.
+- Draft app PR #19 `review/bc-original-issue-allocation-2026-10-20` currently HEAD `53ab180d2572def75beff9a0dbd0eb8b927977da` and is an ancestor of the CircleCI review branch. Draft PR #20 `review/intercompany-invoice-transaction-2026-10-20` currently HEAD `16e6542016121aa5446516725186a45e8832b39c` and likewise is an ancestor. Compare confirmed CircleCI branch ahead of PR #19 by 44 commits and PR #20 by 31 (at pre-change review tip), zero behind each; **no merge conflict to resolve between these files**.
+- Earlier hosted GitHub Actions #39404938099 passed **6/6** true isolated SQL/GL Finance workflow/lifecycle tests on PR #19 SHA `53ab180d`. The screenshot-verified CircleCI run did **not** include `test_bc_original_issue_real_integration` in its configured eight-module integration job, so do not falsely attribute Finance workflow coverage to that green result. Test suite uses synthetic ERPNext identities/master data but **calls actual maker/checker proposal/approval/replacement/retirement services**, not the CircleCI test SQL Approved-state shortcut.
+
+**Committed NEW CircleCI coverage (review-branch only; unexecuted):** app branch `review/circleci-isolated-erpnext-phase2-2026-10-26`:
+1. Commit `2de85dfac4271105009a8584ad836ffd0e8912dc`: standalone real-ledger setup skips CircleCI synthetic mapping seeding for the explicitly marked genuine Finance suite, preserving its important negative/missing-mapping test.
+2. Commit `466ff50b395a06144845a613988101a1678dc63b`: six-case Finance suite preserves old exact GitHub Actions gate, adds only the strict already-reviewed CircleCI job/repo/branch/site identity and dedicated opt-in.
+3. Commit `5651c9c22b770e61a133e0c5452ca01dc712e071`: CircleCI config sets `CCPC_ALLOW_BC_POSTING_PROBE=isolated-only` only on the disposable integration job and runs `test_bc_original_issue_real_integration` **before** the independent synthetic-approved Withdrawal real-ledger module, after the first three mock unit suites.
+4. Review notes `.circleci/PHASE2-REVIEW.md` updated at `c32f3f20bc3f0b5fa88f651d6dddee774b6cb2cb`.
+
+**Verification limits:** GitHub commits, branch ancestry and file contents verified. The new config and six-case Finance suite have **not** undergone local CircleCI CLI validation or a new CircleCI run, so do not claim passing. Previously green source SHA `d90773e` remains a historic valid checkpoint. No persistent DEVELOPMENT access/pull, live DB operation, master-data mapping signoff, Docker change or PRODUCTION activity occurred.
+
+**Release gates still missing:** genuine G4 Company+leaf Item Group→Expense Account and Company+beneficiary Department→Cost Center signed mappings; distinct authorized live Finance users and Company-granted roles; policy for exception/backdating/multi-center selectors; invoice source-to-billing E2E/returns; four locked day-one reports; persistent DEVELOPMENT regression with safe backups/rollback; separate full PRODUCTION review/approval. No inference from COA labels, synthetic fixtures or personal notes.
+
+**Next concrete steps:** (1) operator re-fetches current CircleCI `.circleci/config.yml`, runs `circleci config validate`, then only if authorized starts a new manually triggered `run_integration=true` pipeline and provides Finance module log. (2) Before any DEVELOPMENT pull/checkout/migration, collect one **read-only** report of live DEVELOPMENT app Git branch+HEAD+porcelain status and Docker container/site identity; confirm dirty/untracked work and backup state before preparing a separate, specifically approved deployment procedure. Leave PRODUCTION entirely untouched.
+
+---
+
+
+
 ## 2026-10-26 — First owner-reported all-green CircleCI Phase 2 isolated ERPNext integration pipeline
 
 **User evidence:** Screenshot from CircleCI project `CCPCerp_2026 / ccpcerp` shows **pipeline #9 SUCCESS** for GitHub review branch `review/circleci-isolated-erpnext-phase2-2026-10-26`, source commit `d90773e` (verified full SHA `d90773e271e837500a7e105c6c2c883cd44a4b9a`). Green `opt-in-isolated-erpnext` workflow took **7m 56s**; green `starter-validation` workflow took **7s**. The displayed timestamp is 2026-10-26 04:46:57–04:54:54 UTC.
