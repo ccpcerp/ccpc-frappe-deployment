@@ -1,6 +1,23 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-26 — Safe read-only DEVELOPMENT application checkout verification; no code pull
+
+**User-executed Ubuntu read-only checks:** `docker ps` showed `frappe_docker_devcontainer-frappe-1` and associated dev MariaDB/Redis containers up two weeks; a separate `frappe_docker-*` cluster including backend, frontend, scheduler and database was also running and remains off-limits. Inside the devcontainer, working directory `/workspace/development`; actual **DEVELOPMENT custom app** Git repository at `/workspace/development/frappe-bench/apps/ccpcerp` (not `/workspace/development/apps/ccpcerp`). The operator ran `GIT_OPTIONAL_LOCKS=0 git status --short --branch && git rev-parse HEAD` in that app checkout, obtaining:
+```
+## review/intercompany-approval-failure-tests...origin/review/intercompany-approval-failure-tests
+?? AGENTS.md
+806fa23516490ec7beefcff03a1baa09d722120e
+```
+No modified tracked files were reported; **untracked AGENTS.md MUST remain unchanged/untracked**. This is only the state observed at that instant; no assumption future Git status remains clean.
+
+**Independently checked GitHub history:** source commit `806fa23516490ec7beefcff03a1baa09d722120e` exists in `ccpcerp/ccpcerp`. GitHub commit comparison from that exact SHA to the currently reviewed `review/circleci-isolated-erpnext-phase2-2026-10-26` branch returned status **ahead**, **203 ahead / 0 behind**, with that same DEV SHA as merge-base. This proves DEV's committed HEAD is an ancestor of current review branch, **not** that a branch switch/pull is presently safe for untracked files, site schema, migrations, runtime process or database records. The current review HEAD after genuine Finance CI coverage was `c32f3f20bc3f0b5fa88f651d6dddee774b6cb2cb`; these latest extra Finance CI tests are not yet rerun. Previous isolated CircleCI green code checkpoint remains `d90773e271e837500a7e105c6c2c883cd44a4b9a`.
+
+**Next safe single operator step:** enumerate Frappe site *names* inside devcontainer by locating `site_config.json` paths without reading any config contents. Then verify site identity, database/backups/rollback, appropriate reviewed code source, and protect `AGENTS.md` before any supervised DEVELOPMENT fetch, checkout/pull, migration or integration posting. Never fetch/pull/reset/stash/clean or change Docker/PRODUCTION based solely on Git ancestry; no such operations are authorized by these diagnostic commands.
+
+---
+
+
 ## 2026-10-26 — Owner approves next controlled Finance workflow / DEVELOPMENT milestone; six real maker-checker cases added to CircleCI review
 
 **Approval interpretation and GitHub verification:** After the screenshot-confirmed first all-green Phase 2 CircleCI run on tested application commit `d90773e271e837500a7e105c6c2c883cd44a4b9a`, owner replied **“Approved”** to advancing toward genuine Finance mapping validation and safe DEVELOPMENT acceptance. GitHub-first review independently verified:
