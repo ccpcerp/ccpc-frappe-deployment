@@ -1,5 +1,24 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+
+## 2026-10-26 — CircleCI build #7 fixes committed: strict runner/site guard + synthetic B/C accounting test data
+
+**Authorized scope:** Owner approved GitHub-only repair of the blocked CircleCI Phase 2 isolated ERPNext tests. The earlier user-uploaded build #7 showed **72/72 mocked Withdrawal Slip tests PASSED**; the 13-case real-ledger module had **1 PASS, 12 ERRORS** (11 GitHub-only test guard denials, one missing B/C Expense Mapping Scope for synthetic _Test Company). Intercompany test modules were not reached. No DEVELOPMENT/PRODUCTION operations were performed.
+
+**Committed review-branch work:** In app repository `ccpcerp/ccpcerp`, branch `review/circleci-isolated-erpnext-phase2-2026-10-26`:
+- New `ccpcerp/ccpc_erp/ci_disposable_site_guard.py` preserves previously approved GitHub Actions branch/site checks and adds a narrow CircleCI identity that requires exact repo owner/name, review branch, job, run IDs, test site and explicit probe flag. Worker and WSGI tests use the same verifier. Intercompany SQL and real draft-invoice tests keep per-probe flags; no broad CI=true bypass.
+- New `ccpcerp/ccpc_erp/ci_synthetic_finance_fixture.py` configures disposable test-only maker/checker identities with Company permissions, an Expense Account, Cost Center and matching synthetic B/C revisions. **Caveat: live Finance approval is intentionally unavailable; the fixture simulates signed approval state via controlled test-database updates AFTER draft validation. It is NOT evidence of real maker/checker approval and must never run against persistent DEVELOPMENT or PRODUCTION.** No business accounting guard or runtime posting code was modified.
+- Withdrawal real-ledger tests seed that fixture only on verified CircleCI disposable site. Existing GH suites remain limited to their original approved site names. WSGI test uses verified host; spawned worker gate updated.
+- `.circleci/test_ci_disposable_site_guard.py` adds lightweight positive and negative identity checks; `.circleci/config.yml` runs them in the cheap job and performs pre-install job/repository/branch/SHA checks.
+- `.circleci/PHASE2-REVIEW.md` updated with test boundary. Latest application review commit at this checkpoint: `745e81493e2afdeb46368e8e14eadc8a9e4fc903`.
+
+**Verification limits:** GitHub connector writes and path contents verified. **No new CircleCI CLI validation or execution after these latest changes, no proof that the new fixture works with the live Frappe test database.** Remaining unit/integration issues may appear. Nothing merged to default, DEVELOPMENT, or PRODUCTION. No automatic or paid pipeline created.
+
+**Next step:** Have owner re-download latest review-branch `.circleci/config.yml` and run `circleci config validate` locally without consuming build credits. Separately check CircleCI Free credits and request authorization for one new *manual* pipeline with the current review branch as config and checkout source and boolean `run_integration=true`. Review first failing step's full logs; document and correct only on GitHub review branch, preserving safety gates.
+
+---
+
+
 ## 2026-10-26 — CircleCI build #7: all 72 mocks pass; real-ledger acceptance blocked by identity guard and missing approved test mapping
 
 **User-uploaded CircleCI build #7 log:** Withdrawal Slip `test_withdrawal_slip` **37/37 PASSED**; `test_withdrawal_issue_safety` **17/17 PASSED**; `test_withdrawal_peer_issuance` **18/18 PASSED** (72/72 mock regressions). Next `test_withdrawal_real_ledger_integration` ran 13 cases and reported **12 errors, 1 pass**, ending step with status 1; subsequent intercompany tests did not run.
