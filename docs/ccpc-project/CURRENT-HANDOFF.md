@@ -1,6 +1,23 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-26 — Pipeline #10 GREEN at latest Finance integration source SHA; resume DEVELOPMENT delivery
+
+**Owner-provided CircleCI screenshot:** Pipeline `#10`, title `docs: track exact genuine Finance workflow CI coverage and DEV preflight gates`, branch `review/circleci-isolated-erpnext-phase2-2026-10-26`, commit abbreviated `c32f3f2`. Both workflows green: `opt-in-isolated-erpnext` **5m 6s**, `starter-validation` **6s**. GitHub verified source commit **`c32f3f20bc3f0b5fa88f651d6dddee774b6cb2cb`**, with nine configured modules: five Withdrawal (including the six-case genuine synthetic Finance maker/checker and original issue lifecycle suite) and four intercompany (including actual-draft-invoice fixture). Job uses fail-fast shell, supporting successful completion of those module commands. **Screenshot does not include detailed test logs/per-case counts.** CI is disposable; no persistent DEVELOPMENT or real master approvals verified. No need to rerun unchanged tested code.
+
+**App documentation-only update:** `.circleci/PHASE2-REVIEW.md` updated on same app review branch at GitHub commit `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`. This docs commit is **not** the tested source SHA, but it makes no runtime/config/test changes; preserve `c32f3f20...` as the precise passing code revision.
+
+**Target/source gap:** Latest app review branch contains only `ccpc_equipment_maintenance_baseline` and `ccpc_item_stock_inquiry` report folders at `ccpcerp/ccpc_erp/report`; the four frozen owner-approved day-one reports still need implementation and integration validation, not another design workshop. The four are (1) Department material consumption, (2) Equipment/Job Order material consumption, (3) intercompany Withdrawal and billing including invoice state, (4) overall material consumption and P&L/accounting expense shown distinctly with GL/SLE reconciliation and unit-safe totals. True finalized source-to-intercompany draft/submission, returns/cancellation/duplicate-prevention E2E still needs deeper coverage.
+
+**DEVELOPMENT checkpoint:** Main `development.localhost` Frappe 16.33.1, ERPNext 16.34.2, app checkout `/workspace/development/frappe-bench/apps/ccpcerp` at `806fa23516490ec7beefcff03a1baa09d722120e`, branch `review/intercompany-approval-failure-tests`, untracked `AGENTS.md`. Earlier GitHub comparison shows reviewed branch code descendant (203 ahead, 0 behind). Before a controlled review-branch fetch/sync, recheck live Git status and collisions; preserve AGENTS.md. Migrations and persistent test posting need specific scope, intact DEV recoverability and authorization. Production is unaffected.
+
+**Dedicated PRODUCTION checkpoint:** Draft stacked infra PRs #27/#29/#30 still open/draft/unmerged at last check, and Compose project review branch `review/dedicated-compose-project-pin-2026-10-25` HEAD `dfb84fafff73c2eccecd01a48698779b334a5cb5` is GitHub-only review candidate. Isolated Hyper-V G2 Compose render not yet executed, no host deployment, actual dedicated PRODUCTION site migration, HTTPS or restore drill. Continue separate infrastructure gates without mixing with legacy NAS outage triage.
+
+**Next prioritized work:** (1) finish missing four reports and true intercompany source/invoice/return acceptance on a reviewed GitHub app feature branch deriving from passing source; (2) prepare one safe persistent DEVELOPMENT synchronization/acceptance plan (no blind checkout/pull/migrate or untracked AGENTS overwrite); (3) advance dedicated-production isolated Compose validation/security/readiness in parallel; (4) no PRODUCTION deployment until explicit separate approval, verified backups/restore, and signed financial mapping/role evidence.
+
+---
+
+
 ## 2026-10-26 — Owner priority reset: FINISH DEVELOPMENT and DEDICATED PRODUCTION, not more backup triage
 
 **Owner explicit direction:** “I think we diverted again from the task, the goal should be to finish development and Production server”. This supersedes the recent conversational drift to routine legacy NAS diagnostics. Treat Oct 25–26 NAS outage, local Oct 26 four-file set and lack of verified restore as **recorded recovery risks/release gates**, not the default next task. Do not solicit more legacy backup shell commands unless a truly necessary safety gate blocks an approved operation.
