@@ -9,6 +9,17 @@
 
 
 
+
+## 2026-10-27 — Main DEVELOPMENT fresh four-artifact backup completed, pending format verification
+
+**Owner-executed previously approved command** from `frappe` inside `frappe_docker_devcontainer-frappe-1` at `/workspace/development/frappe-bench`: the script first confirmed that all four October 13 protected originals remain nonempty in `sites/development.localhost/private/ccpc-preintegration-2026-10-27/`, then `bench --site development.localhost backup --with-files` reported **successful completion with files**. It identified the **new** `20261027_075421-development_localhost-` four-artifact set under `sites/development.localhost/private/backups/`, with site config 234 bytes, compressed database 1.6 MiB, public TAR 10 KiB, and private TAR 20 KiB. Frappe summary timestamp was `2026-10-27 07:54:22.899525` (container display time, no timezone inferred). Owner's command returned to the normal shell prompt without errors.
+
+**Verified scope:** Frappe reported local backup success; prior protected originals were nonempty at invocation. New artifact format integrity, checksums, off-host copy, and actual restore have **not yet** been verified. Both sites' Patch Logs independently showed all eight registered application patches. No Git code switch, schema migration, accounting posting, PRODUCTION backup/change, or second-site fresh backup has occurred.
+
+**Next exact operator action:** perform non-mutating format and presence verification of the named NEW main-site database `gzip -t`, both plain `.tar` archives `tar -tf`, and JSON config syntax with `./env/bin/python -m json.tool`, all with contents suppressed. Only after success proceed to separately approved `ccpc-integration2.localhost` fresh four-part backup and verify it. Preserve fresh and historical copies beyond any cleanup scope.
+
+---
+
 ## 2026-10-27 — Two October 13 DEVELOPMENT backup sets preserved and byte-compared
 
 **Owner-executed, separately approved DEVELOPMENT-only backup preservation:** from the `frappe` user inside `frappe_docker_devcontainer-frappe-1`, bench path `/workspace/development/frappe-bench`, a guarded script tested both eight-source-asset sets as nonempty, required preservation destinations not already exist, created restrictive `0700` private destination directories, copied the four old assets per site without overwriting and applied `0600` to preserved copies, then ran silent byte-for-byte `cmp -s` per file under `set -euo pipefail`. Operator transcript ended with:
