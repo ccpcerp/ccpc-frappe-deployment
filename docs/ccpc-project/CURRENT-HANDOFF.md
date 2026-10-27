@@ -23,6 +23,17 @@
 
 
 
+
+## 2026-10-27 — BOTH DEVELOPMENT site migrations PASS; main Finance 4/2/5 postcheck next
+
+**Actual operator-executed database integration progress:** following reviewed CCPC custom-app switch to detached commit `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41` with Honcho-managed DEVELOPMENT processes stopped, the two **separate** site migrations have both now completed successfully. First `ccpc-integration2.localhost`: guarded `bench --site ccpc-integration2.localhost migrate` returned `INTEGRATION2 MIGRATION: PASS`; focused read-only Finance schema verification returned mapping DocTypes **4/4 PASS**, mapping roles **2/2 PASS**, new Stock Entry Detail issue-provenance/mapping-revision fields **5/5 PASS**. Second `development.localhost`: guarded `bench --site development.localhost migrate` returned `SAFETY GUARDS: PASS`, successful Frappe/ERPNext/CCPC DocType sync (100%), fixtures, customizations, dashboards, `after_migrate` hooks, and `MAIN DEVELOPMENT MIGRATION: PASS`. Both sites' search-index rebuild jobs were *queued*, not proven complete. **No reported migration errors.**
+
+**Immediate next action:** run one read-only `development.localhost` SQL postcheck for the same 4 Finance DocTypes, 2 mapping roles and 5 Stock Entry Detail provenance fields. Expect three PASS rows. Do not re-run either migration or old backup procedures. After check, conduct **separately controlled DEVELOPMENT-only restart** of the five Honcho Procfile services and two-site app/worker smoke tests. DEVELOPMENT services are **still stopped** as of owner transcript. Operational proof of web access, queues, correct mapping controls, intercompany workflows and all four day-one reports is still pending.
+
+**Recovery/production boundary:** Fresh Oct 27 four-component backups for both intended DEV sites were format-checked and byte-compared into restricted local directories outside backup cleanup; the historical Oct 13 sets likewise preserved. No independent restore rehearsal or off-host DEV backup confirmation. Legacy and future PRODUCTION untouched, and no actual accounting posting has been authorized. Updated execution detail in [DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md](DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md), verified commit `b9e10ecf69a1fe627addbd5abc7c851459263dd3`.
+
+---
+
 ## 2026-10-27 — Integration2 Finance post-migrate SQL checks all PASS; main DEV migration is the immediate next action
 
 **Owner-reported focused read-only MariaDB check against already-migrated `ccpc-integration2.localhost`:** four Finance mapping DocTypes exist (4/4 PASS); two Finance roles exist (2/2 PASS); five new `Stock Entry Detail` provenance/mapping revision custom fields exist (5/5 PASS). This confirms structural install after successful first site migration at reviewed detached app checkout `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`. It does **not** prove user permission grants, full finance maker/checker behavior, invoice/stock transaction functionality or report readiness. Integration2 search index was merely queued.
