@@ -4,6 +4,15 @@
 
 
 
+
+## 2026-10-27 — DEVELOPMENT guarded code-checkout preflight PASS; next inspect per-site Patch Log
+
+**Operator-reported successful read-only command:** the pinned preflight from the approved `DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md` returned `DEVELOPMENT CODE PREFLIGHT: PASS`. That guarded test establishes that, at the time of execution, `review/intercompany-approval-failure-tests` was checked out at `806fa23516490ec7beefcff03a1baa09d722120e`, `git status --porcelain=v1` was exactly `?? AGENTS.md`, and the fetched remote review ref plus the incoming tree's root AGENTS.md collision check matched exact candidate `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`. The test **does not** check database Patch Log, validate active processes, copy backups or integrate files. No checkout, migration, backup, site/database write or PRODUCTION action occurred.
+
+**Next safe engineering step:** perform a read-only per-site `tabPatch Log` inventory for **only** `development.localhost` and `ccpc-integration2.localhost`, comparing with the eight unchanged `ccpcerp/patches.txt` entries (one pre-model-sync and seven post-model-sync); report recorded/not-recorded only, no business data or credentials. This answers whether pre-existing Company/party/index patches are pending before the controlled migration. Then secure separately authorized fresh protected DEVELOPMENT recovery points for both sites, plus source/shared-worker isolation and company/account prerequisite checks. The known NAS mount only establishes legacy storage availability, not DEV off-host backup coverage. Do not rerun NAS discovery by default; migration and PRODUCTION remain unapproved.
+
+---
+
 ## 2026-10-27 — Approved GitHub-only controlled DEVELOPMENT integration plan prepared
 
 **Owner approval:** approved continuing GitHub-first **preparation** for integration of the reviewed custom application. This authorization **does not** authorize host backup/copy commands, changing the shared DEVELOPMENT checkout, migrations, test accounting postings, service changes or PRODUCTION operations.
