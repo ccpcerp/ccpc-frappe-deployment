@@ -440,3 +440,28 @@ The script checked `response.status_code==200`, response JSON `message=="Logged 
 Following the failed Maker-only login stage (before any Finance mapping HTTP POST), the owner clarified: **"I entered the wrong password."** This is the operator's explanation of the failed login; no credentials were disclosed or modified, and the underlying response status/message were not separately measured.
 
 The authorized original one-Draft test was **not consumed** because its own output confirmed `NO FINANCE PROPOSAL POST WAS ATTEMPTED`. The owner can re-execute the previously supplied **full guarded Maker Draft** test a single time with the correct existing *Maker* password, rather than using the now-unnecessary login diagnostic. It must recheck the app/site/backup identities, synthetic masters, and zero existing TISS/TREQ mapping scopes before the single authenticated `propose_mapping` POST. If any guard fails or a proposal POST is attempted with an unknown result, STOP; don't retry until a read-only mapping inventory. No Checker approval, GL/stock posting, password reset, PROD or main DEV change is authorized.
+
+### Synthetic TISS Expense Maker Draft: authenticated POST PASS — not approved
+
+On 2026-10-28 (Asia/Manila), after the owner's explicit one-Draft authorization and clarification that the first failed Maker login used the wrong password, the owner re-executed the guarded Integration2 authenticated Maker HTTP proposal script with the correct existing Maker credentials. Owner-supplied terminal result:
+
+```text
+INTEGRATION2 AUTHENTICATED MAKER DRAFT TEST
+APPLICATION AND BACKUP GUARDS: PASS
+MASTER, ACTOR AND ZERO-MAPPING GUARDS: PASS
+Maker password:
+MAKER AUTHENTICATED IDENTITY: PASS
+MAKER DESK AND CSRF: PASS
+MAKER EXPENSE DRAFT HTTP POST: PASS
+PERSISTED DRAFT AND MAKER OWNERSHIP: PASS
+TREQ AND CENTER SCOPES UNCHANGED: PASS
+NO GL, STOCK OR MASTER COUNT CHANGES: PASS
+EXPENSE SCOPE ID: fie8da5c59
+DRAFT REVISION ID: fieef2e44j
+INTEGRATION2 MAKER DRAFT TEST: PASS
+NO CHECKER APPROVAL OR FINANCIAL POSTING PERFORMED
+```
+
+**Verified result by operator procedure:** Actual Frappe HTTP POST `ccpcerp.ccpc_erp.bc_mapping_workflow.propose_mapping` was invoked as authenticated `ccpc-dev-finance-maker@invalid.test` with Desk CSRF header; HTTP response reported a first `Draft` revision. A separate Frappe read-only post-request database connection validated precisely one TISS `CCPC Expense Mapping Scope` `fie8da5c59`, with source `CCPC INT2 Expense Mapping Test 20261027`, and exactly one `CCPC Expense Mapping Revision` `fieef2e44j`, `revision_no=1`, `approval_state=Draft`, owner Maker, Expense Account `CCPC INT2 Expense Mapping Test - TISS`, no approval identity/reference/timestamp or effective interval, and no alternate TISS/TREQ or Center mapping scopes. The procedure checked same GL, stock, Item, Account and related master counts as before the proposal. The fresh protected 4-component backup was verified before the POST. There was **no Checker approval, GL posting, stock movement, database migration, app branch change or PRODUCTION activity**.
+
+**Status and next gate:** Integration2 Maker Draft creation and persistence are **PASS by owner-run authenticated HTTP and independent DB readback evidence**, not a claim of approval/activation or real-account use. Keep identifiers `fie8da5c59` and `fieef2e44j` stable; do not rerun the proposal. The next proposed validation is an **independent authenticated Checker review only** using exact revision `fieef2e44j` and the `get_mapping_review(kind=Expense,revision=...)` endpoint with session/CSRF, checking the returned owner, value, Draft status, modified/version token (do not publish session/CSRF tokens). That endpoint takes a server-side lock and performs read-oriented operations, **not** approval; a real login may create session metadata. Ask owner for specific separate approval before Checker review. A still-further and separate formal decision would be required for `approve_mapping` and a genuine Accounting approval reference; never fabricate an approval reference. No stock/GL posting, main DEVELOPMENT or PRODUCTION activity, restoration, cleanup, Maker replacement proposal, or auto-repeat is approved.
