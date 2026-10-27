@@ -236,3 +236,31 @@ The user has **not approved any persistent fixture or Finance mapping creation/a
 **New code-review risk:** ERPNext version-16 `Account.validate_root_company_and_sync_account_to_children` (account.py) can **automatically replicate a new parent-Company Account to descendant companies** or enforce root-first account creation for a child Company. This means a TISS Account insert is not guaranteed to affect TISS alone. **Block all creation until read-only Company nested-set parent/ancestors/descendants and `allow_account_creation_against_child_company` are checked and cross-company side effects ruled out.** Also reconfirm exact source/target absence, parent Account enabled/group/Expense state, counts of mapping scopes/revisions, bank/Company/site backups, and protected checkout immediately before a future write. No permission to bypass ERPNext account validation flags, force-save, use arbitrary default accounts, or delete/overwrite any records.
 
 A suitable next test is a read-only, pinned-application `frappe.db` check of `TISS` Company hierarchy and parent Account fields; return only nonsecret structural metadata and no writes. If TISS has descendants or disallowed root-level account creation, stop and redesign the test fixture, rather than silently allowing propagation. After this, document per-transaction rollback and fixture retention vs cleanup options, verify a **fresh Integration2-specific backup** and receive explicit user approval before making any test masters.
+
+### Company hierarchy isolation preflight: PASS; no authorisation for writes
+
+The owner executed the guarded **Integration2-only read-only** follow-up (no master or Finance data changes):
+
+```text
+INTEGRATION2 COMPANY HIERARCHY PREFLIGHT
+SITE AND COMPANY GUARDS: PASS
+TISS PARENT: NONE
+TISS ANCESTOR COUNT: 0
+TISS DESCENDANT COUNT: 0
+CHILD COMPANY ACCOUNT CREATION ALLOWED: 0
+PROPOSED ACCOUNT PARENT:
+IS GROUP: 1
+DISABLED: 0
+ROOT TYPE: Expense
+ACCOUNT TYPE: NONE
+CROSS-COMPANY CREATION RISK: NO TISS DESCENDANTS
+ROOT-COMPANY ACCOUNT RULE: NO IMMEDIATE BLOCKER
+COMPANY HIERARCHY PREFLIGHT: COMPLETED
+NO MASTER OR FINANCIAL DATA CHANGES
+```
+
+**Decision:** At test time `Integration Test Issuer` (TISS) has neither Company parent nor descendants; intended existing Account parent `Indirect Expenses - TISS` is an enabled Expense-root group without account_type. The reviewed ERPNext v16 Account model's root/child-Company replication rule therefore has no *currently identified* Company-tree trigger for cross-company replication in this site. Revalidate this dynamic state before creating an Account; no guarantee of zero side effects beyond this guarded scenario. The proposed synthetic Item Group remains site-global, so do not attach real Items or Item Defaults; keep it distinguishable from ordinary CCPC categories.
+
+**Pending, not approved:** Creating `CCPC INT2 Expense Mapping Test 20261027` (leaf Item Group under `All Item Groups`) and `CCPC INT2 Expense Mapping Test - TISS` (new unnumbered TISS-only Expense ledger under `Indirect Expenses - TISS`), a Maker-owned Draft CCPC Expense mapping between them, and any Checker mapping approval require specifically scoped user approval. The approved G1/G2 design principles in GitHub are **not** authorization for real account creation or mapping activation. Finance mapping approval is separate from data fixture creation, and no Stock Entry, GL Entry, issue, billing, migration, production change, or general shared-development master change is proposed.
+
+**Backup and rollback gate before authorization:** The October 27 10:48 Integration2 four-artifact protected preintegration snapshot is historical and must be preserved. Independently inspect its continued presence, current Integration2 site/database binding, backup utility availability and dedicated free space; create/verify a new Integration2-only 4-artifact pre-fixture backup only after owner permission, keeping any created snapshots outside the protected checkout and not inside public file directories. The new backup must include compressed SQL database, public files, private files and site-config archive, have nonzero sizes and integrity checks, and be retained through acceptance. Restoration is an explicitly separately authorized, potentially destructive recovery action; it is not an automatic test rollback, particularly because Integration2 shares infrastructure with main DEVELOPMENT and PRODUCTION. Failure of any fixture operation must abort/rollback its own transaction without touching existing masters and preserve evidence; test records should be retained for audit unless independently approved cleanup validates all dependencies. No passwords, secrets, or config file contents in GitHub/chat.
