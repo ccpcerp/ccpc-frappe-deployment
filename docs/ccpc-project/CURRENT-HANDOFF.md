@@ -3,6 +3,19 @@
 
 
 
+
+## 2026-10-27 — Approved GitHub-only controlled DEVELOPMENT integration plan prepared
+
+**Owner approval:** approved continuing GitHub-first **preparation** for integration of the reviewed custom application. This authorization **does not** authorize host backup/copy commands, changing the shared DEVELOPMENT checkout, migrations, test accounting postings, service changes or PRODUCTION operations.
+
+**New reviewed runbook:** [DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md](DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md), created and verified on deployment docs branch `docs/ccpc-checkpoint-2026-10-10` at commit `99d9252e3bd7c6e503172c87a7a7c7334ab316f8`. It pins source/target SHAs, describes four new Finance mapping DocTypes, `setup.after_migrate()` Finance role definitions and Stock Entry provenance fields, and records that **`ccpcerp/patches.txt` is unchanged** between source `806fa235...` and incoming `0c223d7...` (but actual per-site Patch Log execution still unverified). Main risk: two distinct DEV MariaDB databases **share app source and services**, so a one-site migration while live shared code changes can leave the other site in an incompatible state.
+
+**Prior backup evidence:** User's `findmnt` confirms the legacy Synology CIFS mount `/mnt/erpnext_backups`; `find` encountered only an inaccessible Synology `#recycle` directory, not a mount failure. This **does not** prove the October 13 DEVELOPMENT site backup artifacts are on NAS; GitHub's latest confirmed evidence places both DEVELOPMENT four-file sets in their site-local backup directories. Do not loop back to legacy NAS outage investigation as the principal next engineering task. Before schema writes, protect October 13 sets, create separately reviewed fresh recoverable sets for both sites, then plan supervised shared-code maintenance and site-specific migration. No changes to either server resulted from the GitHub-only planning.
+
+**Next single safe operator action:** run the runbook's Gate A **read-only pinned Git checkout preflight** inside the DEVELOPMENT container; report exact PASS/STOP. This is before any backup copy, checkout, migration, restart or PRODUCTION operation. After the output, review two-site recovery preparation and any site Patch Log prerequisites, then request precise approval for the first filesystem write.
+
+---
+
 ## 2026-10-27 — DEVELOPMENT pre-integration backup inventory; preserve old sets before CLI backup
 
 **Operator-supplied read-only evidence:** devcontainer `df -h .` at the shared DEVELOPMENT bench shows `/dev/nvme0n1p2` 915 GiB total, 184 GiB used, **686 GiB available**, 22% use at `/workspace`. Each valid site has exactly one four-file backup set in the displayed `private/backups` inventory: `development.localhost` files prefixed `20261013_083457-development_localhost-` (database 1,663,182 bytes, config 234 bytes, public tar 10,240 bytes, private tar 20,480 bytes) and `ccpc-integration2.localhost` prefixed `20261013_102539-ccpc-integration2_localhost-` (database 899,266 bytes, config 212 bytes, public/private tar 10,240 bytes each). These are **nonempty file-presence checks only**, not verified hashes, restore drills, or current snapshots.
