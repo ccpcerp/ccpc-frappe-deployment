@@ -17,6 +17,23 @@
 
 
 
+
+## 2026-10-27 — Honcho foreground controlling TTY identified; DEV maintenance authorization next
+
+**Owner-executed read-only Honcho TTY examination on `frappe_docker_devcontainer-frappe-1`:**
+```text
+PID PPID PGID SID TT    STAT ELAPSED      COMMAND
+14  0    14   14  pts/0 Ss   14-23:41:52  bash
+193 14   193  14  pts/0 S+   14-23:38:39  /home/frappe/.pyenv/versions/3.14.2/bin/python3.14 /home/frappe/.local/bin/honcho start
+```
+The container-namespace Honcho process PID `193` has foreground process group `193` and interactive controlling terminal `pts/0` belonging to session `14`. **Do not infer that the current operator's Ubuntu terminal owns or can reconnect to this 15-day-old TTY.** Do not send `Ctrl+C` in an unrelated shell, or use broad `kill`/`pkill`/`docker restart` commands. It manages web `bench serve --port 8000`, socketio, watch, schedule, worker from the verified Procfile, serving a *shared* DEVELOPMENT bench. This finding permits documenting a controlled maintenance approach; it **is not** proof that stopping PID193 safely drains running jobs.
+
+**Completed preflight:** both DEV site `tabPatch Log` entries 8/8; exact Git checkout preflight PASS at `806fa23516490ec7beefcff03a1baa09d722120e` with sole untracked `AGENTS.md`; review target `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`; October 27 four-part site-local backups created, format-tested, copied outside normal backup pruning and byte-compared for `development.localhost` and `ccpc-integration2.localhost`; Oct 13 historical sets also preserved. **Actual isolated restore drill, off-host coverage and latest master/account/index consistency remain open.** No code checkout, migrations, restarts or production changes.
+
+**Recommended next authorization:** explain to owner the **DEVELOPMENT-only service outage** needed for active Honcho-managed web, socketio, watch, scheduler and worker, plus the need to verify idle queues/current active users and a safe restart path. Request explicit permission for the narrow maintenance intervention, *not* presumed from the prior backup approvals. After approval, recheck current process identity and exact Git/backup state, gracefully stop only Honcho-managed DEVELOPMENT services with verified child termination, perform separately authorized pinned-code/schema changes to each of the two valid sites, and resume services only on demonstrated schema compatibility. If owner does not approve interruption, pursue an isolated bench plan in GitHub. PRODUCTION containers, data, service ports, backups and NAS retention remain off-limits.
+
+---
+
 ## 2026-10-27 — DEVELOPMENT Honcho launched interactively from shell; terminal ownership still unverified
 
 **Owner-executed, non-mutating DEVELOPMENT process inspection from Ubuntu host:** `docker exec --user frappe frappe_docker_devcontainer-frappe-1 bash -lc 'pid=$(pgrep -x honcho | head -n 1); parent=$(ps -o ppid= -p "$pid" | tr -d " "); ps -o pid,ppid,stat,etime,args -p "$parent,$pid"'` returned the following **container-namespace** PIDs:
