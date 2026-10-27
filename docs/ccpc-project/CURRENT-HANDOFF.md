@@ -11,6 +11,17 @@
 
 
 
+
+## 2026-10-27 — Both fresh DEVELOPMENT backups created; integration2 integrity verification next
+
+**Owner-executed previously approved two-site backup sequence:** the main `development.localhost` newly created set `20261027_075421-development_localhost-*` (four parts, database ~1.6 MiB, config 234 B, public ~10 KiB, private ~20 KiB) already passed nonempty, `gzip -t`, plain TAR `tar -tf` and JSON syntax checks, with `MAIN DEVELOPMENT BACKUP INTEGRITY: PASS` confirmed. The owner subsequently ran the protected-original nonempty guard followed by `bench --site ccpc-integration2.localhost backup --with-files` from the DEVELOPMENT container. Frappe reported `Backup for Site ccpc-integration2.localhost has been successfully completed with files` and the fresh four-part set `20261027_104801-ccpc-integration2_localhost-*` under `sites/ccpc-integration2.localhost/private/backups/`: config **212 B**, compressed database **1.0 MiB**, public TAR **10 KiB**, private TAR **10 KiB**. Summary timestamp `2026-10-27 10:48:02.456527` (as printed by container; no timezone inferred). The previously preserved October 13 sets remain outside ordinary backup cleanup paths, verified at start of respective backup operations.
+
+**Evidence limits:** successful backup creation is reported for both sites; integration2's **new** four artifacts still need independent nonempty/archive/JSON check. No independent restore drill, hashes after off-host copy, NAS backup coverage for DEVELOPMENT or schema migration has been demonstrated. The older protected sets are local, not demonstrated NAS protection. No checkout, migration, finance posting or PRODUCTION changes occurred.
+
+**Next ONE operator step:** run read-only format verification against exact integration2 prefix `sites/ccpc-integration2.localhost/private/backups/20261027_104801-ccpc-integration2_localhost`: nonempty checks, `gzip -t` database, `tar -tf` plain public/private TARs, `./env/bin/python -m json.tool` config with content suppressed, then report a single PASS only if all succeed. Do not switch shared Git checkout or `bench migrate` afterward without separate reviewed authorization; recovery and rollback planning remain release gates.
+
+---
+
 ## 2026-10-27 — Fresh main DEVELOPMENT backup integrity PASS; integration2 fresh backup next
 
 **Operator-reported actual read-only verification** of the successful October 27 `development.localhost` four-artifact set `20261027_075421-development_localhost-`: the guarded `bash` command checked all four nonempty files under `sites/development.localhost/private/backups/`; ran `gzip -t` on SQL, `tar -tf` on **plain** public/private TARs, and `./env/bin/python -m json.tool` on config with contents suppressed. It printed `MAIN DEVELOPMENT BACKUP INTEGRITY: PASS` and returned to the shell prompt. This **confirms archive format/readability, not restored SQL correctness or off-host recovery**. Protected October 13 originals for both sites were previously byte-compared into separately restricted private directories.
