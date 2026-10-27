@@ -63,3 +63,26 @@ NO FINANCIAL TRANSACTIONS PERFORMED
 **Finding:** The initial assumption that `GET /app` must directly return 200 was incorrect for this DEV site; it redirects (301) while the site’s `/desk` route serves the Desk HTML (200) and `frappe.csrf_token`. GitHub Frappe v16 `frappe/www/desk.py` and `desk.html` confirm CSRF generation/rendering for the Desk page. There is no evidence from these checks of a broken authentication setting or missing CSRF support, and no reason to change routing or restart services. Only the Maker's direct Desk/CSRF readiness is shown; Checker Desk and independent CSRF tokens are not yet tested.
 
 **Next one-step acceptance test:** Re-run a guarded two-account login + exact-identity + `GET /desk` (no redirects) + token-present/different validation for Maker and Checker. Use private no-echo passwords, separate HTTP cookie jars, do not display tokens/cookies/passwords or HTML, and no Finance POST endpoint. Normal login/session metadata may be written; no financial data changes intended. Then separately review HTTP authorization tests with true CSRF and role-denial evidence, without financial proposals/approvals or posting.
+
+### Corrected two-actor Desk/CSRF: PASS
+
+**Operator-reported completion after fixing `/app` -> `/desk` route assumption**:
+
+```text
+INTEGRATION2 CORRECTED DESK AND CSRF TEST
+SITE AND APPLICATION GUARDS: PASS
+Maker AUTHENTICATED IDENTITY: PASS
+Maker DESK HTTP: PASS
+Maker CSRF TOKEN: PRESENT
+Checker AUTHENTICATED IDENTITY: PASS
+Checker DESK HTTP: PASS
+Checker CSRF TOKEN: PRESENT
+TWO DISTINCT AUTHENTICATED SESSIONS: PASS
+INDEPENDENT CSRF TOKENS: PASS
+INTEGRATION2 DESK AND CSRF TEST: PASS
+NO FINANCE MAPPING OR POSTING REQUESTS PERFORMED
+```
+
+Both independently authenticated Finance accounts accessed `GET /desk` with HTTP 200 and received distinct CSRF tokens; user identities and session IDs were separately verified without exposing the secrets. This is actual Desk-page/CSRF readiness, not authorization of Finance write endpoints or Maker-vs-Checker enforcement through HTTP. No master data, Finance draft, GL/stock entry or mapping approval was changed.
+
+**Next guardrail:** The reviewed `ccpcerp.ccpc_erp.bc_mapping_workflow.propose_mapping` endpoint (app SHA `0c223d7...`) validates kind/canonical strings, then runs `_real_authority` on the session user **before any scope/mapping writes**. It is safe to test unauthorized cases with a deliberately nonexistent Item Group and Account to prevent any mapping creation even if expected authority check is bypassed. Test Checker calling Maker proposal for TISS (expected exact role denial) and Maker/Checker attempting the TREQ Company (expected exact Company-grant denial); require correct error class and/or specific message, not just an HTTP failure. Use real independent authenticated `POST` requests with CSRF headers from `/desk`, and never send authorized Maker+TISS proposal request or any approval/review request that needs a real revision. Errors may create ordinary request logs. Do not treat these negatives as proof of a complete Maker–Checker financial approval workflow.
