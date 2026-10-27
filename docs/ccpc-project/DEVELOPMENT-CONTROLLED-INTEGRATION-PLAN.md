@@ -1,7 +1,7 @@
 # CCPC ERPNext — Controlled DEVELOPMENT app integration and acceptance plan
 
 **Prepared:** 2026-10-27 (Asia/Manila)  
-**Status, updated 2026-10-27:** Both DEVELOPMENT site migrations **PASSED** on reviewed pinned detached GitHub source `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`. Integration2 migration plus its Finance DocType/role/custom-field postcheck (4/2/5) passed; owner now reports `MAIN DEVELOPMENT MIGRATION: PASS` after the main site's DocTypes, fixtures, customizations and `after_migrate` hooks completed. The two site search-index rebuilds were **queued**, not independently completed. MAIN site's own 4/2/5 schema presence check is next, followed by authorized DEV-only Honcho restart and application smoke tests. Five Honcho-managed services remain stopped; PRODUCTION excluded. Both DEV sites' fresh archive-validated pre-migration backups and historic sets remain locally preserved, not restored or off-host verified.
+**Status, updated 2026-10-27:** BOTH DEVELOPMENT site migrations PASSED under reviewed pinned detached GitHub source `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`. Owner ran independent Finance schema verification on each database: **four mapping DocTypes, two role definitions, and five Stock Entry Detail provenance fields: PASS on BOTH sites**. Search-index rebuilds were queued, not independently verified. All five DEVELOPMENT Honcho-managed service types remain stopped until a guarded supervised restart. Fresh complete four-part protected backups and October 13 historical copies remain locally preserved. Finance workflow postings, full smoke tests, independent restore and off-host backups remain unverified. PRODUCTION excluded.
 
 ## 1. Objective and current verified inputs
 
@@ -301,6 +301,52 @@ MAIN DEVELOPMENT MIGRATION: PASS
 
 **Next after 3 PASS rows:** plan a DEVELOPMENT-only controlled Honcho restart: verify pinned app HEAD, `AGENTS.md`, current process absence, and start Honcho exactly once under a durable service session without touching shared host PRODUCTION. Validate web/session access to **both** valid sites, queues, roles/access, master/account configuration and later approved synthetic intercompany workflows. Do not treat a bench start as successful until process/HTTP checks pass.
 
+### D4 — Both sites schema PASS; guarded DEVELOPMENT-only Honcho restart
+
+**Owner's main-site postmigration MariaDB read-only query** yielded:
+```text
+check_name                      found  result
+Finance mapping DocTypes           4   PASS
+Finance mapping roles              2   PASS
+Stock Entry provenance fields      5   PASS
+```
+It matches the previously verified **integration2** 4/2/5 PASS. Therefore both DEVELOPMENT databases now have the four Finance Scope/Revision DocTypes, two mapping role definitions and five issue-provenance/mapping revision custom fields. This does **not** demonstrate assigned user permissions, authorized real mapping approvals or financially safe stock/invoice postings.
+
+**Restart scope:** during already approved DEVELOPMENT maintenance window, start only the five Procfile services through the **single Frappe DEVELOPMENT container** `frappe_docker_devcontainer-frappe-1`. Never use Docker Compose or affect MariaDB/Redis/legacy PRODUCTION. A `docker exec -d --user frappe` Honcho process can outlive the temporary host invocation and preserve logs, but it is not a formally managed OS service, can disappear on container recreation, and log rotation for its dedicated log needs future operations review. This is a DEV-only continuity mechanism matching the previously interactive Honcho process, not a PRODUCTION process supervisor.
+
+At Ubuntu host prompt, execute a fail-closed preguard on exact app pinned SHA, empty detached branch name, sole `AGENTS.md` untracked file, expected `Procfile`, and absence of any running Honcho process; then a **single detached Honcho** launch, and finally report the new PID. Actual web/socketio/scheduler/worker readiness requires the next smoke-check; PID alone is not full startup proof. The launch uses the previously verified executable `/home/frappe/.local/bin/honcho`, a private bench log, and `umask 077` for newly created output.
+
+```bash
+set -euo pipefail
+dev=frappe_docker_devcontainer-frappe-1
+docker exec --user frappe "$dev" bash -lc '
+set -euo pipefail
+cd /workspace/development/frappe-bench
+test "$(git -C apps/ccpcerp rev-parse HEAD)" = "0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41" || { echo "STOP: App HEAD changed"; exit 1; }
+test -z "$(git -C apps/ccpcerp branch --show-current)" || { echo "STOP: Unexpected app branch"; exit 1; }
+test "$(git -C apps/ccpcerp status --porcelain=v1)" = "?? AGENTS.md" || { echo "STOP: Git working tree changed"; exit 1; }
+test -s Procfile && test -d logs || { echo "STOP: Bench run files unavailable"; exit 1; }
+if pgrep -x honcho >/dev/null; then echo "STOP: Honcho is already running"; exit 1; fi
+echo "DEVELOPMENT RESTART GUARDS: PASS"
+'
+docker exec -d --user frappe "$dev" bash -lc '
+set -euo pipefail
+umask 077
+cd /workspace/development/frappe-bench
+exec /home/frappe/.local/bin/honcho start >> logs/ccpc-dev-honcho-20261027.log 2>&1
+'
+sleep 5
+docker exec --user frappe "$dev" bash -lc '
+set -euo pipefail
+pid=$(pgrep -x honcho | head -n 1 || true)
+test -n "$pid" || { echo "STOP: Honcho was not found after launch. Review private bench log."; exit 1; }
+echo "DEVELOPMENT HONCHO STARTED: PID=$pid"
+ps -o pid,ppid,stat,etime,args -p "$pid"
+'
+```
+
+**Operator note:** if startup guard fails, stop and report; do not repeatedly launch or restart Docker. If Honcho is present but child apps fail, inspect **DEV-only** `logs/ccpc-dev-honcho-20261027.log` with bounded safe output (sanitize secrets), then repair separately. Next step after successful start is two-site HTTP response/scheduler/worker smoke test, process identity and configured origin checks; avoid writing financial business data. Keep integration acceptance distinct from migration schema success.
+
 ### Gate D — site-scoped migrations and persistent acceptance (separate explicit approval)
 
 1. Reconfirm site-specific DB name/host, snapshot, prerequisites and pending patches. Run approved migration for **`ccpc-integration2.localhost` first**. Monitor patch/DocType/workflow outcomes and fail on errors.
@@ -323,4 +369,4 @@ MAIN DEVELOPMENT MIGRATION: PASS
 **Authorized as of October 27:** GitHub inspection, the completed DEVELOPMENT-only two-site backup preservation/creation and verification, and the owner-approved temporary DEVELOPMENT maintenance window including a guarded graceful Honcho shutdown.  
 **Not independently authorized:** unreviewed application checkout/DB migration beyond the controlled subsequent steps, financial posting, broad Docker stop/restart, any PRODUCTION operation, unapproved restore or automated reporting. Stop on preflight mismatches.
 
-**Next concrete operator action:** run main `development.localhost` read-only Finance schema presence check (4 DocTypes, 2 roles, 5 Stock Entry Detail provenance fields). The main site migration already PASSED; then plan and execute a separate, DEV-only controlled Honcho restart and smoke tests for BOTH sites. Do not repeat backups or migrations.
+**Next concrete operator action:** execute D4 single guarded DEVELOPMENT-only Honcho restart on the named Frappe container, followed by separate two-site HTTP/process smoke checks. Both migrated DBs passed the Finance schema 4/2/5 gate. No further migrations or backup repetitions.
