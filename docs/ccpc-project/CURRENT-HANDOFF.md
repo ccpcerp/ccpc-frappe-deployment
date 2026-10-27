@@ -1,6 +1,15 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-27 — Both DEV HTTP pings PASS post-timezone; Finance authority inventory next
+
+**Owner-executed post-Asia/Manila-change web validation:** `development.localhost: HTTP 200`; `ccpc-integration2.localhost: HTTP 200`; `POSTCHANGE TWO-SITE WEB CHECK: PASS`. This followed independently verified system settings `Asia/Manila` on both sites and a fresh normal `frequency='All'` scheduler last-start around `2026-10-27 13:48` site-local on both. The script pinned application HEAD `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`. **DEV basic runtime, site settings, and scheduler-start health gates PASS**; individual job completion, authenticated UI, Finance role/Company grants, functional workflows, stock/GL posting, reporting, and restore rehearsal remain unverified. No new migrations/backups/restarts and no PRODUCTION actions.
+
+**Next read-only authorization inventory based on current reviewed app code:** `bc_mapping_workflow.py` requires `CCPC Mapping Preparer` (maker) and `CCPC Accounting Mapping Approver` (independent checker). `bc_issue_runtime._real_authority` rejects Administrator/Guest, disabled Users, absent explicit Role membership, absent Company-scoped `tabUser Permission` with `allow='Company'`, matching Company, `apply_to_all_doctypes=1`, empty `applicable_for`, and any `Stockroom Personnel` actor. Role existence was 2/2 PASS after migrate, **not role assignments**. Next inspect *aggregate counts only* in each DEVELOPMENT site for enabled non-Stockroom Finance-role users and those with valid Company grants. Do not print usernames/Company names; no role grant, settings modification, fabricated approval or postings. If no eligible actors, stop actual maker/checker workflow testing pending reviewed Company-specific authorized user setup. Review UI permissions and synthetic fixtures only with separate approvals.
+
+---
+
+
 ## 2026-10-27 — Both DEV sites show fresh Manila-time scheduler starts after timezone alignment
 
 **Owner-provided postchange, guarded read-only per-site SQL result (2026-10-27 13:50:52 Asia/Manila):**
