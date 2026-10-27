@@ -129,3 +129,24 @@ NO FINANCIAL DATA CHANGES
 This establishes a **point-in-time absence of custom CCPC Expense/Center Scope and Revision records** for the fictional TISS and TREQ Companies. It does **not** establish that eligible Item Group, Company-owned expense Account, Department, or Cost Center masters exist, nor that using any present master would be safe. No new mapping, fixture, or master data was written.
 
 **Next one-step test preparation:** Read-only census of eligible Item Group leaf records and TISS Expense-root non-group enabled Accounts (optional Center Department and Cost Center). Check whether only clearly tagged Integration2 synthetic masters can be selected without touching real master data. If none exist, design a synthetic fixture with exact required masters/owners/limits, proposed cleanup and isolated backup/restore strategy, and obtain explicit owner authorization before any write. A clean Scope/Revision census is necessary but not a substitute for a transaction and safety plan. PRODUCTION and main DEVELOPMENT remain untouched.
+
+### Read-only TISS Expense master census: eligible counts, no clearly labeled test fixture
+
+Owner executed the guarded **Integration2-only, read-only** Expense master preflight; the operator transcript reported:
+
+```text
+INTEGRATION2 EXPENSE MASTER PREFLIGHT
+SITE AND COMPANY GUARDS: PASS
+ELIGIBLE LEAF ITEM GROUP COUNT: 5
+ELIGIBLE TISS EXPENSE ACCOUNT COUNT: 30
+POTENTIAL TEST-LABELED ITEM GROUPS:
+ NONE FOUND
+POTENTIAL TEST-LABELED EXPENSE ACCOUNTS:
+ NONE FOUND
+EXPENSE MASTER PREFLIGHT: COMPLETED
+NO MASTER OR FINANCIAL DATA CHANGES
+```
+
+This proves only that 5 global non-group Item Groups exist and 30 `Integration Test Issuer` Expense-root, enabled, non-group Accounts meet the reviewed code's initial structural criteria. Names containing case-insensitive `test` or `integration` were not found in either eligible candidate list. These weak string heuristics **cannot establish whether masters are synthetic or safe**, and they do not justify using unlabeled existing Item Groups or accounts for a positive HTTP mapping proposal. No mappings, master records, financial transactions or Company configuration changes were made.
+
+**Next safe step:** A guarded read-only, local-only display of the five eligible Item Group names and the 30 TISS eligible Account names/metadata to classify candidates. Do not upload business records to GitHub or include credentials. If none is explicitly synthetic and separately approved, specify a purpose-named isolated Integration2 fixture (Item Group, expense Account, mapping revision) with verified prerequisites, backup/recovery procedure and narrow explicit owner approval before creating anything. Retain the current zero-mapping baseline for both TISS and TREQ, recheck immediately before a future transaction test. No PROD or main DEVELOPMENT modifications.
