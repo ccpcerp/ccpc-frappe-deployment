@@ -1,7 +1,7 @@
 # CCPC ERPNext — Controlled DEVELOPMENT app integration and acceptance plan
 
 **Prepared:** 2026-10-27 (Asia/Manila)  
-**Status, updated 2026-10-27:** both DEVELOPMENT backup sets are fresh, format-tested and preserved by byte-verified copies outside the normal cleanup path; historical October 13 sets were separately preserved. Both sites' eight registered patches and pinned old Git checkout were verified. **Owner has now explicitly approved a temporary DEVELOPMENT-only maintenance window to prepare the controlled shutdown and integration.** The shared Honcho shutdown, code checkout, migrations, restart, restore rehearsal and application acceptance have NOT been executed. PRODUCTION remains excluded.
+**Status, updated 2026-10-27:** Owner-executed DEVELOPMENT-only maintenance reached the reviewed **pinned app checkout**. Old Honcho was gracefully stopped and a guarded session check showed only an exited zombie (PID 197, `Z`); a second guarded live-process check returned `OLD HONCHO LIVE PROCESSES: NONE`. Owner-executed Git switch to detached `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41` returned `GIT SAFETY GUARDS: PASS` and `DEVELOPMENT CODE SWITCH: PASS`; untracked `AGENTS.md` remains. Both DEVELOPMENT backups are preserved/format-verified. **Migrations have NOT run; five Honcho-managed DEVELOPMENT services remain stopped.** PRODUCTION excluded.
 
 ## 1. Objective and current verified inputs
 
@@ -134,6 +134,49 @@ exit 1
 3. Only after a reviewed, approved cutover mechanism is selected, move the **shared** app checkout to the **pinned** tested-code descendant (the `0c223d7...` review head), never to a floating default branch. Verify exact `HEAD`, branch/detached state, files and unchanged `AGENTS.md`.
 4. Keep DEVELOPMENT services paused throughout the period where the shared code version does not match all intended site schemas. Do not resume ordinary main-site usage merely because the integration2 database migrates successfully; **both sites load the same Python source**. If preflight, checkout or migration fails, stop; do not attempt blind `git reset --hard` or automatic database reversal.
 
+### D0 — Exact first integration2 migration after verified code switch
+
+**Verified point-in-time operator output (2026-10-27):**
+```text
+OLD HONCHO LIVE PROCESSES: NONE
+GIT SAFETY GUARDS: PASS
+HEAD is now at 0c223d7 docs: record green CircleCI pipeline 10 for genuine Finance integration
+DEVELOPMENT CODE SWITCH: PASS
+0c223d7 docs: record green CircleCI pipeline 10 for genuine Finance integration
+```
+App checkout is now in detached HEAD, still with its single untracked `AGENTS.md`. Both independently verified site-local Oct27 four-artifact backups are protected outside auto-cleanup. CI passed isolated tests, **not** actual persistent site migration.
+
+**First site migration has an additional site-specific DB/schema/data scope.** Owner may authorize this by deliberately executing the clearly marked guarded migration command below; the previous maintenance approval does not imply silent server execution by ChatGPT. Run once only, from Ubuntu host after confirming operator accepts integration2 database/roles/workflow/backfill changes. Keep shared Honcho-managed services stopped. No financial posting, restoration, Docker or PRODUCTION actions.
+
+```bash
+docker exec --user frappe frappe_docker_devcontainer-frappe-1 bash -lc '
+set -euo pipefail
+cd /workspace/development/frappe-bench
+test "$(git -C apps/ccpcerp rev-parse HEAD)" = "0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41" || { echo "STOP: App checkout differs"; exit 1; }
+test -z "$(git -C apps/ccpcerp branch --show-current)" || { echo "STOP: App not detached at pinned revision"; exit 1; }
+test "$(git -C apps/ccpcerp status --porcelain=v1)" = "?? AGENTS.md" || { echo "STOP: Working-tree state differs"; exit 1; }
+for site in development.localhost ccpc-integration2.localhost; do
+  test -s "sites/$site/site_config.json" || { echo "STOP: Site config missing: $site"; exit 1; }
+  case "$site" in
+    development.localhost) stem=20261027_075421-development_localhost;;
+    ccpc-integration2.localhost) stem=20261027_104801-ccpc-integration2_localhost;;
+  esac
+  for suffix in database.sql.gz site_config_backup.json files.tar private-files.tar; do
+    test -s "sites/$site/private/ccpc-preintegration-2026-10-27/fresh-backup/$stem-$suffix" || { echo "STOP: Protected set incomplete: $site"; exit 1; }
+  done
+done
+if ps -eo pid=,pgid=,sid=,stat=,comm= | awk '"'"'($4 !~ /^Z/) && (($3==14 && $1!=14) || $2==193 || $5=="honcho") {bad=1} END {exit !bad}'"'"'; then
+  echo "STOP: Live old Honcho process found"
+  exit 1
+fi
+echo "GUARDS PASS — MIGRATING ONLY ccpc-integration2.localhost"
+bench --site ccpc-integration2.localhost migrate
+echo "INTEGRATION2 MIGRATION: PASS"
+'
+```
+
+This **changes only integration2's site database** but may affect shared Redis/cache and assets; keep other site's access blocked until its own compatible schema is established. `bench migrate` may run pre/post patches, sync DocTypes/custom fields, make roles, modify workflows and backfill existing data. If an error occurs, do not run other site migration, switch checkout back, restore anything, kill services or force commands; retain the exact error for controlled diagnosis. If successful, verify migrated DocTypes/roles, pending patches and that the active code remains pinned, then plan the main site's own migration and both-site smoke tests before restart. Actual data restore remains untested and would need explicit recovery approval.
+
 ### Gate D — site-scoped migrations and persistent acceptance (separate explicit approval)
 
 1. Reconfirm site-specific DB name/host, snapshot, prerequisites and pending patches. Run approved migration for **`ccpc-integration2.localhost` first**. Monitor patch/DocType/workflow outcomes and fail on errors.
@@ -156,4 +199,4 @@ exit 1
 **Authorized as of October 27:** GitHub inspection, the completed DEVELOPMENT-only two-site backup preservation/creation and verification, and the owner-approved temporary DEVELOPMENT maintenance window including a guarded graceful Honcho shutdown.  
 **Not independently authorized:** unreviewed application checkout/DB migration beyond the controlled subsequent steps, financial posting, broad Docker stop/restart, any PRODUCTION operation, unapproved restore or automated reporting. Stop on preflight mismatches.
 
-**Next concrete operator action:** run C0 guarded DEVELOPMENT-only Honcho shutdown during the approved maintenance window, then verify no managed children remain before any Git checkout/schema write. Preserve the verified site-local recovery sets.
+**Next concrete operator action:** deliberately authorize and execute the D0 single-site `ccpc-integration2.localhost` guarded migration command, **only if accepting that site-specific DB change**, while Honcho remains stopped. On PASS, validate integration2 then prepare the main site's distinct migration; on error, STOP.
