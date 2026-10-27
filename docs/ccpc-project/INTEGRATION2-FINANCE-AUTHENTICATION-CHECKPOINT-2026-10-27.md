@@ -414,3 +414,23 @@ The owner replied **"Approved"** to the separately scoped proposal: "Do you appr
 Expected persistent records only: one `CCPC Expense Mapping Scope` for the exact company/source, and revision `CCPC Expense Mapping Revision` revision_no=1, `Draft`, owner Maker, no approval fields. The app review branch remains `review/circleci-isolated-erpnext-phase2-2026-10-26` at `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`; the actual local checkout must be rechecked. Local Frappe v16 Desk template includes `frappe.csrf_token = "{{ csrf_token }}";`, supporting session+Desk extraction. Separate Maker login and `/api/method/frappe.auth.get_logged_user` identity must PASS before the single POST. Read-only database and protected backup safeguards (including fresh four-artifact checksum manifest) and zero mapping scopes must PASS before login. Never print Maker password/session SID/CSRF; use TTY-only private no-echo prompt. **One HTTP proposal attempt only; if response is unknown, timeout or postcheck fails, STOP—never retry without a new read-only inventory.**
 
 This authorization does **not** extend to Checker review/approval, an `Approved` revision, Accounting reference, changes to mapping master data, Cost Center, GL/stock/issue postings, intercompany billing, backup restore, cleanup, service restart, app branch switch, migration, main DEVELOPMENT or PRODUCTION. All subsequent actions independently gated. Operator execution/output not yet received; do not record PASS prematurely.
+
+### Authenticated synthetic Maker Draft attempt: STOP at login — **NO PROPOSAL POST**
+
+On 2026-10-28 (Asia/Manila) the owner executed the guarded, narrowly approved Integration2-only Maker proposal script. Actual terminal output:
+
+```text
+INTEGRATION2 AUTHENTICATED MAKER DRAFT TEST
+APPLICATION AND BACKUP GUARDS: PASS
+MASTER, ACTOR AND ZERO-MAPPING GUARDS: PASS
+Maker password:
+INTEGRATION2 MAKER DRAFT TEST: STOP
+STAGE: MAKER LOGIN
+ERROR TYPE: RuntimeError
+REASON: Maker login failed
+NO FINANCE PROPOSAL POST WAS ATTEMPTED
+```
+
+The script checked `response.status_code==200`, response JSON `message=="Logged In"`, and a nonempty/non-Guest `sid` cookie in one combined assertion. Because it did not report the HTTP status/message/cookie result separately, **cause is not yet isolated**. Previous Maker+Checker login and CSRF passes were verified in earlier operator tests, but do not establish today's credentials/session state. The original output expressly proves `propose_mapping` HTTP POST was **not attempted**. Thus creation of new mapping Scope/Draft revision remains **unverified and not expected**; no approval or accounting activation occurred. Do not rerun the complete proposal script or reset/change credentials speculatively.
+
+**Next safe diagnostic:** One narrow, single-attempt Maker login-only probe on the same pinned Integration2 host/site with a private no-echo password prompt, and sanitized output: HTTP status, recognized message classification (allowlisted only), presence of an authenticated SID cookie (not its value), and exact Maker identity when login actually succeeds. Keep the app/site and database isolation guards and avoid all Finance proposal/approval endpoints. Authentication itself may create session or failed-login metadata; it is not a financial write. Stop after a failed probe; avoid repeated password guesses and lockout. Depending on result, distinguish credentials/policy versus HTTP/session handling, and independently inspect zero mapping scopes before any future proposal attempt. No Checker approval, credential reset, database restore, restart, main DEVELOPMENT or PRODUCTION action authorized.
