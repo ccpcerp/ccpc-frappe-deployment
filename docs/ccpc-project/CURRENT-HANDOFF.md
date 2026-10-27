@@ -12,6 +12,19 @@
 
 
 
+
+## 2026-10-27 — Both fresh DEV backups format-verified; Stage B initial backups completed
+
+**Owner-reported second-site independent integrity PASS:** from the `frappe` user within DEVELOPMENT bench, the guarded check against `sites/ccpc-integration2.localhost/private/backups/20261027_104801-ccpc-integration2_localhost-*` verified all four files nonempty, SQL gzip format via `gzip -t`, plain public/private TAR readability via `tar -tf`, and JSON syntax via `./env/bin/python -m json.tool` (content suppressed). Terminal output: `INTEGRATION2 BACKUP INTEGRITY: PASS` and normal prompt.
+
+**Combined confirmed DEV recovery state:** Both valid DEVELOPMENT sites now have newly created `--with-files` four-artifact Oct 27 backup sets and **format checks PASS**: `development.localhost` prefix `20261027_075421-development_localhost-`, `ccpc-integration2.localhost` prefix `20261027_104801-ccpc-integration2_localhost-`. Both earlier October 13 four-artifact sets are preserved separately under `sites/<site>/private/ccpc-preintegration-2026-10-27/` with byte comparisons, restrictive permissions and non-overwrite guards. Both sites' Patch Logs have all eight registered patches; pinned Git checkout preflight PASSED. All verifications are per-site local, **not** full restoration, off-host/NAS backup, actual current master integrity, or source/schema cutover.
+
+**Next one safe approved recovery action:** stage a separate guarded protected copy of *both fresh October 27 four-artifact sets* beneath the existing `ccpc-preintegration-2026-10-27` private directories, outside the normal `private/backups` cleanup location, and compare all eight bytes-exactly without overwriting any existing artifact. This preserves the newest recovery sets while subsequent integration may invoke backup housekeeping. Report two per-site success lines, stop on collisions/missing files. This falls within the owner's prior approval for DEVELOPMENT-only backup preservation and creation; it is **not** approval for Git checkout, migration, worker restart, accounting posting, NAS retention or any PRODUCTION change.
+
+**Following prerequisite gates:** read-only Company/Account prerequisite and shared DEV workers/process review, then separately authorize controlled shared app checkout and site-specific migration/acceptance only after isolating the main site or planning both sites' code/schema transition. The older Oct13 files must remain preserved for historical recovery.
+
+---
+
 ## 2026-10-27 — Both fresh DEVELOPMENT backups created; integration2 integrity verification next
 
 **Owner-executed previously approved two-site backup sequence:** the main `development.localhost` newly created set `20261027_075421-development_localhost-*` (four parts, database ~1.6 MiB, config 234 B, public ~10 KiB, private ~20 KiB) already passed nonempty, `gzip -t`, plain TAR `tar -tf` and JSON syntax checks, with `MAIN DEVELOPMENT BACKUP INTEGRITY: PASS` confirmed. The owner subsequently ran the protected-original nonempty guard followed by `bench --site ccpc-integration2.localhost backup --with-files` from the DEVELOPMENT container. Frappe reported `Backup for Site ccpc-integration2.localhost has been successfully completed with files` and the fresh four-part set `20261027_104801-ccpc-integration2_localhost-*` under `sites/ccpc-integration2.localhost/private/backups/`: config **212 B**, compressed database **1.0 MiB**, public TAR **10 KiB**, private TAR **10 KiB**. Summary timestamp `2026-10-27 10:48:02.456527` (as printed by container; no timezone inferred). The previously preserved October 13 sets remain outside ordinary backup cleanup paths, verified at start of respective backup operations.
