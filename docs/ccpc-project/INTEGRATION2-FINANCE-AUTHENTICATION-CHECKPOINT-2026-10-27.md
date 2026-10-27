@@ -86,3 +86,23 @@ NO FINANCE MAPPING OR POSTING REQUESTS PERFORMED
 Both independently authenticated Finance accounts accessed `GET /desk` with HTTP 200 and received distinct CSRF tokens; user identities and session IDs were separately verified without exposing the secrets. This is actual Desk-page/CSRF readiness, not authorization of Finance write endpoints or Maker-vs-Checker enforcement through HTTP. No master data, Finance draft, GL/stock entry or mapping approval was changed.
 
 **Next guardrail:** The reviewed `ccpcerp.ccpc_erp.bc_mapping_workflow.propose_mapping` endpoint (app SHA `0c223d7...`) validates kind/canonical strings, then runs `_real_authority` on the session user **before any scope/mapping writes**. It is safe to test unauthorized cases with a deliberately nonexistent Item Group and Account to prevent any mapping creation even if expected authority check is bypassed. Test Checker calling Maker proposal for TISS (expected exact role denial) and Maker/Checker attempting the TREQ Company (expected exact Company-grant denial); require correct error class and/or specific message, not just an HTTP failure. Use real independent authenticated `POST` requests with CSRF headers from `/desk`, and never send authorized Maker+TISS proposal request or any approval/review request that needs a real revision. Errors may create ordinary request logs. Do not treat these negatives as proof of a complete Maker–Checker financial approval workflow.
+
+### HTTP Finance authorization denials: PASS (two negative cases)
+
+**Owner-provided Integration2-only operator transcript**, with actual authenticated independent Maker and Checker Frappe login sessions and per-session CSRF extracted from `GET /desk`, using application HEAD `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41` and protected checkout:
+
+```text
+INTEGRATION2 FINANCE HTTP AUTHORIZATION TEST
+APPLICATION AND FINANCE SAFETY GUARDS: PASS
+NONEXISTENT FINANCE INPUT GUARDS: PASS
+Maker AUTHENTICATED HTTP AND CSRF: PASS
+Checker AUTHENTICATED HTTP AND CSRF: PASS
+Checker cannot propose TISS: PASS (denied by Finance policy)
+Maker cannot propose TREQ: PASS (denied by Finance policy)
+INTEGRATION2 FINANCE HTTP DENIAL CHECK: PASS
+NO FINANCE MAPPING OR POSTING REQUEST SUCCEEDED
+```
+
+**Bounded conclusion:** The real `ccpcerp.ccpc_erp.bc_mapping_workflow.propose_mapping` HTTP POST endpoint enforced explicit *Maker role* denial on the authenticated Checker when scoped to `Integration Test Issuer` (`TISS`) and *Company grant* denial for the authenticated Maker when scoped to `Integration Test Requester` (`TREQ`). The script required HTTP 500, exception class `MappingPolicyError`, and matching specific denial message for each case; generic network/CSRF/missing-master failures would not count as PASS. Both requests supplied deliberately nonexistent Item Group and Expense Account identifiers, independently checked absent before the HTTP test. The reviewed GitHub code calls `_real_authority` **before any draft/scope creation**; test input was not a valid Finance proposal even if authorization were defective. This was a **negative-authorization HTTP milestone**, not a positive proposal or Accounting approval acceptance. Operator confirms no successful Finance mapping or posting requests. Ordinary session or error log metadata may have been generated.
+
+**Remaining acceptance:** Successful authorized Maker+TISS draft creation, authenticated Checker review/approval of that draft, Maker self-approval denial, optimistic-version/race protection and rollback/stock/GL behavior **not tested**. Checker approval endpoint locates an existing mapping draft before role enforcement; a missing draft cannot test Checker-vs-Maker approval. Before any persistent test mapping, first perform a separately guarded **read-only Integration2 census** of mapping Scope/Revision rows and relevant existing fixture masters; then prepare a precise, small, auditable synthetic fixture plan, secure Accounting approval reference handling and backup/rollback strategy, and obtain the owner’s separate approval for the corresponding write transactions. Do not use the CI-only disposable fixture on persistent Integration2. Main DEVELOPMENT and PRODUCTION unchanged by the requested business tests. No secrets or session tokens shared.
