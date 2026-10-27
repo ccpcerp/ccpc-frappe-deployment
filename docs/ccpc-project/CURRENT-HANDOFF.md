@@ -20,6 +20,25 @@
 
 
 
+
+## 2026-10-27 — Actual DEVELOPMENT code switch PASS at reviewed 0c223d7; integration2 migration next
+
+**Owner-executed and terminal-confirmed milestone:**
+```text
+OLD HONCHO LIVE PROCESSES: NONE
+GIT SAFETY GUARDS: PASS
+HEAD is now at 0c223d7 docs: record green CircleCI pipeline 10 for genuine Finance integration
+DEVELOPMENT CODE SWITCH: PASS
+0c223d7 docs: record green CircleCI pipeline 10 for genuine Finance integration
+```
+The scoped old-Honcho session check found only a `Z` zombie PID `197` (exited), and the subsequent guarded switch checked no **live** old Honcho process before changing code. The DEVELOPMENT custom-app checkout at `/workspace/development/frappe-bench/apps/ccpcerp` is now **detached HEAD** at reviewed GitHub commit `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41` (candidate review branch `review/circleci-isolated-erpnext-phase2-2026-10-26`). Original `AGENTS.md` remained the single untracked file, and `git diff --check` passed. GitHub review branch tip was reconfirmed at the same SHA. **Both site databases remain unmigrated to this code; do not restart shared DEV Honcho services.**
+
+**Verified recovery evidence:** both `development.localhost` and `ccpc-integration2.localhost` have fresh 2026-10-27 four-part `--with-files` backups, format checks PASS, protected byte-compared local copies outside Frappe default pruning. October 13 historical four-part sets separately preserved. These are not off-host or independently restore-tested.
+
+**Next engineering action (Gate D0):** owner explicitly authorizes **only** first `ccpc-integration2.localhost` database migration by choosing to execute the guarded command documented in the [DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md](DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md) at commit `c599cc916fa5de89296df8c7e23b9a0fae26294f`. Guard exact app SHA, detached checkout, sole untracked file, both sites' protected recovery files and no live Honcho processes; then `bench --site ccpc-integration2.localhost migrate` ONLY. It may update database schema, roles, workflow, and backfills. Not yet executed. A failing command is a STOP; do not automatically roll back code, restore database, start shared services, or migrate main site. Upon PASS, check integration2 schema/setup and only then prepare separate main DEV migration. No production changes, no financial postings, no NAS modifications.
+
+---
+
 ## 2026-10-27 — Owner executed graceful DEVELOPMENT Honcho stop: PASS
 
 **Owner-executed C0 command result:** `DEVELOPMENT HONCHO STOPPED: PASS` returned to Ubuntu shell `gani@ccpcerpserver:~$`. The preceding exact-identity guard in approved C0 matched DEVELOPMENT container's `honcho start` process PID `193`, original shell PPID `14`, process group `193`, controlling TTY `pts/0`, and sent SIGINT only to that Honcho PID; the command printed PASS after its PID no longer existed. This is **actual DEV-only stop evidence**. It does not yet establish that all Honcho children exited and does not authorize silently switching app source or running migrations while any process remains.
