@@ -1,6 +1,17 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-27 — DEV scheduler history present on both sites; main freshness and clock basis need checking
+
+**Owner-executed read-only SQL aggregate inspection after successful two-site `bench doctor`:** Both valid DEVELOPMENT sites have four enabled `frequency='All'` Scheduled Job Types, all four with non-null `last_execution`. On `development.localhost`: database `NOW()` = `2026-10-27 05:03:01`, newest frequent-job `last_execution` = `2026-10-27 10:30:03.606934`; historical Scheduled Job Log `Complete` 3,628 (latest `2026-10-27 10:02:14.162379`), `Failed` 1 (latest `2026-10-25 00:02:26.232877`). On `ccpc-integration2.localhost`: database `NOW()` = `2026-10-27 05:03:02`, newest frequent-job `last_execution` = `2026-10-27 13:00:08.075452`; `Complete` 3,718 (latest `2026-10-27 13:00:13.577530`), `Failed` 1 (latest `2026-10-25 00:00:14.175391`). The SQL loop ended `BOTH DEV SCHEDULER HISTORY CHECKS: COMPLETED`.
+
+**Interpretation and scope:** This proves historical starts and successful job logs on both sites, with no failed job logs dated October 27 **in the reported aggregates**. It does not prove the main site's scheduler is continuing normally after the DEV restart: its latest start/completion precede integration2's by hours. The database clock `05:03` versus recorded application times `13:00` is compatible with UTC DB clock versus Asia/Manila (+08) timestamps, **but that mismatch has not yet been verified**. Do not infer a clock-skew failure or claim current scheduler health for both sites. `last_execution` can reflect start rather than successful completion; not every job creates a Scheduled Job Log. October 25 historical failures are not newly observed failures from this migration.
+
+**Next one safe diagnostic:** in the same DEVELOPMENT-only container and same pinned app SHA, use read-only site-scoped MariaDB SELECTs for `NOW()`, `UTC_TIMESTAMP()`, session/global DB timezone, site System Settings timezone, and the **four most recent frequent-job execution timestamps** (no job method names or log contents). Confirm clock interpretation and whether main site has any newer post-restart frequent executions before deciding if a DEV-only scheduler log review is necessary. Do not trigger/enqueue jobs or adjust scheduler configuration, restart services, change business data or touch PRODUCTION. Real Finance/Withdrawal/intercompany integration and day-one reports remain unverified.
+
+---
+
+
 ## 2026-10-27 — Both DEVELOPMENT bench doctor checks completed without scheduler warnings
 
 **Owner-executed read-only command:** `bench --site development.localhost doctor` and `bench --site ccpc-integration2.localhost doctor`, under prior pinned CCPC app guard `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`. Both printed `-----Checking scheduler status-----`, `Workers online: 1`, no scheduler disabled/paused/inactive/maintenance warning, no job entries, and the script ended `BOTH DEV DOCTOR CHECKS: COMPLETED`. These checks establish one **shared-bench** registered worker (not one dedicated worker per site) and no reported scheduler restriction or queued methods at inspection time; they do **not** prove scheduling actually ran or that jobs completed.
