@@ -1,6 +1,31 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-27 — TISS Finance `_real_authority` direct database policy checks: 8/8 PASS
+
+**Owner-executed one-site read-only Frappe script on `ccpc-integration2.localhost` pinned application HEAD `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`:** The actual application helper `ccpcerp.ccpc_erp.bc_issue_runtime._real_authority` performed `SELECT ... FOR UPDATE` authorization checks in a short transaction with explicit `frappe.db.rollback()` in `finally` to release DB locks. The operator reported all 8 assertions passed:
+
+```text
+FINANCE AUTHORIZATION SAFETY GUARDS: PASS
+Maker authorized for TISS: PASS
+Checker authorized for TISS: PASS
+Maker cannot act as checker: PASS (denied)
+Checker cannot act as maker: PASS (denied)
+Maker cannot authorize TREQ: PASS (denied)
+Checker cannot authorize TREQ: PASS (denied)
+Administrator cannot act as Finance maker: PASS (denied)
+Guest cannot act as Finance checker: PASS (denied)
+FINANCE AUTHORIZATION POLICY CHECK: PASS
+NO USER OR FINANCIAL DATA CHANGES
+```
+
+**Verified milestone:** Both newly created Finance users have independently rechecked correct TISS Company grants and distinct single-role assignments; `_real_authority` accepts 2 legitimate combinations and rejects 6 unauthorized role/Company/identity combinations (**8/8 PASS**). Main `development.localhost` remains free of test User IDs. This tests a **direct server-side policy function with existing DB rows**, not actual HTTP login, CSRF, UI accessibility, Finance proposal/approval endpoint behavior, real Accounting signoff, mapping authorization, financial posting or concurrent transactions. Accounts have reserved `.test` email identifiers and no user passwords have been provisioned through this workflow. No user, mapping, stock, GL, migration, service restart or PRODUCTION changes in this read-only step.
+
+**Next authorization gate:** Plan secure per-user password/interactive authentication testing for the two TISS-only Integration2 accounts with owner approval before modifying any `__Auth` state. Use local no-echo per-password input; never echo, log, publish, store in GitHub, copy into chat or re-use a shared test password. Verify site-specific username/password login settings first, then test authenticated access and maker-vs-checker denials through real HTTP session endpoints. No financial mapping proposal/approval or stock/GL posting without separate fixture authorization; don't treat `frappe.set_user` alone as proof of browser authentication. Keep CI disposable-only fixture out of Integration2.
+
+---
+
+
 ## 2026-10-27 — TISS Finance actors independently read back: exact roles/grants PASS; main DEV absent
 
 **Owner-supplied independently executed, read-only MariaDB verification after committed User/Company grant transaction:**
