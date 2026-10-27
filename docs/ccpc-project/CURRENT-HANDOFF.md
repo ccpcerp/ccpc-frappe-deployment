@@ -1,6 +1,19 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-27 — Both DEV frequent schedulers CURRENT; main site configured Asia/Kolkata
+
+**Owner-executed read-only per-site MariaDB/System Settings verification** under pinned reviewed CCPC app `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`:
+
+- `development.localhost`: `UTC_TIMESTAMP()=2026-10-27 05:28:52`, UTC+8 reference `13:28:52`; **System Settings timezone `Asia/Kolkata` (UTC+05:30)**. Four enabled `frequency='All'` Scheduled Job Type `last_execution` readings: `10:58:02.950669`, `10:58:02.689468`, `10:58:02.411224`, `10:58:02.132506` in configured local clock. These are current relative to Kolkata clock `10:58:52` (~49–50 seconds earlier).
+- `ccpc-integration2.localhost`: `UTC_TIMESTAMP()=2026-10-27 05:28:53`, UTC+8 reference `13:28:53`; **System Settings timezone `Asia/Manila` (UTC+08:00)**. Four corresponding `last_execution` readings: `13:28:01.801823`, `13:28:01.525978`, `13:28:01.187867`, `13:28:00.572307` in Manila clock; ~51–52 seconds earlier.
+- Script printed `BOTH DEV SCHEDULER CLOCK CHECKS: COMPLETED`; no code, database settings, job scheduling or production changes were executed. The apparent 2h30 discrepancy across raw values is completely accounted for by two site-specific timezone settings, not a stale main-site scheduler. `last_execution` demonstrates jobs started recently, **not automatically their successful completion**; earlier doctor output had one registered shared worker and no scheduler restrictions.
+
+**Open config decision:** Main DEV System Settings timezone is `Asia/Kolkata`, inconsistent with `Asia/Manila` on Integration2 and the Philippines-oriented CCPC operation. The GitHub workflow/plan did not establish this as an approved intentional exception; **do not silently correct it**. Ask owner whether to align `development.localhost` with `Asia/Manila` in a separately approved **DEVELOPMENT-only** System Settings change. Timezone modification can affect displayed dates, timestamps, calendar and scheduled-event interpretation, so verify expected behavior before/after; do not adjust MariaDB global/system clock or shared container, and do not touch PRODUCTION. If owner keeps Kolkata intentionally, record rationale and test expectations. After decision, continue authenticated DEV workflow/permissions and approved financial tests; actual GL/stock postings and four day-one reports remain unverified.
+
+---
+
+
 ## 2026-10-27 — MariaDB effective UTC confirmed; site scheduler timezone/freshness diagnosis next
 
 **Owner's diagnostic results after previous SQL error:** A prior MariaDB `SELECT NOW(), UTC_TIMESTAMP() AS utc_time` failed `ERROR 1064` (reserved/conflicting alias `utc_time`); it was a nonmutating `SELECT`. Owner opened a fresh Ubuntu host terminal and confirmed `whoami=gani`, host `ccpcerpserver`, directory `/home/gani`; read-only Docker execution confirmed DEVELOPMENT Frappe container accessible and original Honcho PID `380905` alive (`Ss`, elapsed `01:00:08`). A revised main DEV-only read-only query using nonconflicting alias `db_utc_clock` PASSED: on 2026-10-27, MariaDB session `NOW()=05:23:51`, `UTC_TIMESTAMP()=05:23:51`, `@@session.time_zone=SYSTEM`. Thus the MariaDB session's effective clock was UTC at that instant; the 8-hour mismatch from reported app timestamps is compatible with Asia/Manila (+08) timestamps, **not evidence of an SQL/database failure**. Host/server timezone settings and both site timezone settings remain to be directly confirmed. No changes to DB, code or services; PRODUCTION untouched.
