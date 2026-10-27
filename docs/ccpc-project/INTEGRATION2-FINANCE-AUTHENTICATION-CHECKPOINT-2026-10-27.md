@@ -150,3 +150,54 @@ NO MASTER OR FINANCIAL DATA CHANGES
 This proves only that 5 global non-group Item Groups exist and 30 `Integration Test Issuer` Expense-root, enabled, non-group Accounts meet the reviewed code's initial structural criteria. Names containing case-insensitive `test` or `integration` were not found in either eligible candidate list. These weak string heuristics **cannot establish whether masters are synthetic or safe**, and they do not justify using unlabeled existing Item Groups or accounts for a positive HTTP mapping proposal. No mappings, master records, financial transactions or Company configuration changes were made.
 
 **Next safe step:** A guarded read-only, local-only display of the five eligible Item Group names and the 30 TISS eligible Account names/metadata to classify candidates. Do not upload business records to GitHub or include credentials. If none is explicitly synthetic and separately approved, specify a purpose-named isolated Integration2 fixture (Item Group, expense Account, mapping revision) with verified prerequisites, backup/recovery procedure and narrow explicit owner approval before creating anything. Retain the current zero-mapping baseline for both TISS and TREQ, recheck immediately before a future transaction test. No PROD or main DEVELOPMENT modifications.
+
+### Read-only Expense fixture master names: no dedicated Integration2 test master
+
+**Owner-executed Integration2 test fixture candidate inventory** passed site and baseline checks and did not modify DB records:
+
+```text
+ELIGIBLE ITEM GROUPS:
+Consumable
+Products
+Raw Material
+Services
+Sub Assemblies
+
+TISS EXPENSE ACCOUNTS:
+5150 - Intercompany Materials Expense - TISS (number 5150)
+Administrative Expenses - TISS
+Bank Charges - TISS
+Commission on Sales - TISS
+Cost of Goods Sold - TISS
+Depreciation - TISS
+Entertainment Expenses - TISS
+Exchange Gain/Loss - TISS
+Expenses Included In Asset Valuation - TISS
+Expenses Included In Valuation - TISS
+Freight and Forwarding Charges - TISS
+Gain/Loss on Asset Disposal - TISS
+Impairment - TISS
+Interest Expense - TISS
+Legal Expenses - TISS
+Marketing Expenses - TISS
+Miscellaneous Expenses - TISS
+Office Maintenance Expenses - TISS
+Office Rent - TISS
+Postal Expenses - TISS
+Print and Stationery - TISS
+Round Off - TISS
+Salary - TISS
+Sales Expenses - TISS
+Stock Adjustment - TISS
+Tax Expense - TISS
+Telephone Expenses - TISS
+Travel Expenses - TISS
+Utility Expenses - TISS
+Write Off - TISS
+```
+
+Five eligible non-group Item Groups are generic global ERPNext names and not clearly synthetic; 30 TISS enabled Expense-root leaf Accounts are ordinary chart-of-accounts entries, including business-specific intercompany code 5150. **Do not designate any of them as a mapping test fixture by default.** There are still zero custom CCPC mapping scopes/revisions for TISS/TREQ from the immediately prior inventory.
+
+**Risk verified in reviewed custom-app code** (`ccpcerp.ccpc_erp.bc_issue_runtime.resolve_locked_original_issue`, pinned app `0c223d7...`): original issue expense resolution explicitly selects approved Company+Item Group scopes and validated linked expense accounts. An approved Expense mapping for a generic existing group could be consulted by later issue tests. An isolated new Item Group plus a clearly named TISS-only synthetic Expense Account is safer, but neither should be created before verifying root/parent hierarchy, exact naming and absence of collisions, fresh site backup, transaction boundaries, no item/stock/GL posting, and the owner's separate explicit approval. A synthetic mapping's approval must not be described as deployment to main DEVELOPMENT/PRODUCTION.
+
+**Next one-step read-only preflight:** Inspect `tabItem Group` root/parent hierarchy and TISS enabled Expense-root group Account parents, plus exact synthetic naming collisions and the current zero-scope baseline. Prefer showing metadata only, not raw chart of accounts exports. Then draft bounded test+cleanup+rollback procedure and request authorization for controlled Integration2 fixture creation and HTTP workflow checks. Never delete or rename existing records as an unapproved cleanup shortcut.
