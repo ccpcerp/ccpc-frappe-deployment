@@ -1,6 +1,15 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-27 — Both DEVELOPMENT bench doctor checks completed without scheduler warnings
+
+**Owner-executed read-only command:** `bench --site development.localhost doctor` and `bench --site ccpc-integration2.localhost doctor`, under prior pinned CCPC app guard `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`. Both printed `-----Checking scheduler status-----`, `Workers online: 1`, no scheduler disabled/paused/inactive/maintenance warning, no job entries, and the script ended `BOTH DEV DOCTOR CHECKS: COMPLETED`. These checks establish one **shared-bench** registered worker (not one dedicated worker per site) and no reported scheduler restriction or queued methods at inspection time; they do **not** prove scheduling actually ran or that jobs completed.
+
+**Next exact scope:** Two-site **read-only MariaDB aggregate inventory** of `tabScheduled Job Type` (enabled frequent `All` jobs, count with non-null `last_execution`, maximum last-execution timestamp) and `tabScheduled Job Log` (count/latest Complete and Failed entries). Read only summary timestamps/counts, no job method names, details, SQL data dumps, site credentials or transaction changes. These fields were independently reviewed against Frappe v16 source; note `last_execution` reflects job start for logging jobs and does not independently establish success, while not every job creates a Scheduled Job Log. If absent/stale, inspect DEV-only scheduler/worker logs, no forced restart. After diagnostics, proceed to controlled authenticated smoke testing and separate permission/finance validation. No new migration/backup work or PRODUCTION operation.
+
+---
+
+
 ## 2026-10-27 — DEV Honcho process survived 27m with 25 descendants; doctor checks next
 
 **Owner-reported read-only process inspection:** DEVELOPMENT-only `frappe_docker_devcontainer-frappe-1` still contained Honcho PID `380905` with `PPID 0`, state `Ss` and elapsed `27:22` at the moment of the check. Current bench `Procfile` enumerated five expected process groups: `web`, `socketio`, `watch`, `schedule`, `worker`. The scoped process tree enumerated **25 live descendants** (Python, shell, thread and esbuild process names). This supports continued service presence but **cannot alone assign each descendant to its Procfile group, establish RQ worker registration, or establish that scheduled jobs execute**. Existing D5 `/api/method/ping` probes returned 200 on both sites after both successful schema migrations.
