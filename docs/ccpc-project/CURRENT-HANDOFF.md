@@ -2,6 +2,15 @@
 
 
 
+
+## 2026-10-27 — DEVELOPMENT pre-integration backup inventory; preserve old sets before CLI backup
+
+**Operator-supplied read-only evidence:** devcontainer `df -h .` at the shared DEVELOPMENT bench shows `/dev/nvme0n1p2` 915 GiB total, 184 GiB used, **686 GiB available**, 22% use at `/workspace`. Each valid site has exactly one four-file backup set in the displayed `private/backups` inventory: `development.localhost` files prefixed `20261013_083457-development_localhost-` (database 1,663,182 bytes, config 234 bytes, public tar 10,240 bytes, private tar 20,480 bytes) and `ccpc-integration2.localhost` prefixed `20261013_102539-ccpc-integration2_localhost-` (database 899,266 bytes, config 212 bytes, public/private tar 10,240 bytes each). These are **nonempty file-presence checks only**, not verified hashes, restore drills, or current snapshots.
+
+**New documented safety finding:** Frappe's documented ordinary `bench backup` flow can clean old backups (default ~24 hours), so do not invoke an unconditional backup on the two sites while their only preserved Oct 13 files are in the ordinary default backup directories. First make a permission-restricted verified copy of both original sets **outside the CLI-pruned `private/backups` directory**, without overwriting or printing secrets, and examine success. Then use reviewed fresh-site snapshot destinations/validation prior to any shared-app checkout, role/workflow migration, accounting posting, or site restore. `--backup-path` alone should not be assumed to disable default backup cleanup. No backup, checkout, migration, file deletion or PRODUCTION operation was performed at this checkpoint.
+
+---
+
 ## 2026-10-27 — DEVELOPMENT integration2 application installation reconfirmed; migration impact reviewed
 
 **Owner-executed read-only site confirmation:** `docker exec --user frappe frappe_docker_devcontainer-frappe-1 bash -lc 'cd /workspace/development/frappe-bench && bench --site ccpc-integration2.localhost list-apps'` returned `frappe 16.33.1 version-16`, `erpnext 16.34.2 version-16`, and `ccpcerp 0.0.1 review/intercompany-approval-failure-tests`. This confirms the intended integration2 site presently recognizes all three installed apps on the EXISTING shared DEVELOPMENT app checkout. It is **not** proof the fetched CircleCI review code is running or that a migration/acceptance test has occurred. `ccpc-integration.localhost` remains a historically failed/incomplete site, not an approved test target.
