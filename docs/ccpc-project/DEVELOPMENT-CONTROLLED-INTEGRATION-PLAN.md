@@ -1,7 +1,7 @@
 # CCPC ERPNext — Controlled DEVELOPMENT app integration and acceptance plan
 
 **Prepared:** 2026-10-27 (Asia/Manila)  
-**Status, updated 2026-10-27:** BOTH DEVELOPMENT site migrations PASSED under reviewed pinned detached GitHub source `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`. Owner ran independent Finance schema verification on each database: **four mapping DocTypes, two role definitions, and five Stock Entry Detail provenance fields: PASS on BOTH sites**. Search-index rebuilds were queued, not independently verified. All five DEVELOPMENT Honcho-managed service types remain stopped until a guarded supervised restart. Fresh complete four-part protected backups and October 13 historical copies remain locally preserved. Finance workflow postings, full smoke tests, independent restore and off-host backups remain unverified. PRODUCTION excluded.
+**Status, updated 2026-10-27:** Both DEVELOPMENT migrations and independent 4/2/5 Finance schema checks PASS at pinned detached app HEAD `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`. **Owner executed guarded DEVELOPMENT-only Honcho restart** and reported `DEVELOPMENT RESTART GUARDS: PASS`, `DEVELOPMENT HONCHO STARTED: PID=380905`; at five seconds the new process was present (`PPID 0`, `Ss`). **This verifies Honcho launch but NOT web reachability, worker/scheduler readiness, or functional transaction acceptance.** The next action is a site-specific read-only HTTP ping for both valid DEV sites, then worker/scheduler smoke checks. PRODUCTION excluded. Both protected October 27 four-part snapshots and October 13 historical copies remain preserved locally; independent restore/off-host verification untested.
 
 ## 1. Objective and current verified inputs
 
@@ -347,6 +347,33 @@ ps -o pid,ppid,stat,etime,args -p "$pid"
 
 **Operator note:** if startup guard fails, stop and report; do not repeatedly launch or restart Docker. If Honcho is present but child apps fail, inspect **DEV-only** `logs/ccpc-dev-honcho-20261027.log` with bounded safe output (sanitize secrets), then repair separately. Next step after successful start is two-site HTTP response/scheduler/worker smoke test, process identity and configured origin checks; avoid writing financial business data. Keep integration acceptance distinct from migration schema success.
 
+### D5 — Honcho restart launched: PID 380905; both-site HTTP ping next
+
+**Owner-executed D4 command output**:
+```text
+DEVELOPMENT RESTART GUARDS: PASS
+DEVELOPMENT HONCHO STARTED: PID=380905
+PID    PPID STAT ELAPSED COMMAND
+380905 0    Ss   00:05   /home/frappe/.pyenv/versions/3.14.2/bin/python3.14 /home/frappe/.local/bin/honcho start
+```
+The command launched `honcho start` detached in DEVELOPMENT container `frappe_docker_devcontainer-frappe-1` with log `logs/ccpc-dev-honcho-20261027.log`. Container namespace PID may change on process death/relaunch. The PID+five-second uptime is **not proof that Frappe HTTP works for both sites or that scheduler and queue workers are healthy**.
+
+**Next focused read-only operator test**, executed from Ubuntu host and scoped strictly to the DEVELOPMENT Frappe container, sends a local HTTP request to `/api/method/ping` via web listener port 8000 with both Host and X-Frappe-Site-Name explicitly selected. No accounts, business records or database writes are created.
+```bash
+docker exec --user frappe frappe_docker_devcontainer-frappe-1 bash -lc '
+set -euo pipefail
+cd /workspace/development/frappe-bench
+test "$(git -C apps/ccpcerp rev-parse HEAD)" = "0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41" || { echo "STOP: App checkout moved"; exit 1; }
+if ! kill -0 380905 2>/dev/null; then echo "STOP: Started Honcho PID 380905 is not running"; exit 1; fi
+for site in development.localhost ccpc-integration2.localhost; do
+  code=$(curl --silent --show-error --output /dev/null --write-out "%{http_code}" --connect-timeout 3 --max-time 15 -H "Host: $site" -H "X-Frappe-Site-Name: $site" http://127.0.0.1:8000/api/method/ping) || { echo "STOP: HTTP probe failed for $site"; exit 1; }
+  if [ "$code" = 200 ]; then echo "HTTP PING PASS: $site (200)"; else echo "STOP: HTTP $code for $site"; exit 1; fi
+done
+echo "BOTH DEV WEB PINGS: PASS"
+'
+```
+If a request fails, keep exact output and inspect **only** the named DEVELOPMENT Honcho log with bounded/sanitized reads; do not re-run migrations, auto-restart, or touch shared host services. If both pass, proceed to supervised worker/scheduler readiness and both-site functional UI/API smoke testing; approval for financial postings remains distinct.
+
 ### Gate D — site-scoped migrations and persistent acceptance (separate explicit approval)
 
 1. Reconfirm site-specific DB name/host, snapshot, prerequisites and pending patches. Run approved migration for **`ccpc-integration2.localhost` first**. Monitor patch/DocType/workflow outcomes and fail on errors.
@@ -369,4 +396,4 @@ ps -o pid,ppid,stat,etime,args -p "$pid"
 **Authorized as of October 27:** GitHub inspection, the completed DEVELOPMENT-only two-site backup preservation/creation and verification, and the owner-approved temporary DEVELOPMENT maintenance window including a guarded graceful Honcho shutdown.  
 **Not independently authorized:** unreviewed application checkout/DB migration beyond the controlled subsequent steps, financial posting, broad Docker stop/restart, any PRODUCTION operation, unapproved restore or automated reporting. Stop on preflight mismatches.
 
-**Next concrete operator action:** execute D4 single guarded DEVELOPMENT-only Honcho restart on the named Frappe container, followed by separate two-site HTTP/process smoke checks. Both migrated DBs passed the Finance schema 4/2/5 gate. No further migrations or backup repetitions.
+**Next concrete operator action:** execute D5 both-site read-only HTTP ping against DEVELOPMENT Frappe container; Honcho PID 380905 was running five seconds after its guarded launch. If both ping endpoints return 200, check worker/scheduler status and then functional two-site acceptance. Do not re-run backups/migrations.
