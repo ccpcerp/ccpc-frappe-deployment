@@ -1,6 +1,29 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-27 — Finance roles confirmed unassigned on BOTH DEV sites; Company counts differ 25 vs 2
+
+**Owner-executed read-only Finance assignment diagnostic** after earlier zero-eligible-actor inventory returned:
+
+```text
+SITE: development.localhost
+CCPC Accounting Mapping Approver: assigned_users 0; enabled_named_users 0; enabled_nonstockroom 0; disabled_users 0
+CCPC Mapping Preparer: assigned_users 0; enabled_named_users 0; enabled_nonstockroom 0; disabled_users 0
+companies_present: 25
+SITE: ccpc-integration2.localhost
+CCPC Accounting Mapping Approver: assigned_users 0; enabled_named_users 0; enabled_nonstockroom 0; disabled_users 0
+CCPC Mapping Preparer: assigned_users 0; enabled_named_users 0; enabled_nonstockroom 0; disabled_users 0
+companies_present: 2
+FINANCE ASSIGNMENT DIAGNOSTIC: COMPLETED
+```
+
+**Interpretation:** Both Finance role definitions exist from successful migrations but are **completely unassigned** on both valid DEV sites; this is not a case of already-assigned but disabled/Stockroom-excluded users. No eligible Finance mapping maker/checker exists, therefore live authenticated approval testing is **BLOCKED**, independently of the green schema and runtime gates. The Company counts are different (main DEV 25; Integration2 2) and should not be treated as equivalent master fixtures; this does not itself prove corrupted setup. No Company/user identities were printed, and no role, User Permission, Company, stock or GL modifications occurred.
+
+**Next minimal read-only operator inventory:** Per site, count enabled named non-Stockroom `System User` accounts, how many of those have explicit valid Company grants (`tabUser Permission`, `allow='Company'`, `apply_to_all_doctypes=1`, empty `applicable_for`), and whether any Company has **two distinct** such users that could be nominated for maker/checker. Report only counts, no user/Company names, credentials or personal data. Then owner must select an actual DEV site/Company and approve two distinct test identities, explicit separate Finance roles, and Company permissions in a separately scoped, auditable change. Do not automatically create users, assign roles/grants, seed synthetic accounts or propose/approve real mappings. No PRODUCTION access. Four day-one reports and actual stock/GL workflows remain unverified.
+
+---
+
+
 ## 2026-10-27 — Finance mapping role authority inventory: zero eligible actors on both DEV sites
 
 **Owner-executed, read-only Finance-authority aggregate SQL after D8 HTTP 200 PASS:** Both `development.localhost` and `ccpc-integration2.localhost` returned the following for each role `CCPC Mapping Preparer` and `CCPC Accounting Mapping Approver`: `enabled_nonstockroom_users=0`, `users_with_company_grants=0`, `companies_with_eligible_users=0`. Script ended `BOTH DEV FINANCE ROLE INVENTORIES: COMPLETED`. This **does not** mean the role definitions are missing (schema role 2/2 had passed), and cannot distinguish *no role assignments* from *assignments to disabled/Administrator/Guest/Stockroom users* because query excluded ineligible users. No user names/Company names were disclosed; no change to any database, permissions, role memberships or production.
