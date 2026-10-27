@@ -25,6 +25,19 @@
 
 
 
+
+## 2026-10-27 — BOTH migrated DEV sites verified 4/2/5; guarded Honcho restart launched at PID 380905
+
+**Owner-executed milestones:** Both valid DEVELOPMENT sites, `development.localhost` and `ccpc-integration2.localhost`, each returned mapping DocTypes **4 PASS**, mapping role definitions **2 PASS**, and Stock Entry Detail provenance fields **5 PASS** in independent read-only MariaDB queries. The two previous site migrations each separately ended in `MIGRATION: PASS` under reviewed detached CCPC app commit `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`. These checks establish schema presence but not actual financial functionality or user grants.
+
+**Guarded DEVELOPMENT-only Honcho restart:** owner ran prepared detached launch (no Docker recreate, no legacy PRODUCTION action) and returned `DEVELOPMENT RESTART GUARDS: PASS` followed by `DEVELOPMENT HONCHO STARTED: PID=380905`. The new process in the DEV container showed `PPID 0`, `Ss`, `ELAPSED 00:05`, command `/home/frappe/.pyenv/versions/3.14.2/bin/python3.14 /home/frappe/.local/bin/honcho start`. Private bench log target: `logs/ccpc-dev-honcho-20261027.log`. This confirms guarded launch/brief survival only; **both-site HTTP response, queue worker, scheduler, and functional transaction checks remain pending**. Separate dedicated service supervision/auto-restart has not been established.
+
+**Next exact command:** read-only HTTP `/api/method/ping` with Host and X-Frappe-Site-Name for `development.localhost` and `ccpc-integration2.localhost` via loopback port 8000 *inside DEV Frappe container*, verify 200 for BOTH and process still present. See [DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md](DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md) section D5 at GitHub commit `142c74e4d756213fbb3c80b56d48fd625c156a7a`. If fail, inspect relevant DEV-only log; no repeat migrations, no generic Docker restart or PRODUCTION changes. On success, advance to worker/scheduler and real business workflow acceptance on approved test fixtures.
+
+**Recovery:** Oct 27 fresh four-part backup sets for each valid DEV site format-tested and byte-verified in local protected directories, plus preserved Oct 13 historical sets. Neither actual restoration nor off-host DEV recovery established. No authorized real business/accounting postings have been performed as part of integration.
+
+---
+
 ## 2026-10-27 — Both DEV Finance schema checks PASS; supervised service restart is next
 
 **Owner-reported actual main DEVELOPMENT post-migration read-only SQL verification:** `development.localhost` `tabDocType` 4 Finance mapping Scope/Revision DocTypes: **4 PASS**; `tabRole` CCPC Mapping Preparer and CCPC Accounting Mapping Approver role definitions: **2 PASS**; `tabCustom Field` on Stock Entry Detail five provenance/mapping-revision fields: **5 PASS**. Previously `ccpc-integration2.localhost` returned the same **4,2,5 PASS**. Therefore **both valid DEVELOPMENT site databases migrated and passed the initial schema presence gate** at reviewed pinned checkout `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`. These are role definitions only, not assigned grants. Both search-index rebuilds were queued; not confirmed processed.
