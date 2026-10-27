@@ -1,7 +1,7 @@
 # CCPC ERPNext — Controlled DEVELOPMENT app integration and acceptance plan
 
 **Prepared:** 2026-10-27 (Asia/Manila)  
-**Status, updated 2026-10-27:** First persistent DEVELOPMENT integration site **`ccpc-integration2.localhost` migrated successfully** under reviewed detached app commit `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`; owner command ended `INTEGRATION2 MIGRATION: PASS` after DocType updates, fixtures, dashboards, customizations and `after_migrate` hooks. Its search-index rebuild was queued, **not confirmed complete**. `development.localhost` has NOT been migrated and all Honcho-managed DEVELOPMENT services must remain stopped. Fresh protected format-tested four-artifact backups and October 13 historical copies remain in place. Migration success is not Finance mapping functionality or accounting integration acceptance. PRODUCTION excluded.
+**Status, updated 2026-10-27:** Both DEVELOPMENT site migrations **PASSED** on reviewed pinned detached GitHub source `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`. Integration2 migration plus its Finance DocType/role/custom-field postcheck (4/2/5) passed; owner now reports `MAIN DEVELOPMENT MIGRATION: PASS` after the main site's DocTypes, fixtures, customizations and `after_migrate` hooks completed. The two site search-index rebuilds were **queued**, not independently completed. MAIN site's own 4/2/5 schema presence check is next, followed by authorized DEV-only Honcho restart and application smoke tests. Five Honcho-managed services remain stopped; PRODUCTION excluded. Both DEV sites' fresh archive-validated pre-migration backups and historic sets remain locally preserved, not restored or off-host verified.
 
 ## 1. Objective and current verified inputs
 
@@ -261,6 +261,46 @@ SH
 
 This can alter *main DEVELOPMENT site's* schema, role definitions, workflows, custom fields and data/backfills via `after_migrate`, and may perform cache/asset operations affecting the shared bench. **If it fails, STOP:** do not run automatic rollback, `bench migrate` again, restart Honcho or touch PRODUCTION; retain exact error. On PASS, check identical four Finance DocTypes, two roles, five provenance fields in `development.localhost`, then evaluate/authorize a supervised DEVELOPMENT-only Honcho restart and both-site smoke tests. **Do not claim integration complete merely from migration PASS.**
 
+### D3 — Main DEVELOPMENT migration executed: PASS; schema verification then controlled restart
+
+**Operator-executed and reported from `gani@ccpcerpserver`:** the reviewed individually guarded `bench --site development.localhost migrate` returned:
+```text
+SAFETY GUARDS: PASS
+MIGRATING: development.localhost
+Migrating development.localhost
+Updating DocTypes for frappe        : [========================================] 100%
+Updating DocTypes for erpnext       : [========================================] 100%
+Updating DocTypes for ccpcerp       : [========================================] 100%
+Syncing jobs...
+Syncing fixtures...
+Syncing dashboards...
+Updating Dashboard for frappe
+Updating Dashboard for erpnext
+Updating Dashboard for ccpcerp
+Syncing customizations...
+Syncing languages...
+Flushing deferred inserts...
+Removing orphan doctypes...
+Removing orphan Workspaces
+Removing orphan Dashboards
+Removing orphan Pages
+Removing orphan Reports
+Removing orphan Notifications
+Removing orphan Workspace Sidebars
+Removing orphan Desktop Icons
+Syncing portal menu...
+Updating installed applications...
+Executing `after_migrate` hooks...
+Queued rebuilding of search index for development.localhost
+MAIN DEVELOPMENT MIGRATION: PASS
+```
+
+**Interpretation:** second/last intended site's database migration was reported successful; schema changes and `after_migrate` ran. Separate integration2 Finance mapping DocTypes, roles and provenance fields check passed 4/4, 2/2, 5/5. Search-index rebuild is queued, not confirmed finished; no genuine Finance transaction, site-to-site billing, returns, reconciliation, permissions, or report acceptance proven. The shared DEVELOPMENT Honcho processes must stay stopped until main schema postcheck is complete and restart pathway is approved.
+
+**Next operator action, read-only:** `bench --site development.localhost mariadb` on DEVELOPMENT container, query `tabDocType` for four mapping Scope/Revision DocTypes (expected 4), `tabRole` for two mapping roles (expected 2), and `tabCustom Field` for the five Stock Entry Detail issue-provenance/revision fields (expected 5). Report three PASS rows, stop if any mismatch. This does not perform further migration or reveal business data.
+
+**Next after 3 PASS rows:** plan a DEVELOPMENT-only controlled Honcho restart: verify pinned app HEAD, `AGENTS.md`, current process absence, and start Honcho exactly once under a durable service session without touching shared host PRODUCTION. Validate web/session access to **both** valid sites, queues, roles/access, master/account configuration and later approved synthetic intercompany workflows. Do not treat a bench start as successful until process/HTTP checks pass.
+
 ### Gate D — site-scoped migrations and persistent acceptance (separate explicit approval)
 
 1. Reconfirm site-specific DB name/host, snapshot, prerequisites and pending patches. Run approved migration for **`ccpc-integration2.localhost` first**. Monitor patch/DocType/workflow outcomes and fail on errors.
@@ -283,4 +323,4 @@ This can alter *main DEVELOPMENT site's* schema, role definitions, workflows, cu
 **Authorized as of October 27:** GitHub inspection, the completed DEVELOPMENT-only two-site backup preservation/creation and verification, and the owner-approved temporary DEVELOPMENT maintenance window including a guarded graceful Honcho shutdown.  
 **Not independently authorized:** unreviewed application checkout/DB migration beyond the controlled subsequent steps, financial posting, broad Docker stop/restart, any PRODUCTION operation, unapproved restore or automated reporting. Stop on preflight mismatches.
 
-**Next concrete operator action:** execute separately scoped guarded migration for `development.localhost` only (D2), if owner consents to changing that DEVELOPMENT site's DB; then verify 4 DocTypes, 2 roles and 5 provenance fields in that site before any Honcho restart. Integration2 schema checks passed 4/4, 2/2 and 5/5.
+**Next concrete operator action:** run main `development.localhost` read-only Finance schema presence check (4 DocTypes, 2 roles, 5 Stock Entry Detail provenance fields). The main site migration already PASSED; then plan and execute a separate, DEV-only controlled Honcho restart and smoke tests for BOTH sites. Do not repeat backups or migrations.
