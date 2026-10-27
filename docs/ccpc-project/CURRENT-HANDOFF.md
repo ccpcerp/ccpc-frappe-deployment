@@ -1,6 +1,15 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-27 — DEV Honcho process survived 27m with 25 descendants; doctor checks next
+
+**Owner-reported read-only process inspection:** DEVELOPMENT-only `frappe_docker_devcontainer-frappe-1` still contained Honcho PID `380905` with `PPID 0`, state `Ss` and elapsed `27:22` at the moment of the check. Current bench `Procfile` enumerated five expected process groups: `web`, `socketio`, `watch`, `schedule`, `worker`. The scoped process tree enumerated **25 live descendants** (Python, shell, thread and esbuild process names). This supports continued service presence but **cannot alone assign each descendant to its Procfile group, establish RQ worker registration, or establish that scheduled jobs execute**. Existing D5 `/api/method/ping` probes returned 200 on both sites after both successful schema migrations.
+
+**Next one-step DEV-only gate:** perform site-specific read-only `bench --site development.localhost doctor` and `bench --site ccpc-integration2.localhost doctor` from the pinned Frappe bench, after verifying exact app commit. Frappe v16 `doctor` reads scheduler disabled/paused/inactive/maintenance status, active RQ worker count, and pending queue method counts; it does not enqueue jobs or modify the sites. Report output and failures without restarting or purging queues. This is diagnostic status, not completed background-job or financial-workflow acceptance. No production changes; no migration or backup repetition. Site-specific acceptance and postings remain separate controlled gates.
+
+---
+
+
 ## 2026-10-27 — BOTH DEVELOPMENT site HTTP pings PASS; check Honcho children and background services next
 
 **Owner-executed D5 read-only smoke output:**
