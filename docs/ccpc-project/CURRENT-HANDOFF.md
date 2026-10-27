@@ -1,6 +1,17 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+
+## 2026-10-27 — DEVELOPMENT integration2 application installation reconfirmed; migration impact reviewed
+
+**Owner-executed read-only site confirmation:** `docker exec --user frappe frappe_docker_devcontainer-frappe-1 bash -lc 'cd /workspace/development/frappe-bench && bench --site ccpc-integration2.localhost list-apps'` returned `frappe 16.33.1 version-16`, `erpnext 16.34.2 version-16`, and `ccpcerp 0.0.1 review/intercompany-approval-failure-tests`. This confirms the intended integration2 site presently recognizes all three installed apps on the EXISTING shared DEVELOPMENT app checkout. It is **not** proof the fetched CircleCI review code is running or that a migration/acceptance test has occurred. `ccpc-integration.localhost` remains a historically failed/incomplete site, not an approved test target.
+
+**GitHub migration review (read-only, no runtime writes):** Compare of app `806fa23516490ec7beefcff03a1baa09d722120e` to review `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41` remains 204 ahead / 0 behind and 60 changed paths. Four new Finance mapping Scope/Revision DocTypes have `unique` scope/revision keys and no general DocType permissions; `ccpcerp/setup.py` `after_migrate()` can create Finance role definitions (without assigning them), Stock Entry and detail custom fields, workflows, user permissions, section/master records and issue-quantity backfills. `ccpcerp/patches.txt` includes the existing intercompany account/party creation patches and an index patch creating two NON-UNIQUE indexes. The Finance mapping role definitions alone do not grant Accounting approval. Shared DEVELOPMENT application Python checkout/code change affects ALL sites on the bench; a site-specific migration affects its chosen database but does not isolate import/code behavior for the other sites. Green disposable CI and a successful `list-apps` are insufficient to approve an in-place checkout/migration.
+
+**Next one safe operator step:** read-only inspect available local backups for `development.localhost` and `ccpc-integration2.localhost` plus free space; do not display backup contents or secrets. Then plan verified separate-site fresh backups / rollback, checked AGENTS.md preservation, and a controlled reviewed-code transition for shared bench before any installation/migration. No code switch, database DDL, backup, accounting posting, container recreation or PRODUCTION action was undertaken in this continuation.
+
+---
+
 ## 2026-10-27 — DEVELOPMENT logical DB separation verified; maintain shared-code migration boundary
 
 **Owner-executed read-only DEV-container site-config inspection:** `development.localhost`, `ccpc-integration.localhost` and `ccpc-integration2.localhost` each report a **different configured database name**, with host `mariadb` in each case. Exact DB identifiers intentionally not repeated in this GitHub record. Three distinct site-config values provide **logical database naming separation**, not a guarantee of all schemas actually existing, Docker/network independence, Redis isolation, background-worker isolation, absence of cross-site effects, or recovery success.
