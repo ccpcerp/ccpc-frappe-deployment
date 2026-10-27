@@ -1,6 +1,28 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-27 — TISS Finance actors independently read back: exact roles/grants PASS; main DEV absent
+
+**Owner-supplied independently executed, read-only MariaDB verification after committed User/Company grant transaction:**
+
+```text
+===== COMMITTED FINANCE ACTOR CHECK: ccpc-integration2.localhost =====
+actor   user_exists   user_status_valid   total_roles   correct_role   total_grants   correct_tiss_grant
+Maker   1             1                   1             1              1              1
+Checker 1             1                   1             1              1              1
+===== COMMITTED FINANCE ACTOR CHECK: development.localhost =====
+Maker   0             0                   0             0              0              0
+Checker 0             0                   0             0              0              0
+INDEPENDENT FINANCE ACTOR READBACK: COMPLETED
+```
+
+**Final accepted provisioning result:** On `ccpc-integration2.localhost` fictional Company `Integration Test Issuer` (`TISS`), the dedicated users `ccpc-dev-finance-maker@invalid.test` and `ccpc-dev-finance-checker@invalid.test` are persisted, enabled `System User` accounts, with `send_welcome_email=0`. Each has exactly ONE assigned role (`CCPC Mapping Preparer` and `CCPC Accounting Mapping Approver`, respectively), and exactly ONE Company `User Permission` meeting `allow='Company'`, `for_value='Integration Test Issuer'`, `apply_to_all_doctypes=1`, blank `applicable_for`. Corresponding IDs, roles and Company grants are all **absent** on main DEV `development.localhost`. **Finance provisioning + isolation check PASS.** No rerun, user/grant changes, migration, financial mappings, stock/GL posting, or PRODUCTION actions.
+
+**Next safe gate:** Read-only database-backed authorization unit/smoke against reviewed `ccpcerp.ccpc_erp.bc_issue_runtime._real_authority` (GitHub SHA `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`), scoped Integration2. Expect maker valid for Preparer+TISS and checker valid for Approver+TISS; expect cross-role, cross-Company (`Integration Test Requester`) and `Administrator` denial. This function only SELECTs with `FOR UPDATE`; run in a short transaction and explicitly `rollback()` to release locks, with no approvals or new database rows. This is a direct server-side policy check **without HTTP-authenticated login**; no credentials have been set for reserved `.test` accounts and actual login or workflow operations remain pending separate secure plan. Do not conflate policy test with maker/checker end-to-end Finance approval or stock/GL validation. Protected backups and untracked operator `AGENTS.md` remain untouched.
+
+---
+
+
 ## 2026-10-27 — TISS-only Finance test actors and grants: owner reports COMMITTED, independent read pending
 
 **Owner-executed, approved, guarded transactional Frappe ORM provisioning command on `ccpc-integration2.localhost`:** Terminal returned:
