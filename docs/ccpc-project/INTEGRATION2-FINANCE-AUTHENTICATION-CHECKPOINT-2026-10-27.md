@@ -314,3 +314,34 @@ After confirmation of nonempty/format-validity of four existing protected preint
 **Critical Frappe v16 source review:** `frappe.utils.backups.new_backup` calls `delete_temp_backups()` before constructing `BackupGenerator`, and `bench --site ... backup` uses that helper. This can delete aged files in the site's default backup directory, beyond approved write scope. A safe execution should instantiate `BackupGenerator` **directly** with `ignore_conf=True`, `compress_files=False`, and explicit unique `backup_path`, then `get_backup(force=True,ignore_files=False)`, avoiding the default retention-cleanup helper. Strictly check site/app checkout, explicit site versus main DEV distinct DB identity, protected historical 4/4 still present, auto-encryption compatibility, folder identity and restrictive permissions before writes. Do not log site config/database credentials, and do not remove partial output automatically. A failed backup is STOP and evidence for review.
 
 Expected output is a new, uniquely named four-file archive set within a private site-specific backup folder, with gzip/TAR/JSON format PASS and checksum manifest stored locally, not in GitHub. Backup writes and modest shared DB/disk load are approved; they do **not** establish restore viability. Operator execution and actual files are **pending verification**; GitHub documentation here is not a claim that backup has already been created.
+
+### Fresh Integration2 pre-fixture backup: PASS — owner-executed verification
+
+After specific owner approval for **Integration2-only backup creation**, the owner executed the guarded Frappe v16 `BackupGenerator` direct-call procedure with a uniquely named, private, mode-0700 directory, avoiding `new_backup` default backup retention cleanup. Exact operator output:
+
+```text
+INTEGRATION2 FRESH PRE-FIXTURE BACKUP
+APPLICATION AND SITE ISOLATION: PASS
+PROTECTED HISTORICAL BACKUP: 4/4 PRESENT
+DATABASE IDENTITY: PASS
+BACKUP ENCRYPTION COMPATIBILITY: PASS
+NEW BACKUP DIRECTORY: /workspace/development/frappe-bench/sites/ccpc-integration2.localhost/private/ccpc-finance-prefixture-20261027-u76kev1a
+DATABASE: PASS (1,101,731 bytes)
+PUBLIC FILES: PASS (10,240 bytes)
+PRIVATE FILES: PASS (10,240 bytes)
+SITE CONFIG: PASS (212 bytes)
+FOUR BACKUP COMPONENTS: VERIFIED
+SHA256 MANIFEST: CREATED
+HISTORICAL BACKUP HASHES UNCHANGED: PASS
+INTEGRATION2 FRESH BACKUP: PASS
+NO FINANCE MASTER OR MAPPING CHANGES PERFORMED
+NO RESTORATION PERFORMED
+```
+
+**Bounded verification:** The new Integration2-only snapshot contains four nonempty, correctly named backup files and a private local `SHA256SUMS` manifest. The operator script checked SQL gzip integrity, public/private TAR structure, site-config JSON and DB identity, restricted file permissions, pinned checkout, separate main DEV database, and original protected four-file SHA-256 consistency. No password, session ID, DB password, backup contents or site configuration was copied into GitHub or chat. These checks do not establish restorability, cross-artifact consistency under concurrent writes, or off-host recovery. The historical protected preintegration backup remains unchanged according to hash comparison. Output indicates no Finance master/mapping mutation or restoration. No access to production or main DEVELOPMENT was authorized.
+
+**Next independently gated proposal — TWO isolated test masters only, not approved yet:** On `ccpc-integration2.localhost` (fictional Company `Integration Test Issuer`, `TISS`), propose exactly:
+1. An Item Group with name `CCPC INT2 Expense Mapping Test 20261027`, leaf `is_group=0`, parent `All Item Groups`, with no Items or Item Group defaults.
+2. An unnumbered, active, nongroup, Expense-root Account with `account_name=CCPC INT2 Expense Mapping Test`, parent `Indirect Expenses - TISS` and company `Integration Test Issuer`. Expected auto-generated name `CCPC INT2 Expense Mapping Test - TISS` (verify through Frappe). No default account assignment.
+
+Prior nonmutating guards passed zero TISS/TREQ mapping scopes/revisions, absent proposed names, parent Item Group and Expense Account eligibility, and zero TISS Company ancestors/descendants. **Recheck all prerequisites, backup files/manifest and dynamic Company hierarchy immediately before write.** If user separately authorizes, use a single, guarded, ORM/transaction-bound setup with no validation bypass and explicit rollback on error; commit only after verifying exact new records and no other Company Account with the synthetic `account_name`. Do not create mapping Draft, authorize Checker approval, post GL/stock, or restore a backup. Frappe nested-set maintenance and cache/metadata effects may accompany master inserts even with correct checks. Successful fixture records should remain labeled and retained for review; subsequent cleanup or restore needs separate risk review and explicit approval.
