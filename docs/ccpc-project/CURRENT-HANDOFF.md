@@ -22,6 +22,17 @@
 
 
 
+
+## 2026-10-27 — Integration2 Finance post-migrate SQL checks all PASS; main DEV migration is the immediate next action
+
+**Owner-reported focused read-only MariaDB check against already-migrated `ccpc-integration2.localhost`:** four Finance mapping DocTypes exist (4/4 PASS); two Finance roles exist (2/2 PASS); five new `Stock Entry Detail` provenance/mapping revision custom fields exist (5/5 PASS). This confirms structural install after successful first site migration at reviewed detached app checkout `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`. It does **not** prove user permission grants, full finance maker/checker behavior, invoice/stock transaction functionality or report readiness. Integration2 search index was merely queued.
+
+**Immediate next stage:** operator may deliberately authorize separate `bench --site development.localhost migrate` (only main DEVELOPMENT site) from Ubuntu host using D2's guarded command in [DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md](DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md), plan update commit `da61acee62d8a13c4b7916aab984f76218193cab`. It verifies exact pinned code SHA, original sole untracked `AGENTS.md`, both complete protected Oct27 recovery sets, and absence of live old Honcho processes; then changes only main DEVELOPMENT DB. **Main site still on pre-migration schema; leave Honcho stopped** pending successful migration and 4/2/5 postcheck. If any guard or migration fails, stop and report without restarting, repeating migrations, restoring snapshots, switching code, or touching PRODUCTION. Once both schemas pass, consider supervised DEV-only start and actual smoke tests as a separate operational gate.
+
+**Existing recovery:** both October 27 fresh four-part site-local backup sets preserved outside normal backup pruning and byte-compared; both October 13 historic sets independently protected. No off-host or restore rehearsal proven. No financial postings or PRODUCTION modification.
+
+---
+
 ## 2026-10-27 — Integration2 site successfully migrated to reviewed DEV app checkout; main site still pending
 
 **Actual operator-run DEVELOPMENT database migration PASSED:** In approved DEV-only maintenance, with shared Honcho-managed web/scheduler/worker stopped and Git checkout pinned/detached at `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`, owner executed the guarded **integration2-only** `bench --site ccpc-integration2.localhost migrate`. Terminal showed `SAFETY GUARDS: PASS`, `MIGRATING: ccpc-integration2.localhost`, completed DocType updates for Frappe/ERPNext/CCPC at 100%, synchronized jobs, fixtures, dashboards, customizations and languages, flushed deferred inserts, cleaned orphan metadata, updated installed applications, executed `after_migrate` hooks, queued (not completed/verified) search-index rebuild, and printed `INTEGRATION2 MIGRATION: PASS`. No errors shown. **Only this integration test site's DB has been migrated.**
