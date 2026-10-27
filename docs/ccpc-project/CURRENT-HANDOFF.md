@@ -16,6 +16,21 @@
 
 
 
+
+## 2026-10-27 — DEVELOPMENT Honcho launched interactively from shell; terminal ownership still unverified
+
+**Owner-executed, non-mutating DEVELOPMENT process inspection from Ubuntu host:** `docker exec --user frappe frappe_docker_devcontainer-frappe-1 bash -lc 'pid=$(pgrep -x honcho | head -n 1); parent=$(ps -o ppid= -p "$pid" | tr -d " "); ps -o pid,ppid,stat,etime,args -p "$parent,$pid"'` returned the following **container-namespace** PIDs:
+```
+PID  PPID STAT  ELAPSED       COMMAND
+14   0    Ss    14-23:32:55   bash
+193  14   S+    14-23:29:42   /home/frappe/.pyenv/versions/3.14.2/bin/python3.14 /home/frappe/.local/bin/honcho start
+```
+`S+` indicates Honcho is in a foreground process group but **does not establish the current controlling TTY** or authorize sending signals. Earlier `Procfile` review confirmed `bench serve --port 8000`, `bench socketio`, `bench watch`, `bench schedule`, and `bench worker`. Honcho controls live shared-bench services and must not be killed or stopped in the course of read-only analysis; process lifetime ~15 days at inspection. Avoid uncontrolled `kill`, `pkill`, Docker restarts, generic Compose shutdown or changing the checkout live. The runtime is confined to the DEVELOPMENT Docker stack names `frappe_docker_devcontainer-*`, but they reside on a host also carrying legacy PRODUCTION; no physical isolation inferred.
+
+**Next exact safe gate (read-only):** inspect only Honcho and its known parent with `ps -o pid,ppid,pgid,sid,tty,stat,etime,args -p 14,193` inside the DEVELOPMENT container. Report whether a controlling TTY is present and avoid printing environment variables or config secrets. Then finish an explicit **DEVELOPMENT-only** graceful-stop/verification and recovery/rollback plan before requesting new approval for any shared-code source transition, database migration, synthetic postings or services stop/start. Both DEV sites have locally protected, format-verified Oct 27 four-part backups and separately preserved Oct 13 sets; actual restore rehearsal and off-host backup remain unverified. Both DEV Patch Logs show eight of eight entries; app source still `806fa235...` and reviewed candidate `0c223d7...`.
+
+---
+
 ## 2026-10-27 — DEVELOPMENT Procfile confirms five active Honcho-managed service types
 
 **Owner-executed read-only Procfile display:** inside the DEVELOPMENT `frappe` container at `/workspace/development/frappe-bench` (first attempt incorrectly invoked `docker` from inside the container; no change), then via the correct Ubuntu-host `docker exec`, the operator reported:
