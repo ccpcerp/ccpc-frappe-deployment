@@ -1,6 +1,24 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-27 — DEVELOPMENT GitHub fetch verified; branch and files not switched
+
+**Owner executed the previously reviewed guarded DEV-only Git fetch** in container `frappe_docker_devcontainer-frappe-1`, worktree `/workspace/development/frappe-bench/apps/ccpcerp`. The command required current branch `review/intercompany-approval-failure-tests`, current HEAD `806fa23516490ec7beefcff03a1baa09d722120e`, and porcelain exactly `?? AGENTS.md` before fetching `refs/heads/review/circleci-isolated-erpnext-phase2-2026-10-26`. Operator output:
+```
+From github.com:ccpcerp/ccpcerp
+ * branch            review/circleci-isolated-erpnext-phase2-2026-10-26 -> FETCH_HEAD
+ * [new branch]      review/circleci-isolated-erpnext-phase2-2026-10-26 -> origin/review/circleci-isolated-erpnext-phase2-2026-10-26
+FETCHED COMMIT:
+0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41
+DEVELOPMENT ancestry verified; working branch unchanged.
+```
+The latest application `0c223d7...` is **documentation-only** after the CircleCI-passing *code* SHA `c32f3f20bc3f0b5fa88f651d6dddee774b6cb2cb`. Independently GitHub-compared DEV `806fa235...` → incoming `0c223d7...`: `ahead_by=204`, `behind_by=0`, 60 changed paths including four *new* Finance mapping DocTypes, hooks.py, setup.py, Workflow/real-ledger tests and intercompany accounting code. No incoming tracked `AGENTS.md` in changed paths. App migration/schema sync **requires separate review**, not inferred safe from ancestry or green disposable CI.
+
+**Critical separation:** Git fetch changed Git object/ref cache only and **did not check out new app files, change persistent DEVELOPMENT code, migrate/update the site, or touch PRODUCTION**. The untracked `AGENTS.md` must be preserved. First verify three named DEVELOPMENT sites' effective database host/name (without secrets) before selecting any target for persistent acceptance; preserve existing site and backup context. Then formulate a controlled branch integration with isolated rollback and separately reviewed DEV site migration/testing. Continue four frozen reports/source-to-billing E2E in GitHub and dedicated PROD Compose readiness in parallel; do not return to legacy NAS troubleshooting as the default task.
+
+---
+
+
 ## 2026-10-26 — Pipeline #10 GREEN at latest Finance integration source SHA; resume DEVELOPMENT delivery
 
 **Owner-provided CircleCI screenshot:** Pipeline `#10`, title `docs: track exact genuine Finance workflow CI coverage and DEV preflight gates`, branch `review/circleci-isolated-erpnext-phase2-2026-10-26`, commit abbreviated `c32f3f2`. Both workflows green: `opt-in-isolated-erpnext` **5m 6s**, `starter-validation` **6s**. GitHub verified source commit **`c32f3f20bc3f0b5fa88f651d6dddee774b6cb2cb`**, with nine configured modules: five Withdrawal (including the six-case genuine synthetic Finance maker/checker and original issue lifecycle suite) and four intercompany (including actual-draft-invoice fixture). Job uses fail-fast shell, supporting successful completion of those module commands. **Screenshot does not include detailed test logs/per-case counts.** CI is disposable; no persistent DEVELOPMENT or real master approvals verified. No need to rerun unchanged tested code.
