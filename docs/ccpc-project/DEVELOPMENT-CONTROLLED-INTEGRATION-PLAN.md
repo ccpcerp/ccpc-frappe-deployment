@@ -1,7 +1,7 @@
 # CCPC ERPNext — Controlled DEVELOPMENT app integration and acceptance plan
 
 **Prepared:** 2026-10-27 (Asia/Manila)  
-**Status:** reviewed plan only; **NOT executed**. Owner approved preparing the GitHub plan, not an in-place checkout, new backup, migration, test posting, Docker change, or PRODUCTION work.
+**Status, updated 2026-10-27:** both DEVELOPMENT backup sets are fresh, format-tested and preserved by byte-verified copies outside the normal cleanup path; historical October 13 sets were separately preserved. Both sites' eight registered patches and pinned old Git checkout were verified. **Owner has now explicitly approved a temporary DEVELOPMENT-only maintenance window to prepare the controlled shutdown and integration.** The shared Honcho shutdown, code checkout, migrations, restart, restore rehearsal and application acceptance have NOT been executed. PRODUCTION remains excluded.
 
 ## 1. Objective and current verified inputs
 
@@ -90,6 +90,43 @@ This command is **read-only preflight**; no checkout, migration or service resta
 
 **No source checkout or site migration before Gate B.** A NAS mount confirmation and old PRODUCTION backup history do not satisfy this DEV gate.
 
+### C0 — Owner-approved DEVELOPMENT-only Honcho shutdown (first runtime action)
+
+**Authorization recorded 2026-10-27:** owner expressly approved a temporary DEVELOPMENT-only maintenance window, including interruption of the shared bench as part of the controlled integration process; no production actions permitted. Both sites may be unavailable while the five managed processes are down. Do not stop Redis/MariaDB containers or unrelated host processes. This phase **does not** include source checkout or database migration; perform those as subsequent separately verified steps rather than hiding them in one script.
+
+**Process identity confirmed by owner from within DEVELOPMENT container:** Honcho PID `193`, parent shell PID `14`, session `14`, process group `193`, TTY `pts/0`, command `/home/frappe/.pyenv/versions/3.14.2/bin/python3.14 /home/frappe/.local/bin/honcho start`. The `Procfile` defines `web`, `socketio`, `watch`, `schedule`, `worker`. Startup terminal `pts/0` is historical; do not assume operator's current shell controls it.
+
+Before performing shutdown, operator ensures no DEV users are transacting and no critical background job is intentionally running. Script **fail-closed checks exact Honcho identity** and sends `SIGINT` to *that process only* (not `kill -9`, not an unscoped `pkill`, not Docker restart). Honcho's process manager handles SIGINT by terminating its managed processes. The command waits for exit but never escalates to force-kill, and always requires operator to report if an unexpected condition occurs.
+
+At Ubuntu **host** shell (`gani@ccpcerpserver`), *not* inside the devcontainer:
+
+```bash
+docker exec --user frappe frappe_docker_devcontainer-frappe-1 bash -lc '
+set -euo pipefail
+pid=193
+expected="/home/frappe/.pyenv/versions/3.14.2/bin/python3.14 /home/frappe/.local/bin/honcho start"
+actual=$(ps -o args= -p "$pid" | sed "s/^[[:space:]]*//")
+[ "$actual" = "$expected" ] || { echo "STOP: Honcho identity changed"; exit 1; }
+[ "$(ps -o ppid= -p "$pid" | tr -d " ")" = 14 ] || { echo "STOP: Honcho parent changed"; exit 1; }
+[ "$(ps -o pgid= -p "$pid" | tr -d " ")" = 193 ] || { echo "STOP: Honcho process group changed"; exit 1; }
+[ "$(ps -o tty= -p "$pid" | tr -d " ")" = "pts/0" ] || { echo "STOP: Honcho terminal changed"; exit 1; }
+kill -s INT "$pid"
+for i in $(seq 1 20); do
+    if ! kill -0 "$pid" 2>/dev/null; then
+        echo "DEVELOPMENT HONCHO STOPPED: PASS"
+        exit 0
+    fi
+    sleep 1
+done
+echo "STOP: Honcho did not exit within 20 checks; do not force-kill"
+exit 1
+'
+```
+
+**Postcondition required for Phase C1:** `DEVELOPMENT HONCHO STOPPED: PASS` *and* a separate targeted process check confirming managed web/socketio/watch/scheduler/worker children stopped. Do not switch source on the same command invocation. If no PASS or children remain, keep shared-code unchanged and investigate that actual blocker. Docker-managed DEVELOPMENT MariaDB and Redis remain running; do not interact with legacy `frappe_docker-*` PRODUCTION services.
+
+**C1 next action when stopped:** re-run pinned Git/backup guards, then explicitly stage a source switch to the reviewed `0c223d7...` HEAD using the verified local fetch, preserving `AGENTS.md`. All valid site schemas must be migrated in a controlled period **before resuming ordinary use**, and the failed `ccpc-integration.localhost` is excluded. Stop on schema/master errors; Git rollback alone does not reverse a site migration. After successful app/site acceptance, restore DEVELOPMENT-only Honcho processes via a vetted start command and smoke-test both valid sites.
+
 ### Gate C — controlled shared-bench code change (separate operator approval required)
 
 1. Prefer a reviewed isolated bench/container if available for no-downtime acceptance. If keeping the *existing shared bench*, schedule an explicit **DEVELOPMENT-only maintenance window** and verify operational isolation before stopping any DEVELOPMENT app workers/scheduler/web processes. Avoid generic Docker Compose commands which might affect legacy PRODUCTION on the same physical server.
@@ -116,7 +153,7 @@ This command is **read-only preflight**; no checkout, migration or service resta
 
 **STOP** on any branch/SHA/status mismatch, untracked path collision, missing or stale recovery point, incomplete restore requirements, site DB ambiguity, unexpected Patch Log contents, unsatisfied Company/Account prerequisites, unexpected running shared worker, migration errors, or inability to preserve the other site's service/schema state.
 
-**Authorized now:** GitHub inspection, this plan, and non-destructive preflight recommendations.  
-**Not authorized now:** new server backup/copy, source checkout, bench migration, accounting posting, restarting containers/workers, resetting Git, changing PRODUCTION, or automated reporting.
+**Authorized as of October 27:** GitHub inspection, the completed DEVELOPMENT-only two-site backup preservation/creation and verification, and the owner-approved temporary DEVELOPMENT maintenance window including a guarded graceful Honcho shutdown.  
+**Not independently authorized:** unreviewed application checkout/DB migration beyond the controlled subsequent steps, financial posting, broad Docker stop/restart, any PRODUCTION operation, unapproved restore or automated reporting. Stop on preflight mismatches.
 
-**Next concrete operator action:** execute the Gate A pinned read-only checkout preflight on the existing DEVELOPMENT app (one command). Then review the output and choose the fully verified two-site backup/preservation implementation before seeking operator permission for any filesystem or database-changing action.
+**Next concrete operator action:** run C0 guarded DEVELOPMENT-only Honcho shutdown during the approved maintenance window, then verify no managed children remain before any Git checkout/schema write. Preserve the verified site-local recovery sets.
