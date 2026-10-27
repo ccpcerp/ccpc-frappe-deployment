@@ -1,6 +1,17 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-27 — DEVELOPMENT logical DB separation verified; maintain shared-code migration boundary
+
+**Owner-executed read-only DEV-container site-config inspection:** `development.localhost`, `ccpc-integration.localhost` and `ccpc-integration2.localhost` each report a **different configured database name**, with host `mariadb` in each case. Exact DB identifiers intentionally not repeated in this GitHub record. Three distinct site-config values provide **logical database naming separation**, not a guarantee of all schemas actually existing, Docker/network independence, Redis isolation, background-worker isolation, absence of cross-site effects, or recovery success.
+
+**Authoritative historical warning:** Earlier GitHub milestones document `ccpc-integration.localhost` as an **incomplete/failed site creation**, with MariaDB schema/user previously independently confirmed absent. Do **not** treat this site as a usable test database based on `site_config.json` presence alone. `ccpc-integration2.localhost` was successfully created and had Frappe 16.33.1 / ERPNext 16.34.2 / CCPC 0.0.1 installed and read-only `bench list-apps` confirmed on Oct 13. It remains **logically isolated only**, within the shared DEVELOPMENT bench, app worktree and physical host that also contains legacy PRODUCTION containers.
+
+**Safe next step:** one current read-only `bench --site ccpc-integration2.localhost list-apps` as `frappe` in devcontainer, to confirm the intended test site still has all expected apps; do not retest historically failed `ccpc-integration.localhost`, migrate, swap shared app checkout, run accounting postings or assume live production isolation. Review the incoming four new Finance DocTypes/schema/hooks in GitHub and prepare a reviewed shared-bench code-transition and site-scoped migration/rollback plan BEFORE any runtime change. Preserve untracked `AGENTS.md` in the active DEVELOPMENT checkout. New work on four previously approved day-one reports and source-to-invoice/returns should advance in GitHub in parallel, as should the dedicated production infrastructure review. No DEVELOPMENT/PRODUCTION site or Docker write occurred as part of this site-config check.
+
+---
+
+
 ## 2026-10-27 — DEVELOPMENT GitHub fetch verified; branch and files not switched
 
 **Owner executed the previously reviewed guarded DEV-only Git fetch** in container `frappe_docker_devcontainer-frappe-1`, worktree `/workspace/development/frappe-bench/apps/ccpcerp`. The command required current branch `review/intercompany-approval-failure-tests`, current HEAD `806fa23516490ec7beefcff03a1baa09d722120e`, and porcelain exactly `?? AGENTS.md` before fetching `refs/heads/review/circleci-isolated-erpnext-phase2-2026-10-26`. Operator output:
