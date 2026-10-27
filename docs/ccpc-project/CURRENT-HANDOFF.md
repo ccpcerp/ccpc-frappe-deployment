@@ -1,6 +1,15 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-27 — DEV Finance actor pool: main 20, integration2 1; no Company grants
+
+**Owner-executed strictly read-only Finance readiness inventory (both DEV sites):** `development.localhost` has **20** enabled named `System User` identities not assigned `Stockroom Personnel`, **0** with qualifying Company-wide User Permissions, **0** Companies with qualifying grants and **0** Companies with two such users. `ccpc-integration2.localhost` has **1** such enabled user and likewise **0** qualifying Company grants/Companies and **0** Companies with two eligible users. Script printed `FINANCE TEST USER READINESS: COMPLETED`. Prior assignment diagnostic confirmed **0** `CCPC Mapping Preparer` and **0** `CCPC Accounting Mapping Approver` role assignments on either site; Company counts main **25**, Integration2 **2**. These are counts only, not real-user identities, accounting authorization or Company master validation. No modifications were made.
+
+**Implication:** Integration2 cannot currently support two distinct real Finance mapping actors even before role/Company permissions are configured; main has enough possible users by count, but no role/Company grants, and it must not be assumed safe to grant roles to existing business users. Preferred next preparation is to inspect only the **Integration2** master availability as a candidate isolated fixture: count per-Company existence of at least one enabled leaf Expense-root Account, enabled leaf Cost Center, enabled leaf Department and any leaf Item Group (no names, no writes). This check establishes structural candidates, not an owner-approved accounting crosswalk; actual Company/masters and two separate approved test actors still need explicit operator review and separate approval before any role grants, user creation, Finance mapping proposals or postings. Both DEV sites stay unchanged; PRODUCTION untouched.
+
+---
+
+
 ## 2026-10-27 — Finance roles confirmed unassigned on BOTH DEV sites; Company counts differ 25 vs 2
 
 **Owner-executed read-only Finance assignment diagnostic** after earlier zero-eligible-actor inventory returned:
