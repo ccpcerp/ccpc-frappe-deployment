@@ -1,6 +1,19 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-27 — Both DEV sites show fresh Manila-time scheduler starts after timezone alignment
+
+**Owner-provided postchange, guarded read-only per-site SQL result (2026-10-27 13:50:52 Asia/Manila):**
+
+- `development.localhost`: System Settings `time_zone=Asia/Manila`; `frequency='All'` enabled count `4`, oldest `last_execution=2026-10-27 13:48:04.433605`, newest `2026-10-27 13:48:08.344874`.
+- `ccpc-integration2.localhost`: System Settings `time_zone=Asia/Manila`; `frequency='All'` enabled count `4`, oldest `last_execution=2026-10-27 13:48:01.066748`, newest `2026-10-27 13:48:03.351225`.
+- Script printed `POSTCHANGE SCHEDULER CHECK: COMPLETED`; both sites' latest job starts occurred ~2m44–49s before query wall time, within the usual four-minute scheduler cadence. This is direct evidence that both sites' frequent scheduler jobs started following the approved main DEV time-zone correction; **not proof of each job's successful completion**. The previously passed 4/2/5 Finance schema checks, both sites' HTTP 200 prechange pings, shared Honcho/worker/doctor checks and protected local DEV snapshots remain intact. No new migrations, restarts, backup work or PRODUCTION changes performed as part of this read-only check.
+
+**Status:** DEVELOPMENT time-zone alignment and postchange frequent scheduler start-timestamp check = **PASS**. Time-zone mismatch issue closed. Next perform a small two-site **read-only HTTP ping** after setting change (as D7 specified), then proceed to separately scoped authenticated DEV UI and permissions/maker-checker acceptance. Approved synthetic stock/GL posting and report build/tests remain distinct later gates; do not claim production-ready or live financial validation.
+
+---
+
+
 ## 2026-10-27 — Approved main DEV timezone alignment verified PASS; postchange scheduler check next
 
 **Owner-executed, explicitly approved, guarded DEVELOPMENT-only setting change completed:** At pinned CCPC custom app SHA `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`, single-site Frappe `System Settings.time_zone` changed from `Asia/Kolkata` to `Asia/Manila` **only** for `development.localhost` using normal Frappe Document ORM `save()`. Owner's terminal reported:
