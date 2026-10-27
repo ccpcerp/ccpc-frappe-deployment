@@ -1,7 +1,7 @@
 # CCPC ERPNext — Controlled DEVELOPMENT app integration and acceptance plan
 
 **Prepared:** 2026-10-27 (Asia/Manila)  
-**Status, updated 2026-10-27:** Both DEVELOPMENT migrations and independent 4/2/5 Finance schema checks PASS at pinned detached app HEAD `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`. **Owner executed guarded DEVELOPMENT-only Honcho restart** and reported `DEVELOPMENT RESTART GUARDS: PASS`, `DEVELOPMENT HONCHO STARTED: PID=380905`; at five seconds the new process was present (`PPID 0`, `Ss`). **This verifies Honcho launch but NOT web reachability, worker/scheduler readiness, or functional transaction acceptance.** The next action is a site-specific read-only HTTP ping for both valid DEV sites, then worker/scheduler smoke checks. PRODUCTION excluded. Both protected October 27 four-part snapshots and October 13 historical copies remain preserved locally; independent restore/off-host verification untested.
+**Status, updated 2026-10-27:** Both DEVELOPMENT migrations and independent 4/2/5 Finance schema checks PASS at pinned detached app HEAD `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`. **Owner executed guarded DEVELOPMENT-only Honcho restart** and reported `DEVELOPMENT RESTART GUARDS: PASS`, `DEVELOPMENT HONCHO STARTED: PID=380905`; the subsequent guarded D5 HTTP probe returned `HTTP PING PASS` with **200 for both** `development.localhost` and `ccpc-integration2.localhost` and `BOTH DEV WEB PINGS: PASS`. This establishes web response on both sites after migration. **Worker/scheduler readiness, authenticated UI and functional transaction acceptance remain unverified.** Next perform a read-only inventory of live Honcho-managed DEV processes, then site-specific queue/scheduler checks. PRODUCTION excluded. Both protected October 27 four-part snapshots and October 13 historical copies remain preserved locally; independent restore/off-host verification untested.
 
 ## 1. Objective and current verified inputs
 
@@ -373,6 +373,8 @@ echo "BOTH DEV WEB PINGS: PASS"
 '
 ```
 If a request fails, keep exact output and inspect **only** the named DEVELOPMENT Honcho log with bounded/sanitized reads; do not re-run migrations, auto-restart, or touch shared host services. If both pass, proceed to supervised worker/scheduler readiness and both-site functional UI/API smoke testing; approval for financial postings remains distinct.
+
+**D5 result (owner terminal, 2026-10-27):** Both intended DEVELOPMENT HTTP pings returned `200` and the script printed `BOTH DEV WEB PINGS: PASS`. The guard checked exact CCPC app SHA and Honcho PID before the requests. The next immediate operator action is a **read-only process inventory** for Honcho-managed `web`, `socketio`, `watch`, `schedule` and `worker`; actual background scheduler/queue function still needs separate verification. No new migration, restart, financial posting, backup work or PRODUCTION action is authorized by D5.
 
 ### Gate D — site-scoped migrations and persistent acceptance (separate explicit approval)
 
