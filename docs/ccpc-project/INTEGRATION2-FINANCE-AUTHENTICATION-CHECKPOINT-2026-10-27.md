@@ -287,3 +287,22 @@ NO FILE OR DATABASE CHANGES
 The original protected snapshot prefix is `20261027_104801-ccpc-integration2_localhost-` in `sites/ccpc-integration2.localhost/private/ccpc-preintegration-2026-10-27/fresh-backup/`. Those four files are nonempty and present, not necessarily valid/restorable. Their contents were **not** integrity-tested or restored by this read-only command. 686 GiB free on the backing filesystem was reported at the time of inspection.
 
 **Near-term follow-up:** Validate compressed SQL with `gzip -t`, public/private TAR central structure with `tar -tf ... >/dev/null`, site-config JSON parsing without printing content; preserve existing files. Then obtain **explicit authorization** for a fresh Integration2-only pre-fixture four-artifact Frappe backup, placed in an isolated non-web-accessible directory *outside both site's source tree and existing protected backup*, with suitable permissions, exact site scoping, completeness and checksums. Do not treat integrity checks as restore rehearsal or suggest automatically restoring a shared-environment DB. No account/Item Group/Finance mapping creation or approval yet; application deployment, service restarts, main DEVELOPMENT and PRODUCTION outside scope.
+
+### Protected backup structural integrity: PASS (not restore validation)
+
+The owner executed the previously issued guarded **Integration2-only read-only** check for the preintegration protected four-part backup and supplied this exact status output:
+
+```text
+INTEGRATION2 BACKUP INTEGRITY CHECK
+APPLICATION AND SITE GUARDS: PASS
+DATABASE GZIP INTEGRITY: PASS
+PUBLIC FILES TAR STRUCTURE: PASS
+PRIVATE FILES TAR STRUCTURE: PASS
+SITE CONFIG JSON STRUCTURE: PASS
+BACKUP ARCHIVE CHECK: COMPLETED
+NO FILE OR DATABASE CHANGES
+```
+
+The command performed `gzip -t` on the protected SQL `.gz`, `tar -tf ... >/dev/null` for both public and private TARs, and Python `json.load` on the site-configuration JSON without printing its contents. These format checks establish readable envelope structure for each existing archive; **they do not establish that SQL will successfully import, ERPNext can boot after restoration, foreign keys and attachments reconcile, or that backup artifacts are a consistent application snapshot**. The historical protected backup remains preserved, and no restore was attempted.
+
+**Next explicitly gated operation (not yet approved):** Ask the owner to authorize one fresh **Integration2-only** pre-fixture four-artifact Frappe backup with `--with-files`, captured under a newly created, non-web-accessible, restricted-permission directory distinct from the preintegration snapshot and main DEVELOPMENT/PRODUCTION backups. Do not assume a specific directory exists; verify it and filesystem/permissions independently. Validate nonempty database, site-config, public/private files; run format checks and optional private checksum manifest without disclosing site config, passwords or secrets. The operation is expected to write backup files and may briefly load shared filesystem/DB services; main DEVELOPMENT and PRODUCTION sites, databases, containers, migrations, and applications remain untouched. **No synthetic Item Group, Account, mapping Draft, Accounting approval, withdrawal issue, Stock Entry or GL Entry is authorized by backup permission.** Restoration and cleanup remain separately gated, no automatic rollback/restore.
