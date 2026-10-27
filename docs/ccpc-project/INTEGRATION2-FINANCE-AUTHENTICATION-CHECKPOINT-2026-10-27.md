@@ -106,3 +106,26 @@ NO FINANCE MAPPING OR POSTING REQUEST SUCCEEDED
 **Bounded conclusion:** The real `ccpcerp.ccpc_erp.bc_mapping_workflow.propose_mapping` HTTP POST endpoint enforced explicit *Maker role* denial on the authenticated Checker when scoped to `Integration Test Issuer` (`TISS`) and *Company grant* denial for the authenticated Maker when scoped to `Integration Test Requester` (`TREQ`). The script required HTTP 500, exception class `MappingPolicyError`, and matching specific denial message for each case; generic network/CSRF/missing-master failures would not count as PASS. Both requests supplied deliberately nonexistent Item Group and Expense Account identifiers, independently checked absent before the HTTP test. The reviewed GitHub code calls `_real_authority` **before any draft/scope creation**; test input was not a valid Finance proposal even if authorization were defective. This was a **negative-authorization HTTP milestone**, not a positive proposal or Accounting approval acceptance. Operator confirms no successful Finance mapping or posting requests. Ordinary session or error log metadata may have been generated.
 
 **Remaining acceptance:** Successful authorized Maker+TISS draft creation, authenticated Checker review/approval of that draft, Maker self-approval denial, optimistic-version/race protection and rollback/stock/GL behavior **not tested**. Checker approval endpoint locates an existing mapping draft before role enforcement; a missing draft cannot test Checker-vs-Maker approval. Before any persistent test mapping, first perform a separately guarded **read-only Integration2 census** of mapping Scope/Revision rows and relevant existing fixture masters; then prepare a precise, small, auditable synthetic fixture plan, secure Accounting approval reference handling and backup/rollback strategy, and obtain the owner’s separate approval for the corresponding write transactions. Do not use the CI-only disposable fixture on persistent Integration2. Main DEVELOPMENT and PRODUCTION unchanged by the requested business tests. No secrets or session tokens shared.
+
+### Read-only mapping inventory: empty for TISS and TREQ
+
+**Owner-executed guarded SQL/Frappe inventory output** on Integration2, from the pinned reviewed CCPC app checkout:
+
+```text
+INTEGRATION2 FINANCE MAPPING INVENTORY
+SITE AND COMPANY GUARDS: PASS
+Expense TISS scopes: 0
+Expense TISS revisions: 0
+Expense TREQ scopes: 0
+Expense TREQ revisions: 0
+Center TISS scopes: 0
+Center TISS revisions: 0
+Center TREQ scopes: 0
+Center TREQ revisions: 0
+FINANCE MAPPING INVENTORY: COMPLETED
+NO FINANCIAL DATA CHANGES
+```
+
+This establishes a **point-in-time absence of custom CCPC Expense/Center Scope and Revision records** for the fictional TISS and TREQ Companies. It does **not** establish that eligible Item Group, Company-owned expense Account, Department, or Cost Center masters exist, nor that using any present master would be safe. No new mapping, fixture, or master data was written.
+
+**Next one-step test preparation:** Read-only census of eligible Item Group leaf records and TISS Expense-root non-group enabled Accounts (optional Center Department and Cost Center). Check whether only clearly tagged Integration2 synthetic masters can be selected without touching real master data. If none exist, design a synthetic fixture with exact required masters/owners/limits, proposed cleanup and isolated backup/restore strategy, and obtain explicit owner authorization before any write. A clean Scope/Revision census is necessary but not a substitute for a transaction and safety plan. PRODUCTION and main DEVELOPMENT remain untouched.
