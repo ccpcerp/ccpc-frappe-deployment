@@ -14,6 +14,17 @@
 
 
 
+
+## 2026-10-27 — Shared DEVELOPMENT runtime is active; inspect Procfile before integration
+
+**Owner's read-only host-level runtime inspection:** `docker ps --filter "name=frappe_docker_devcontainer"` showed four running DEVELOPMENT-only containers: `frappe_docker_devcontainer-frappe-1`, `frappe_docker_devcontainer-redis-cache-1`, `frappe_docker_devcontainer-redis-queue-1`, and `frappe_docker_devcontainer-mariadb-1`, each reporting approximately two weeks uptime. `docker top frappe_docker_devcontainer-frappe-1 -eo pid,ppid,comm` showed an active `honcho` parent (observed host PID 20641), multiple `python3.14`/Python descendants, `esbuild`, `bash`/shells and incidental `codex`/`copilot-runtime` names. **Only process names and ancestry were supplied, not full startup arguments**. Do not treat incidental interactive/agent processes as authorization to use autonomous tooling, terminate sessions, or infer secrets. Neither command made changes.
+
+**Risk finding:** DEVELOPMENT bench is **not idle**: live honcho-managed Python processes and frontend watcher appear to use the same checkout and runtime shared by `development.localhost` and `ccpc-integration2.localhost`. Site-specific migrations do not protect the other site's requests or workers when Python source is changed. Both fresh site-local four-part Oct 27 backups have passed format checks and are protected by byte-comparison copies outside standard cleanup paths; their Oct 13 equivalents are also preserved. The two DEV Patch Logs each record all eight listed CCPC patches. This protection is **not an off-host restore test**; code/schema activation still requires separate owner permission.
+
+**Next single safe operator action:** at the Ubuntu host prompt, read only the DEVELOPMENT bench `Procfile` through `docker exec --user frappe frappe_docker_devcontainer-frappe-1 bash -lc 'cd /workspace/development/frappe-bench && if test -f Procfile; then sed -n "1,100p" Procfile; else echo "NO PROCFILE"; fi'`. It displays service command definitions, not running process credentials. Do not stop honcho, Redis, MariaDB, workers, or any container; do not switch branch/migrate now. After verifying Procfile and safe launch strategy, review exact prerequisites and propose a controlled DEV-only window or isolated bench with rollback and separately scoped consent.
+
+---
+
 ## 2026-10-27 — Fresh two-site DEVELOPMENT recovery sets protected and byte-compared; begin shared-runtime preflight
 
 **Owner-executed backup copy completed successfully** at `frappe@48a951912597:/workspace/development/frappe-bench` using the approved guarded `bash` command. Both copied four-artifact fresh Oct 27 sets into a `0700` private subdirectory `sites/<site>/private/ccpc-preintegration-2026-10-27/fresh-backup/` outside Frappe's normal `private/backups` cleanup path, and each file was set `0600` and silently compared with `cmp -s` while `set -euo pipefail` was active. Operator transcript completed and returned to shell prompt:
