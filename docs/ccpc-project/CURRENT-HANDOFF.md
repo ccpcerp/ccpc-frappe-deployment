@@ -1,6 +1,25 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-27 — Approved main DEV timezone alignment verified PASS; postchange scheduler check next
+
+**Owner-executed, explicitly approved, guarded DEVELOPMENT-only setting change completed:** At pinned CCPC custom app SHA `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`, single-site Frappe `System Settings.time_zone` changed from `Asia/Kolkata` to `Asia/Manila` **only** for `development.localhost` using normal Frappe Document ORM `save()`. Owner's terminal reported:
+
+```text
+BEFORE: main=Asia/Kolkata; integration2=Asia/Manila
+PRECHANGE GUARDS: PASS
+MAIN DEV TIMEZONE SAVE COMPLETED
+AFTER: main=Asia/Manila; integration2=Asia/Manila
+DEVELOPMENT TIMEZONE ALIGNMENT: PASS
+```
+
+**Scope/verification:** The guarded script checked pinned app SHA, detached HEAD, clean tree except protected `?? AGENTS.md`, both intended site configs, and active Honcho PID `380905`, then performed exactly one ORM settings save on main DEV and independently re-read both site settings. Both sites now show `Asia/Manila`; Integration2 was not modified. No Docker restarts, schema migrations, system/DB clock adjustments, new snapshots, financial postings, or PRODUCTION operations were requested. The independently verified Oct 27 DEV recovery checkpoints and Oct 13 history remain preserved.
+
+**Next focused gate:** Read-only compare current UTC+8 clock, both site System Settings timezone, and both sites' four `frequency='All'` scheduler `last_execution` timestamps from `tabScheduled Job Type` after the setting change. These are *job-start* indicators; successful completion and authenticated financial/Withdrawal business acceptance remain separate. Allow ordinary scheduler cadence (approximately four minutes by default) before treating a recent lag as a failure; do not force a scheduler tick/restart. Then advance to authenticated UI/role permission checks and authorized synthetic business workflow acceptance.
+
+---
+
+
 ## 2026-10-27 — Owner approved DEV-main timezone alignment to Asia/Manila; operator action pending
 
 **Explicit owner approval received in chat:** Change **only** `development.localhost` Frappe System Settings `time_zone` from `Asia/Kolkata` to `Asia/Manila`. The second site `ccpc-integration2.localhost` already uses `Asia/Manila` and must not be changed. Excludes MariaDB/host/system timezone changes, production, service restarts, migrations, backups, financial postings, broad setting edits, and unrelated data manipulation.
