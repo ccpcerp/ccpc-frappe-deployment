@@ -380,3 +380,23 @@ HISTORICAL AND NEW BACKUPS: UNCHANGED
 Before the single `frappe.db.commit()`, the procedure verified actual field values, only one synthetic account name across Companies, and unchanged table counts for Company, Item, GL Entry, Stock Ledger Entry, and both mapping revision DocTypes; Item Group and Account table counts increased by one each. Backup SHA-256 comparisons passed. The owner-reported transcript explicitly confirms the transaction **was committed** and no GL, stock or mapping records were created. This is successful **operator-run Integration2 verification**, not an independent postcommit database read by ChatGPT; no direct container connection is available.
 
 **Next bounded read-only step:** independently reconnect to `ccpc-integration2.localhost` to verify the two newly committed records, exact fields and parent relationships, no Item assignment and still zero CCPC Expense/Center scopes/revisions in TISS/TREQ. Do not recreate the masters or rerun the successful transaction. After postcommit readback, prepare one narrow **Maker-owned Draft** proposal on the synthetic Item Group and synthetic TISS Account for separate user authorization, followed by independent Checker review/authorization steps. No Checker approval, Version audit activation, GL posting, stock movement, restarts, migration, cleanup, restoration, changes to main DEVELOPMENT or PRODUCTION have been authorized.
+
+### Independent post-commit synthetic master readback: PASS
+
+Following the committed Integration2-only two-master ORM transaction, the project owner executed a **separate, read-only Frappe DB connection** with the same guarded pinned app HEAD, exact isolated site `ccpc-integration2.localhost`, and Company TISS:
+
+```text
+INTEGRATION2 POST-COMMIT MASTER VERIFICATION
+SITE AND COMPANY GUARDS: PASS
+SYNTHETIC ITEM GROUP PERSISTED: PASS
+ITEM ASSIGNMENTS AND DEFAULTS: NONE
+SYNTHETIC EXPENSE ACCOUNT PERSISTED: PASS
+CROSS-COMPANY ACCOUNT DUPLICATES: NONE
+TISS AND TREQ MAPPING SCOPES: ZERO
+POST-COMMIT MASTER VERIFICATION: PASS
+NO DATABASE CHANGES
+```
+
+**Verified bounds:** The owner-operated independent read checks `Item Group` `CCPC INT2 Expense Mapping Test 20261027` is leaf, parent `All Item Groups`, has no Item Group Defaults or assigned Items; the `Account` `CCPC INT2 Expense Mapping Test - TISS` has expected name, no account number, company `Integration Test Issuer`, parent `Indirect Expenses - TISS`, Expense/Profit and Loss, leaf and enabled. Exactly one Account with this synthetic `account_name` exists across companies. Both TISS and TREQ have zero `CCPC Expense Mapping Scope` and `CCPC Center Mapping Scope` rows at the time of readback. No persistent Finance mapping proposal or approval was created by this inspection.
+
+**Next independent owner approval gate:** The reviewed `ccpcerp.ccpc_erp.bc_mapping_workflow.propose_mapping` endpoint (pinned app `0c223d7...`) requires the authenticated actual Maker Role/Company grant before it creates a custom Expense Scope and revision in `Draft` state. Proposed **one and only one** new TISS Expense mapping: `kind=Expense`, `company=Integration Test Issuer`, `source=CCPC INT2 Expense Mapping Test 20261027`, `value=CCPC INT2 Expense Mapping Test - TISS`, `effective_from`/ `effective_until` empty (effective time not activated until separately approved). It will produce **two persistent custom mapping records**: one `CCPC Expense Mapping Scope` and one `CCPC Expense Mapping Revision` (Draft, revision 1), not a ledger posting. After separate explicit approval, use the real authenticated Maker HTTP/CSRF session; require fresh zero-scopes guard, replay/duplicate prevention, exact state/owner and no GL/stock change, and persist/readback revision ID carefully. **Do not invoke** Checker approval until a further separate authorization and Accounting reference review. No stock issue, GL posting, PRODUCTION, main DEVELOPMENT, backup restore, cleanup or migrations authorized.
