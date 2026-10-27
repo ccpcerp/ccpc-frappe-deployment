@@ -18,6 +18,17 @@
 
 
 
+
+## 2026-10-27 — Maintenance approved; guarded DEVELOPMENT Honcho shutdown runbook committed
+
+**Operator authorization:** owner explicitly approved temporary **DEVELOPMENT-only** maintenance/window, including controlled shutdown in preparation for review-branch integration, and requested forward engineering progress rather than more repetitive investigations. The guarded action is documented in [DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md](DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md) at verified commit `4e6497ab7f28fab2f361cd1bfef1d1e90fd48d95`, section **C0**. This GitHub update was documentation only; **no server command has run as part of this approval**.
+
+**Next action, not another exploratory check:** from Ubuntu host execute the C0 guarded `docker exec --user frappe` command to send `SIGINT` *only* to the exact-identity DEVELOPMENT Honcho PID `193` (parent PID `14`, foreground PGID `193`, TTY `pts/0`, exact expected command line). This is permitted only during the owner-approved DEV maintenance window with no known active work. The command waits for graceful exit and **never** force kills or broad-stops Docker services. Report `DEVELOPMENT HONCHO STOPPED: PASS` or exact STOP/error. Thereafter verify Honcho-managed child processes have stopped before proceeding with pinned Git checkout and per-site migrations; do not combine unverified operations. Honcho stop will interrupt DEV web/socketio/watch/scheduler/worker, so operator must ensure active DEVELOPMENT work is quiescent. MariaDB and Redis containers and legacy PRODUCTION stay running.
+
+**Existing verified safety gates:** both DEV site Patch Logs 8/8; backup sets newly generated Oct 27 for `development.localhost` and `ccpc-integration2.localhost`, four parts each, integrity checked and byte-compared to protected copies; October 13 sets separately protected; exact app Git preflight passed and untracked `AGENTS.md` preserved; reviewed candidate `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`. Local recovery copies are not off-host or restore-tested. **No DEV checkout/migration or PRODUCTION action yet.** After the stop, shift directly to code integration (not general NAS/backup rediscovery) with database-specific rollback gating.
+
+---
+
 ## 2026-10-27 — Honcho foreground controlling TTY identified; DEV maintenance authorization next
 
 **Owner-executed read-only Honcho TTY examination on `frappe_docker_devcontainer-frappe-1`:**
