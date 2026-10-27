@@ -1,6 +1,17 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-27 — Owner delegated Integration2 Finance Company selection; TISS selected provisionally
+
+**Owner response:** “Approved you choose yourself”, in answer to selecting **one** of two fictional Integration2 Companies for isolated Finance test preparation. This grants discretion to choose test Company, **not** user-account/permission creation, financial mappings, transactions, backup/restores or PRODUCTION action.
+
+**GitHub-documented Oct 15 read-only Integration2 Company identity:** `Integration Test Issuer` (abbr `TISS`), `Integration Test Requester` (abbr `TREQ`). Historical test master data records warehouse `Stores - TISS` and requester's department `Operations - TREQ`. The pinned app branch `review/circleci-isolated-erpnext-phase2-2026-10-26` commit `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41` uses `slip.company` as Company key for both Expense and Center mapping scopes in `bc_issue_runtime.resolve_locked_original_issue`. **Selection:** `Integration Test Issuer` (`TISS`) is the most direct controlled Finance mapping test Company because it is the documented issuing Company, not the separate beneficiary requester. This is a **provisional selected test scope**, pending read-only Oct 27 re-verification of exact Company name/abbr and TISS-specific eligible leaf Expense Account, Cost Center and Department. Integration2 count-only master checks previously reported both Companies had all three, but did not verify identity. Do not reuse TREQ-owned `Operations - TREQ` Department for a TISS Company-scoped Finance Center mapping (workflow validates that Department and Company match). CircleCI synthetic fixture is strictly limited to its disposable CI site and must not run on Integration2.
+
+**Known setup blocker:** Integration2 currently has only **1** eligible enabled named non-Stockroom System User, **0** grants meeting exact `tabUser Permission` Company scope, and **0** assigned Finance maker/checker roles. Minimum two independent authenticated Finance actors are required. No user identity, Company permission, role or financial data has been written. After read-only re-verification, prepare two separately authorized DEV test identities/grants, exact intended roles and cleanup/audit plan for user approval. Stop if Company identity/eligible masters differ; do not create a Company silently, infer Accounting signoff or affect PRODUCTION.
+
+---
+
+
 ## 2026-10-27 — Integration2 Finance master readiness: both Companies pass structural prerequisites
 
 **Owner-executed site-scoped, read-only MariaDB count query at `ccpc-integration2.localhost`:**
