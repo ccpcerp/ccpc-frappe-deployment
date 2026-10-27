@@ -1,6 +1,17 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-27 — Finance mapping role authority inventory: zero eligible actors on both DEV sites
+
+**Owner-executed, read-only Finance-authority aggregate SQL after D8 HTTP 200 PASS:** Both `development.localhost` and `ccpc-integration2.localhost` returned the following for each role `CCPC Mapping Preparer` and `CCPC Accounting Mapping Approver`: `enabled_nonstockroom_users=0`, `users_with_company_grants=0`, `companies_with_eligible_users=0`. Script ended `BOTH DEV FINANCE ROLE INVENTORIES: COMPLETED`. This **does not** mean the role definitions are missing (schema role 2/2 had passed), and cannot distinguish *no role assignments* from *assignments to disabled/Administrator/Guest/Stockroom users* because query excluded ineligible users. No user names/Company names were disclosed; no change to any database, permissions, role memberships or production.
+
+**Reviewed pinned app `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`:** `ccpcerp/ccpc_erp/bc_issue_runtime.py::_real_authority` requires a named enabled User other than Guest/Administrator, explicit `tabHas Role` membership in Finance role, Company `tabUser Permission` with `allow='Company'`, exact Company, `apply_to_all_doctypes=1`, blank `applicable_for`, and absence of the `Stockroom Personnel` role. `bc_mapping_workflow.py` requires separate preparer and Accounting approver identities. **Current blocker:** no eligible maker/checker on either DEVELOPMENT site; no Finance mapping workflow execution, approved revisions or stock/GL postings authorized. Need distinguish missing assignments versus ineligible assignments, select *two independently authorized DEV test actors for the same specific Company*, and have owner separately approve any user/role/Company grants or fixture creation. Do not automatically grant roles or reuse Administrator. Code review and migration verification alone do not establish end-to-end financial acceptance.
+
+**Next narrow read-only gate:** per-site grouped Role assignment counts including ineligible users (total assigned, enabled named, enabled non-Stockroom, Stockroom-excluded, disabled) and total Company count. Report only counts, no names or grants; then prepare the smallest audited DEV-only setup decision based on actual results. Preserve both sites and their recovery sets; PRODUCTION untouched.
+
+---
+
+
 ## 2026-10-27 — Both DEV HTTP pings PASS post-timezone; Finance authority inventory next
 
 **Owner-executed post-Asia/Manila-change web validation:** `development.localhost: HTTP 200`; `ccpc-integration2.localhost: HTTP 200`; `POSTCHANGE TWO-SITE WEB CHECK: PASS`. This followed independently verified system settings `Asia/Manila` on both sites and a fresh normal `frequency='All'` scheduler last-start around `2026-10-27 13:48` site-local on both. The script pinned application HEAD `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`. **DEV basic runtime, site settings, and scheduler-start health gates PASS**; individual job completion, authenticated UI, Finance role/Company grants, functional workflows, stock/GL posting, reporting, and restore rehearsal remain unverified. No new migrations/backups/restarts and no PRODUCTION actions.
