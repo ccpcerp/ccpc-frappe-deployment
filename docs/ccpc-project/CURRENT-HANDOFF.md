@@ -1,6 +1,21 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-27 — BOTH DEVELOPMENT site HTTP pings PASS; check Honcho children and background services next
+
+**Owner-executed D5 read-only smoke output:**
+```text
+HTTP PING PASS: development.localhost (200)
+HTTP PING PASS: ccpc-integration2.localhost (200)
+BOTH DEV WEB PINGS: PASS
+```
+The GitHub-reviewed app remains pinned at `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41` for the prior guarded D5 command, which checked Honcho PID `380905` before performing both site-specific loopback HTTP pings. This proves both DEV web endpoints returned HTTP 200 at test time after the two migrations and 4/2/5 schema checks. It **does not** establish worker, scheduler, Socket.IO, authenticated UI, business transaction, Finance maker/checker, stock/GL or report acceptance. Neither database migrations nor backups need repeating for this milestone. No production action authorized.
+
+**Next operator step:** a bounded read-only process inventory for the DEVELOPMENT Honcho PID and the five `Procfile` services (`web`, `socketio`, `watch`, `schedule`, `worker`), including their worker/scheduler actual process state; inspect only DEV-only logs if a process is missing. Do not restart services or modify data. After process readiness, perform site-specific scheduler/queue checks and authenticated workflow smoke tests without financial posting until separate approval. Preserve October 27 and October 13 DEV recovery assets. See `DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md` D4–D5.
+
+---
+
+
 
 
 
