@@ -355,3 +355,28 @@ Immediately after verifying the fresh four-artifact Integration2 pre-fixture bac
 **Authorized execution bounds:** Single guarded ORM transaction against only `ccpc-integration2.localhost`, using normal ERPNext validation, with fresh preflight of pinned detached app revision, clean protected tracked worktree/untracked `AGENTS.md` only, backup directory `sites/ccpc-integration2.localhost/private/ccpc-finance-prefixture-20261027-u76kev1a` and 4-file SHA256 manifest, original four backup files, distinct site/database identity from main DEV, zero TISS/TREQ mapping scopes/revisions, exact name nonexistence, unchanged eligible parents, and zero TISS Company ancestors/descendants. Explicit rollback on a pre-commit error, and fail-closed behavior with no auto-retry on uncertainty. ERPNext nested-set parent indices/caches may change as an inherent effect of normal master creation. Commit only after checking the exact two new records, counts and absence of financial postings or cross-Company account creation. No bypass of validations. Record actual output and verify persistence after operator executes; no edits can be claimed yet.
 
 **Not authorized:** A Maker Draft or Checker approval, any CCPC Expense/Center mapping scope/revision, Account numbering, other Company accounts, stock movement, GL posting, billing, data cleanup/restore, service restart, migration, branch switch, main DEVELOPMENT changes or PRODUCTION access. No credentials, database contents or backups in GitHub. New records remain clearly tagged, retained pending the separate next test and cleanup decision.
+
+### Two synthetic Integration2 master inserts: owner-reported PASS (commit witnessed by operator)
+
+On 2026-10-28 (Asia/Manila), following the prior narrow owner approval and complete verified pre-fixture local backup, the owner executed the supplied guarded **Integration2-only** two-master Frappe ORM transaction. Actual reported terminal output:
+
+```text
+INTEGRATION2 TWO SYNTHETIC MASTERS
+NEW BACKUP CHECKSUMS AND ARCHIVES: PASS
+HISTORICAL BACKUP: PRESENT
+MASTER AND MAPPING PREFLIGHT: PASS
+TWO-MASTER TRANSACTION VALIDATION: PASS
+SYNTHETIC ITEM GROUP: CREATED AND COMMITTED
+SYNTHETIC TISS EXPENSE ACCOUNT: CREATED AND COMMITTED
+TWO SYNTHETIC MASTER RECORDS: PASS
+NO FINANCE MAPPING, GL OR STOCK TRANSACTIONS CREATED
+HISTORICAL AND NEW BACKUPS: UNCHANGED
+```
+
+**Bounded result:** The operator script checked pinned detached app HEAD `0c223d7...` and protected checkout `?? AGENTS.md`; existing four-part Integration2 backup SHA-256 manifest and historical protected files; separate Integration2/main DEV DB identity; zero TISS/TREQ custom Finance mapping scopes; valid Company tree and parent eligibility; no name collisions; then used ordinary Frappe DocType ORM `.insert()` for precisely:
+- leaf Item Group `CCPC INT2 Expense Mapping Test 20261027` beneath `All Item Groups` (no Item links);
+- unnumbered, nongroup, enabled Expense Account `CCPC INT2 Expense Mapping Test - TISS` in `Integration Test Issuer`, parent `Indirect Expenses - TISS`.
+
+Before the single `frappe.db.commit()`, the procedure verified actual field values, only one synthetic account name across Companies, and unchanged table counts for Company, Item, GL Entry, Stock Ledger Entry, and both mapping revision DocTypes; Item Group and Account table counts increased by one each. Backup SHA-256 comparisons passed. The owner-reported transcript explicitly confirms the transaction **was committed** and no GL, stock or mapping records were created. This is successful **operator-run Integration2 verification**, not an independent postcommit database read by ChatGPT; no direct container connection is available.
+
+**Next bounded read-only step:** independently reconnect to `ccpc-integration2.localhost` to verify the two newly committed records, exact fields and parent relationships, no Item assignment and still zero CCPC Expense/Center scopes/revisions in TISS/TREQ. Do not recreate the masters or rerun the successful transaction. After postcommit readback, prepare one narrow **Maker-owned Draft** proposal on the synthetic Item Group and synthetic TISS Account for separate user authorization, followed by independent Checker review/authorization steps. No Checker approval, Version audit activation, GL posting, stock movement, restarts, migration, cleanup, restoration, changes to main DEVELOPMENT or PRODUCTION have been authorized.
