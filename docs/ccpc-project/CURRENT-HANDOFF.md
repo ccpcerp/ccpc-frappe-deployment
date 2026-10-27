@@ -6,6 +6,17 @@
 
 
 
+
+## 2026-10-27 — BOTH DEVELOPMENT sites show eight of eight registered CCPC patches in Patch Log
+
+**Owner-executed read-only SQL at real site MariaDB consoles:** both `development.localhost` and `ccpc-integration2.localhost` independently returned exactly eight rows from `SELECT patch FROM \`tabPatch Log\` WHERE patch LIKE 'ccpcerp.patches.%' ORDER BY patch;`. The eight names in each database matched **all eight** `ccpcerp/patches.txt` entries at reviewed app branch `review/circleci-isolated-erpnext-phase2-2026-10-26`, tip `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`. Recorded names: `check_work_request_job_order_duplicates`, `migrate_phase1_equipment_costing`, `create_equipment_accounting_dimension`, `grant_operational_requestor_roles`, `grant_purchase_order_approver_role`, `create_intercompany_material_accounts`, `create_intercompany_parties`, `add_intercompany_material_billing_indexes`. This clears **registered patch-log presence verification on both DEVELOPMENT sites**.
+
+**Limits:** This is NOT an integrity test of actual Accounts, party links, indexes, roles, or Company masters. Newly reviewed Finance mapping DocTypes, custom fields and `after_migrate` remain un-migrated on persistent DEVELOPMENT; fresh site recovery sets and site-isolation plan remain mandatory before schema writes. Both sites use the same DEVELOPMENT app checkout, so source transition still needs a coordinated window/alternative bench. No migration, checkout, backup, production changes or accounting postings occurred.
+
+**Next priority:** exit the read-only MariaDB console (`exit;`). Prepare exact minimal guarded preservation of both existing October 13 four-file sets, then fresh recovery points for BOTH DEV sites under separate explicit approval before any shared-code switch/migration; avoid unrelated NAS triage. If further read-only checks are useful, verify the prerequisite four Company/required Account and database-index state, rather than running patches again.
+
+---
+
 ## 2026-10-27 — Main DEVELOPMENT Patch Log confirms all eight CCPC patches
 
 **Owner-executed read-only SQL in the genuine `development.localhost` MariaDB console:** `SELECT patch FROM \`tabPatch Log\` WHERE patch LIKE 'ccpcerp.patches.%' ORDER BY patch;` returned **8 rows**, exactly matching the eight registered entries in the current GitHub app `ccpcerp/patches.txt` (source `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`). Recorded: `check_work_request_job_order_duplicates`, `migrate_phase1_equipment_costing`, `create_equipment_accounting_dimension`, `grant_operational_requestor_roles`, `grant_purchase_order_approver_role`, `create_intercompany_material_accounts`, `create_intercompany_parties`, `add_intercompany_material_billing_indexes`. This is a **Patch Log recorded-state check only**, not live Account/party/index schema integrity or verification of another site. No patches were run, no migrations, no accounting changes.
