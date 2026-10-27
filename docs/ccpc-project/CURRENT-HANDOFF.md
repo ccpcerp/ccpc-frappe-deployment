@@ -24,6 +24,17 @@
 
 
 
+
+## 2026-10-27 — Both DEV Finance schema checks PASS; supervised service restart is next
+
+**Owner-reported actual main DEVELOPMENT post-migration read-only SQL verification:** `development.localhost` `tabDocType` 4 Finance mapping Scope/Revision DocTypes: **4 PASS**; `tabRole` CCPC Mapping Preparer and CCPC Accounting Mapping Approver role definitions: **2 PASS**; `tabCustom Field` on Stock Entry Detail five provenance/mapping-revision fields: **5 PASS**. Previously `ccpc-integration2.localhost` returned the same **4,2,5 PASS**. Therefore **both valid DEVELOPMENT site databases migrated and passed the initial schema presence gate** at reviewed pinned checkout `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`. These are role definitions only, not assigned grants. Both search-index rebuilds were queued; not confirmed processed.
+
+**Next concrete execution gate:** DEVELOPMENT-only Honcho service restart, **not** another backup/migration. The user previously approved a temporary DEVELOPMENT-only maintenance window, including stopped active Honcho PID 193, and both site schemas have now passed. D4's restricted command and safety caveats are documented in [DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md](DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md), updated at `e03e8d9993d0cff98a463b963ec6be70d94c93d4`. At host, verify exact pinned app SHA, detached HEAD, preserved only untracked `AGENTS.md`, bench Procfile/log dir and no running Honcho, then use **one** detached `docker exec -d --user frappe` `/home/frappe/.local/bin/honcho start` inside `frappe_docker_devcontainer-frappe-1`. Print its running PID; following operator step verifies five service types and both sites HTTP readiness. This process may disappear on DEV container restart and its private log needs eventual rotation/monitoring; do not mistake launched PID for passed smoke tests.
+
+**Boundaries:** Old October13 and fresh October27 protected DEV four-part site-local backup sets verified, no off-host/restore drill. No financial or ERPNext transaction postings authorized, no four report acceptance, no PRODUCTION activity. Do not restart generic Docker stack or touch MariaDB/Redis/PRODUCTION services. If Honcho already running or any guard fails, stop; do not launch twice.
+
+---
+
 ## 2026-10-27 — BOTH DEVELOPMENT site migrations PASS; main Finance 4/2/5 postcheck next
 
 **Actual operator-executed database integration progress:** following reviewed CCPC custom-app switch to detached commit `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41` with Honcho-managed DEVELOPMENT processes stopped, the two **separate** site migrations have both now completed successfully. First `ccpc-integration2.localhost`: guarded `bench --site ccpc-integration2.localhost migrate` returned `INTEGRATION2 MIGRATION: PASS`; focused read-only Finance schema verification returned mapping DocTypes **4/4 PASS**, mapping roles **2/2 PASS**, new Stock Entry Detail issue-provenance/mapping-revision fields **5/5 PASS**. Second `development.localhost`: guarded `bench --site development.localhost migrate` returned `SAFETY GUARDS: PASS`, successful Frappe/ERPNext/CCPC DocType sync (100%), fixtures, customizations, dashboards, `after_migrate` hooks, and `MAIN DEVELOPMENT MIGRATION: PASS`. Both sites' search-index rebuild jobs were *queued*, not proven complete. **No reported migration errors.**
