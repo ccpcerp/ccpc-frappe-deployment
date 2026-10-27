@@ -216,6 +216,51 @@ INTEGRATION2 MIGRATION: PASS
 
 **Immediate next read-only verification:** in *integration2's database only*, query `tabDocType` for four Finance Scope/Revision DocTypes, `tabRole` for `CCPC Mapping Preparer` and `CCPC Accounting Mapping Approver`, and `tabCustom Field` for the five new `Stock Entry Detail` provenance/revision fields. Validate exact expected counts (4,2,5) and stop on any mismatch. Then use a second, guarded owner-approved `bench --site development.localhost migrate` command with the same pinned source/backup/no-worker guards; do **not** re-migrate integration2 or run a combined multi-site migration blind. Continue with post-migration smoke tests and guarded DEV-only Honcho restart. Financial postings remain separately scoped.
 
+### D2 — Integration2 Finance schema verified 4/4, 2/2, 5/5; main DEVELOPMENT migration next
+
+**Owner-executed read-only MariaDB verification after successful `ccpc-integration2.localhost` migration:** following the three-part query against `tabDocType`, `tabRole`, and `tabCustom Field`, output was:
+```text
+check_name                      found  result
+Finance mapping DocTypes           4   PASS
+Finance mapping roles              2   PASS
+Stock Entry provenance fields      5   PASS
+```
+The installed Finance mapping DocTypes are the Expense/Center **Scope** and **Revision** pairs; roles are `CCPC Mapping Preparer` and `CCPC Accounting Mapping Approver`; the five `Stock Entry Detail` provenance fields are `ccpc_equipment_at_issue`, `ccpc_equipment_code_at_issue`, `ccpc_item_group_at_issue`, `ccpc_expense_mapping_revision`, `ccpc_center_mapping_revision`. This is **schema presence**, not an actual authorized finance transaction test, migration-free rollback proof, user-role assignment verification, or full acceptance.
+
+**Next explicitly chosen database write:** in the continuing approved DEVELOPMENT-only maintenance window, operator may elect to authorize the separate **main `development.localhost` site migration only** by deliberately running the following guarded command. It is a distinct scope from the completed integration2 database migration. Do not resume any shared Honcho-managed services beforehand.
+
+```bash
+docker exec -i --user frappe frappe_docker_devcontainer-frappe-1 bash -lc 'bash -s' <<'SH'
+set -euo pipefail
+cd /workspace/development/frappe-bench
+target="0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41"
+test "$(git -C apps/ccpcerp rev-parse HEAD)" = "$target" || { echo "STOP: App HEAD mismatch"; exit 1; }
+test -z "$(git -C apps/ccpcerp branch --show-current)" || { echo "STOP: Not detached on reviewed SHA"; exit 1; }
+test "$(git -C apps/ccpcerp status --porcelain=v1)" = "?? AGENTS.md" || { echo "STOP: Unexpected Git changes"; exit 1; }
+for site in development.localhost ccpc-integration2.localhost; do
+  test -s "sites/$site/site_config.json" || { echo "STOP: Missing site config: $site"; exit 1; }
+  case "$site" in
+    development.localhost) stem="20261027_075421-development_localhost";;
+    ccpc-integration2.localhost) stem="20261027_104801-ccpc-integration2_localhost";;
+  esac
+  base="sites/$site/private/ccpc-preintegration-2026-10-27/fresh-backup/$stem"
+  for suffix in database.sql.gz site_config_backup.json files.tar private-files.tar; do
+    test -s "$base-$suffix" || { echo "STOP: Missing recovery component: $site"; exit 1; }
+  done
+done
+if ps -eo pid=,ppid=,pgid=,sid=,stat=,comm= | awk '($5 !~ /^Z/) && (($4==14 && $1!=14) || $3==193 || $6=="honcho") {bad=1} END {exit !bad}'; then
+  echo "STOP: Live original Honcho process remains"
+  exit 1
+fi
+echo "SAFETY GUARDS: PASS"
+echo "MIGRATING: development.localhost"
+bench --site development.localhost migrate
+echo "MAIN DEVELOPMENT MIGRATION: PASS"
+SH
+```
+
+This can alter *main DEVELOPMENT site's* schema, role definitions, workflows, custom fields and data/backfills via `after_migrate`, and may perform cache/asset operations affecting the shared bench. **If it fails, STOP:** do not run automatic rollback, `bench migrate` again, restart Honcho or touch PRODUCTION; retain exact error. On PASS, check identical four Finance DocTypes, two roles, five provenance fields in `development.localhost`, then evaluate/authorize a supervised DEVELOPMENT-only Honcho restart and both-site smoke tests. **Do not claim integration complete merely from migration PASS.**
+
 ### Gate D — site-scoped migrations and persistent acceptance (separate explicit approval)
 
 1. Reconfirm site-specific DB name/host, snapshot, prerequisites and pending patches. Run approved migration for **`ccpc-integration2.localhost` first**. Monitor patch/DocType/workflow outcomes and fail on errors.
@@ -238,4 +283,4 @@ INTEGRATION2 MIGRATION: PASS
 **Authorized as of October 27:** GitHub inspection, the completed DEVELOPMENT-only two-site backup preservation/creation and verification, and the owner-approved temporary DEVELOPMENT maintenance window including a guarded graceful Honcho shutdown.  
 **Not independently authorized:** unreviewed application checkout/DB migration beyond the controlled subsequent steps, financial posting, broad Docker stop/restart, any PRODUCTION operation, unapproved restore or automated reporting. Stop on preflight mismatches.
 
-**Next concrete operator action:** run read-only integration2 post-migration Finance DocType/role/provenance-field count verification (D1) against its own MariaDB database. Once counts pass, proceed to separately guarded main DEVELOPMENT site migration; keep DEV Honcho stopped, preserve both recovery sets, and exclude PRODUCTION.
+**Next concrete operator action:** execute separately scoped guarded migration for `development.localhost` only (D2), if owner consents to changing that DEVELOPMENT site's DB; then verify 4 DocTypes, 2 roles and 5 provenance fields in that site before any Honcho restart. Integration2 schema checks passed 4/4, 2/2 and 5/5.
