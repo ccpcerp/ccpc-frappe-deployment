@@ -33,6 +33,37 @@ Move the reviewed custom application toward persistent DEVELOPMENT acceptance wh
 1. Reverify app checkout location, current branch and full HEAD, staged/unstaged/untracked status, remote pinned SHA, and absence of incoming `AGENTS.md` path collision. **Stop on any deviation**, especially unknown uncommitted work. Do not stash, discard, clean, reset or unconditionally pull.
 2. Reconfirm both *intended* sites' app installation and effective logical database separation without exposing passwords/configuration secrets. Verify the failed `ccpc-integration.localhost` is excluded from the test plan.
 3. Read-only inspect the intended site's `tabPatch Log` status for the listed existing patches; check prerequisite Company/Account/party metadata without altering masters and without printing sensitive business data. Missing exact masters or conflicting structure is a **NO-GO** until evaluated separately.
+**Patch Log CLI diagnostic, October 27:** A one-off script launched from `/workspace/development/frappe-bench` with `frappe.init(sites_path="sites")` failed before SQL execution: Frappe's default rotating file logger resolved `../logs/database.log` relative to the current directory, landing on the nonexistent `/workspace/development/logs/database.log`. This was a **working-directory/logging-path error**, not a demonstrated MariaDB failure or a patch result. Do not create the extra parent log directory or change service settings to work around this. Run ad hoc site scripts from `frappe-bench/sites` with `sites_path="."` and optionally enable per-process `FRAPPE_STREAM_LOGGING=1` to keep output off disk. The corrected read-only inventory command is:
+
+```bash
+docker exec -i --user frappe frappe_docker_devcontainer-frappe-1 bash -lc '
+set -euo pipefail
+cd /workspace/development/frappe-bench/sites
+FRAPPE_STREAM_LOGGING=1 ../env/bin/python -' <<'PY'
+from pathlib import Path
+import frappe
+
+patches = [
+    item.strip() for item in Path("../apps/ccpcerp/ccpcerp/patches.txt").read_text().splitlines()
+    if item.strip().startswith("ccpcerp.patches.")
+]
+for site in ("development.localhost", "ccpc-integration2.localhost"):
+    print(f"\\nPATCH STATUS: {site}")
+    frappe.init(site=site, sites_path=".")
+    try:
+        frappe.connect()
+        recorded = {row[0] for row in frappe.db.sql(
+            "SELECT patch FROM `tabPatch Log`", as_list=True
+        )}
+        for patch in patches:
+            print(f"{patch.rsplit('.', 1)[-1]}: {'RECORDED' if patch in recorded else 'NOT RECORDED'}")
+    finally:
+        frappe.destroy()
+PY
+```
+
+Do not infer that the corrected query succeeded until the operator supplies output. No database patch/migration may run as part of this inventory.
+
 4. Record observed running DEVELOPMENT processes/queues and any background jobs that may import the shared app. A site-specific `bench migrate` does **not** isolate source changes from the other site.
 5. Sample guarded Git preflight to run **only** immediately before a separately approved checkout, in the DEVELOPMENT container as `frappe`:
 
