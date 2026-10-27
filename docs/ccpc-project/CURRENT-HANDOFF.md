@@ -1,6 +1,31 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-27 — TISS selected Company identity and Finance master readiness independently PASS
+
+**Owner-executed strictly read-only Integration2 site check after owner delegated Company selection:**
+
+```text
+===== SELECTED FINANCE TEST COMPANY CHECK =====
+companies_total 2
+issuer_identity_matches 1
+requester_identity_matches 1
+eligible_expense_accounts 30
+eligible_cost_centers 1
+eligible_departments 13
+leaf_item_groups 5
+TISS COMPANY READ-ONLY CHECK: COMPLETED
+```
+
+The two fictional Companies on `ccpc-integration2.localhost` match exact previously documented identities: **`Integration Test Issuer` (`TISS`)** and **`Integration Test Requester` (`TREQ`)**. The owner's delegated Company selection **TISS** is now independently verified as valid for scoped Finance mapping test preparation, with 30 eligible Company-owned enabled leaf Expense-root Accounts, one eligible Cost Center, 13 eligible Departments and five site-wide leaf Item Groups. Counts alone do **not** certify a chosen Account/Cost Center/Department/Item Group as an approved financial crosswalk, nor whether a synthetic test would post successfully. No masters, user/roles, permissions, mapping rows or financial transactions changed; main DEV/PRODUCTION untouched.
+
+**Finance actor setup remains a separate controlled decision:** Both Finance roles (`CCPC Mapping Preparer` and `CCPC Accounting Mapping Approver`) have zero assignments on both sites; Integration2 has only one currently eligible System User and zero qualifying explicit Company grants. Propose two dedicated named `System User` accounts exclusively on Integration2, one with `CCPC Mapping Preparer`, one with `CCPC Accounting Mapping Approver`; each needs a `User Permission` for exact Company `Integration Test Issuer`, `allow='Company'`, `apply_to_all_doctypes=1` and empty `applicable_for`, and must not carry `Stockroom Personnel`. Never grant `System Manager` or operational stock/accounting posting roles for this test just to force access. No passwords, tokens, PII or credentials in chat/GitHub/logs. Need exact identity-collision/read-only role/permissions baseline, owner approval of account/grant writes, backup/audit/rollback plan and later separate fixture/posting approval; **none of these writes is authorized by the earlier Company-choice delegation**. The reviewed `ci_synthetic_finance_fixture.py` is restricted to disposable CircleCI site and must NOT run on Integration2.
+
+**Next:** Ask owner whether to authorize drafting/executing dedicated **Integration2/TISS-only** maker/checker test-user provisioning after guarded preflight; limit initial change to users/roles/Company permissions, no mapping revision proposals or stock/GL entries. Advance one verified step at a time and document actual operator output before claiming any changes complete.
+
+---
+
+
 ## 2026-10-27 — Owner delegated Integration2 Finance Company selection; TISS selected provisionally
 
 **Owner response:** “Approved you choose yourself”, in answer to selecting **one** of two fictional Integration2 Companies for isolated Finance test preparation. This grants discretion to choose test Company, **not** user-account/permission creation, financial mappings, transactions, backup/restores or PRODUCTION action.
