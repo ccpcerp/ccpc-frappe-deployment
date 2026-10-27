@@ -1,6 +1,17 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-27 — Owner approved DEV-main timezone alignment to Asia/Manila; operator action pending
+
+**Explicit owner approval received in chat:** Change **only** `development.localhost` Frappe System Settings `time_zone` from `Asia/Kolkata` to `Asia/Manila`. The second site `ccpc-integration2.localhost` already uses `Asia/Manila` and must not be changed. Excludes MariaDB/host/system timezone changes, production, service restarts, migrations, backups, financial postings, broad setting edits, and unrelated data manipulation.
+
+**Execution method inspected in Frappe v16 GitHub source:** Bench `execute` runs under explicitly selected site with Administrator context and transaction commit; `frappe.get_doc('System Settings').update({'time_zone':'Asia/Manila'}).save()` uses standard Single DocType ORM validation and `on_update` (refreshes system settings cache/defaults). Avoid bare SQL UPDATE or `frappe.db.set_single_value` which skips normal document hooks/default handling. Verify pinned CCPC app SHA `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`, protected operator `AGENTS.md` tree state, exact both-site before values, and live DEV Honcho before writing; then make **one guarded site-scoped ORM save** in DEV main only; immediately verify both sites independently. If any preguard fails, STOP without modifications. No live container tool connected: ChatGPT can provide supervised owner-executed command only; **the setting has not been changed yet**.
+
+**Risks/validation:** Changing site timezone affects interpretation/presentation of times, date defaults and scheduler cadence; existing timestamp records should not be mass-rewritten. Confirm both site setting values after save, and watch the four frequent scheduler last-execution timestamps through another tick; UI and financial workflow validation separately. October 27 verified DEV snapshots remain protected; no backup repeat needed. Do not infer production approval.
+
+---
+
+
 ## 2026-10-27 — Both DEV frequent schedulers CURRENT; main site configured Asia/Kolkata
 
 **Owner-executed read-only per-site MariaDB/System Settings verification** under pinned reviewed CCPC app `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`:
