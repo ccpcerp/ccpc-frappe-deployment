@@ -5,6 +5,15 @@
 
 
 
+
+## 2026-10-27 — Main DEVELOPMENT Patch Log confirms all eight CCPC patches
+
+**Owner-executed read-only SQL in the genuine `development.localhost` MariaDB console:** `SELECT patch FROM \`tabPatch Log\` WHERE patch LIKE 'ccpcerp.patches.%' ORDER BY patch;` returned **8 rows**, exactly matching the eight registered entries in the current GitHub app `ccpcerp/patches.txt` (source `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`). Recorded: `check_work_request_job_order_duplicates`, `migrate_phase1_equipment_costing`, `create_equipment_accounting_dimension`, `grant_operational_requestor_roles`, `grant_purchase_order_approver_role`, `create_intercompany_material_accounts`, `create_intercompany_parties`, `add_intercompany_material_billing_indexes`. This is a **Patch Log recorded-state check only**, not live Account/party/index schema integrity or verification of another site. No patches were run, no migrations, no accounting changes.
+
+**Next operator step:** leave current `development.localhost` MariaDB console, then use the existing DEVELOPMENT bench to connect specifically to `ccpc-integration2.localhost` and execute the same read-only `tabPatch Log` query. Main site passed 8/8; **integration2 is still unverified**. Do not move shared app checkout or run migration; existing DEV recovery gate remains in force.
+
+---
+
 ## 2026-10-27 — DEVELOPMENT guarded code-checkout preflight PASS; next inspect per-site Patch Log
 
 **Operator-reported successful read-only command:** the pinned preflight from the approved `DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md` returned `DEVELOPMENT CODE PREFLIGHT: PASS`. That guarded test establishes that, at the time of execution, `review/intercompany-approval-failure-tests` was checked out at `806fa23516490ec7beefcff03a1baa09d722120e`, `git status --porcelain=v1` was exactly `?? AGENTS.md`, and the fetched remote review ref plus the incoming tree's root AGENTS.md collision check matched exact candidate `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`. The test **does not** check database Patch Log, validate active processes, copy backups or integrate files. No checkout, migration, backup, site/database write or PRODUCTION action occurred.
