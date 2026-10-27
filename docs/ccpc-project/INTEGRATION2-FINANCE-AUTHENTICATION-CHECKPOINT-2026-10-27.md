@@ -201,3 +201,38 @@ Five eligible non-group Item Groups are generic global ERPNext names and not cle
 **Risk verified in reviewed custom-app code** (`ccpcerp.ccpc_erp.bc_issue_runtime.resolve_locked_original_issue`, pinned app `0c223d7...`): original issue expense resolution explicitly selects approved Company+Item Group scopes and validated linked expense accounts. An approved Expense mapping for a generic existing group could be consulted by later issue tests. An isolated new Item Group plus a clearly named TISS-only synthetic Expense Account is safer, but neither should be created before verifying root/parent hierarchy, exact naming and absence of collisions, fresh site backup, transaction boundaries, no item/stock/GL posting, and the owner's separate explicit approval. A synthetic mapping's approval must not be described as deployment to main DEVELOPMENT/PRODUCTION.
 
 **Next one-step read-only preflight:** Inspect `tabItem Group` root/parent hierarchy and TISS enabled Expense-root group Account parents, plus exact synthetic naming collisions and the current zero-scope baseline. Prefer showing metadata only, not raw chart of accounts exports. Then draft bounded test+cleanup+rollback procedure and request authorization for controlled Integration2 fixture creation and HTTP workflow checks. Never delete or rename existing records as an unapproved cleanup shortcut.
+
+### Synthetic fixture hierarchy preflight: PASS — requires Company-tree check before any write
+
+**Owner-reported 2026-10-27 Integration2-only read-only transcript** from pinned app and exact isolated site:
+
+```text
+INTEGRATION2 SYNTHETIC FIXTURE PREFLIGHT
+SITE AND ZERO-MAPPING GUARDS: PASS
+ITEM GROUP ROOT:
+All Item Groups: PRESENT | Group: 1
+AVAILABLE TISS EXPENSE PARENT ACCOUNTS:
+Parent account count: 4
+ - Direct Expenses - TISS | Parent: Expenses - TISS
+ - Expenses - TISS | Parent: ROOT
+ - Indirect Expenses - TISS | Parent: Expenses - TISS
+ - Stock Expenses - TISS | Parent: Direct Expenses - TISS
+EXISTING ACCOUNT 5150:
+Parent: Indirect Expenses - TISS
+Root type: Expense
+Account type: None
+PROPOSED SYNTHETIC NAME COLLISIONS:
+Test Item Group: AVAILABLE
+Test Expense Account name: AVAILABLE
+SYNTHETIC FIXTURE PREFLIGHT: COMPLETED
+NO MASTER OR FINANCIAL DATA CHANGES
+```
+
+The user has **not approved any persistent fixture or Finance mapping creation/approval**. Proposed precise names, still hypothetical:
+- Item Group `CCPC INT2 Expense Mapping Test 20261027`, `is_group=0`, parent `All Item Groups`. Do not assign Items or Item defaults.
+- TISS-only Expense Account `CCPC INT2 Expense Mapping Test`, no account number, intended parent `Indirect Expenses - TISS`, `is_group=0`, `disabled=0`, Expense root inherited. ERPNext account autoname should yield `CCPC INT2 Expense Mapping Test - TISS` (verify at execution).
+- Proposed CCPC Expense mapping of synthetic Item Group to synthetic TISS Expense Account, one Maker-created Draft, Checker-controlled review; a separate *approval write* requires a further explicit Accounting-fixture decision, unique synthetic reference and observed version token. No original Withdrawal Slip issue, Stock Entry, or GL posting authorized.
+
+**New code-review risk:** ERPNext version-16 `Account.validate_root_company_and_sync_account_to_children` (account.py) can **automatically replicate a new parent-Company Account to descendant companies** or enforce root-first account creation for a child Company. This means a TISS Account insert is not guaranteed to affect TISS alone. **Block all creation until read-only Company nested-set parent/ancestors/descendants and `allow_account_creation_against_child_company` are checked and cross-company side effects ruled out.** Also reconfirm exact source/target absence, parent Account enabled/group/Expense state, counts of mapping scopes/revisions, bank/Company/site backups, and protected checkout immediately before a future write. No permission to bypass ERPNext account validation flags, force-save, use arbitrary default accounts, or delete/overwrite any records.
+
+A suitable next test is a read-only, pinned-application `frappe.db` check of `TISS` Company hierarchy and parent Account fields; return only nonsecret structural metadata and no writes. If TISS has descendants or disallowed root-level account creation, stop and redesign the test fixture, rather than silently allowing propagation. After this, document per-transaction rollback and fixture retention vs cleanup options, verify a **fresh Integration2-specific backup** and receive explicit user approval before making any test masters.
