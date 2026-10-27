@@ -1,6 +1,33 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-27 — TISS-only Finance test actors and grants: owner reports COMMITTED, independent read pending
+
+**Owner-executed, approved, guarded transactional Frappe ORM provisioning command on `ccpc-integration2.localhost`:** Terminal returned:
+
+```text
+SAFETY GUARDS: PASS
+ACTOR WRITE GUARDS: PASS
+FINANCE USER TRANSACTION VALIDATION: PASS
+TISS FINANCE USER SETUP: COMMITTED
+USERS CREATED: 2
+FINANCE ROLE ASSIGNMENTS: 2
+TISS COMPANY PERMISSIONS: 2
+```
+
+Also printed nonfatal Python virtual-environment warnings that `sys.prefix`/`sys.exec_prefix` used `.../sites/../env` rather than normalized `.../env`; command continued through validated commit without reported error. This is a terminal-confirmed **database commit**, not yet independently re-read after commit. The command pinned app SHA `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`, detached HEAD, protected `?? AGENTS.md`, selected site config and four 2026-10-27 protected checkpoint artifact files, then checked zero collisions/exact fictional Companies/active role definitions before creating records. It inserted:
+
+- `ccpc-dev-finance-maker@invalid.test`: enabled `System User`, only `CCPC Mapping Preparer` role.
+- `ccpc-dev-finance-checker@invalid.test`: enabled `System User`, only `CCPC Accounting Mapping Approver` role.
+- Exactly one per-user `User Permission` to `Integration Test Issuer` (`TISS`): `allow='Company'`, `apply_to_all_doctypes=1`, blank `applicable_for`.
+
+**Validation:** User script checked full actual role set, per-user grant set and no welcome-email flag before one DB commit. No bootstrap passwords, reset links or real email delivery were requested; reserved `.test` identities are non-deliverable, so authenticated browser login is **not** demonstrated. Normal User hooks can create Notification Settings, User shares and enqueue Contact records; inspect separately if it matters. **No mapping proposal/approval, GL/Stock posting, schema migration, restart, main DEV or PRODUCTION operation was approved/executed.** Main DEV remains unaffected by the scoped command, subject to next independent read-only check.
+
+**Next verification gate:** On BOTH valid DEV sites, using the pinned reviewed app, run independent read-only checks. Integration2 must report each target User exists enabled and `System User`, one exact Finance role (no Stockroom), and one exact TISS Company grant. Main `development.localhost` must show **zero** accounts with those exact synthetic identifiers, zero role assignments and zero Company Permission rows for those IDs. Do not rerun provisioning. Next after this: decide secure credential provisioning and two real authenticated maker/checker role checks; financial proposal/posting remains a separate authorization gate. Never claim end-to-end Finance mapping or posting acceptance from user creation alone.
+
+---
+
+
 ## 2026-10-27 — Approved Integration2 Finance actor preflight PASS; provisioning execution pending
 
 **Owner-executed guarded, read-only preflight output:**
