@@ -1,6 +1,15 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-27 — MariaDB effective UTC confirmed; site scheduler timezone/freshness diagnosis next
+
+**Owner's diagnostic results after previous SQL error:** A prior MariaDB `SELECT NOW(), UTC_TIMESTAMP() AS utc_time` failed `ERROR 1064` (reserved/conflicting alias `utc_time`); it was a nonmutating `SELECT`. Owner opened a fresh Ubuntu host terminal and confirmed `whoami=gani`, host `ccpcerpserver`, directory `/home/gani`; read-only Docker execution confirmed DEVELOPMENT Frappe container accessible and original Honcho PID `380905` alive (`Ss`, elapsed `01:00:08`). A revised main DEV-only read-only query using nonconflicting alias `db_utc_clock` PASSED: on 2026-10-27, MariaDB session `NOW()=05:23:51`, `UTC_TIMESTAMP()=05:23:51`, `@@session.time_zone=SYSTEM`. Thus the MariaDB session's effective clock was UTC at that instant; the 8-hour mismatch from reported app timestamps is compatible with Asia/Manila (+08) timestamps, **not evidence of an SQL/database failure**. Host/server timezone settings and both site timezone settings remain to be directly confirmed. No changes to DB, code or services; PRODUCTION untouched.
+
+**Next minimal read-only operator check:** Query both DEVELOPMENT sites' System Settings `time_zone` via `tabSingles` and list each of the four enabled `All` job `last_execution` values, along with SQL `UTC_TIMESTAMP()` and Philippine UTC+8 clock for reference; use benign nonreserved aliases only, no job method names/business records. Compare main site's earlier `10:30` vs Integration2's `13:00` execution evidence, then investigate the main scheduler if genuine staleness is confirmed. The two site migrations, 4/2/5 schema checks, two site HTTP 200 pings, and doctor availability checks remain complete; never repeat them just because of this read-only query error. Functional finance posting/report acceptance still pending separate controlled test authorization.
+
+---
+
+
 ## 2026-10-27 — DEV scheduler history present on both sites; main freshness and clock basis need checking
 
 **Owner-executed read-only SQL aggregate inspection after successful two-site `bench doctor`:** Both valid DEVELOPMENT sites have four enabled `frequency='All'` Scheduled Job Types, all four with non-null `last_execution`. On `development.localhost`: database `NOW()` = `2026-10-27 05:03:01`, newest frequent-job `last_execution` = `2026-10-27 10:30:03.606934`; historical Scheduled Job Log `Complete` 3,628 (latest `2026-10-27 10:02:14.162379`), `Failed` 1 (latest `2026-10-25 00:02:26.232877`). On `ccpc-integration2.localhost`: database `NOW()` = `2026-10-27 05:03:02`, newest frequent-job `last_execution` = `2026-10-27 13:00:08.075452`; `Complete` 3,718 (latest `2026-10-27 13:00:13.577530`), `Failed` 1 (latest `2026-10-25 00:00:14.175391`). The SQL loop ended `BOTH DEV SCHEDULER HISTORY CHECKS: COMPLETED`.
