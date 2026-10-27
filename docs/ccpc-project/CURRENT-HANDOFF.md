@@ -1,6 +1,25 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-27 — Integration2 Finance master readiness: both Companies pass structural prerequisites
+
+**Owner-executed site-scoped, read-only MariaDB count query at `ccpc-integration2.localhost`:**
+```text
+companies_checked 2
+companies_with_expense_account 2
+companies_with_cost_center 2
+companies_with_department 2
+companies_with_all_three 2
+leaf_item_groups 5
+INTEGRATION2 MASTER READINESS: COMPLETED
+```
+The counts verify that both Integration2 Companies each have at least one enabled non-group Expense-root Account, Cost Center and Department in the same Company, and that five leaf Item Groups are present site-wide. This is **structural master-readiness PASS**, not proof that a specific Company/Account/Cost Center/Department/Item Group crosswalk is Accounting-authorized, that any test-user roles/grants exist, or that posting succeeds. No identities or master record labels printed, no writes. The earlier read-only pool inventory remains valid: Integration2 has only **one** enabled named non-Stockroom System User and **zero** explicit qualifying Company permissions or assignments for either Finance role; main DEV has 20 available named users and zero qualifying Company permissions/Finance-role assignments. Both sites' schema and runtime gates remain PASS. PRODUCTION untouched.
+
+**Owner decision required before write:** Pick which of Integration2's **two** Companies is the approved controlled DEVELOPMENT Finance test Company (prefer isolated/synthetic data; do not assume a real ledger Company is safe), then specify/approve **two distinct non-Administrator named test identities**, Finance maker vs Accounting checker role scope, Company-wide User Permissions, credential provisioning without exposing secrets, and rollback/audit procedure. Until approval, **no new user creation, permission/role grant, Finance mapping proposal, approval, GL/Stock posting or real master change**. Recommend owner review the Company names privately in Integration2's Company list rather than dump business names to terminal. Any future grant must meet `bc_issue_runtime._real_authority` checks. Authenticated functional acceptance and independent restore rehearsal remain outstanding.
+
+---
+
+
 ## 2026-10-27 — DEV Finance actor pool: main 20, integration2 1; no Company grants
 
 **Owner-executed strictly read-only Finance readiness inventory (both DEV sites):** `development.localhost` has **20** enabled named `System User` identities not assigned `Stockroom Personnel`, **0** with qualifying Company-wide User Permissions, **0** Companies with qualifying grants and **0** Companies with two such users. `ccpc-integration2.localhost` has **1** such enabled user and likewise **0** qualifying Company grants/Companies and **0** Companies with two eligible users. Script printed `FINANCE TEST USER READINESS: COMPLETED`. Prior assignment diagnostic confirmed **0** `CCPC Mapping Preparer` and **0** `CCPC Accounting Mapping Approver` role assignments on either site; Company counts main **25**, Integration2 **2**. These are counts only, not real-user identities, accounting authorization or Company master validation. No modifications were made.
