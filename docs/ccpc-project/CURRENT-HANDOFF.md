@@ -13,6 +13,22 @@
 
 
 
+
+## 2026-10-27 — Fresh two-site DEVELOPMENT recovery sets protected and byte-compared; begin shared-runtime preflight
+
+**Owner-executed backup copy completed successfully** at `frappe@48a951912597:/workspace/development/frappe-bench` using the approved guarded `bash` command. Both copied four-artifact fresh Oct 27 sets into a `0700` private subdirectory `sites/<site>/private/ccpc-preintegration-2026-10-27/fresh-backup/` outside Frappe's normal `private/backups` cleanup path, and each file was set `0600` and silently compared with `cmp -s` while `set -euo pipefail` was active. Operator transcript completed and returned to shell prompt:
+```
+FRESH BACKUP PROTECTED: development.localhost (4 files verified)
+FRESH BACKUP PROTECTED: ccpc-integration2.localhost (4 files verified)
+```
+`development.localhost` fresh set is `20261027_075421-development_localhost-*`; `ccpc-integration2.localhost` fresh set is `20261027_104801-ccpc-integration2_localhost-*`. Both also passed separate nonempty, gzip/TAR/JSON format checks. **Previous October 13 four-artifact sets for both sites were already protected/byte-compared in the parent preservation directories.** In total 16 local protected copies (8 older + 8 fresh) are reported, all with no intentional overwrites or deletions.
+
+**Meaning/limitations:** Backup file creation, local archive checks, and byte comparisons are verified by owner terminal output for both sites; off-host NAS coverage, independent recovery/restore, application code restore and consistency under actual rollback remain **unverified**. Do not describe this as fully restore-tested readiness. The original `--with-files` backups might have pruned previous standard-directory files; the separately preserved artifacts are intentionally beyond that scope. No production action, schema migration, app Git checkout, background-service restart, accounting posting, or NAS retention edit has been executed.
+
+**Next task — shared DEVELOPMENT runtime compatibility gate (read-only):** inspect the current live DEVELOPMENT container/process inventory *on the Ubuntu host* to determine what (if any) web, scheduler, Redis workers and other shared bench processes will need to be isolated during a separately approved checkout/migration. Avoid generic Docker/Compose service actions; only inspect. Because running services share the app Python checkout across `development.localhost` and `ccpc-integration2.localhost`, site-specific `bench migrate` alone does not provide code isolation. Review actual Company/Account master prerequisites and choose a controlled interruption or isolated bench strategy before seeking explicit permission for runtime changes. App GitHub review ref remains `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`, not checked out. Both DEV Patch Logs already showed all eight entries. Continue the four accepted reports/source-to-invoice/returns engineering work on GitHub in parallel.
+
+---
+
 ## 2026-10-27 — Both fresh DEV backups format-verified; Stage B initial backups completed
 
 **Owner-reported second-site independent integrity PASS:** from the `frappe` user within DEVELOPMENT bench, the guarded check against `sites/ccpc-integration2.localhost/private/backups/20261027_104801-ccpc-integration2_localhost-*` verified all four files nonempty, SQL gzip format via `gzip -t`, plain public/private TAR readability via `tar -tf`, and JSON syntax via `./env/bin/python -m json.tool` (content suppressed). Terminal output: `INTEGRATION2 BACKUP INTEGRITY: PASS` and normal prompt.
