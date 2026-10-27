@@ -7,6 +7,17 @@
 
 
 
+
+## 2026-10-27 — Owner authorizes preservation plus fresh DEVELOPMENT site backups
+
+**Explicit owner approval:** preserve the two existing October 13 four-file backup sets (for `development.localhost` and `ccpc-integration2.localhost`) and create fresh four-part site backups for **both DEVELOPMENT sites**, with no deletion or overwrite of existing backups. This is authorization for limited DEVELOPMENT recovery work only; **it is not approval** for app checkout change, `bench migrate`, test accounting postings, container/service operations or any legacy/dedicated PRODUCTION or NAS retention modification.
+
+**Execution sequencing:** first safeguard all eight original artifacts in dedicated `sites/<site>/private/ccpc-preintegration-2026-10-27` directories outside `sites/<site>/private/backups`, with restrictive permissions, prechecks and byte-comparison verification. Stop if either destination already exists or an expected source is empty/missing. The copy step is approved but has **NOT YET been reported executed**. After verified success, review live backup CLI options and execute tightly scoped fresh `bench --site <site> backup --with-files` operations, preserving artifacts before any cleanup, then verify syntax/checksums. Copies on the same disk are not off-host restore evidence. Maintain the one-step-at-a-time operator workflow, without repeating unrelated NAS discovery.
+
+**Prior evidence:** both DEV databases independently returned eight of eight registered Patch Log entries; the pinned Git checkout preflight passed. Application candidate remains `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`. Neither source integration nor DEV schema migrations are approved or executed.
+
+---
+
 ## 2026-10-27 — BOTH DEVELOPMENT sites show eight of eight registered CCPC patches in Patch Log
 
 **Owner-executed read-only SQL at real site MariaDB consoles:** both `development.localhost` and `ccpc-integration2.localhost` independently returned exactly eight rows from `SELECT patch FROM \`tabPatch Log\` WHERE patch LIKE 'ccpcerp.patches.%' ORDER BY patch;`. The eight names in each database matched **all eight** `ccpcerp/patches.txt` entries at reviewed app branch `review/circleci-isolated-erpnext-phase2-2026-10-26`, tip `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`. Recorded names: `check_work_request_job_order_duplicates`, `migrate_phase1_equipment_costing`, `create_equipment_accounting_dimension`, `grant_operational_requestor_roles`, `grant_purchase_order_approver_role`, `create_intercompany_material_accounts`, `create_intercompany_parties`, `add_intercompany_material_billing_indexes`. This clears **registered patch-log presence verification on both DEVELOPMENT sites**.
