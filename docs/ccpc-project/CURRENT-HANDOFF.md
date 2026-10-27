@@ -1,6 +1,29 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
 
+## 2026-10-27 — Approved Integration2 Finance actor preflight PASS; provisioning execution pending
+
+**Owner-executed guarded, read-only preflight output:**
+
+```text
+GIT / SITE / BACKUP GUARDS: PASS
+===== FINANCE TEST ACTOR PREFLIGHT =====
+tiss_identity_matches: 1
+CCPC Accounting Mapping Approver: disabled 0, desk_access 1
+CCPC Mapping Preparer: disabled 0, desk_access 1
+existing_target_users: 0
+existing_target_permissions: 0
+existing_target_role_assignments: 0
+FINANCE USER PREFLIGHT: COMPLETED — NO CHANGES MADE
+```
+
+The approved target remains **only** `ccpc-integration2.localhost`, fictional Company `Integration Test Issuer` (`TISS`), two deterministic `.test` User IDs `ccpc-dev-finance-maker@invalid.test` and `ccpc-dev-finance-checker@invalid.test`. Verified pinned app SHA `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`, detached HEAD, exactly untracked protected `AGENTS.md` and four archive-presence recovery guards for October 27 Integration2 checkpoint. These backups were archive verified previously but **not restored**. User Permission and role collisions zero; active Finance role definitions ready. No new account/role/grant has yet been created by ChatGPT; the owner must run the guarded Frappe ORM transaction in DEV.
+
+**Next execution step, within explicit owner approval:** guarded single-site Frappe ORM creation of both enabled named System Users with distinct Finance roles, no Stockroom/administrator roles, `send_welcome_email=0` and **no password/reset link** set, plus exact TISS-wide `User Permission` each. Verify exact full role sets and distinct identifiers, exact permission grants, enabled flags, and no unexpected user/permissions state **before one DB commit**. Rollback on precommit failure; do not blindly retry or claim rollback if commit status ambiguous. Frappe User ORM also creates supporting Notification Settings, User share and may queue Contact after commit; document and inspect as needed. No mapping proposals, approvals, stock/GL posting, production, migrations, restarts or remote email credentials. Password/login testing is later, through secure local handling. On completion, operator returns only nonsecret PASS or failure/output; mark actual DB writes complete only after results.
+
+---
+
+
 ## 2026-10-27 — Owner approved TISS-only Integration2 Finance maker/checker user and grant setup
 
 **Authorization (owner's message “aPPROVED”):** Explicitly approves creating **two dedicated named DEV Finance test `System User` accounts** and assigning exactly `CCPC Mapping Preparer` to maker, `CCPC Accounting Mapping Approver` to distinct checker, with each receiving one exact `Integration Test Issuer` (`TISS`) Company `User Permission` on site `ccpc-integration2.localhost` only; scoped `apply_to_all_doctypes=1`, `allow='Company'`, blank `applicable_for`. Does **not** approve main DEV user changes, PRODUCTION, issuing stock, posting GL, mapping proposals or approvals, migrations/restarts, expanding Company permissions, or seeding the CI-only synthetic fixture. The prior independent TISS read-only check showed exact Company identity and `30` eligible Expense Accounts, `1` Cost Center, `13` Departments, `5` site-wide leaf Item Groups. Integration2 currently has only one existing eligible System User, no Finance roles assigned, no Company grants.
