@@ -19,6 +19,23 @@
 
 
 
+
+## 2026-10-27 — Owner executed graceful DEVELOPMENT Honcho stop: PASS
+
+**Owner-executed C0 command result:** `DEVELOPMENT HONCHO STOPPED: PASS` returned to Ubuntu shell `gani@ccpcerpserver:~$`. The preceding exact-identity guard in approved C0 matched DEVELOPMENT container's `honcho start` process PID `193`, original shell PPID `14`, process group `193`, controlling TTY `pts/0`, and sent SIGINT only to that Honcho PID; the command printed PASS after its PID no longer existed. This is **actual DEV-only stop evidence**. It does not yet establish that all Honcho children exited and does not authorize silently switching app source or running migrations while any process remains.
+
+**Next single action:** operator read-only session check in DEVELOPMENT container, scoped to the prior Honcho session ID `14` and PGID `193`. At Ubuntu shell:
+```bash
+docker exec --user frappe frappe_docker_devcontainer-frappe-1 bash -lc '
+set -euo pipefail
+ps -eo pid=,ppid=,pgid=,sid=,stat=,comm= |
+awk '\''($4==14 && $1!=14) || $3==193 || $6=="honcho" {print "REMAINING:", $0; bad=1} END {if (!bad) print "DEVELOPMENT HONCHO SESSION CLEARED: PASS"; else exit 1}'\''
+'
+```
+If unexpected processes remain, **do not force kill**, checkout or migrate. Session ID `14` parent bash is allowed to remain, and live DEVELOPMENT MariaDB/Redis should remain online. Once cleared, move immediately to guarded source switch using verified `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`, protected untracked `AGENTS.md`, and coordinated migration of `development.localhost` plus `ccpc-integration2.localhost` before restarting web/scheduler/worker. Do not repeat prior backups; protected fresh Oct 27 and old Oct 13 site-local copies were already verified. Off-host backups and restore rehearsal remain unverified; PRODUCTION excluded.
+
+---
+
 ## 2026-10-27 — Maintenance approved; guarded DEVELOPMENT Honcho shutdown runbook committed
 
 **Operator authorization:** owner explicitly approved temporary **DEVELOPMENT-only** maintenance/window, including controlled shutdown in preparation for review-branch integration, and requested forward engineering progress rather than more repetitive investigations. The guarded action is documented in [DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md](DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md) at verified commit `4e6497ab7f28fab2f361cd1bfef1d1e90fd48d95`, section **C0**. This GitHub update was documentation only; **no server command has run as part of this approval**.
