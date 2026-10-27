@@ -1,7 +1,7 @@
 # CCPC ERPNext — Controlled DEVELOPMENT app integration and acceptance plan
 
 **Prepared:** 2026-10-27 (Asia/Manila)  
-**Status, updated 2026-10-27:** Owner-executed DEVELOPMENT-only maintenance reached the reviewed **pinned app checkout**. Old Honcho was gracefully stopped and a guarded session check showed only an exited zombie (PID 197, `Z`); a second guarded live-process check returned `OLD HONCHO LIVE PROCESSES: NONE`. Owner-executed Git switch to detached `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41` returned `GIT SAFETY GUARDS: PASS` and `DEVELOPMENT CODE SWITCH: PASS`; untracked `AGENTS.md` remains. Both DEVELOPMENT backups are preserved/format-verified. **Migrations have NOT run; five Honcho-managed DEVELOPMENT services remain stopped.** PRODUCTION excluded.
+**Status, updated 2026-10-27:** First persistent DEVELOPMENT integration site **`ccpc-integration2.localhost` migrated successfully** under reviewed detached app commit `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`; owner command ended `INTEGRATION2 MIGRATION: PASS` after DocType updates, fixtures, dashboards, customizations and `after_migrate` hooks. Its search-index rebuild was queued, **not confirmed complete**. `development.localhost` has NOT been migrated and all Honcho-managed DEVELOPMENT services must remain stopped. Fresh protected format-tested four-artifact backups and October 13 historical copies remain in place. Migration success is not Finance mapping functionality or accounting integration acceptance. PRODUCTION excluded.
 
 ## 1. Objective and current verified inputs
 
@@ -177,6 +177,45 @@ echo "INTEGRATION2 MIGRATION: PASS"
 
 This **changes only integration2's site database** but may affect shared Redis/cache and assets; keep other site's access blocked until its own compatible schema is established. `bench migrate` may run pre/post patches, sync DocTypes/custom fields, make roles, modify workflows and backfill existing data. If an error occurs, do not run other site migration, switch checkout back, restore anything, kill services or force commands; retain the exact error for controlled diagnosis. If successful, verify migrated DocTypes/roles, pending patches and that the active code remains pinned, then plan the main site's own migration and both-site smoke tests before restart. Actual data restore remains untested and would need explicit recovery approval.
 
+### D1 — Integration2 migration executed: PASS; focused schema/role verification next
+
+**Operator transcript, 2026-10-27 (within approved DEVELOPMENT-only maintenance; GitHub verified target):**
+```text
+SAFETY GUARDS: PASS
+MIGRATING: ccpc-integration2.localhost
+Migrating ccpc-integration2.localhost
+Updating DocTypes for frappe        : [========================================] 100%
+Updating DocTypes for erpnext       : [========================================] 100%
+Updating DocTypes for ccpcerp       : [========================================] 100%
+Syncing jobs...
+Syncing fixtures...
+Syncing dashboards...
+Updating Dashboard for frappe
+Updating Dashboard for erpnext
+Updating Dashboard for ccpcerp
+Syncing customizations...
+Syncing languages...
+Flushing deferred inserts...
+Removing orphan doctypes...
+Removing orphan Workspaces
+Removing orphan Dashboards
+Removing orphan Pages
+Removing orphan Reports
+Removing orphan Notifications
+Removing orphan Workspace Sidebars
+Removing orphan Desktop Icons
+Deleting icon Frappe Framework
+Syncing portal menu...
+Updating installed applications...
+Executing `after_migrate` hooks...
+Queued rebuilding of search index for ccpc-integration2.localhost
+INTEGRATION2 MIGRATION: PASS
+```
+
+**Verified interpretation:** site migration command exited successfully, including DB-changing migration phases and `after_migrate`; no evidence of a finished search index rebuild, real Company/Account mapping validity, Maker/Checker signoff, transaction/posting tests, or another site migration. No claim that the second site is safe for live traffic before both sites are compatible and Honcho restarted. All protected pre-migration recovery files must stay intact.
+
+**Immediate next read-only verification:** in *integration2's database only*, query `tabDocType` for four Finance Scope/Revision DocTypes, `tabRole` for `CCPC Mapping Preparer` and `CCPC Accounting Mapping Approver`, and `tabCustom Field` for the five new `Stock Entry Detail` provenance/revision fields. Validate exact expected counts (4,2,5) and stop on any mismatch. Then use a second, guarded owner-approved `bench --site development.localhost migrate` command with the same pinned source/backup/no-worker guards; do **not** re-migrate integration2 or run a combined multi-site migration blind. Continue with post-migration smoke tests and guarded DEV-only Honcho restart. Financial postings remain separately scoped.
+
 ### Gate D — site-scoped migrations and persistent acceptance (separate explicit approval)
 
 1. Reconfirm site-specific DB name/host, snapshot, prerequisites and pending patches. Run approved migration for **`ccpc-integration2.localhost` first**. Monitor patch/DocType/workflow outcomes and fail on errors.
@@ -199,4 +238,4 @@ This **changes only integration2's site database** but may affect shared Redis/c
 **Authorized as of October 27:** GitHub inspection, the completed DEVELOPMENT-only two-site backup preservation/creation and verification, and the owner-approved temporary DEVELOPMENT maintenance window including a guarded graceful Honcho shutdown.  
 **Not independently authorized:** unreviewed application checkout/DB migration beyond the controlled subsequent steps, financial posting, broad Docker stop/restart, any PRODUCTION operation, unapproved restore or automated reporting. Stop on preflight mismatches.
 
-**Next concrete operator action:** deliberately authorize and execute the D0 single-site `ccpc-integration2.localhost` guarded migration command, **only if accepting that site-specific DB change**, while Honcho remains stopped. On PASS, validate integration2 then prepare the main site's distinct migration; on error, STOP.
+**Next concrete operator action:** run read-only integration2 post-migration Finance DocType/role/provenance-field count verification (D1) against its own MariaDB database. Once counts pass, proceed to separately guarded main DEVELOPMENT site migration; keep DEV Honcho stopped, preserve both recovery sets, and exclude PRODUCTION.
