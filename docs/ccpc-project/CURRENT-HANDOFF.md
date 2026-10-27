@@ -8,6 +8,22 @@
 
 
 
+
+## 2026-10-27 — Two October 13 DEVELOPMENT backup sets preserved and byte-compared
+
+**Owner-executed, separately approved DEVELOPMENT-only backup preservation:** from the `frappe` user inside `frappe_docker_devcontainer-frappe-1`, bench path `/workspace/development/frappe-bench`, a guarded script tested both eight-source-asset sets as nonempty, required preservation destinations not already exist, created restrictive `0700` private destination directories, copied the four old assets per site without overwriting and applied `0600` to preserved copies, then ran silent byte-for-byte `cmp -s` per file under `set -euo pipefail`. Operator transcript ended with:
+```
+PRESERVED AND VERIFIED: development.localhost (4 files)
+PRESERVED AND VERIFIED: ccpc-integration2.localhost (4 files)
+```
+and a normal shell prompt. Destinations:
+- `sites/development.localhost/private/ccpc-preintegration-2026-10-27/`, preserved October 13 `20261013_083457-development_localhost-*` four-file set.
+- `sites/ccpc-integration2.localhost/private/ccpc-preintegration-2026-10-27/`, preserved October 13 `20261013_102539-ccpc-integration2_localhost-*` four-file set.
+
+**Scope and remaining gates:** This is a positive local file-preservation/byte-comparison result, **not** off-host/NAS verification or restore validation. Both DEV databases have previously shown 8/8 registered CCPC patches in `tabPatch Log`; app checkout preflight was PASS and no checkout/migration has occurred. The operator previously explicitly approved both this preservation and fresh four-part `--with-files` backups for these **two DEV sites**. The next step is a tightly scoped fresh `bench --site development.localhost backup --with-files` as `frappe` in the same DEVELOPMENT bench, after confirming protected old assets are still present, then verify new backup output/syntax before carrying out the separately approved integration2 fresh backup. Ordinary backup may prune standard-dir old artifacts, now protected in distinct private directories. Avoid any legacy/dedicated PRODUCTION container or backup script, NAS cleanup and app schema change; source transition/migration still require their own gate.
+
+---
+
 ## 2026-10-27 — Owner authorizes preservation plus fresh DEVELOPMENT site backups
 
 **Explicit owner approval:** preserve the two existing October 13 four-file backup sets (for `development.localhost` and `ccpc-integration2.localhost`) and create fresh four-part site backups for **both DEVELOPMENT sites**, with no deletion or overwrite of existing backups. This is authorization for limited DEVELOPMENT recovery work only; **it is not approval** for app checkout change, `bench migrate`, test accounting postings, container/service operations or any legacy/dedicated PRODUCTION or NAS retention modification.
