@@ -15,6 +15,23 @@
 
 
 
+
+## 2026-10-27 — DEVELOPMENT Procfile confirms five active Honcho-managed service types
+
+**Owner-executed read-only Procfile display:** inside the DEVELOPMENT `frappe` container at `/workspace/development/frappe-bench` (first attempt incorrectly invoked `docker` from inside the container; no change), then via the correct Ubuntu-host `docker exec`, the operator reported:
+```text
+web: bench serve  --port 8000
+socketio: bench socketio
+watch: bench watch
+schedule: bench schedule
+worker:  bench worker 1>> logs/worker.log 2>> logs/worker.error.log
+```
+This confirms service **definitions** for web (port 8000), Socket.IO, frontend watcher, scheduler, and queue worker. Combined with the prior `docker top` showing an active `honcho` with Python and `esbuild` descendants, the shared DEVELOPMENT bench is not idle. These are application service definitions, **not** proof of individual site binding, scheduler queue lengths, completed job drain or a safe stop/restart plan.
+
+**Next technical prerequisite, read-only:** identify the exact DEVELOPMENT-only Honcho process instance/parent and command line via `docker exec` plus `ps`, avoiding sensitive values or unrelated process output. Do not act on the process tree until a verified stop/start plan and separate explicit maintenance authorization. Because two sites share code, never do a live branch switch with active scheduler/worker; migration must be coordinated across both sites or run in a separate isolated bench. Both DEV backup sets (Oct 27 four-part) have passed archive syntax tests and protected copies passed byte comparison; October 13 originals remain preserved. No restore rehearsal/off-host recovery proven, and no code/database/PRODUCTION changes have been made.
+
+---
+
 ## 2026-10-27 — Shared DEVELOPMENT runtime is active; inspect Procfile before integration
 
 **Owner's read-only host-level runtime inspection:** `docker ps --filter "name=frappe_docker_devcontainer"` showed four running DEVELOPMENT-only containers: `frappe_docker_devcontainer-frappe-1`, `frappe_docker_devcontainer-redis-cache-1`, `frappe_docker_devcontainer-redis-queue-1`, and `frappe_docker_devcontainer-mariadb-1`, each reporting approximately two weeks uptime. `docker top frappe_docker_devcontainer-frappe-1 -eo pid,ppid,comm` showed an active `honcho` parent (observed host PID 20641), multiple `python3.14`/Python descendants, `esbuild`, `bash`/shells and incidental `codex`/`copilot-runtime` names. **Only process names and ancestry were supplied, not full startup arguments**. Do not treat incidental interactive/agent processes as authorization to use autonomous tooling, terminate sessions, or infer secrets. Neither command made changes.
