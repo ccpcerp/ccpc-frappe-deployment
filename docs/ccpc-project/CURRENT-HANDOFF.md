@@ -21,6 +21,19 @@
 
 
 
+
+## 2026-10-27 — Integration2 site successfully migrated to reviewed DEV app checkout; main site still pending
+
+**Actual operator-run DEVELOPMENT database migration PASSED:** In approved DEV-only maintenance, with shared Honcho-managed web/scheduler/worker stopped and Git checkout pinned/detached at `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`, owner executed the guarded **integration2-only** `bench --site ccpc-integration2.localhost migrate`. Terminal showed `SAFETY GUARDS: PASS`, `MIGRATING: ccpc-integration2.localhost`, completed DocType updates for Frappe/ERPNext/CCPC at 100%, synchronized jobs, fixtures, dashboards, customizations and languages, flushed deferred inserts, cleaned orphan metadata, updated installed applications, executed `after_migrate` hooks, queued (not completed/verified) search-index rebuild, and printed `INTEGRATION2 MIGRATION: PASS`. No errors shown. **Only this integration test site's DB has been migrated.**
+
+**Current interruption:** DEVELOPMENT Honcho remains stopped and **`development.localhost` schema has NOT been migrated**. Do not restart shared runtime or allow regular main-site traffic on a potentially mismatched schema. The new Finance Scope/Revision DocTypes, mapping roles and Stock Entry Detail provenance fields require a focused read-only post-migrate presence verification before main-site migration. Details updated in [DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md](DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md), verified docs commit `ec47744ba9709f06dd3cf4a74c4194e046ae0dbf`.
+
+**Immediate next operator step:** execute a read-only SQL count check on integration2 DB: `tabDocType` exact Finance four (expected 4); `tabRole` mapping preparer/approver (expected 2); `tabCustom Field` five new Stock Entry Detail provenance and mapping revision fields (expected 5). No sensitive user data or configuration printed. If all pass, advance directly to individually guarded `development.localhost` migration with the protected Oct27 backup set and same app SHA while Honcho remains stopped. Do not re-run integration2 migration automatically or touch PRODUCTION.
+
+**Recovery evidence:** both valid DEV sites have newly created Oct27 four-part `--with-files` backups, archive formats validated, protected byte-compared copies outside Frappe ordinary `private/backups` pruning, plus separately protected October 13 sets. Not independently restore-tested or off-host verified. Git checkout changed and integration2 migration passed, but role assignment signoff, Company/account master mapping, genuine transactions, four reports and dedicated PRODUCTION deployment still outstanding. No actual financial posting authorized.
+
+---
+
 ## 2026-10-27 — Actual DEVELOPMENT code switch PASS at reviewed 0c223d7; integration2 migration next
 
 **Owner-executed and terminal-confirmed milestone:**
