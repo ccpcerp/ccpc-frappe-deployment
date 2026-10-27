@@ -10,6 +10,15 @@
 
 
 
+
+## 2026-10-27 — Fresh main DEVELOPMENT backup integrity PASS; integration2 fresh backup next
+
+**Operator-reported actual read-only verification** of the successful October 27 `development.localhost` four-artifact set `20261027_075421-development_localhost-`: the guarded `bash` command checked all four nonempty files under `sites/development.localhost/private/backups/`; ran `gzip -t` on SQL, `tar -tf` on **plain** public/private TARs, and `./env/bin/python -m json.tool` on config with contents suppressed. It printed `MAIN DEVELOPMENT BACKUP INTEGRITY: PASS` and returned to the shell prompt. This **confirms archive format/readability, not restored SQL correctness or off-host recovery**. Protected October 13 originals for both sites were previously byte-compared into separately restricted private directories.
+
+**Next execution (already owner-approved):** under DEVELOPMENT `frappe` user at `/workspace/development/frappe-bench`, verify integration2's four original `20261013_102539-ccpc-integration2_localhost-` protected files are still nonempty in `sites/ccpc-integration2.localhost/private/ccpc-preintegration-2026-10-27/`, then execute `bench --site ccpc-integration2.localhost backup --with-files` for **that site only**. Validate new backup's four components and format in the next separate step. Preserve existing backups; no PROD action, app checkout, `bench migrate` or accounting postings allowed under this approval.
+
+---
+
 ## 2026-10-27 — Main DEVELOPMENT fresh four-artifact backup completed, pending format verification
 
 **Owner-executed previously approved command** from `frappe` inside `frappe_docker_devcontainer-frappe-1` at `/workspace/development/frappe-bench`: the script first confirmed that all four October 13 protected originals remain nonempty in `sites/development.localhost/private/ccpc-preintegration-2026-10-27/`, then `bench --site development.localhost backup --with-files` reported **successful completion with files**. It identified the **new** `20261027_075421-development_localhost-` four-artifact set under `sites/development.localhost/private/backups/`, with site config 234 bytes, compressed database 1.6 MiB, public TAR 10 KiB, and private TAR 20 KiB. Frappe summary timestamp was `2026-10-27 07:54:22.899525` (container display time, no timezone inferred). Owner's command returned to the normal shell prompt without errors.
