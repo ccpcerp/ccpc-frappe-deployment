@@ -83,3 +83,31 @@ circleci config validate .circleci/config.yml --json
 **GitHub diagnosis:** Independently re-read feature `.circleci/config.yml` blob `0f23d7ce0f1a1e94cad0debbee865ac813ed1509`. It contains one shell heredoc at line 194 and two legitimate workflow template tags. CircleCI's official 2026 compiler guidance confirms the required fix for the shell heredoc: add **one backslash before the literal double less-than** (in source, `python - \\<<'PY'` when displayed as escaped string, or shell source with backslash preceding `<<`). Do not escape workflow template expressions. See https://discuss.circleci.com/t/breaking-changes-config-compilation-updates-september-21-2026/54719 and https://circleci.zendesk.com/hc/en-us/articles/36469244864539-How-to-solve-the-escaping-character-error .
 
 **Controlled path:** First use a separate temporary **YAML COPY** of the exact source config to test the one-line escaped heredoc and compile Finance opt-in. Original GitHub commit and operator source checkout remain unchanged. The diagnostic result by itself does not authorize GitHub source changes; seek separate explicit authorization before any app feature-branch fix commit. The tested patch, if committed, changes HEAD and requires renewed exact-SHA verification. **NO CircleCI pipeline or MariaDB/DEV/PROD activity authorized; G2 remains NO-GO.**
+
+## 7. Owner-verified copy-only Finance opt-in compiler PASS (2026-10-28)
+
+**Operator-reported result of the exact copy-only command from this discussion:**
+
+```text
+Temporary configuration prepared.
+FINANCE CONFIGURATION: PASS
+137:  opt-in-finance-lifecycle:
+138-    jobs:
+139-    - finance-lifecycle-manual-approval:
+140-        filters:
+141-          branches:
+142-            only: feature/finance-mapping-lifecycle-2026-10-28
+143-        type: approval
+144-    - finance-lifecycle-isolated-integration:
+145-        filters:
+146-          branches:
+147-            only: feature/finance-mapping-lifecycle-2026-10-28
+148-        requires:
+149-        - finance-lifecycle-manual-approval
+```
+
+**Scope and meaning:** The operator executed CircleCI CLI v1.11.0 `config process` with `run_finance_lifecycle: true` against a **temporary YAML COPY**, after the command confirmed the working Git HEAD exactly equals `375de12e7bf79210fdb7ec54b6e7184d0b27ead6` and the unchanged original `.circleci/config.yml` Git blob exactly equals `0f23d7ce0f1a1e94cad0debbee865ac813ed1509`. The Python copy step asserted exactly one shell heredoc `python - <<'PY'` and changed only that copy to `python - \\<<'PY'` (a single backslash character before the two angle brackets in the YAML source). The CLI compiler returned success and the compiled workflow visibly includes an approval job and the Finance job depending on it. **The reported opt-in CLI compilation error has been resolved in the temporary patched YAML**, not in current GitHub source.
+
+**Exact next action / approval boundary:** Ask for specific **GitHub-only one-line feature-branch code fix authorization** before changing `.circleci/config.yml` on [draft PR #21](https://github.com/ccpcerp/ccpcerp/pull/21). Proposed single-line change: `python - <<'PY'` → `python - \\<<'PY'` in the Finance job's shell heredoc only; leave the two real CircleCI workflow parameter tags, older integration job/guard, source branch and other functions unchanged. Include a static regression guard preventing this opt-in compiler error from reappearing if later expressly authorized. After new commit, verify new GitHub SHA and re-run exact-SHA Python/CircleCI default and opt-in config compilation against the **committed file**, not just a temporary copy. A successful compiler PASS is not a permission to dispatch CircleCI jobs.
+
+**G2 still NO-GO:** CircleCI runner/project settings, actual network isolation, approved externally controlled SHA, spend cap/credit balance, finance MariaDB integration and DEVELOPMENT/PRODUCTION release gates remain entirely separate. This documentation change touches no application source, CI project settings, CircleCI execution, or site.
