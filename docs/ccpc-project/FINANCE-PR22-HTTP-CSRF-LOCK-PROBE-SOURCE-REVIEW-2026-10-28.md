@@ -41,3 +41,29 @@ Record exact checkout SHA, Python version, output and failures. These commands *
 Actual HTTP and MariaDB execution remains blocked until the owner separately approves a **specific exact review SHA**, the ephemeral CircleCI job and budget, attested cloud runner/network isolation, safe local HTTP listener, fictional checker credential provisioning without logs, committed fictional Company test fixture, rollback/disposal and a human cancellation operator. The approved SHA project variable was absent in the prior CircleCI UI inventory and must not be created without separate authorization. `run_finance_lifecycle` remains default false.
 
 **Open test gaps after these probes:** successful CSRF-bearing authenticated checker POST and maker-vs-checker HTTP scope enforcement; two independent concurrent **business approval/retirement** requests with exact decision-use, stale-state/duplicate protection and rollback assertions; stock/GL/SLE tests; DEVELOPMENT acceptance. These cannot be reported as passed based on a row-lock probe. Do not run probes on `development.localhost`, `ccpc-integration2.localhost` or PRODUCTION. No service restart, migration, source merge, user creation or financial posting authorized by this code checkpoint.
+
+
+## Offline exact-blob syntax and Python source-policy validation — 2026-10-28
+
+**Approval:** Owner replied **"Approved"** to the prior checkpoint's *offline-only Python syntax and source-policy tests* on the PR #22 review code. This approval did **not** extend to running the manually gated HTTP/CSRF or database probes, CircleCI jobs, changing credentials, merging the PR, or accessing persistent DEVELOPMENT/PRODUCTION.
+
+**Source provenance and snapshot fidelity:** The execution environment cannot resolve/clone the private GitHub repository (attempted unauthenticated `git ls-remote` returned `Could not resolve host: github.com`), so the assistant assembled **only the four exact relevant files** into a separate throwaway local directory; this was **not a full Git checkout**, and no source files were fetched by unauthenticated direct web access. Connected GitHub `fetch_file` and the previously verified exact PR head supplied authoritative file contents. Git blob SHA-1 recomputation over `blob <size>\\0<bytes>` independently matched **all 4 GitHub blobs**:
+
+| File | Matched exact Git blob |
+| --- | --- |
+| `.circleci/finance_http_session_probe.py` | `fb2d6b8bea90fd6989d293b58d3117f64b51a5e0` |
+| `ccpcerp/ccpc_erp/ci_finance_company_lock_probe.py` | `9c890ac5245af7fa837e422d37d09d99593d2705` |
+| `.circleci/test_finance_probe_source_policy.py` | `013926bb6ab44664ce3992efacce2d1feda1c1a6` |
+| `.circleci/config.yml` (unchanged PR #21 baseline) | `9aa8c676dfa7b22e7b7035d70a0b461af773908d` |
+
+**Executed command category (Python 3.13.5):** `python3 -m compileall -q` on the **three PR22 Python files**, and `python3 -m unittest discover -s .circleci -p 'test_finance_probe_source_policy.py' -v` within the exact-blob snapshot.
+
+**Results:** All three Python files compiled successfully, exit status 0; **four Python unittest methods ran, 4 PASS, zero failures/errors, 0.002s**:
+- `test_both_probes_parse_without_importing_frappe`
+- `test_http_probe_requires_isolated_identity_and_cookie_csrf`
+- `test_lock_probe_requires_distinct_transactions_and_rollback`
+- `test_neither_probe_is_wired_to_active_circleci_jobs`
+
+This source-policy PASS is **not** a CircleCI config compiler pass at the review SHA, a full repo test-suite run or any Frappe/MariaDB runtime test. Python 3.13.5 was used locally; CI's declared Python image is 3.14. The exact final PR22 HEAD remains `e1cfd3e63cfcac54a6b4b16ebdeb1be8212bf15d`, OPEN/DRAFT/UNMERGED. **No application/CI source changes were made by this validation.**
+
+**Remaining validation and safety gates:** The manual probes are **not wired to CI**. A later disposable synthetic checker login/CSRF assessment and MariaDB NOWAIT lock check require separately approved exact-SHA isolated runtime prerequisites, credential handling, budget/cancel oversight, and explicit authorization. Two-request Finance approval/retirement race tests and authenticated positive CSRF paths still need design and implementation. The G2 Finance paid job remains **NO-GO**; DEVELOPMENT/Integration2/PRODUCTION untouched.
