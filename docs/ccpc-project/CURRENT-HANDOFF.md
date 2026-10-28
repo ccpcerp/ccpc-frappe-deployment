@@ -1,5 +1,13 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-28 — G2 CircleCI project API Permissions list empty (owner read-only report)
+
+Owner answered **"NO"** to whether project-level API tokens are listed in CircleCI `ccpcerp` **Project Settings → API Permissions**. Treat this as **empty token list on the viewed project page**, not proof of absent user/org tokens, GitHub App/VCS checkout credentials or network egress. No token values/identifiers shared and no settings change or CI run. Earlier G2 checks show no project variables or Org contexts listed; one GitHub direct collaborator with WRITE permission remains a distinct hold-approval concern. Finance PR #21 is still OPEN/DRAFT/UNMERGED at `d154886ab45c51878a87a4ecf42e45602d8d9ccb`; **G2 Finance paid/database execution NO-GO**. Detailed finding in [G2 review §18](FINANCE-PR21-G2-READ-ONLY-CIRCLECI-RUNNER-SECURITY-COST-REVIEW-2026-10-28.md), committed as `03511c2137e349f414f89f8f23735190e0190373`.
+
+**Next single read-only step:** CircleCI `Project Settings → Groups`: report only whether any groups are listed (**Yes/No/Not clear**), no identities or group changes. Runner isolation, GitHub App effective permissions, bounded cost/cancel controls and separate exact-SHA Finance job authorization remain pending. Do not modify DEVELOPMENT/PRODUCTION.
+
+---
+
 ## 2026-10-28 — G2 CircleCI Project Advanced Settings read-only verification
 
 Owner screenshots of `ccpcerp` Project Settings → Advanced show **VCS status updates ON, auto-cancel redundant workflows OFF, dynamic setup feature ON, Disable SSH Reruns OFF, Block new work OFF**. Unversioned config is presented behind an organization-settings enablement link (not proof of org-level status). The requested forked-PR build/secret switches are **not visible**, NOT confirmed disabled. Exact GitHub Finance feature `.circleci/config.yml` blob `9aa8c676dfa7b22e7b7035d70a0b461af773908d` has no `setup: true` (dynamic config support ON does not mean that source uses setup workflows). The still-possible SSH rerun and no auto-cancel require deliberate security and run-cost review; **do not change toggles under read-only approval**. Finance draft PR #21 still OPEN/DRAFT/UNMERGED at `d154886ab45c51878a87a4ecf42e45602d8d9ccb`. No pipeline, secrets, GitHub app code, database, DEV or PROD changes; **G2 Finance CI remains NO-GO**. Full evidence recorded in G2 §17 at docs commit `b4cd092120e94cc2ab9c4aa4f4727470206f73c2`.
