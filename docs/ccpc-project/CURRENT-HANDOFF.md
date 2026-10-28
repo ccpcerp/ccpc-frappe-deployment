@@ -1,5 +1,13 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-28 — Finance PR22 exact-blob offline tests 4/4 PASS (no live Frappe/CI)
+
+Owner approved **offline-only** Python syntax and source-policy testing on Finance [draft app PR #22](https://github.com/ccpcerp/ccpcerp/pull/22), head `e1cfd3e63cfcac54a6b4b16ebdeb1be8212bf15d`, targeting still-draft Finance PR #21 feature head `d154886ab45c51878a87a4ecf42e45602d8d9ccb`. No CircleCI, Frappe HTTP, MariaDB, DEVELOPMENT/Integration2 or PRODUCTION operations were authorized/executed. Direct private repo clone was unavailable due DNS, so **four exact GitHub blobs** (three PR22 Python test sources + unchanged CircleCI config) were reconstructed into a temporary isolated local snapshot, not claimed as a complete Git checkout. **All 4 Git blob SHA-1 matches PASS.** On Python **3.13.5**, `python3 -m compileall -q` of all three new Python files **PASS**. `python3 -m unittest discover -s .circleci -p 'test_finance_probe_source_policy.py' -v` **4/4 PASS**, 0 failures/errors. No changes to app code or CI YAML, review PR #22 remains DRAFT/UNMERGED. Full provenance, four blob IDs, commands and limitations are committed at docs `1ac89a593799f84d8691f8c0cc14236872ad2963`, [FINANCE-PR22-HTTP-CSRF-LOCK-PROBE-SOURCE-REVIEW-2026-10-28.md](FINANCE-PR22-HTTP-CSRF-LOCK-PROBE-SOURCE-REVIEW-2026-10-28.md); PR22 description updated with the same result.
+
+**Next safe engineering priority:** Review two manual test probes for Frappe v16 HTTP/CSRF semantics and independent-MariaDB-connection lifecycle, then prepare separately reviewed source-only extensions for positive authenticated CSRF and actual simultaneous Finance approval/retirement state protection. Keep G2 paid Finance CI **NO-GO** until independently approved SHA, credit/time and cancellation boundary, runner/secret/network isolation, proper synthetic fixture credentials and explicit one-run owner authorization. No production release.
+
+---
+
 ## 2026-10-28 — Finance HTTP/CSRF + MariaDB Company lock probes committed in draft PR #22
 
 **Owner approved GitHub source-only implementation**, not a CircleCI run, user/role/credential provisioning, DEVELOPMENT/Integration2/PRODUCTION operation or merge. From current Finance [app draft PR #21](https://github.com/ccpcerp/ccpcerp/pull/21) exact feature HEAD `d154886ab45c51878a87a4ecf42e45602d8d9ccb`, created app branch `review/finance-http-concurrency-tests-2026-10-28` and [draft PR #22](https://github.com/ccpcerp/ccpcerp/pull/22) targeting the Finance feature branch. **Verified app review HEAD `e1cfd3e63cfcac54a6b4b16ebdeb1be8212bf15d`**, five commits ahead, zero behind the original feature HEAD; exactly **three new source files** and **no modified existing app or CircleCI YAML**:
