@@ -1,5 +1,17 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-28 — PR23 Stage A continued offline source validation 38/38 PASS; CircleCI compiler PENDING
+
+**Owner approved continuing OFFLINE validation only.** App [draft PR23](https://github.com/ccpcerp/ccpcerp/pull/23) is OPEN/DRAFT/UNMERGED on `review/finance-g2-baseline-timebox-2026-10-28` @ verified **`c8607e10bf60bfd03749e165146745b48d6fa1d1`** (5 Finance CI-only files ahead of feature, zero behind). PR21 feature `d154886ab45c51878a87a4ecf42e45602d8d9ccb` and PR22 `175207c798fe63b49f22a940d0510f667b798c52` remain unchanged, draft and unmerged.
+
+**Actually performed:** fetched **9 exact GitHub source blobs** at pinned PR23 SHA; **38/38 additional read-only programmatic source-boundary checks PASS** for default-false and manually held Finance CI, fixed feature-branch and SHA/CI site guard, pinned dependencies, every timeboxed `services/install/tests` wrapper, eight known baseline methods, Stock Entry fixture dependency and absence of PR22 HTTP/race/master/fixture code in the baseline job. This is a *JavaScript source validation*, **NOT** execution of the committed seven Finance YAML/static Python tests or six negative site-guard Python tests. Earlier **10/10 deadline Python tests PASS** (prior checkpoint) remain valid historical evidence, not a new suite run.
+
+**Blocker:** Local Python 3.13.5/PyYAML available, but no CircleCI CLI installed, and local GitHub DNS fails; the approved exact full repo snapshot cannot be obtained from the local shell. **CircleCI `config validate`/`config process` (default-false and opt-in true) was NOT run**, no compiled YAML/`bash -n` evidence is available. Official CircleCI CLI docs support source-only config validation and process commands; compilation uses placeholder pipeline values, not a live branch. **[PR23 continuation report](FINANCE-G2-PR23-OFFLINE-VALIDATION-CONTINUATION-2026-10-28.md)**, docs commit `56230c45d5f23cd61a3030550961e46d8a4fd3ed`, records exact blobs, test commands, limitations, no-run boundary and remaining verification.
+
+**Next safe step:** Obtain a trusted exact PR23 Git checkout with CircleCI CLI (no CircleCI account/pipeline action) and execute the committed **7 config static + 6 site-guard + 10 deadline** Python tests and both actual CircleCI config compilations; inspect compiled workflow and shell. Until then **Finance G2 NO-GO**. No app code edits, hosted CircleCI spend/hold, DB/fixture commit, DEVELOPMENT/Integration2, PR merge, or PRODUCTION change occurred.
+
+---
+
 ## 2026-10-28 — Stage A Finance CI timebox patch implemented in NEW draft PR23 (NO-GO)
 
 **Owner approved only the source-only Stage A CI safety patch and offline tests.** New [app draft PR23](https://github.com/ccpcerp/ccpcerp/pull/23), branch `review/finance-g2-baseline-timebox-2026-10-28`, was created from verified Finance feature HEAD `d154886ab45c51878a87a4ecf42e45602d8d9ccb`. Current draft PR23 HEAD `c8607e10bf60bfd03749e165146745b48d6fa1d1`, 5 ahead/0 behind, exactly five Finance CI-only paths changed: `.circleci/config.yml`, new `finance_baseline_deadline.py`, new `finance_baseline_stage.sh`, new `test_finance_baseline_deadline.py`, updated `test_finance_ci_config_static.py`. PR21 feature HEAD and PR22 review HEAD `175207c798fe63b49f22a940d0510f667b798c52` remain independently OPEN/DRAFT/UNMERGED and **unchanged**. No merge or runtime approval.
