@@ -1,5 +1,17 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-28 — Finance G2 GitHub-only correction plan approved for preparation and written (G2 NO-GO)
+
+**Owner approved preparing a narrowly scoped GitHub-only correction PLAN**, not implementing code changes or triggering CI/DB work. [Plan and safety gates](FINANCE-G2-GITHUB-ONLY-CORRECTION-PLAN-2026-10-28.md) committed to docs branch at `9ff6a77ed7d5820a10a9c800a492710e6d023c66`. App branch tips independently verified unchanged: [PR21](https://github.com/ccpcerp/ccpcerp/pull/21) feature `feature/finance-mapping-lifecycle-2026-10-28` @ `d154886ab45c51878a87a4ecf42e45602d8d9ccb` remains OPEN/DRAFT/UNMERGED; [PR22](https://github.com/ccpcerp/ccpcerp/pull/22) review `review/finance-http-concurrency-tests-2026-10-28` @ `175207c798fe63b49f22a940d0510f667b798c52` remains OPEN/DRAFT/UNMERGED. The confirmed 23/23 PR22 **offline** PASS remains valid, not real Frappe/MariaDB/HTTP or hosted CI evidence.
+
+**Plan recommendation:** Stage A = the original **eight Finance lifecycle DB tests only**, on the existing feature branch with exact external SHA, manually held default-false workflow; Stage B = PR22 HTTP/CSRF, Company lock, Maker/Checker real concurrent approval/retirement **later, separate review branch job and independent approvals**. Do not broaden the feature-branch site guard or spoof CircleCI branch. Existing baseline `setUp()` invokes `load_test_records("Stock Entry")`, so real DB setup is **not read-only** and needs separate explicit authorization. PR22 remains unwired and unmerged.
+
+**Prospective changes (not implemented):** Finance-specific `.circleci/config.yml` and static/guard tests, optionally dedicated deadline helper, source-only CircleCI CLI `config validate`/`process` and compiled `bash -n` checks. No CircleCI CLI is installed here; CircleCI compiler validation was **not** run. Proposal requires one cumulative job timeout with independent external cancellation/credit monitoring; shell timeouts and `no_output_timeout` **cannot guarantee a strict credit spend cap**. The 90-minute/2,500-credit discussion remains **unapproved**. Unconditional small-class starter job cost must be accounted for, and no blanket reruns allowed. All new source patches need separate scope approval; no live pipeline, CI hold, master/fixture commits, DEVELOPMENT/Integration2, merge, or PRODUCTION authorization.
+
+**Next single step:** Owner review/approval of Stage A **source-only CI safety patch** with exact branch/changed paths and an explicit no-run boundary. **Finance G2 remains NO-GO.**
+
+---
+
 ## 2026-10-28 — Finance G2 source-only readiness review: NO-GO, branch/cost blockers verified
 
 **Owner approved source-only CI readiness analysis ONLY**, following PR22 exact offline 23/23 PASS. [App PR22](https://github.com/ccpcerp/ccpcerp/pull/22) remains OPEN/DRAFT/UNMERGED @ `175207c798fe63b49f22a940d0510f667b798c52` on `review/finance-http-concurrency-tests-2026-10-28`; [PR21](https://github.com/ccpcerp/ccpcerp/pull/21) draft unmerged @ `d154886ab45c51878a87a4ecf42e45602d8d9ccb` on `feature/finance-mapping-lifecycle-2026-10-28`. PR22 adds eight probe/test/helper files; it **does not change** active CircleCI YAML `9aa8c676dfa7b22e7b7035d70a0b461af773908d`. Current Finance job, workflow branch filter, and Python `ci_finance_lifecycle_site_guard.py` all require **feature branch**; PR22 review-branch code cannot pass those controls. The Finance job invokes the **eight original lifecycle tests only**, not PR22 HTTP/SQL-race probes, fixtures or master bootstrap. Do not bypass branch/SHA guards.
