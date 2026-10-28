@@ -540,3 +540,11 @@ The design is explicitly a **proposal pending owner/Accounting decisions**:
 - Concrete schema/transaction/concurrency/index designs, genuine Accounting evidence verification (text-only approval_reference in current code is insufficient), rollback/recovery, and real MariaDB tests remain future scoped work. No PRODUCTION authorization and no existing Draft approval.
 
 **Next decision gate:** Obtain distinct scope approval for one of (A) revise/finalize this conceptual design and unresolved Accounting governance, or (B) implement the agreed controls on a named reviewed app feature branch after explicit schema/role/evidence decisions; any isolated DEVELOPMENT pull/migrate/write test requires its **own** approval. The previously verified Integration2 Maker Draft remains **Draft**; do not activate or rerun the Maker proposal.
+
+### Owner endorses lifecycle design direction in principle — 2026-10-28
+
+After receiving the completed GitHub-only [Finance mapping rejection/retirement design](FINANCE-MAPPING-REJECTION-RETIREMENT-LIFECYCLE-DESIGN-2026-10-28.md) and handoff, the owner replied **"Approved."** Recorded this as endorsement of the **conceptual direction**: audited terminal Draft rejection, prospectively effective append-only retirement decision, independent Finance Maker/Checker authority, nonretroactive historical accounting, concurrency control and fail-closed mapping resolver behavior. Updated the design document on this docs review branch; no app source or runtime writes.
+
+**Still pending:** exact B/C DocType schema, indexes, state rules, new role/evidence governance decisions, document-backed Accounting reference verification, retirement cutoff policy and recovery/failure handling; explicit design/implementation authorization and tests. The synthetic TISS Expense Scope `fie8da5c59` and Revision `fieef2e44j` are **last verified Draft**, not approved. Do not run any live approval or migration, edit/delete financial history, change shared DEVELOPMENT environment, or touch PRODUCTION.
+
+**Next step:** present a tightly bounded schema and Accounting governance design proposal (documentation only) as the next separate decision. Do not interpret this short approval as authorization for application code or environment changes.
