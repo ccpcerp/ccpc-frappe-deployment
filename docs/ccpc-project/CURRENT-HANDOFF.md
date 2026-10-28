@@ -1,5 +1,13 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-28 — G2 CircleCI enabled PR-label trigger expanded details VERIFIED; parameter overrides unknown
+
+**Owner read-only expanded trigger-card screenshot** under Project Setup: the existing GitHub App trigger `"run-ci" label added to PR on ccpcerp` reports **Event source `ccpcerp`** and **Trigger status ENABLED**, with explanatory text that event-triggered pipelines will run as configured. The expanded card **shows no parameter mappings or branch filters**; absence from its display does not demonstrate absence from actual configuration. Application draft [PR #21](https://github.com/ccpcerp/ccpcerp/pull/21) remains UNMERGED; source `.circleci/config.yml` blob `9aa8c676dfa7b22e7b7035d70a0b461af773908d` defaults `run_integration=false` and `run_finance_lifecycle=false`. Finance manual-approval and approved-SHA guards are source-defined; no execution authorization or pipeline run is inferred. G2 execution remains **NO-GO**.
+
+**Next single safe step:** Read-only UI inspection of the **pencil within the existing trigger details**, not pipeline definition: examine any event/branch rules and pipeline parameter overrides, then **Cancel/Back without saving or changing anything**. No trigger/PR label modifications, pipeline/hold action, approved-SHA environment entry, database work, DEVELOPMENT/PRODUCTION change or release. Full G2 [checkpoint §15](FINANCE-PR21-G2-READ-ONLY-CIRCLECI-RUNNER-SECURITY-COST-REVIEW-2026-10-28.md) committed as `a0fbc07404e550e70227895e1b5e927b8113e67a`.
+
+---
+
 ## 2026-10-28 — G2 CircleCI Project Setup GitHub App trigger identity VERIFIED (read-only)
 
 Owner-supplied **Project Settings → Project Setup** screenshot for CircleCI `ccpcerp` shows one visible **GitHub App** pipeline `ccpcerp-integration-tests`, with config source and checkout source `ccpcerp`, config file `.circleci/config.yml`, and a **collapsed** trigger labeled **\"run-ci\" label added to PR on ccpcerp**. This establishes the visible VCS integration and PR-label trigger, **not the expanded trigger parameters, branch restrictions or runner/network isolation**. Version-controlled custom-app PR #21 is still OPEN/DRAFT at `d154886ab45c51878a87a4ecf42e45602d8d9ccb`; its exact `.circleci/config.yml` blob `9aa8c676dfa7b22e7b7035d70a0b461af773908d` has `run_integration=false` and `run_finance_lifecycle=false` by default. The actual CircleCI label trigger might supply overriding parameters; do **not** assume either activation or impossibility without inspecting it. Missing project-level approved-SHA variable remains a separate Finance runner gate. **G2 paid execution: NO-GO; no pipeline or environment change approved.**
