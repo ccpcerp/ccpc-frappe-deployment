@@ -1,5 +1,13 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-28 — G2 CircleCI trigger edit form inspected (event only, no overrides shown)
+
+Owner screenshot pair confirms existing `ccpcerp-integration-tests` **GitHub App** PR-label trigger, `Event: "run-ci" label added to PR`, source `ccpcerp`, **ENABLED**. The edit form's help says it activates on **new addition** of the label, **not later pushes** to a PR that retains it. No parameter or branch-filter controls appear in the edit form. This matches custom-app `.circleci/config.yml` GitHub blob `9aa8c676dfa7b22e7b7035d70a0b461af773908d` (`run_integration=false`, `run_finance_lifecycle=false` by default, basic `starter-validation` automatic). However, screenshots are not a complete API/other-trigger parameter audit. No Save, label change or job execution reported. **G2 Finance pipeline remains NO-GO; PR #21 OPEN/DRAFT/UNMERGED at `d154886ab45c51878a87a4ecf42e45602d8d9ccb`.** No backend/DEVELOPMENT/PRODUCTION operations authorized.
+
+**Next single read-only action:** Cancel edit form without saving; inspect CircleCI **Project Settings → Advanced** for **Build forked pull requests** and **Pass secrets to builds from forked pull requests** states (On/Off/Unavailable), without toggling. This is part of remaining security/runner/credit review, not approval to run Finance tests. Full §16 G2 review committed as `8726d858c74ae5080555a50c75a00d85cb662697`.
+
+---
+
 ## 2026-10-28 — G2 CircleCI enabled PR-label trigger expanded details VERIFIED; parameter overrides unknown
 
 **Owner read-only expanded trigger-card screenshot** under Project Setup: the existing GitHub App trigger `"run-ci" label added to PR on ccpcerp` reports **Event source `ccpcerp`** and **Trigger status ENABLED**, with explanatory text that event-triggered pipelines will run as configured. The expanded card **shows no parameter mappings or branch filters**; absence from its display does not demonstrate absence from actual configuration. Application draft [PR #21](https://github.com/ccpcerp/ccpcerp/pull/21) remains UNMERGED; source `.circleci/config.yml` blob `9aa8c676dfa7b22e7b7035d70a0b461af773908d` defaults `run_integration=false` and `run_finance_lifecycle=false`. Finance manual-approval and approved-SHA guards are source-defined; no execution authorization or pipeline run is inferred. G2 execution remains **NO-GO**.
