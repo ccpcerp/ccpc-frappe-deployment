@@ -167,3 +167,27 @@ CircleCI's current [Workflow orchestration docs](https://circleci.com/docs/guide
 **Scope/security:** The screenshots independently demonstrate no GitHub App trigger-edit UI control to supply overrides in this form; absence of controls is not a comprehensive statement about every way CircleCI can receive pipeline parameters. The earlier repository collaborator with WRITE rights might be eligible for a manual hold, so hold approval cannot be treated as owner-exclusive. No Finance pipeline, manual hold, CI variable, PR label, DEVELOPMENT/Integration2/PRODUCTION change or merge has been authorized/executed.
 
 **G2 Finance CI: NO-GO** pending remaining account/runner/secret-policy audit, network/reachability controls, bounded credit/time and human cancellation plan, followed by separate per-SHA owner approval. **Next one-step read-only operator check:** After clicking **Cancel** on the current edit form, visit CircleCI `Project Settings → Advanced` and report only the states (On/Off/Unavailable) of **Build forked pull requests** and **Pass secrets to builds from forked pull requests**, if such controls exist. Do not toggle, save or inspect secret values. These settings are documented by CircleCI's [pull-request build settings](https://circleci.com/docs/guides/integration/pull-request-build-settings/) and are material to future CI secret exposure even if current project variables/context views were empty.
+
+
+## 17. CircleCI Project Advanced Settings owner screenshot review (2026-10-28)
+
+**Owner-provided two read-only screenshots:** CircleCI `Project Settings → Advanced` for the connected `ccpcerp` project displayed these **observed toggle states** at capture time:
+
+| Displayed project control | UI observed |
+|---|---|
+| VCS Status Updates | **ON** (blue) |
+| Auto-cancel redundant workflows | **OFF** (gray) |
+| Enable dynamic config using setup workflows | **ON** (blue) |
+| Disable SSH Reruns for this project | **OFF** (gray) |
+| Block all new work from starting for this project | **OFF** (gray) |
+| Allow unversioned configuration | No project toggle shown; UI displays link to organization settings to enable that feature |
+| Build forked pull requests | **NOT DISPLAYED** in supplied screenshot regions |
+| Pass secrets to builds from forked pull requests | **NOT DISPLAYED** in supplied screenshot regions |
+
+**Narrow interpretation:** The project setting currently does not disable interactive **SSH reruns**, and **auto-cancel** is off, so overlapping jobs may persist unless otherwise canceled. The project is not globally blocked from creating new work. Dynamic configuration feature availability is ON, but its actual use is a distinct property of source/pipeline: independently verified Finance-feature `.circleci/config.yml` at blob `9aa8c676dfa7b22e7b7035d70a0b461af773908d` contains no `setup: true`, so it is **not designated a dynamic setup config** at that source ref. CircleCI's [dynamic config docs](https://circleci.com/docs/guides/orchestrate/dynamic-config/) state that enabling project support leaves existing static config functioning normally, and `setup: true` opts a particular config into setup behavior. Neither project toggles nor repo source prove there are no external API-triggered jobs, different-branch config, or other security policies.
+
+**Important missing evidence:** The older ask concerning forked-PR build/secrets controls is **not resolved as OFF**; the owner screenshot shows no such switches. They may be located elsewhere, unavailable for this GitHub App project, or outside captured view. Do not infer effective forked-PR or inherited secrets policy from their absence. The actual self-hosted versus CircleCI Cloud runner isolation, VCS checkout credential scope, source code provenance, secrets injection and outbound network remain unproven. The CircleCI UI still appears to offer SSH debugging; turning off the capability or changing any setting **requires a separate owner decision**, not this read-only observation.
+
+**GitHub code/approval status:** Finance [PR #21](https://github.com/ccpcerp/ccpcerp/pull/21) remains **OPEN/DRAFT/UNMERGED** at `d154886ab45c51878a87a4ecf42e45602d8d9ccb`. Both `run_integration` and `run_finance_lifecycle` default false; project-level `CCPC_FINANCE_APPROVED_SHA` was absent at the last owner UI check. One direct GitHub collaborator with WRITE rights is already documented; CircleCI hold approval is not verified owner-exclusive. No changes to CircleCI, its tokens, keys, jobs or any ERPNext site were performed in this screenshot review.
+
+**G2 decision: NO-GO for Finance MariaDB integration execution.** Remaining controls include future dedicated SHA/hold authorization, actual runner/egress and VCS credential checks, a human-controlled maximum time/credit budget and prompt cancellation procedure. **Next single read-only owner action:** Open `Project Settings → API Permissions` for `ccpcerp` and report only whether any project-level API tokens are **listed (Yes/No/Not clear)**; do not disclose token strings, token names, private IDs, creation links, permissions or unredacted screenshots. No token creation/revocation. Empty project API token list would not prove absence of personal/organization tokens or GitHub App-provided credentials. Do not request new expensive pipelines or modify project security settings yet.
