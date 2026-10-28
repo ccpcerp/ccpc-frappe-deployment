@@ -498,3 +498,29 @@ After the operator-confirmed authenticated Maker Draft and Checker review-only P
 - Protected recovery assets remain local snapshots, not an off-host or proven restorable recovery procedure. Restoring an old site backup would overwrite newer approved integration records and needs entirely separate authorization.
 
 **Next gate: runtime-only inspection, NOT approval.** Re-verify exact isolated site/database/app checkout, backup manifest, scope `fie8da5c59` and revision `fieef2e44j` remain Maker-owned Draft without effective/approval fields, current Checker/Maker roles/grants, no linked Items/Item Group defaults, zero other TISS/TREQ scope/revisions, no synthetic-account GL/stock references or other defaults, Company tree isolation, and Version/audit counts. Use read-only Frappe connection followed by explicit `frappe.db.rollback()`. No login, review API call, approval, service restart, migration, fixture creation, stock/GL posting or PRODUCTION interaction in this phase. Next approval decision requires separately scoped owner permission, accounting decision evidence and a safe fallback plan. Runtime inspection results are pending, not yet PASS.
+
+### Approval safety runtime preflight: PASS — operator read-only report, no activation
+
+On 2026-10-28 (Asia/Manila), the project owner ran the previously authorized **read-only Integration2 approval safety preflight** and provided the following output:
+
+```text
+INTEGRATION2 APPROVAL SAFETY PREFLIGHT
+SITE ISOLATION AND BACKUP CHECKSUMS: PASS
+TISS COMPANY ISOLATION: PASS
+MAKER AND CHECKER AUTHORITY: PASS
+SYNTHETIC MASTERS AND ITEM ISOLATION: PASS
+DRAFT STATE AND MAPPING ISOLATION: PASS
+SYNTHETIC GL AND STOCK REFERENCES: ZERO
+EXISTING REVISION VERSION RECORDS: 0
+APPROVAL SAFETY DATABASE PREFLIGHT: PASS
+REVISION STATUS: Draft
+NO APPROVAL OR FINANCIAL DATA CHANGES
+```
+
+**Verified via owner-run checks:** Application was guarded at pinned detached review commit `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`; Integration2 DB was separated from main DEVELOPMENT; the private prefixture backup's four SHA-256 hashes matched; TISS Company has no ancestors or descendants. Named Maker and Checker users remained enabled, distinct, with expected roles and explicit TISS grants and no Stockroom Personnel role. Synthetic Item Group `CCPC INT2 Expense Mapping Test 20261027` had no linked Items/defaults; the synthetic TISS Expense Account `CCPC INT2 Expense Mapping Test - TISS` remained active, unnumbered, correctly scoped, and unique by account title.
+
+TISS Expense mapping Scope `fie8da5c59` and Revision `fieef2e44j` (`revision_no=1`) remain the sole TISS/TREQ expense/center test mapping, Maker-owned **Draft** with no approved_by/approved_at/approval_reference/effective interval. There are **zero** `GL Entry` records for the synthetic Account, **zero** `Stock Entry Detail` rows referencing the Account or synthetic revision, and **zero** `Version` rows referencing the Revision. Zero Version rows are expected before any approval and do **not** independently test audit insertion. The preflight did not use the approval endpoint and did not make financial-data writes.
+
+**Decision — approval activation remains BLOCKED, despite PASS:** Static review in the prior section found that `approve_mapping` would set `Approved`, create a `Version` audit and an effective timestamp; it accepts a textual accounting approval reference without independently checking a genuine approval document. No direct reject/revoke/deactivate operation was found in the current workflow module, and a controlled unwind plan is not yet validated. Only a **separately requested, explicit owner approval** with genuine Accounting evidence, a reviewed deactivation/reversal strategy and fresh site/runtime preflight could authorize any real Checker approval POST. Do not invent references, activate a fake mapping, edit SQL as rollback, restore a site as an automatic test remedy, modify main DEVELOPMENT/PRODUCTION, or create stock/GL transactions.
+
+**Recommended next GitHub-first step (separate scope):** Propose and review the financial-mapping lifecycle safety design for authenticated Checker **reject Draft** and controlled **retire/deactivate Approved mapping**, with locking/idempotency, no backward rewrites, effective-interval cutoff semantics, audit Version creation, prevention of duplicate financial effects, permission & Company constraints, transaction failure handling, and targeted unit/integration tests. Do not treat this read-only review as permission to implement, deploy, or test write paths.
