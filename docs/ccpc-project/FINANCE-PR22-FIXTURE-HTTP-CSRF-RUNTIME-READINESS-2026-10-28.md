@@ -1,0 +1,51 @@
+# CCPC Finance PR22 — synthetic fixture, HTTP/CSRF and runtime-readiness review
+
+**Reviewed:** 2026-10-28, Asia/Manila.  
+**Scope/approval:** After offline exact-blob PR22 Python tests passed (5/5 at `e842aa62cb42531752299503206e6eb1cba395d0`), owner replied **"Approved"** to *reviewing synthetic database fixtures and HTTP/CSRF verification prerequisites*. Authorization is **read-only GitHub source review plus project documentation**. It does **not** authorize preparing/committing runtime fixtures, real DB/HTTP tests, CircleCI configuration or pipeline/hold changes, DEVELOPMENT updates, a merge or PRODUCTION deployment.
+
+## Pinned authoritative inputs
+
+- Application review: [Draft PR #22](https://github.com/ccpcerp/ccpcerp/pull/22), `review/finance-http-concurrency-tests-2026-10-28`, **HEAD `e842aa62cb42531752299503206e6eb1cba395d0`**, open/draft/unmerged; base [Draft PR #21](https://github.com/ccpcerp/ccpcerp/pull/21), feature HEAD `d154886ab45c51878a87a4ecf42e45602d8d9ccb`.
+- Existing genuine service suite: `ccpcerp/ccpc_erp/test_finance_lifecycle_disposable_integration.py` Git blob `4aeaa7c5b841637fe3c66a0e507f6b0f5db1448b`. Uses `ERPNextTestSuite`, `setUp()` role/user/Company grants, `_draft()` and `_approve()`, and `ERPNextTestSuite.tearDown()` rolls back.
+- New dormant probes: `.circleci/finance_http_session_probe.py` blob `f93e81cb01c19ce4e97671a7417ebc9352a0e780`; `ccpcerp/ccpc_erp/ci_finance_business_race_probe.py` blob `5555d0a64ed491f76ef68a96b192ba93e5300404`; existing Company lock probe blob `9c890ac5245af7fa837e422d37d09d99593d2705`. Neither appears in the active CircleCI `.circleci/config.yml` (blob `9aa8c676dfa7b22e7b7035d70a0b461af773908d`).
+- Pinned upstream `frappe/frappe` **`988e54f3c4c291e2077a83809663f123731abe76`**: `frappe/auth.py`, `frappe/sessions.py`, `frappe/handler.py`, `frappe/exceptions.py`; pinned ERPNext source in CircleCI YAML `4048fb70e14d1843956fcdabb7c3cca75a1cbcdd`.
+- Schema: `CCPC Mapping Decision Use.decision` **unique**, `CCPC Accounting Mapping Decision.decision_key` **unique**, `CCPC Mapping Retirement Request.request_key` **unique**, and `CCPC Mapping Retirement Event` unique `decision`, `retirement_request`, and `target_key`. The current modules use `FOR UPDATE` and same-transaction signed-decision consumption. Index/DDL runtime presence is not yet independently proven in a live DB.
+
+## Finding F1 — existing integration fixtures do not survive a second connection
+
+`TestFinanceLifecycleDisposableIntegration` creates `User`, `Role`, `User Permission`, fictional Item Group and mapping state during ordinary Frappe test transactions. The test class inherits `ERPNextTestSuite`; its teardown rolls back. It is appropriate for the **existing one-connection test suite**, but direct reuse does **not guarantee committed/visible fixtures** to two independent MariaDB connections. The new race probe's preflight reads a revision/request and signed decision, then explicitly calls `frappe.db.rollback()` before starting threads; any uncommitted test setup is discarded. The probe intentionally calls `frappe.db.commit()` in the winning worker, so it must never run against persistent test/DEVELOPMENT data.
+
+**Required future *separately approved* setup path, not executed:**
+
+1. Verify exact CircleCI Finance identity/site/job/approved SHA before any package/network/DB operation; verify a fresh isolated database and test fixtures only (`_Test Company`, synthetic Expense Account and Item Group, distinct synthetic Maker and Checker; real Company User Permissions).
+2. In the **disposable Finance site only**, create the synthetic Maker/Checker roles and Company grants, with no real user/email or account. Use the **real** mapping service to propose the original Expense Draft as the Maker; review and sign exact current facts as Checker; confirm there is no pre-existing Decision Use. Commit the preparatory records **only after** all fields, ownership and unique-key assumptions are verified and the setup is strictly disposable.
+3. For the **Approve** race, stop with a *committed Draft and signed Approve decision*; both workers attempt the **same** revision, modified token and signed decision.
+4. For the **Retire** race, use a **separate synthetic revision**: approve it through the actual service first, then as Maker create Pending retirement, as Checker review and sign exact Retire decision with matching request binding; commit fixture, then let both workers attempt the **same** Pending request and decision. Keep this independent of the Approve race's fixture and its outcome.
+5. In a later separately approved run, fail on any lock timeout, unexpected exception, duplicate approval, missing denial, more than one Decision Use, multiple retirement events or historical Approved revision mutation. Capture only synthetic identifiers and sanitized counts. Dispose of entire ephemeral database/runner after collecting evidence; do not reuse test identity or leave synthetic fixtures in persistent sites.
+
+**Important:** Another repository helper, `ci_synthetic_finance_fixture.py` blob `c13498d0c7669ca29b48b58daa28d8a4551f9008`, is **NOT a substitute**. It is guarded by older `is_reviewed_circleci_disposable_site()` for `ci-circleci.localhost` / review branch and deliberately directly sets an `Approved` value for downstream testing. The new Finance lifecycle site is `ci-finance-lifecycle.localhost`, separately gated by `assert_finance_disposable_site()`, and requires **genuine signed Accounting decisions**. The two helpers' identities and semantics are deliberately incompatible. Never relax or bypass either guard.
+
+## Finding F2 — session and CSRF checks require exception-type evidence
+
+Pinned Frappe `HTTPRequest.validate_csrf_token()` checks unsafe methods and may skip validation when `ignore_csrf` is enabled, no saved session token exists, a correct `X-Frappe-CSRF-Token` or `csrf_token` field is provided, or the origin/referrer is explicitly allowed. For a genuinely invalid token it raises `CSRFTokenError` (**HTTP 400**). A disallowed GET for `@frappe.whitelist(methods=["POST"])` raises `PermissionError` (**HTTP 403**). Those status expectations were source-reviewed and incorporated in PR22; **they have not been observed from a live server**.
+
+`Session.start()` by itself does not demonstrate a saved CSRF token. Current HTTP probe authenticates as `ccpc-finance-ci-checker@invalid.test`, verifies the exact identity, then visits `GET /app` hoping Desk boot initializes the token before a POST without a CSRF header. A **200 /app** response alone is **not evidence** that a token was saved. Current `call()` discards error bodies, and `status==400` alone is not proof the exception was `CSRFTokenError`. This is a **coverage/evidence gap**, not proof of a CSRF bypass.
+
+**Future execution requirements, not performed:**
+
+1. Disposable loopback-bound Frappe web server available at the one validated address; deny redirects, HTTP proxies and non-loopback DNS; confirm that `ignore_csrf` and allowed origin/referrer settings **do not bypass validation** for the test. Never log a session ID, password or CSRF token.
+2. Independent, authenticated **synthetic** Checker login via an ephemeral password provided securely within the disposable runner, with matching User roles/Company User Permission and a valid session cookie. Confirm Desk/session initialization actually creates a **persisted nonempty CSRF token**. If not provable, mark the test **blocked**, not PASS.
+3. For a missing-token POST, require **both** expected status and a safely verified `CSRFTokenError` type (without exposing response body/cookie). Check GET rejection as the correct permission/method failure rather than relying only on status 403. Separate positive CSRF-bearing POST and Maker-versus-Checker authority probes should be designed with nonfinancial read-only RPCs before any state-mutating HTTP requests.
+4. Never place account secrets into repo/YAML, a verbose test log, project documentation or user-visible chat. Session/CSRF proof must have a dedicated teardown and server stop, and a verified disposable site.
+
+**Current CircleCI Finance job has no HTTP listener, no synthetic checker session/password setup, no fixture seeding stage, and does not execute either PR22 probe.** These are prerequisites, not missing tasks to turn on without a separate owner decision.
+
+## Finding F3 — safe execution and authorization boundaries
+
+- PR22 is a separate draft review branch; its site guard only accepts the Finance **feature** branch, and CircleCI opt-in Finance workflow is likewise filtered to the feature branch. Do **not** counterfeit branch variables or approved SHA to force a test on the review branch. A separately reviewed merge and subsequent **new exact-SHA** authorization would be required first.
+- Source-level verification shows unique single-use and retirement fields; a real ephemeral MariaDB schema test must confirm the corresponding unique constraints/indexes are present after migrations, including lock order and conflict handling. Mock/static success cannot establish transaction serialization.
+- Before executing either probe, G2 still requires separate authorization of a single precise CI run and hold, SHA variable provenance, runner/cloud/secret/egress isolation from CCPC DEVELOPMENT and PRODUCTION, cost/time cap, human cancellation and cleanup. The owner has **not approved** CircleCI execution, credential configuration, temporary fixture commit, a PR merge, a persistent DEVELOPMENT pull or any PRODUCTION action.
+
+## Disposition and next GitHub-only engineering step
+
+**Read-only prerequisite review completed; actual integration execution remains NO-GO.** Prior exact-blob PR22 Python `compileall` and **5/5 source-policy unit tests PASS** at `e842aa6` are historical source tests, not runtime evidence. No application files were edited by this review. Recommended subsequent **separately scoped source change**, if owner approves it: design a dedicated test-only, gated synthetic Finance fixture builder with explicit commit/disposal semantics and stronger CSRF exception-type checks; review source and rerun offline tests before requesting a bounded CircleCI run. Do not reuse the old legacy fixture's SQL Approved-state bypass.
