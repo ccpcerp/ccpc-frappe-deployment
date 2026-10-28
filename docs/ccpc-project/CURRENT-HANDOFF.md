@@ -1,5 +1,13 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-28 — G2 CircleCI Project Advanced Settings read-only verification
+
+Owner screenshots of `ccpcerp` Project Settings → Advanced show **VCS status updates ON, auto-cancel redundant workflows OFF, dynamic setup feature ON, Disable SSH Reruns OFF, Block new work OFF**. Unversioned config is presented behind an organization-settings enablement link (not proof of org-level status). The requested forked-PR build/secret switches are **not visible**, NOT confirmed disabled. Exact GitHub Finance feature `.circleci/config.yml` blob `9aa8c676dfa7b22e7b7035d70a0b461af773908d` has no `setup: true` (dynamic config support ON does not mean that source uses setup workflows). The still-possible SSH rerun and no auto-cancel require deliberate security and run-cost review; **do not change toggles under read-only approval**. Finance draft PR #21 still OPEN/DRAFT/UNMERGED at `d154886ab45c51878a87a4ecf42e45602d8d9ccb`. No pipeline, secrets, GitHub app code, database, DEV or PROD changes; **G2 Finance CI remains NO-GO**. Full evidence recorded in G2 §17 at docs commit `b4cd092120e94cc2ab9c4aa4f4727470206f73c2`.
+
+**Next one-step read-only check:** CircleCI `Project Settings → API Permissions`; report only Yes/No/Not clear whether project-level API tokens appear, without token names, IDs, values or exposed screenshots. No create/delete, security toggle, pipeline run or manual hold. Separate isolation/permissions/cost signoff still outstanding.
+
+---
+
 ## 2026-10-28 — G2 CircleCI trigger edit form inspected (event only, no overrides shown)
 
 Owner screenshot pair confirms existing `ccpcerp-integration-tests` **GitHub App** PR-label trigger, `Event: "run-ci" label added to PR`, source `ccpcerp`, **ENABLED**. The edit form's help says it activates on **new addition** of the label, **not later pushes** to a PR that retains it. No parameter or branch-filter controls appear in the edit form. This matches custom-app `.circleci/config.yml` GitHub blob `9aa8c676dfa7b22e7b7035d70a0b461af773908d` (`run_integration=false`, `run_finance_lifecycle=false` by default, basic `starter-validation` automatic). However, screenshots are not a complete API/other-trigger parameter audit. No Save, label change or job execution reported. **G2 Finance pipeline remains NO-GO; PR #21 OPEN/DRAFT/UNMERGED at `d154886ab45c51878a87a4ecf42e45602d8d9ccb`.** No backend/DEVELOPMENT/PRODUCTION operations authorized.
