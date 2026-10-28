@@ -38,20 +38,15 @@ git status --short
 circleci version
 ```
 
-Use **the current official CircleCI CLI v1** (do not run `circleci auth login`, `circleci project link`, `circleci run trigger`, `circleci pipeline run`, `circleci local execute`, or any CircleCI job). On that trusted checkout, configuration-only:
+Use **the current official CircleCI CLI v1** (do not run `circleci auth login`, `circleci project link`, `circleci run trigger`, `circleci pipeline run`, `circleci local execute`, or any CircleCI job). On that trusted checkout run only these configuration operations:
 
 ```bash
 circleci config validate .circleci/config.yml --json > /tmp/ccpc-pr23-validate.json
-circleci config process .circleci/config.yml --pipeline-parameters 'run_integration: false\nrun_finance_lifecycle: false' > /tmp/ccpc-pr23-compiled-default.yml
-circleci config process .circleci/config.yml --pipeline-parameters 'run_integration: false\nrun_finance_lifecycle: true' > /tmp/ccpc-pr23-compiled-optin.yml
-```
-
-**Command nuance:** The CLI expects a YAML map or path for `--pipeline-parameters`. The two above single-quoted arguments contain a literal backslash-n in some shells, **not** a real newline. To avoid ambiguity, prefer to supply **one actual YAML parameter** as shown in the official docs, leaving `run_integration` at its declared default `false`:
-
-```bash
 circleci config process .circleci/config.yml --pipeline-parameters 'run_finance_lifecycle: false' > /tmp/ccpc-pr23-compiled-default.yml
 circleci config process .circleci/config.yml --pipeline-parameters 'run_finance_lifecycle: true' > /tmp/ccpc-pr23-compiled-optin.yml
 ```
+
+The unspecified `run_integration` parameter retains its declared default `false`; the `--pipeline-parameters` arguments are single valid YAML key/value pairs. Abort on a nonzero compiler exit status. Do not print or save access tokens.
 
 Inspect **real compiled** workflow graphs, ensure no Finance job under false, and under true exactly one Finance manual approval required before the Finance job with feature-only filters. Extract the **compiled** Finance shell command blocks and run `bash -n` on **those rendered commands**; verify the heredoc. Do **not** execute any of those commands. Save CLI version, exit codes, compiler errors (if any), artifact SHA-256 hashes, branch and exact PR23 commit as the next evidence milestone.
 
