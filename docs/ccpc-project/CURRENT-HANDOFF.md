@@ -1,5 +1,13 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-28 — G2 CircleCI project Groups: no assigned group roles
+
+**Owner report:** CircleCI Project Settings → Groups: **"No group roles have been assigned yet."** This verifies the owner-observed lack of **assigned project group roles**, not absence of all org groups/inherited permissions. Previously independently verified GitHub private repo `ccpcerp/ccpcerp` has one direct non-owner WRITE collaborator, so CircleCI manual hold is not proven owner-exclusive. G2 source documentation [§19](FINANCE-PR21-G2-READ-ONLY-CIRCLECI-RUNNER-SECURITY-COST-REVIEW-2026-10-28.md) was successfully committed at `56822b38f36359b9c183b62f65cf3d0b93f3e1e3`. Finance PR #21 remains OPEN/DRAFT/UNMERGED at `d154886ab45c51878a87a4ecf42e45602d8d9ccb`. **G2 paid/disposable MariaDB Finance integration = NO-GO**, no CircleCI settings, data, pipeline, DEV or PRODUCTION changes authorized/executed.
+
+**Next single read-only step:** CircleCI organization → **Runners / Self-Hosted Runners** inventory (if present); report **Yes/No/Not visible** whether runner resource classes or instances appear; do not expose identities or addresses, accept runner terms, install/create, trigger jobs, or change settings. Assess isolation/cost and exact-SHA approval separately after results.
+
+---
+
 ## 2026-10-28 — G2 CircleCI project API Permissions list empty (owner read-only report)
 
 Owner answered **"NO"** to whether project-level API tokens are listed in CircleCI `ccpcerp` **Project Settings → API Permissions**. Treat this as **empty token list on the viewed project page**, not proof of absent user/org tokens, GitHub App/VCS checkout credentials or network egress. No token values/identifiers shared and no settings change or CI run. Earlier G2 checks show no project variables or Org contexts listed; one GitHub direct collaborator with WRITE permission remains a distinct hold-approval concern. Finance PR #21 is still OPEN/DRAFT/UNMERGED at `d154886ab45c51878a87a4ecf42e45602d8d9ccb`; **G2 Finance paid/database execution NO-GO**. Detailed finding in [G2 review §18](FINANCE-PR21-G2-READ-ONLY-CIRCLECI-RUNNER-SECURITY-COST-REVIEW-2026-10-28.md), committed as `03511c2137e349f414f89f8f23735190e0190373`.
