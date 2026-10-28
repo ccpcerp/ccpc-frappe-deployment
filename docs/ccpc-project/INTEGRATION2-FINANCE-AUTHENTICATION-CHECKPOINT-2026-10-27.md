@@ -610,3 +610,22 @@ The owner delegated the remaining **technical design choices** with "Approved de
 **Remaining release blockers:** Run and correct genuine Python compileall/static suite in an explicitly isolated/reviewed environment; test newly added five DocTypes and B/C field migration against disposable Frappe v16/MariaDB, including schema/index/field permission compatibility and rollback; verify actual signed evidence, Maker/Checker/Company denials, transaction atomicity and Version failures, duplicate/parallel reject-or-approve and request-or-retire, InnoDB lock order/deadlocks, approved as-of history, issue stock cutoff at both posting and current times, pre-existing approved records without new evidence and CI-disposable fixture restrictions. Replacement API is intentionally fail-closed until replacement event semantics are designed. No real Accounting signatory/crosswalk is appointed. **Do not merge, pull into DEVELOPMENT, migrate or execute Finance lifecycle write endpoints yet.** Any live environment integration is a *separate authorization gate*.
 
 **Integration2 preserved:** Last verified TISS Expense scope `fie8da5c59` and Maker Draft revision `fieef2e44j` remain untouched and are not approved/activated. Main DEVELOPMENT and PRODUCTION were not modified in this conversation.
+
+### Operator-executed Finance Python static suites: 24/24 PASS (2026-10-28)
+
+Owner-provided terminal results from the **separate temporary clone** `/tmp/ccpc-finance-static-zuTeno` show the exact previously supplied guarded feature-branch test command completed. The shell command guarded `git rev-parse HEAD` against feature commit `76973699a085d3eb4efd6412d21a773ec1499e19` before invoking the following Python unit test discovery suites, each of which returned `OK`:
+
+| Test file | Count | Outcome |
+| --- | ---: | --- |
+| `test_bc_finance_governance_static.py` | 6 | PASS / 0 failed |
+| `test_ccpc_mapping_schema_static.py` | 3 | PASS / 0 failed |
+| `test_bc_mapping_policy_static.py` | 15 | PASS / 0 failed |
+| **All three suites** | **24** | **PASS / 0 failed** |
+
+Reported execution time per suite: 0.007s / 0.003s / 0.000s. Final marker: `FINANCE STATIC TESTS COMPLETED`. This is **genuine operator-executed Python static and pure policy testing**, superseding the earlier "Python tests not executed" checkpoint for this exact commit. The operator supplied the terminal output; ChatGPT did not remotely execute tests on the Ubuntu server. The prior 20/20 GitHub-file-source structural checks are a distinct review result.
+
+The same result was appended to [draft PR #21](https://github.com/ccpcerp/ccpcerp/pull/21), which was independently verified OPEN/DRAFT/UNMERGED and targeted at `review/circleci-isolated-erpnext-phase2-2026-10-26`; feature head remained `76973699a085d3eb4efd6412d21a773ec1499e19`.
+
+**What has NOT been tested:** No real Frappe/ERPNext/MariaDB database connection, schema installation/migration, Maker–Checker HTTPS/CSRF end-to-end process, signed Accounting decision consumption, race/deadlock/transaction rollback, retirement cutoff around GL/stock issue, historical approved records/CI fixture compatibility, restore rehearsal or PRODUCTION behavior. There was no DEVELOPMENT/Integration2 pull or write and no financial mapping approval. The synthetic TISS Expense Scope `fie8da5c59` and Revision `fieef2e44j` remain last verified Draft.
+
+**Next controlled milestone:** Review and separately approve a disposable **Frappe v16/MariaDB integration test plan** with independent site/container/DB identity and safe backup/recoverability checks before changing any environment. Never merge or call this PR production-ready on the strength of static checks alone. Shared Docker infrastructure may still present risks; no main DEVELOPMENT or PRODUCTION operation is approved by these static test results.
