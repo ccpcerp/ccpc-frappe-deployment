@@ -1,5 +1,13 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-28 — Finance PR22 pinned Company/CoA and Frappe local-state source follow-up
+
+**Read-only pinned GitHub review complete; no app code modified or new tests run.** Finance [draft PR #22](https://github.com/ccpcerp/ccpcerp/pull/22) remains OPEN/DRAFT/UNMERGED at app review HEAD `54dd6ee3d021bfd2b0f13ce81459d720a7850e00`; prior verified offline 13/13 (8 policy + 5 mocked connection) PASS is unchanged and is **not** real MariaDB/Frappe evidence. Pinned ERPNext `4048fb7` Company `on_update() / create_default_accounts()`, Standard CoA, Account naming confirm the *source path* to `Stock Adjustment - _TC` (Expense leaf), but not runtime creation. **New safety finding:** ERPNext Company controller sets Frappe thread-local `ignore_root_company_validation` and `country_change` flags; pinned Frappe `988e54f` `connect()/set_user()` do not reset the local flags, while PR22's isolated connection helper restores DB and user only. Therefore a long-lived caller can retain changed flags after synthetic Company creation. This is a **source-level caller-context isolation gap**, not a demonstrated runtime exploit. DocType JSON declares expected Finance uniqueness constraints, but physical migrated MariaDB indexes remain unverified. Details: [Finance PR22 pinned Company/CoA/context source review](FINANCE-PR22-PINNED-COMPANY-COA-CONTEXT-REVIEW-2026-10-28.md), documentation commit `4aa4fce8a8af388913a3ff977b6e95150c99f95f`.
+
+**Next safe step:** review/seek specifically scoped authorization for a source-only Frappe context-restoration fix and mock regression coverage, or enforce a clean short-lived isolated fixture process as a separately reviewed alternative, **before** any persistent synthetic bootstrap. Re-run offline tests at the new exact SHA. No CircleCI cost/run/hold, master commit, PR merge, DEVELOPMENT/Integration2/PRODUCTION operation approved; Finance G2 remains **NO-GO**.
+
+---
+
 ## 2026-10-28 — PR22 isolated fixture connection and synthetic master bootstrap 13/13 offline PASS
 
 **Owner approved source-only improvements**, no CircleCI, DEV/Integration2/PRODUCTION, merge or runtime fixture COMMIT. Verified app [draft PR #22](https://github.com/ccpcerp/ccpcerp/pull/22) HEAD **`54dd6ee3d021bfd2b0f13ce81459d720a7850e00`** on `review/finance-http-concurrency-tests-2026-10-28`; compared to Finance [draft PR #21](https://github.com/ccpcerp/ccpcerp/pull/21) feature head `d154886ab45c51878a87a4ecf42e45602d8d9ccb`, PR22 has **8 added files, 19 commits ahead, 0 behind**, no edits to existing application logic or CircleCI YAML. Both PRs remain OPEN/DRAFT/UNMERGED.
