@@ -1,5 +1,17 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-28 — PR23 offline audit found duplicate unwrapped service wait, fixed at `cf4b1ef` (G2 NO-GO)
+
+**Owner continued Stage A offline CI safety verification. Critical source-level bug discovered:** [draft PR23](https://github.com/ccpcerp/ccpcerp/pull/23) previous head `c8607e10bf60bfd03749e165146745b48d6fa1d1` had **two** consecutive Finance sidecar-wait steps: first original inline 60×2s per-port wait **outside** the new cumulative timeout, then the correctly timeboxed replacement. Prior **38/38 source checks did not inspect this duplicate**; do not treat those checks as complete CI safety certification.
+
+**GitHub fix verified:** App commit `5005c869282cc8564e829cba6378cf8daa065ad6` removed only the 531-byte duplicate, config blob now `933d1945afb2eea34a65f9cb98bd98397d5dcd19`. App commit `cf4b1ef5ee1bc4d29d4871787e2a0381ec1ef779` added a fail-closed negative regression in `.circleci/test_finance_ci_config_static.py` (blob `e62b827fb97d58807c6d96aae9e6180c4a4f2300`) and is current PR23 head. Before: 2 named service waits, raw loop present, 1 timeboxed wrapper. After: 1 named wait, no raw loop in CI YAML, 1 wrapper. **12/12 focused source assertions PASS**; byte-identical legacy YAML and workflow filters, default-false, manual hold, feature/SHA gate preserved. PR23 remains OPEN/DRAFT/UNMERGED; 7 commits ahead/0 behind feature, exactly five Finance CI-only files. PR21 and PR22 remain unmerged and unchanged.
+
+**Offline target is now 24 methods:** 8 current static config tests (increased from 7), 6 Finance CI guard tests, 10 deadline tests. These exact **24 Python tests have NOT been run together** in this turn; older 10/10 deadline PASS remains historical and unchanged. Actual `circleci config validate/process` remains blocked because local CLI is missing and local GitHub DNS fails; the provider compiler and hosted CI were **not** run. `5400` seconds is a proposed job-local ceiling, **not** approved CircleCI spend or a monetary guarantee. No CircleCI hold/spend, merge, fixture DB/master commit, DEVELOPMENT/Integration2, or PRODUCTION action.
+
+**Detailed report and next commands:** [PR23 duplicate-wait defect and source fix](FINANCE-G2-PR23-DUPLICATE-SERVICE-WAIT-FIX-2026-10-28.md), docs commit `a9ae900060322c71e876a05d2177eab9cb84ae0b`. **Next engineering gate:** trusted checkout of exact PR23 head; execute 24 committed Python tests and official CircleCI default/opt-in compiled-config checks (without starting pipeline); review results and risks. **Finance G2 NO-GO.**
+
+---
+
 ## 2026-10-28 — PR23 Stage A continued offline source validation 38/38 PASS; CircleCI compiler PENDING
 
 **Owner approved continuing OFFLINE validation only.** App [draft PR23](https://github.com/ccpcerp/ccpcerp/pull/23) is OPEN/DRAFT/UNMERGED on `review/finance-g2-baseline-timebox-2026-10-28` @ verified **`c8607e10bf60bfd03749e165146745b48d6fa1d1`** (5 Finance CI-only files ahead of feature, zero behind). PR21 feature `d154886ab45c51878a87a4ecf42e45602d8d9ccb` and PR22 `175207c798fe63b49f22a940d0510f667b798c52` remain unchanged, draft and unmerged.
