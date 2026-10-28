@@ -1,5 +1,17 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-28 — PR23 official CircleCI CLI validation attempted, BLOCKED (source-level audit PASS; G2 NO-GO)
+
+**Owner authorized CLI configuration validation only**, not hosted Finance pipeline, approval hold, app merge, DB fixture or DEVELOPMENT/Integration2/PRODUCTION. GitHub [draft PR23](https://github.com/ccpcerp/ccpcerp/pull/23) remains OPEN/DRAFT/UNMERGED, review head `cf4b1ef5ee1bc4d29d4871787e2a0381ec1ef779`, base `feature/finance-mapping-lifecycle-2026-10-28`. Current GitHub Finance YAML blob `933d1945afb2eea34a65f9cb98bd98397d5dcd19` matches the exact local nine-file reconstruction; 9/9 blob hashes PASS. Previously executed exact offline **24/24 Python tests PASS** remains valid historical evidence, not rerun in this CLI-specific turn.
+
+**Official CLI blocker:** No `circleci`/`circleci-v0` binary on PATH or cached package; DNS/HTTPS to CircleCI/GitHub from local container fails. No CLI binary installed, no authentic `circleci config validate` or `circleci config process` executed. Current official docs <https://cli.circleci.com/reference/> confirm commands; `validate` needs no token for public/no-private-orb config. **Do NOT interpret fallback as actual compilation**.
+
+**Additional read-only exact-source fallback:** PyYAML 6.0.3 parse of pinned CircleCI v2.1 source **PASS**: both opt-in params default `false`, Finance manual approval dependency, feature-only branch filters, exactly one timed Finance service-wait step, unconditional starter-validation. For `run_finance_lifecycle=false`, *modeled* workflows starter only; for `true`, *modeled* starter plus held Finance. All four Finance YAML `run.command` blocks passed local `bash -n` after **simulating** documented `\\<<` heredoc-escape removal; stage shell `bash -n` PASS. This was NOT provider rendering or a pipeline run. Scratch log `/mnt/data/pr23_exact_source/circleci-fallback-audit-2026-10-28.log` SHA256 `49858519e6b17c4e2d5eb101ca6c11b25a0d731a0a6a2d8955d028b0fb0f6550`. No finance job/DB/site/infrastructure operation.
+
+**Verified GitHub evidence:** [PR23 CLI validation blocker and trusted-machine procedure](FINANCE-G2-PR23-OFFICIAL-CLI-VALIDATION-BLOCKER-2026-10-28.md), docs report final commit `256d0971f113ad31eb5793871621d2a7ad9b0c53`. **Next safe step:** execute CLI `config validate` and `config process` for explicit `run_finance_lifecycle: false` and `true` on a trusted, separately isolated exact PR23 checkout with official CLI installed (no CircleCI authentication or pipeline start), inspect genuinely compiled workflow/compiled `run.command` with `bash -n`. Continue NO-GO until official compiler, cost/spend/credit caps, disposable DB/fixture and separate release/run authorizations.
+
+---
+
 ## 2026-10-28 — PR23 exact committed offline Finance CI suite **24/24 PASS**; official CircleCI compiler PENDING (G2 NO-GO)
 
 **Owner authorized offline verification.** App [draft PR23](https://github.com/ccpcerp/ccpcerp/pull/23) remains **OPEN/DRAFT/UNMERGED** on `review/finance-g2-baseline-timebox-2026-10-28` @ exact HEAD `cf4b1ef5ee1bc4d29d4871787e2a0381ec1ef779`. Its duplicate Finance raw sidecar-wait fix and regression test are included. **All nine source files** used for offline validation were fetched from the GitHub connector pinned at this SHA and independently matched **9/9 `git hash-object`** GitHub blob hashes in scratch `/mnt/data/pr23_exact_source/`; this was **not a full git clone**.
