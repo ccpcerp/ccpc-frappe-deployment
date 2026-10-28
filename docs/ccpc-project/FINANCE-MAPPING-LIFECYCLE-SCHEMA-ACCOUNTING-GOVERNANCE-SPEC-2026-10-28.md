@@ -1,7 +1,7 @@
 # CCPC Finance B/C mapping — lifecycle schema and Accounting governance specification
 
 **Prepared:** 2026-10-28 (Asia/Manila)  
-**Status:** PROPOSED FOR OWNER AND ACCOUNTING REVIEW — DOCUMENTATION ONLY.  
+**Status:** TECHNICAL POLICY DEFAULTS NOW SELECTED IN A LATER COMPANION; SPECIFICATION REMAINS UNIMPLEMENTED — DOCUMENTATION ONLY.  
 **Authority:** Owner explicitly approved preparation of this detailed specification in GitHub for review only. That approval is NOT authority to select final signatories, implement code or schema, migrate, run Finance lifecycle endpoints, approve the synthetic Draft, or alter DEVELOPMENT/PRODUCTION.
 
 ## 1. Authoritative basis and unchanged runtime boundary
@@ -194,3 +194,11 @@ Report mock/pure unit results separately from real DB integration results. Each 
 | G12 | App implementation branch, code/tests, DEVELOPMENT pull/migrate, PRODUCTION release: **separate explicit approvals** |
 
 **Decision boundary:** This specification records candidate implementation details only. It does **not** install fields/DocTypes, determine Accounting signatories, validate crosswalks or authorize the existing synthetic Draft revision fieef2e44j to be rejected, approved or retired. Do not run any change in Integration2, main DEVELOPMENT, or PRODUCTION as a consequence of this document.
+
+## 9. Subsequent owner-delegated technical policy selection — 2026-10-28
+
+**New authoritative technical policy companion:** [Finance Mapping Accounting Authority Decision](FINANCE-MAPPING-ACCOUNTING-AUTHORITY-DECISION-2026-10-28.md), committed on this documentation branch as `2c4f0bd05a01e2d028f9f48242a0581826e989e0` after the owner instructed **"Approved decide it yourself."** This document's §8 decision register describes the questions as they stood when this specification was authored; it must now be read with the later decisions, not interpreted as still totally undecided.
+
+**Resolved as technical defaults only (G1–G10):** Add terminal Rejected to both B/C revisions; use immutable Rejection Event, Retirement Request and Retirement Event; Maker requests / distinct Checker signs and decides; **CCPC ERPNext internally signed Accounting Mapping Decision** as sole mapping-decision evidence source, with exact Scope/revision/Company/value/fingerprint; signed once, consumed once via unique Decision Use and committed atomically with Version; Checker with named role and Company grant (no automatic personnel assignment); reason-only rejection; **immediate, server-owned non-backdated retirement cutoff only in MVP**; one Draft/request/retirement per exact applicable key; event-time immutable history; additive schema plus real MariaDB/rollback tests and fail-closed accounting resolver. Existing text approval_reference alone is not proof.
+
+**Still not resolved or authorized (G11–G12 and implementation subdetails):** No real Company/category→Account or Department→Center crosswalk; no named real production approver, new role grant or actual signed evidence; precise field/index migration and API implementation have not been reviewed or authorized; no site code/data change, test write, approval/activation, main DEVELOPMENT pull or PRODUCTION deployment. **Synthetic TISS Scope fie8da5c59 / Revision fieef2e44j remains last verified Draft.** Technical document approval cannot substitute for genuine operational Accounting authorization.
