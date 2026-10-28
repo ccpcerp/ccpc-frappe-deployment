@@ -71,3 +71,20 @@ Owner approved the proposed **G1.1 offline static-test step** only. Current app 
 **G1.1 scope limitation:** This was a verified **subset of source**, not a full repo clone; full `compileall` and re-running the previous 24 tests at the latest head remain pending. No CircleCI CLI config validation, no CircleCI run, no schema migration, no Frappe v16/MariaDB service test, no HTTP/CSRF/concurrency/ledger test, no DEVELOPMENT/Integration2/PRODUCTION access or financial write. The current CI runner identity and external `CCPC_FINANCE_APPROVED_SHA` are *not* authorized/configured by this step.
 
 **Next recommended isolated source check:** Use a safe complete temporary clone on the owner's Ubuntu host (preserve the original DEVELOPMENT checkout) to run full Python `compileall`, the original 24 static tests, the new 10 tests, and CircleCI CLI config validation if available. Post results for GitHub review. A **separate owner-authorized G2 run** with trusted SHA setting, CI runner/cost and permitted disposable DB actions remains mandatory; no pipeline is authorized now. PR #21 remains DRAFT.
+
+## 6. Operator-executed full G1.1 source verification — 34/34 PASS (2026-10-28)
+
+After the earlier **10/10 local subset** static tests and byte-verified CircleCI YAML parse, the project owner executed the previously supplied *full* temporary-checkout test script on Ubuntu and pasted test-by-test output. The provided command uses `set -euo pipefail`, a fresh `mktemp -d /tmp/ccpc-finance-g11-...` clone, and an exact preflight `git rev-parse HEAD == 375de12e7bf79210fdb7ec54b6e7184d0b27ead6`. Because the final marker `G1.1 FULL STATIC VERIFICATION COMPLETED` appeared, the command's `python3 -m compileall -q ccpcerp .circleci` passed before all five test suites.
+
+| Python suite | Operator-reported test count | Outcome |
+| --- | ---: | --- |
+| `test_bc_finance_governance_static.py` | 6 | OK, 0.007s |
+| `test_ccpc_mapping_schema_static.py` | 3 | OK, 0.003s |
+| `test_bc_mapping_policy_static.py` | 15 | OK, 0.000s |
+| `test_finance_lifecycle_ci_guard.py` | 6 | OK, 0.005s |
+| `test_finance_ci_config_static.py` | 4 | OK, 0.000s |
+| **Total** | **34** | **PASS, 0 failures, 0 errors** |
+
+**Evidence provenance:** This is an owner-supplied Ubuntu terminal transcript, not a test run initiated by ChatGPT or GitHub Actions/CircleCI. The exact SHA preflight is part of the previously supplied script; terminal output shows the final marker. Verified PR #21 HEAD remains `375de12e7bf79210fdb7ec54b6e7184d0b27ead6`; GitHub PR description updated with matching result. The tests validate static schema/policy and CI guard/config source, **not Frappe v16/MariaDB runtime**.
+
+**Status change:** Previous §5 pending full `compileall` and reexecution of 24 baseline static tests **now satisfied** at current feature SHA, based on the owner-run command. **Still pending**: CircleCI CLI *semantic* configuration validation (not satisfied by prior PyYAML parser check), runner network/identity/cost assessment, separate explicit **G2** approval to configure trusted `CCPC_FINANCE_APPROVED_SHA` and opt-in to a specific disposable CI run, full Frappe/ERPNext/MariaDB integration and concurrency/rollback testing. PR #21 stays DRAFT and unmerged. Existing Integration2 TISS Expense revision `fieef2e44j` last verified Draft; no known DEV/PROD action from these static commands.
