@@ -589,3 +589,24 @@ The owner delegated the remaining **technical design choices** with "Approved de
 **Preserved runtime milestone:** Integration2 TISS Expense Scope `fie8da5c59` and Revision `fieef2e44j` are **last verified Draft** with zero synthetic stock/GL; this GitHub PR did not touch them. PRODUCTION unchanged and requires separate permission and recovery review.
 
 **Next bounded step:** Review draft PR #21's source and targeted static tests on GitHub; then request owner permission for the exact **isolated DEVELOPMENT integration plan** only after code review/tests and migration risk review. Record the resulting tested state and GitHub commits. Never claim implementation is validated or production-ready until the gates pass.
+
+### Finance lifecycle follow-up code review and source checks — 2026-10-28
+
+**Owner scope:** The owner's most recent response **"Approved"** followed the offer to review and test [draft Finance PR #21](https://github.com/ccpcerp/ccpcerp/pull/21). Interpreted as **GitHub code review and safe static checks only**, not a DEVELOPMENT/Integration2 pull, migration, API write test, GL/stock operation or PRODUCTION deployment. Reconfirmed the GitHub-first workflow, app baseline review head `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41` and open draft PR.
+
+**Latest verified app feature head:** `feature/finance-mapping-lifecycle-2026-10-28` at **`76973699a085d3eb4efd6412d21a773ec1499e19`**, targeting `review/circleci-isolated-erpnext-phase2-2026-10-26` (base still `0c223d7c...`). PR #21 remains **OPEN/DRAFT/UNMERGED**. This review made seven further feature commits after initial `765bf13`:
+- `196a7589`: signed internal Accounting Decision + Version insertion wrapped in savepoint/rollback.
+- `c2340db6`: idempotent identical Pending retirement request replay, rejection of changed payload, atomic request+Version savepoint.
+- `11e561ae`: added static guards for replay and rollback semantics.
+- `2a13b542`: Company-scoped Checker POST review of exact retirement request, returning current `modified` token without deciding it.
+- `247eb67d`: Checker review endpoint static checks.
+- `71975f33`: rejected Draft and accepted/declined retirement request SQL now stamp authenticated Checker in `modified_by`.
+- `76973699`: static checks for Checker audit attribution.
+
+**Test evidence, exact limits:** Using the connected GitHub file fetch for **13 exact application source/schema files** at `76973699...`, a local JavaScript structural audit executed **20/20 pass assertions**: seven JSON schemas have aligned field_order, no ordinary permissions and unique fields; both B/C states include Rejected; internal signed Decision and one-use evidence checks are present; four lifecycle endpoints are POST-only; legacy mutable-cutoff APIs are blocked; signed Decision and retirement request have savepoint rollback paths; identical pending-request replay is guarded; Checker review returns exact request version; Reviewer SQL attribution is present; retirement cutoff is applied by the resolver; six Python static test methods are committed; and no direct commit/impersonation appears in the two new service modules.
+
+**Crucial distinction:** These 20 checks are **executed JavaScript checks over GitHub source**, **not Python AST/compileall/unittest**, and **not real Frappe v16/MariaDB integration tests**. The isolated local runtime could not retrieve the GitHub repository for Python execution; the committed six Python tests have **not** been executed. At final status check, there were no workflow runs or GitHub commit status results for the examined previous feature head; do not imply CI success or failure. Review-only static evidence is not proof of transaction safety or production readiness.
+
+**Remaining release blockers:** Run and correct genuine Python compileall/static suite in an explicitly isolated/reviewed environment; test newly added five DocTypes and B/C field migration against disposable Frappe v16/MariaDB, including schema/index/field permission compatibility and rollback; verify actual signed evidence, Maker/Checker/Company denials, transaction atomicity and Version failures, duplicate/parallel reject-or-approve and request-or-retire, InnoDB lock order/deadlocks, approved as-of history, issue stock cutoff at both posting and current times, pre-existing approved records without new evidence and CI-disposable fixture restrictions. Replacement API is intentionally fail-closed until replacement event semantics are designed. No real Accounting signatory/crosswalk is appointed. **Do not merge, pull into DEVELOPMENT, migrate or execute Finance lifecycle write endpoints yet.** Any live environment integration is a *separate authorization gate*.
+
+**Integration2 preserved:** Last verified TISS Expense scope `fie8da5c59` and Maker Draft revision `fieef2e44j` remain untouched and are not approved/activated. Main DEVELOPMENT and PRODUCTION were not modified in this conversation.
