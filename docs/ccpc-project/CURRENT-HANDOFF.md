@@ -1,5 +1,17 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-28 — PR23 exact committed offline Finance CI suite **24/24 PASS**; official CircleCI compiler PENDING (G2 NO-GO)
+
+**Owner authorized offline verification.** App [draft PR23](https://github.com/ccpcerp/ccpcerp/pull/23) remains **OPEN/DRAFT/UNMERGED** on `review/finance-g2-baseline-timebox-2026-10-28` @ exact HEAD `cf4b1ef5ee1bc4d29d4871787e2a0381ec1ef779`. Its duplicate Finance raw sidecar-wait fix and regression test are included. **All nine source files** used for offline validation were fetched from the GitHub connector pinned at this SHA and independently matched **9/9 `git hash-object`** GitHub blob hashes in scratch `/mnt/data/pr23_exact_source/`; this was **not a full git clone**.
+
+**Actually executed:** Python **3.13.5** `python -m compileall -q .circleci ccpcerp` **PASS**; exact committed `python -m unittest discover -s .circleci -p 'test_finance_*.py' -v` **24/24 PASS, 0 errors, 0 failures, 2.286s**, consisting of 10 deadline + 8 Finance static CI/config + 6 Finance site/branch/SHA guard methods. `bash -n .circleci/finance_baseline_stage.sh` **PASS**. Actual test output in local scratch `24-tests-2026-10-28.log`. Local PyYAML 6.0.3 parsing **PASS** (`version: 2.1`, default Finance `false`, manual hold and required feature-only branch filtering). All **4** Finance shell blocks passed **`bash -n` only after a *simulated* CircleCI `\\<<` → `<<` heredoc render**; **NOT official CircleCI config compilation**. Prior 38/38 JS checks and 10/10 old tests are historical and **must not be added** to this 24 count.
+
+**Detailed verified evidence:** [PR23 exact nine GitHub blob 24/24 offline report](FINANCE-G2-PR23-24-OF-24-EXACT-BLOB-OFFLINE-2026-10-28.md), docs commit `843a341313567bd85174fb6e02496d3ac23af808`. Exact file SHAs, test split/commands, limitations and required gates recorded there. Direct GitHub DNS from shell remains unavailable; **official CircleCI CLI is not installed**, so actual `circleci config validate` and `config process` for both parameter modes remain **PENDING**. Python/JS/static parse does not establish hosted CI validity, Frappe/MariaDB/runtime correctness or any strict time/credit bound.
+
+**Next safe milestone:** actual offline CircleCI CLI validation and rendered workflow/script audit from PR23 exact SHA, with no pipeline start; then confirm current provider spend/operator cancellation, disposable Company/CoA/DB/index/rollback safety, exact post-merge/feature SHA, and obtain **separate owner approvals** for any app merge, hosted Finance CI, fixture writes or environment operations. **G2 Finance NO-GO; no CircleCI pipeline/hold, paid run, fixture DB, merge, DEVELOPMENT/Integration2 or PRODUCTION change.**
+
+---
+
 ## 2026-10-28 — PR23 offline audit found duplicate unwrapped service wait, fixed at `cf4b1ef` (G2 NO-GO)
 
 **Owner continued Stage A offline CI safety verification. Critical source-level bug discovered:** [draft PR23](https://github.com/ccpcerp/ccpcerp/pull/23) previous head `c8607e10bf60bfd03749e165146745b48d6fa1d1` had **two** consecutive Finance sidecar-wait steps: first original inline 60×2s per-port wait **outside** the new cumulative timeout, then the correctly timeboxed replacement. Prior **38/38 source checks did not inspect this duplicate**; do not treat those checks as complete CI safety certification.
