@@ -1,5 +1,17 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-28 — Finance PR22 exact committed offline 23/23 PASS (G2 remains NO-GO)
+
+**Owner-authorized next milestone completed:** GitHub app PR [#22](https://github.com/ccpcerp/ccpcerp/pull/22), `review/finance-http-concurrency-tests-2026-10-28` @ verified `175207c798fe63b49f22a940d0510f667b798c52`, remains **OPEN/DRAFT/UNMERGED**. Pinned nine-file source snapshot reconstructed from the connected GitHub repository; **9/9 `git hash-object` blob SHAs match GitHub exactly** (including both committed test modules, helper, four Finance probes/fixtures/bootstraps and active `.circleci/config.yml`), not a full repository clone.
+
+**Executed Python 3.13.5:** `python -m compileall -q ccpcerp .circleci` **PASS**, then `python -m unittest discover -s .circleci -p 'test_finance_*.py' -v` **PASS 23/23** in 0.010 seconds; zero failed/errors. Exactly **15 committed mock behavior tests + 8 committed source policy tests**. This supersedes earlier notes that 23 were only declared, and earlier 11/11 independent smoke or pre-fix 13/13 tests should not be conflated with this result. No Frappe/MariaDB/HTTP/CI/runtime or external execution.
+
+**[Verified 23/23 evidence report](FINANCE-PR22-23-OF-23-EXACT-BLOB-OFFLINE-2026-10-28.md)**, docs commit `b13c1186af054bf6a53f3cb01f0dac4033ea5c01`. Current app code unchanged in this milestone. CI Finance job is still separately gated/default-false and G2 **NO-GO**; owner has not approved CircleCI spend/hold, synthetic master/fixture DB commits, live integration, DEVELOPMENT/Integration2, merge, or PRODUCTION. The raw CircleCI config contains an escaped heredoc delimiter; offline tests do not validate CircleCI's template rendering, so verify in an authorized preflight before any hosted execution.
+
+**Next engineering decision:** source-only, fail-closed G2 preflight/readiness review with exact SHA/branch, CircleCI rendered config, cost caps and site safeguards; any hosted CI, disposable DB master/fixture commit and application merge require separate explicit authorizations.
+
+---
+
 ## 2026-10-28 — Finance PR22 source-only Frappe flag context isolation fix, 11/11 exact-helper smoke PASS
 
 **Owner approved focused GitHub-only source + regression changes.** [App draft PR #22](https://github.com/ccpcerp/ccpcerp/pull/22) remains OPEN/DRAFT/UNMERGED on `review/finance-http-concurrency-tests-2026-10-28`; verified current HEAD `175207c798fe63b49f22a940d0510f667b798c52`. Compared with previous `54dd6ee3`, GitHub shows **7 commits ahead, zero behind, exactly three modified existing PR22 files**: isolated connection helper, mock behavior tests, source-policy tests. `.circleci/config.yml` unchanged and no runtime probes wired.
