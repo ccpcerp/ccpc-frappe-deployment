@@ -47,3 +47,27 @@ At final code review, [ccpcerp/ccpcerp draft PR #21](https://github.com/ccpcerp/
 **G4 — PRODUCTION:** Explicit separate approval, real Accounting signatories and business crosswalk, backup restoration/rollback evidence and production release gates. Never infer PRODUCTION readiness from green disposable CI.
 
 **Preserved Integration2 state:** Last independently verified TISS Expense Scope `fie8da5c59`, Revision `fieef2e44j` remains **Draft**; no activation or financial posting. No CircleCI pipeline run, database migration or DEVELOPMENT/PRODUCTION operation occurred during G1 code authoring.
+
+## 5. Owner-approved G1.1 offline verification — 10/10 NEW TESTS PASS (2026-10-28)
+
+Owner approved the proposed **G1.1 offline static-test step** only. Current app source branch/PR head independently rechecked in GitHub: `375de12e7bf79210fdb7ec54b6e7184d0b27ead6`, PR #21 OPEN/DRAFT/UNMERGED, base `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`. The assistant attempted an isolated Git clone, but this local container had no GitHub DNS access (`Could not resolve host: github.com`). It used the **connected GitHub connector** to fetch the current files and reconstructed them in an independent `/tmp/ccpc-offline-static-...` workspace. `git hash-object` verified **all five** local files exactly matched these GitHub blobs before use:
+
+| Exact file | Verified Git blob |
+| --- | --- |
+| `.circleci/config.yml` | `0f23d7ce0f1a1e94cad0debbee865ac813ed1509` |
+| `.circleci/test_finance_lifecycle_ci_guard.py` | `8913fe6d914e9f5367640c664b2c8bc5a4e69ae4` |
+| `.circleci/test_finance_ci_config_static.py` | `4295b8eb8761ff0a7f227e1f7ad76503488bd109` |
+| `ccpcerp/ccpc_erp/ci_finance_lifecycle_site_guard.py` | `87e1f98308d6f2094ab6a45458dcd9cb6e6e5513` |
+| `ccpcerp/ccpc_erp/ci_disposable_site_guard.py` | `e20c7822186729bd793e3934a9af46f57c38742b` |
+
+**Executed results (not merely structural review):**
+- `python3 -m unittest discover -s .circleci -p 'test_finance_lifecycle_ci_guard.py' -v`: **6/6 PASS**, no errors/failures.
+- `python3 -m unittest discover -s .circleci -p 'test_finance_ci_config_static.py' -v`: **4/4 PASS**, no errors/failures.
+- `python3 -m compileall -q` for the four exact Python files above: **PASS**.
+- `PyYAML 6.0.3 yaml.safe_load` of GitHub-blob-verified CircleCI config: **PASS**, with explicit checks that original and Finance expensive pipeline parameters default **false**, and Finance integration requires its manual approval job. **Not** a CircleCI CLI config-compiler pass.
+
+**Prior 24/24 Finance Python static tests:** The owner ran them at original feature commit `76973699...` and supplied full `OK` output. Fresh GitHub two-ref blob comparison verified the three original test files and seven relevant app service/policy/revision schema files are byte-identical at current feature commit `375de12...`. Those 24 tests were **NOT re-executed** at the new HEAD; evidence is carried forward only as unchanged code/test provenance, not claimed as a fresh full suite.
+
+**G1.1 scope limitation:** This was a verified **subset of source**, not a full repo clone; full `compileall` and re-running the previous 24 tests at the latest head remain pending. No CircleCI CLI config validation, no CircleCI run, no schema migration, no Frappe v16/MariaDB service test, no HTTP/CSRF/concurrency/ledger test, no DEVELOPMENT/Integration2/PRODUCTION access or financial write. The current CI runner identity and external `CCPC_FINANCE_APPROVED_SHA` are *not* authorized/configured by this step.
+
+**Next recommended isolated source check:** Use a safe complete temporary clone on the owner's Ubuntu host (preserve the original DEVELOPMENT checkout) to run full Python `compileall`, the original 24 static tests, the new 10 tests, and CircleCI CLI config validation if available. Post results for GitHub review. A **separate owner-authorized G2 run** with trusted SHA setting, CI runner/cost and permitted disposable DB actions remains mandatory; no pipeline is authorized now. PR #21 remains DRAFT.
