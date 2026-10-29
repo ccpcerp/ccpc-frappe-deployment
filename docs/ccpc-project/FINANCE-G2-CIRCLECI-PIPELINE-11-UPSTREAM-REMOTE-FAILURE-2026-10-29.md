@@ -44,3 +44,19 @@ Commits: `e2b4a01e2c8e854fb3901b3cad44274fc11a1381`, `6a17a6426d78b9bccb8ab6428e
 6. Review full job output and eight real MariaDB results. Failure leaves Finance G2 pending; it does not approve business master/financial transactions, Integration2/DEVELOPMENT/PRODUCTION changes, app release or further CI workflows.
 
 **Current status:** CI setup defect diagnosed; narrow corrected GitHub PR opened and locally regression-checked; **hosted integration remains pending**.
+
+
+## 2026-10-29 — Owner-approved PR #24 merge completed (GitHub verified)
+
+The owner explicitly approved **merging PR #24 into the Finance feature branch only**. The GitHub connector marked the PR ready for review and merged with exact head-lease `9ccc815ed5904af2bbd816fdce93bf7e02bce126`. GitHub returned `merged=true`, merge commit **`0564e94f5eea5eaa3c07f16a4fdacb84871eafdc`**.
+
+Independent post-merge read-back:
+- [PR #24](https://github.com/ccpcerp/ccpcerp/pull/24) CLOSED/MERGED with this exact SHA.
+- `feature/finance-mapping-lifecycle-2026-10-28` HEAD now **`0564e94f5eea5eaa3c07f16a4fdacb84871eafdc`**.
+- Comparison to previous feature tip `317ad24d603e3d78d13d13e35fe08aca6bd90193`: exactly **two changed CI-only files**, 2 fetch-line substitutions, 18 added test lines; no business code touched.
+- Merged `.circleci/finance_baseline_stage.sh` blob **`bc837147f543ff60155525be496e992927886011`** includes both `upstream` remote fetches.
+- Merged `.circleci/test_finance_ci_config_static.py` blob **`2994901cf9dd79ec21a3388e5ba01a99520e074b`** includes the new regression.
+- Default `version-16` HEAD was separately read back at `cfcc19394a6646548f2b7050db040c8cf5ebafde`; not merged into default.
+- **No new hosted CircleCI pipeline, job approval, environment-variable change, DEVELOPMENT test/migration, or PRODUCTION action** was performed as part of the merge.
+
+**New run requires separate approval and a new SHA pin.** The previously configured CircleCI project variable `CCPC_FINANCE_APPROVED_SHA` was set for the old commit `317ad24...`; it does not authorize `0564e94...`. Do not rerun pipeline #11. Operator should first reconfirm the exact new SHA, credit balance/paid auto-refill boundaries, then separately approve a **single new manually held disposable** Finance pipeline with both config/checkout branches `feature/finance-mapping-lifecycle-2026-10-28`, `run_finance_lifecycle=true`, `run_integration=false`. Test and provider compilation remain unverified on the new commit until an actual run.
