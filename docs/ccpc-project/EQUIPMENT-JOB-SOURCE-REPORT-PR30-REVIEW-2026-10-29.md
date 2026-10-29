@@ -1,5 +1,7 @@
 # PR #30 — Equipment original material and separate unpriced Job activity
 
+**Superseding acceptance (Build #43):** Owner-provided CI logs and GitHub checks verify **15/15 Frappe report unit + 5/5 genuine MariaDB integration PASS** at unchanged PR30 SHA `872d56b4b908a571daf581df20e4b56661531c6e`. See [Build #43 acceptance/limitations](EQUIPMENT-REPORT-PR30-CIRCLECI43-REAL-MARIADB-ACCEPTANCE-2026-10-29.md). Prior **NOT EXECUTED** notes below describe historical preparation, **not current test status**. PR is still draft/unmerged, DEV/PROD untouched.
+
 **Date:** 2026-10-29. **State:** GitHub-only draft; authored tests not executed, no CI, no merge, no DEVELOPMENT, no PRODUCTION.
 
 ## Verified starting point
