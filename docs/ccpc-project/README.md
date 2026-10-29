@@ -5,7 +5,9 @@ This directory preserves CCPC-specific ERPNext deployment and DEVELOPMENT engine
 ## Start here
 
 - **[GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) — permanent development rules.** Start every new thread here; keep PRODUCTION separate.
-- **[CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) — single rolling GitHub checkpoint.** Always read after the workflow; updated at meaningful milestones rather than depending on the chat thread length or new Project Source files.
+- **[CURRENT-HANDOFF-2.md](CURRENT-HANDOFF-2.md) — ACTIVE compact rolling GitHub checkpoint.** Read after the workflow; it links latest code, test evidence, owner gates, next priorities. Keep it short and update it after verified milestones.
+- [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) — historical comprehensive handoff (~1.3 MB), **preserved as archive/reference**, not the active file to append to. Consult only for historical details.
+- [Build #34 12/12 acceptance evidence](CURRENT-HANDOFF-CI34-ACCEPTANCE-2026-10-29.md) — tested Finance→Withdrawal→paired *draft* SI/PI source, no production acceptance.
 - [P20 conversation handoff](P20-HANDOFF-2026-10-10.md) — historical continuity log; newer GitHub-first section supersedes its P20A next-step proposals.
 - [Project context](ccpc-project-context.md) — architecture, boundaries, and known issues.
 - [Docker DEVELOPMENT / PRODUCTION architecture](DOCKER-DEV-PROD-ARCHITECTURE.md) — verified separation, volumes, ports, backup dependencies, and safe change boundaries.
