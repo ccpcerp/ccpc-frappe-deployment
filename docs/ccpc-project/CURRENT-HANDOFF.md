@@ -1,5 +1,16 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-29 — CircleCI Finance G2 #11 FAILED during Bench source-pin setup; PR #24 review fix (NO RERUN)
+
+**Verified first real hosted attempt:** Owner launched and manually approved the one bounded CircleCI Finance G2 pipeline #11 on `feature/finance-mapping-lifecycle-2026-10-28` @ `317ad24d603e3d78d13d13e35fe08aca6bd90193` (`run_finance_lifecycle=true`, old integration false). Starter passed. Owner-supplied build step log confirms disposable `bench init` succeeded, then `git -C apps/frappe fetch ... origin` failed **exit 128** because Bench cloned with remote `upstream`. **Finance eight real MariaDB tests were NOT reached**; no release/Finance acceptance evidence. No DEV/PROD changes.
+
+**Low-risk CI-only GitHub correction prepared, NOT merged:** App draft [PR #24](https://github.com/ccpcerp/ccpcerp/pull/24) / review branch `review/finance-g2-upstream-remote-fix-2026-10-29` HEAD `9ccc815ed5904af2bbd816fdce93bf7e02bce126`, from unchanged Finance feature. Two pinned upstream fetch lines corrected (Frappe and ERPNext), one regression test added. GitHub compare confirms **two CI-only files**; 9/9 focused source checks PASS; offline `--origin upstream` Git reproduction PASS; exact GitHub shell blob `bc837147...` `bash -n` PASS; exact new test blob `2994901...` Python compile and new focused regression **1/1 PASS**. These are not full CI or MariaDB results. Full evidence: [pipeline #11 failure and fix](FINANCE-G2-CIRCLECI-PIPELINE-11-UPSTREAM-REMOTE-FAILURE-2026-10-29.md), docs commit `fc13dd136fb1d53fcc0d6932cbbda12c52bce2c1`.
+
+**Next operator gate:** Explicit owner approval to merge reviewed PR #24 **into Finance feature only**, then verify **new full feature SHA**, separately update CircleCI's existing `CCPC_FINANCE_APPROVED_SHA` from the old committed value, reconfirm credit/cost controls and explicitly authorize **one new manual held** Finance pipeline. **DO NOT rerun old pipeline or bypass SHA guard, do not use the review branch as the CircleCI checkout, no automatic retries, PRODUCTION NO-GO.**
+
+---
+
+
 ## 2026-10-28 evening — LESS OWNER INTERRUPTION, more executable offline CircleCI evidence (17/17 PASS)
 
 **Owner standing request:** Routine low-risk GitHub source review, offline code tests, minimal CI/test-only fixes on reviewed branches, and documentation **do NOT require repeat approval** within the task. Only important new business/accounting authority decisions, user/Company/financial writes, CI billing/security/trigger changes outside prior scoped approval, irreversible Git merges, DEVELOPMENT or PRODUCTION operations need explicit decision. GitHub permanent [workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) amended at **`3aefad0637906dec5c06f9e0309d879bd407f423`**, blob `d26cd6b92f83484b46dd7d04f005aad6fba7b8a8`. Continue **fastest safe delivery**, not repeated static reports or COA design.
