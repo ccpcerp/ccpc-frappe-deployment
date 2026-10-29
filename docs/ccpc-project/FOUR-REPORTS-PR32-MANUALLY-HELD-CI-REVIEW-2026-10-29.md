@@ -1,5 +1,7 @@
 # Draft PR #32 — combined four-report disposable CircleCI readiness, held run
 
+**Superseding Build #52 outcome (2026-10-29):** Owner-provided Build #52 logs and independent exact-commit GitHub CI checks confirm **64/64 installed-Frappe report policy unit + 22/22 genuine MariaDB integration tests PASS** at unchanged PR32 SHA `061e65710eb4b527fc8ac579aaab8ccad4dd131d` (including one shared-original-source cross-report test). All eight test suites `OK` on `ci-four-reports.localhost`. [Complete evidence and limits](FOUR-REPORTS-PR32-CIRCLECI52-REAL-MARIADB-ACCEPTANCE-2026-10-29.md). The **NOT YET EXECUTED** references and operator checklist below are **historical pre-run status**, not current. Owner reports 27,555 credits remaining; the one-run authorization is consumed. PR remains DRAFT/UNMERGED; no DEV/PROD changes.
+
 **Recorded 2026-10-29. Status: CI harness committed/reviewed, hosted MariaDB integration NOT YET EXECUTED.** This is a separately authorized preparation plus **one** owner-approved, manually held paid integration execution. The run must not begin until the exact final GitHub SHA and CircleCI project variable are verified. Never retry without a further approval.
 
 ## Provenance / scoped code
