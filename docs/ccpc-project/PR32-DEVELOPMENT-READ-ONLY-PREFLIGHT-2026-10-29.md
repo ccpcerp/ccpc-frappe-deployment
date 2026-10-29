@@ -123,3 +123,21 @@ The user authorized **read-only preflight only**, not deployment or remediation.
 **Reviewed safer approach for one operator-executed action at a time:** Use Frappe's pinned `BackupGenerator` directly (not `new_backup` / `scheduled_backup`), with `ignore_conf=True` for a **full unfiltered database backup**, `force=True`, `ignore_files=False`, site `ccpc-integration2.localhost` first as the synthetic, smaller DEV fixture; then the real four-Company `development.localhost` in a separately checked operator step. This avoids invoking default-backup-directory cleanup, and writes only four backup artifacts in a new `0700` directory **outside `sites/`**, under the DEV bench's separate `.ccpc-pr32-snapshots` folder. Guard exact Git HEAD, tracked/untracked worktree, site existence, historical four-part October 27 recovery files and available filesystem space. Do not print site config, SQL, attachments, credentials, connection arguments or backups in chat. Validate output file count, gzip/TAR/JSON integrity and hashes. A failed run must STOP without deleting prior snapshots. Confirm the Frappe site has no active backup encryption requirement before creating unencrypted files; if one exists, **STOP** for a security-safe design.
 
 **Limits:** These are **same-host local snapshots**, not independently restored or off-host copies. Running Frappe site DB/files remain live, so dump/file capture is not guaranteed single-instant atomic for concurrent user writes. Before any actual checkout/migration, separately address suitable off-host retention, tested restoration / recovery plan, current two-site checkpoint (both sites), and distinct DEV deployment approval. No Docker lifecycle commands, no PRODUCTION changes.
+
+## Backup Stage — Integration2 first fresh local recovery set: PASS (operator output 2026-10-29)
+
+The owner executed the separately approved **Integration2-only** source-guarded `BackupGenerator` operation from the DEV `frappe_docker_devcontainer-frappe-1` container, with source checkout at `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41` and the preserved untracked `AGENTS.md`. **Actual owner-reported terminal output:**
+
+```text
+DEVELOPMENT SOURCE AND SPACE GUARDS: PASS
+DATABASE BACKUP: PASS
+SITE CONFIG BACKUP: PASS
+PUBLIC FILES BACKUP: PASS
+PRIVATE FILES BACKUP: PASS
+BACKUP DIRECTORY: /workspace/development/frappe-bench/.ccpc-pr32-snapshots/ccpc-integration2.localhost-20261029T132329Z-99d6786e
+INTEGRATION2 FRESH BACKUP: PASS
+```
+
+**Proven scope:** New private local 0700 snapshot under the DEVELOPMENT bench **outside `sites/`**, targeting the fictional Integration2 site only, with four nonempty backup artifacts successfully opened/stream-read as gzip, JSON and TAR. Source/space guards passed, and encryption guard would have aborted if Frappe reported backup encryption enabled. The generator bypassed Frappe CLI's automatic `delete_temp_backups()` path. These are **reported execution results**, not independent container access. No evidence of a separate SHA256 checksum, off-host copy or successfully exercised independent restore yet; avoid overclaiming. The matched October 27 historical backups are still protected and were not intentionally touched, but their continued existence was not independently re-read in this run. Live database/files may change during backup.
+
+**NEXT single operator action under existing approved recovery-only stage:** Create a separate four-artifact backup of **main `development.localhost`**, in a freshly named 0700 subdirectory alongside the completed Integration2 set (do not overwrite it). Guard exact Git HEAD and `?? AGENTS.md` plus presence of protected older snapshots and just-completed Integration2 directory; verify free space and full-unfiltered backup, open/stream-read all generated components without printing business data or credentials. Stop and investigate on any guard or integrity failure. Then assess off-host safety and independent restore method before proposing a separate reviewed PR32 DEVELOPMENT code pull/checkout/migration. No PRODUCTION changes, no code switch, no merge, no paid CI run.
