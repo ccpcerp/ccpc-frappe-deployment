@@ -243,3 +243,31 @@ BOTH DEVELOPMENT OFF-HOST BACKUPS: PASS
 A GitHub compare read `ccpcerp/ccpcerp:0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41...061e65710eb4b527fc8ac579aaab8ccad4dd131d` returned **ahead 77, behind 0, changed files 62**. This is an *ancestry delta between the installed DEV source* and the combined PR32 review branch, not merely the four-report isolated PR diff against Finance base `7cc85cf5bc275ff7d653edc9ae3520d6c89b20cd`. In addition to all four `ccpc_erp/report/...` folders and CI tests, the intervening commits introduce Finance lifecycle Python modules, edit existing Finance/runtime helpers and DocType JSON, and add **five Finance lifecycle DocTypes** (Accounting Mapping Decision, Mapping Decision Use, Mapping Rejection Event, Mapping Retirement Event, Mapping Retirement Request). No files under `patches/` appeared in this GitHub file comparison, **but DocType schema and fixture/report sync need controlled migration/verification**. The synthetic Integration2 site and main Development site both share a bench code path, even though they have distinct databases. Do not treat PR32 as a zero-schema/report-only checkout compared against the currently installed source.
 
 **Practical next decision:** Under the earlier approval, the **backup creation and off-host transfer stage is complete**; DO NOT run more generic host/Docker/Synology audits. Prepare a narrow **read-only source/schema/rollback readiness and isolated restore plan**, using the already verified 8/8 backups and pinned GitHub changes. Obtain **new, explicit owner approval** for an isolated synthetic site restore and any DEVELOPMENT code checkout / site migration / service interruption or financial test transactions, as applicable. No restore has yet been performed; PRODUCTION remains **NO-GO**, even though off-host backup transfer passed.
+
+## PR32 DEVELOPMENT five-DocType read-only schema inventory: 0/5 on both sites (owner output 2026-10-30)
+
+**Owner executed the exact read-only operator command previously supplied**, with guard that shared app `HEAD=0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41` and worktree `?? AGENTS.md` were unchanged. Output:
+
+```text
+<frozen site>:101: RuntimeWarning: Unexpected value in sys.prefix, expected /workspace/development/frappe-bench/env, got /workspace/development/frappe-bench/sites/../env
+<frozen site>:101: RuntimeWarning: Unexpected value in sys.exec_prefix, expected /workspace/development/frappe-bench/env, got /workspace/development/frappe-bench/sites/../env
+ccpc-integration2.localhost
+Finance lifecycle DocTypes present: 0 / 5
+FINANCE SCHEMA INVENTORY: PASS
+development.localhost
+Finance lifecycle DocTypes present: 0 / 5
+FINANCE SCHEMA INVENTORY: PASS
+```
+
+**Interpretation:** The script/query completed on both separate existing DEVELOPMENT databases. `PASS` means the **inventory operation ran**, not that the five proposed target DocTypes are already installed. **All five proposed Finance lifecycle DocTypes are ABSENT in each site's currently deployed schema**, consistent with the current old code and a forthcoming `bench migrate` requirement. No site master/transaction changes were performed by this query. The `sys.prefix` and `sys.exec_prefix` warnings are due to launching virtualenv Python through `sites/../env/bin/python`; next commands should invoke the exact absolute `/workspace/development/frappe-bench/env/bin/python`, retaining cwd `sites` and `sites_path='.'`, avoiding the cosmetic warning. No evidence of Python runtime failure.
+
+**Fresh GitHub source comparison, installed DEV `0c223d7...` → PR32 `061e657...`:** `ccpcerp/hooks.py`, `ccpcerp/setup.py`, `ccpcerp/patches.txt` are **byte-identical** at these two exact commits. The target adds five distinct new Finance lifecycle DocTypes:
+1. CCPC Accounting Mapping Decision.
+2. CCPC Mapping Decision Use.
+3. CCPC Mapping Rejection Event.
+4. CCPC Mapping Retirement Event.
+5. CCPC Mapping Retirement Request.
+
+It also modifies existing `CCPC Expense Mapping Revision` and `CCPC Center Mapping Revision` schema: **four optional rejection-provenance fields** (`rejected_by`, `rejected_at`, `rejection_reason`, `rejection_event`) and an additional `Rejected` approval_state option each. Existing role permission arrays in those two JSON files are unchanged. These schema additions are not proof of runtime compatibility: both existing sites must be migrated in a scheduled coordinated shared-bench window. Existing `after_migrate` still contains data-/permission-changing setup, even though its source is unchanged; the `patches.txt` list itself is unchanged. The previously verified 86/86 disposable CI tests do not substitute for persistent site acceptance.
+
+**Next execution plan / authorization boundary:** Fresh local and off-host DEV four-part backup sets and 8/8 SHA256 NAS copies are verified, but **no independent restore rehearsal**. Existing authorization covers recovery-stage copying and GitHub review/documentation only; it does NOT approve changing shared app source, running site migrations, stopping/restarting DEV Honcho, performing real business writes or touching PRODUCTION. For the quickest bounded route to PR32 persistent DEV acceptance, first decide a separately scoped **non-production restore validation/rollback standard**, then obtain the owner's explicit approval for an exact-SHA shared-bench DEV maintenance window: (a) guard source checkout and two protected backups and snapshot age, (b) pause **DEV Honcho only** with verified exact process identity, (c) safe exact-SHA source update preserving `AGENTS.md`, (d) migrate synthetic Integration2 and verify five DocTypes and two extended revisions, (e) migrate main DEV after reviewing actual first-site results, (f) restore DEV-only Honcho and HTTP/queue/scheduler smoke, (g) authenticated per-company four-report checks plus rollback decision. Any restoration is a separate, data-destructive action needing its own precise approval; Git source reset alone cannot reverse site schema changes. **PRODUCTION NO-GO**. Do not issue another generic infrastructure audit or an unapproved code-switch command.
