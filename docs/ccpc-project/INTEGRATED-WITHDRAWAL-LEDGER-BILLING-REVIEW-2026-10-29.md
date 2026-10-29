@@ -37,3 +37,22 @@ Upon real SQL results, fix any failing fixtures or code **in GitHub** and move f
 - Overall material consumption and all Company P&L expense **separately**, reconciled to SLE/GL and not double-counting intercompany.
 
 **Release boundaries:** PR #25 draft/unmerged. App `version-16`, persistent DEVELOPMENT/Integration2, PRODUCTION and real Accounting signatories untouched; no new CircleCI pipeline or paid action authorized by this GitHub source-only work. Production remains NO-GO.
+
+
+## 2026-10-29 — Manual CircleCI bridge prepared on PR #25 (no hosted run)
+
+**Owner authorized continuation of GitHub test preflight/preparation, not an unbounded provider run or release merge.**
+
+Connected GitHub review HEAD after work: **`bd9c3d1e1e68a99d216a736f4f044bcf17841162`** on `review/integrated-withdrawal-ledger-billing-acceptance-2026-10-29`; draft [app PR #25](https://github.com/ccpcerp/ccpcerp/pull/25), target `feature/finance-mapping-lifecycle-2026-10-28` still unmerged.
+
+**Changes now in candidate:**
+- `test_finance_withdrawal_billing_bridge_disposable.py` fixes the earlier fixture shortcut: creates the cross-company request **correctly at Draft insert**, with requesting Department in synthetic buyer `_Test Company 5` and separate issuer-beneficiary Department in `_Test Company`; sets Stockroom Review only using the existing disposable fixture's workflow shortcut. No request-intent change after Stockroom Review. Asserts real SLE stock-value outflow is equal to genuine signed Expense GL debit, plus original source snapshot, preview replay, and unsigned denial.
+- `.circleci/config.yml` adds **`run_finance_bridge` boolean, default `false`**, plus `opt-in-finance-bridge` with `finance-bridge-manual-approval`; reuses existing Finance job with job-local **`run_bridge=false`** (legacy Finance run unchanged unless explicitly opted into bridge). Same manual filter `feature/finance-mapping-lifecycle-2026-10-28`.
+- `.circleci/finance_baseline_stage.sh` adds `bridge)` command, inheriting the **exact CircleCI org/project/job/feature-branch/SHA, disposable site and same cumulative deadline**. Runs existing Finance 8 test module first, then two bridge methods only if job-local opt-in `run_bridge=true` is selected. No automatic schedule/PR trigger.
+- `.circleci/test_finance_bridge_config_static.py` adds **four** static source tests and is referenced in the initial Finance job identity/preflight command. Existing `test_finance_ci_config_static.py` tests remain intact.
+
+**Verification:** GitHub post-write compare against base `0564e94f5eea5eaa3c07f16a4fdacb84871eafdc` confirms **exactly four review-path changes**: two newly added test modules and two CI source modifications (no business runtime/doctype/report/role/schema files). **21/21 read-only structural/source invariants passed** via connected GitHub readback (default-off/mutual separate workflows/holds, same guard and deadline, no deploy, no submitted invoice, correct request-company fixture, positive/negative test methods). This is source inspection **not executed Python unittest/compile, CircleCI config compiler or Frappe/MariaDB**. Offline exact GitHub files cannot currently be materialized through this isolated scratch network; do not mislabel the structural checks as runnable Python tests.
+
+**Required next gates:** owner explicitly approves scoped **merge of PR #25 only into Finance feature**, after human code review and provider config preflight; verify new *full* feature SHA; separately approves **one** bounded manual bridge CircleCI run with config/checkout branch `feature/finance-mapping-lifecycle-2026-10-28`, `run_finance_bridge=true`, `run_finance_lifecycle=false`, `run_integration=false`, current project balance/cost controls; user then replaces project `CCPC_FINANCE_APPROVED_SHA` from old `0564e94...` with new merge SHA. Wait for manual `finance-bridge-manual-approval` hold and verify SHA before approving expensive job. Never run review branch bypassing guard; no reruns without separate approval.
+
+**Current status:** accepted prior Finance G2 SQL 8/8 PASS; **new signed Withdrawal→SLE/GL→intercompany preview tests NOT RUN**, draft review branch only. No new CI spend; DEV, Integration2, PRODUCTION, real business masters and default app branch unchanged.
