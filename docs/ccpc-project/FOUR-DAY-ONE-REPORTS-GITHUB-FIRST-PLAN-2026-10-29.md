@@ -31,7 +31,7 @@ Current [Equipment Maintenance Baseline design](EQUIPMENT-SNAPSHOT-REPORT-CUTOVE
 
 ### 3. Intercompany Withdrawal/billing with invoice status — DRAFT PR #28, UNMERGED
 
-New app [draft PR #28](https://github.com/ccpcerp/ccpcerp/pull/28), review branch `review/intercompany-source-billing-report-2026-10-29`, source base `7cc85cf5bc275ff7d653edc9ae3520d6c89b20cd`, review tip at initial checkpoint `0d045d5f9de964819d22f2f7d8b4ed174a4abdea`. Five newly created paths all in `ccpcerp/ccpc_erp/report/ccpc_intercompany_withdrawal_billing_status/`: Python Script Report, JS filters, Report metadata, init, source-focused unit tests.
+New app [draft PR #28](https://github.com/ccpcerp/ccpcerp/pull/28), review branch `review/intercompany-source-billing-report-2026-10-29`, source base `7cc85cf5bc275ff7d653edc9ae3520d6c89b20cd`, current reviewed source tip `a1a9535c2e59f935565808a5f25e0c9c1bd4ff48` (GitHub readback verified). Five newly created paths all in `ccpcerp/ccpc_erp/report/ccpc_intercompany_withdrawal_billing_status/`: Python Script Report, JS filters, Report metadata, init, source-focused unit tests.
 
 Reports original posted intercompany source and exact grouped original outbound SLE, left-joins only active billing claims, retains **unbilled** rows, flags multiple conflicting active claims rather than double counting, shows frozen billing amount distinctly from SLE issue cost, invoice refs and **Draft / Submitted / Cancelled / Missing** status, separate Company/currency, source-quality exceptions. System Manager-only, Company/date scope, read-only; report-wide totals intentionally off. **Do not claim real DB report execution, complete billing acceptance, or full accounting/P&L reconciliation**. Need syntax + Frappe unit testing, disposable MariaDB with unbilled/cancelled/replay/missing-SLE/multi-SLE/foreign-company and invoice cases, then user signoff before merge.
 
@@ -48,3 +48,6 @@ Design a dual-perspective reconciliation **not** a single additive figure: one o
 5. Only after independently approved tests and real CCPC accounting policy review, authorize a safe checked DEVELOPMENT pull/test. PRODUCTION requires separate owner approval, backup/recovery/rollback review, Company permissions and reconciliation signoff.
 
 **Current protection:** No automated CI schedule, no DEVELOPMENT/PRODUCTION writes, no unapproved invoice submission or migrations. **PRODUCTION NO-GO.**
+
+
+**Review follow-up 2026-10-29:** The two money columns now explicitly reference `issuing_currency` as their Currency display option (no default-user-currency display); a ninth source-focused unit test verifies the currency binding. GitHub compare remains five new report-only paths and zero-behind feature base; 11/11 latest focused structural checks PASS; actual Python/Frappe/MariaDB tests still NOT RUN.
