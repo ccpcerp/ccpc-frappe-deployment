@@ -46,6 +46,13 @@ The owner approved continuation of **GitHub-first reporting development** after 
 - Persistent DEVELOPMENT pull only after safe status/branch/commit review, signed-off backups, controlled migration plan if required, genuine site integration, and fixes pushed back to GitHub.
 - PRODUCTION separate explicit authorization, backups/recovery/rollback and actual Company controls. **Do not change PRODUCTION based on this handoff.**
 
+## Latest GitHub-only reporting progress — 2026-10-29
+
+- **Reporting program documented:** [Four day-one reports source/GL reconciliation plan](FOUR-DAY-ONE-REPORTS-GITHUB-FIRST-PLAN-2026-10-29.md), detailed evidence and owner gates; documentation commit `594a72ae32295d562e8991cdcdef456cbf5dbeb9`.
+- **First report code candidate, not yet merged:** [draft app PR #28](https://github.com/ccpcerp/ccpcerp/pull/28), `review/intercompany-source-billing-report-2026-10-29` review HEAD **`0d045d5f9de964819d22f2f7d8b4ed174a4abdea`**, exact base Finance feature `7cc85cf5bc275ff7d653edc9ae3520d6c89b20cd`. Adds five new `CCPC Intercompany Withdrawal Billing Status` Script Report files, no runtime business/CI code modifications. Original posted source→grouped outbound SLE→active billing claim→SI/PI Draft/Submitted/Cancelled/Missing status and unbilled rows; signed issuer money and frozen billing amount independent; fail on duplicate active claims; Company-date-scoped System Manager read-only access; eight source unit test methods created.
+- **Validation status:** GitHub source-only preflight **15/15 focused structural checks PASS**; report Python tests and real Frappe/MariaDB report execution **NOT RUN**. Existing previously hosted build #34 **12/12** does **not** exercise this new report. Do not merge PR #28 or trigger paid CI/DEVELOPMENT without separate approvals. Department report, Equipment/Job cost completion and Company-wide GL reconciliation are next family-specific milestones (not completed).
+- **Status of oversized handoff fix:** This file is the active, small rolling handoff; [README](README.md) points here. Old [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) stays archived for historical specifics. Update *this* file at verified milestones rather than appending to the 1.3 MB old handoff.
+
 ## Latest references
 
 - [CircleCI #34 acceptance summary](CURRENT-HANDOFF-CI34-ACCEPTANCE-2026-10-29.md)
