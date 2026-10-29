@@ -1,5 +1,7 @@
 # Four day-one reports — integrated GitHub review branch implemented
 
+**Subsequent checkpoint (2026-10-29):** The owner authorized preparation of **one manually held combined MariaDB run**. [Draft app PR #32](https://github.com/ccpcerp/ccpcerp/pull/32), new head **`061e65710eb4b527fc8ac579aaab8ccad4dd131d`**, now includes a strict exact-SHA CI site guard, default-OFF held workflow, ported 21 native suites + 1 cross-report native test, and six source-only static checks, **all NOT YET EXECUTED at the new commit**. This document below describes the **earlier 20-report-file source-only checkpoint** `bfe9477...`; it is preserved as history. See [current PR32 CI/readiness record](FOUR-REPORTS-PR32-MANUALLY-HELD-CI-REVIEW-2026-10-29.md). No paid CI job, merges, DEVELOPMENT or PRODUCTION operations made by ChatGPT.
+
 **2026-10-29, owner authorization:** owner explicitly approved creating a combined **GitHub-only review branch** from the verified Finance base, combining 20 report-only source/JS/JSON/unit-test files and implementing the limited permission/query-bound corrections discovered in the [readiness review](FOUR-REPORTS-GITHUB-INTEGRATION-READINESS-REVIEW-2026-10-29.md). **This is NOT authority to merge source PRs, relax permissions, run new paid CircleCI tests, pull/migrate DEVELOPMENT or touch PRODUCTION.**
 
 ## Verified app branch
