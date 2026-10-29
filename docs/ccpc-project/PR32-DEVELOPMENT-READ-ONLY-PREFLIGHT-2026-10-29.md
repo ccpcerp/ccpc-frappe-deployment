@@ -163,3 +163,18 @@ MAIN DEVELOPMENT FRESH BACKUP: PASS
 Each contains database, site-config, public and private files; both site backup encryption guards succeeded. This is a **same-host local 4-component backup**, not a verified transactionally consistent multi-component point-in-time snapshot, SHA256 manifests, off-host copy, or independent restored environment. No production changes, code switch, worker restart or DB migration executed in the owner-provided commands. App Git source/AGENTS.md still guarded at initial execution; must recheck before any future code action.
 
 **NEXT:** No more repeat Docker separation investigations. To prepare an **off-host DEV-only protected copy** without touching the PRODUCTION backup workflow, verify the currently mounted legacy Synology share read-only before using it: `findmnt -rn -M /mnt/erpnext_backups -o SOURCE,FSTYPE` must return precisely the documented **`//192.168.50.132/erpnext_backups cifs`** and verify mountpoint, permissions/free space without reading share content. This is *current mount identity* verification, NOT generic infra re-audit. If incorrect/absent, stop (directory existence is insufficient). Design private DEV-only subfolder, permission/sensitive-data controls, separate approval for off-host data transfer if needed, checksum validation and later independent restore plan. Do not invoke legacy production backup script or alter existing NAS backups. PR32 remains draft/unmerged `061e65710eb4b527fc8ac579aaab8ccad4dd131d`; no app pull/checkout/migrate/merge, further CI or PRODUCTION action authorized.
+
+## Off-host destination readiness — NAS mount identity and both source paths PASS (2026-10-29)
+
+**User reported exactly**:
+```text
+NAS MOUNT IDENTITY: PASS
+NAS ACCESS PERMISSIONS: PASS (no write attempted)
+BOTH HOST-VISIBLE DEVELOPMENT SNAPSHOTS: PASS
+NAS AVAILABLE SPACE:  1.5T
+OFF-HOST BACKUP DESTINATION PREFLIGHT: PASS
+```
+
+**Interpretation:** On `ccpcerpserver`, `findmnt -rn -M /mnt/erpnext_backups -o SOURCE,FSTYPE` was guarded against exact expected `//192.168.50.132/erpnext_backups cifs`, verified mountpoint and host read/write access (not a write test); host can see the two expected fresh **October 29** source backup directories under `/home/gani/deployments/frappe_docker/development/frappe-bench/.ccpc-pr32-snapshots`. The NAS reported **1.5 TiB-ish available** via `df -h` display `1.5T`. **No copy yet**; this is a narrow current mount check rather than a Docker/infrastructure re-audit.
+
+**NEXT operator action within owner's approved DEVELOPMENT backup stage:** Perform an **exclusive, non-overwriting DEV-only off-host copy** of the two *exact* local four-part snapshot directories into a new, randomly identified, hidden temporary directory under the verified NAS mount; verify source file exact counts/suffixes and nonzero sizes, source and destination SHA256 for all eight components, and best-effort restrictive on-mount directory/file modes **before exposing data**; create a `SHA256SUMS` manifest, then rename the staging directory to a unique `ccpc-development-pr32-...` directory. Never copy into/modify the legacy PRODUCTION backup tree, never delete local backups, never invoke the legacy production scheduled backup script or retention. If CIFS does not actually honor restrictive modes, **STOP before copy** and review Synology server-side SMB share and ACL protection. Linux `0700` metadata alone **does not independently establish server-side SMB ACL privacy**; treat that as a separate owner/administrator confirmation before sensitive backup content is considered secured. The destination is a NAS backup copy, *not* an isolated restore acceptance. No PR32 checkout, pull, migration, restart, release merge, additional CI or PRODUCTION action is approved.
