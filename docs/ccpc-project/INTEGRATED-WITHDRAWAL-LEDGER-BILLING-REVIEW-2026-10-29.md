@@ -167,3 +167,28 @@ Created [app draft PR #26](https://github.com/ccpcerp/ccpcerp/pull/26), source b
 **Acceptance boundary:** Promote **disposable SQL finance→Withdrawal→ledger→intercompany preview→actual paired DRAFT SI/PI + savepoint rollback/retry test 4/4 PASS**. **Do not call this full CircleCI 12/12:** build #34 Finance G2 eight-test baseline `step #105` was NOT supplied with this message. Historical #28 baseline 8/8 PASS belongs to the older source and cannot substitute for a new execution at `7cc85cf5...`. No official provider build-level success/credits, invoice SUBMISSION/cancellation/returns GL or full HTTP/CSRF/concurrency, final business mappings, four owner-approved consumption/reconciliation reports, persistent DEVELOPMENT or PRODUCTION readiness was established. Real business signoff, source-to-invoice reconciliation and guard checks remain release gates.
 
 **Next operator action:** Obtain the **build #34 step #105 Finance lifecycle test log**, and if possible its final provider job/pipeline status with full checkout SHA, to reconcile the full 8+4 suite **without starting another run**. Then continue GitHub-first reports and security/transaction review under separately scoped change approval; no further billable CI, DEV, Integration2 or PRODUCTION operation implied by these results. **PRODUCTION NO-GO.**
+
+
+## 2026-10-29 — CircleCI build #34 confirmed 12/12 PASS across Finance G2 and actual invoice bridge
+
+**Owner-supplied second independent runner log:** `build_34_step_105_container_0.txt` from `ci-finance-lifecycle.localhost` executes `ccpcerp.ccpc_erp.test_finance_lifecycle_disposable_integration`. Eight individually green tests:
+1. `test_a_schema_has_required_lifecycle_fields_and_no_general_permissions`
+2. `test_b_draft_rejection_is_terminal_and_audited`
+3. `test_c_signed_approval_is_once_only_and_denies_forged_reference`
+4. `test_d_signing_version_failure_rolls_back_decision`
+5. `test_e_retirement_request_replay_decline_and_accept_are_audited`
+6. `test_f_unauthorized_guest_and_administrator_fail_closed`
+7. `test_g_center_approval_uses_exact_company_department`
+8. `test_h_rejection_audit_failure_rolls_back_event_and_state`
+
+**Exact end of step #105:** `Ran 8 tests in 2.365s`, `OK`, `Finance disposable database tests finished; reconcile results before further stages`. No errors, failures or skips reported in this step.
+
+**Same build #34 step #106** (separately uploaded and recorded in previous section): `ccpcerp.ccpc_erp.test_finance_withdrawal_billing_bridge_disposable`, **A/B/C/D all green**, `Ran 4 tests in 8.984s`, `OK`, no failures/errors/skips reported. Thus **same CircleCI build #34, same disposable site: 8/8 Finance G2 + 4/4 real Withdrawal/billing bridge = 12/12 PASS** for the combined two direct test logs. The owner also supplied CircleCI UI screenshot showing the whole `finance-lifecycle-isolated-integration` job green, with the MariaDB service and signed Withdrawal/ledger bridge steps green; do not infer the status of unrelated pipelines from that job screenshot.
+
+**Acceptance promoted:** Hosted real MariaDB/Frappe test coverage now proves signed Finance Maker/Checker mapping lifecycle; unauthorized/forged/replay/rollback rejection; original submitted Withdrawal Material Issue→actual SLE/expense GL→source-eligible intercompany billing; real persisted billing Controller month-end finalization with test-only simulated elapsed month-end; real native ERPNext **Draft** Sales/Purchase invoices correctly cross-linked, source and totals matched, no invoice GL/stock from unsubmitted drafts, duplicate approval rejected; injected second-invoice builder failure after real first Sales draft insert ensures SQL savepoint removes orphan and retry creates only one pair. Previous build #31 C/D error was from nested synthetic COA fixture; build #34 passing C/D is actual confirmation that PR #27 root-first fixture correction works in this hosted test environment.
+
+**Verified GitHub version context:** `feature/finance-mapping-lifecycle-2026-10-28` remained `7cc85cf5bc275ff7d653edc9ae3520d6c89b20cd` when checked on this day; PR #27 merged at same SHA; bridge test blob `530cc3bf197b186ebe08a5a22c2fa25998378fd4` shows A/B/C/D. The excerpts themselves do **not print the runner's full checkout SHA**; the UI screenshot shows job success, not an independently legible checkout SHA. Describe SHA association as operator-authorized branch and verified GitHub source, not as a separately observed CI checkout hash.
+
+**Important remaining release gates:** No validation of **submitted** Sales or Purchase Invoices and resulting intercompany GL/AR/AP, invoice reversal/cancellation/returns, fully asynchronous/concurrent requests, HTTP/CSRF edge cases, owner-frozen real business mappings/signatories, four production-aimed reports (Department, Equipment/Job Order, intercompany invoice status, company-wide materials vs P&L expense with SLE/GL reconciliation), or persistent DEVELOPMENT acceptance. **Not PRODUCTION-ready.** No further CircleCI run or DEVELOPMENT/PRODUCTION deployment authorized solely by this successful evidence.
+
+**Next engineering milestone:** Develop and review owner-frozen day-one reporting with explicit valuation UOM/currency and no intercompany double recognition; separately review invoice submission and rollback/reversal with Accounting before any production release. Run further CI/DEVELOPMENT/PRODUCTION only on separately approved gates. **PRODUCTION NO-GO.**
