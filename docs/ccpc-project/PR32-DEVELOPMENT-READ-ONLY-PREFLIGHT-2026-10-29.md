@@ -141,3 +141,25 @@ INTEGRATION2 FRESH BACKUP: PASS
 **Proven scope:** New private local 0700 snapshot under the DEVELOPMENT bench **outside `sites/`**, targeting the fictional Integration2 site only, with four nonempty backup artifacts successfully opened/stream-read as gzip, JSON and TAR. Source/space guards passed, and encryption guard would have aborted if Frappe reported backup encryption enabled. The generator bypassed Frappe CLI's automatic `delete_temp_backups()` path. These are **reported execution results**, not independent container access. No evidence of a separate SHA256 checksum, off-host copy or successfully exercised independent restore yet; avoid overclaiming. The matched October 27 historical backups are still protected and were not intentionally touched, but their continued existence was not independently re-read in this run. Live database/files may change during backup.
 
 **NEXT single operator action under existing approved recovery-only stage:** Create a separate four-artifact backup of **main `development.localhost`**, in a freshly named 0700 subdirectory alongside the completed Integration2 set (do not overwrite it). Guard exact Git HEAD and `?? AGENTS.md` plus presence of protected older snapshots and just-completed Integration2 directory; verify free space and full-unfiltered backup, open/stream-read all generated components without printing business data or credentials. Stop and investigate on any guard or integrity failure. Then assess off-host safety and independent restore method before proposing a separate reviewed PR32 DEVELOPMENT code pull/checkout/migration. No PRODUCTION changes, no code switch, no merge, no paid CI run.
+
+## Backup Stage — Main DEVELOPMENT fresh local recovery set PASS; both protected (2026-10-29)
+
+**Owner-reported exact terminal results:**
+```text
+SOURCE AND EXISTING BACKUP GUARDS: PASS
+DATABASE BACKUP: PASS
+SITE CONFIG BACKUP: PASS
+PUBLIC FILES BACKUP: PASS
+PRIVATE FILES BACKUP: PASS
+BACKUP DIRECTORY: /workspace/development/frappe-bench/.ccpc-pr32-snapshots/development.localhost-20261029T134505Z-f9d195ea
+MAIN DEVELOPMENT FRESH BACKUP: PASS
+```
+
+**Meaning:** The separate approved main `development.localhost` backup has four nonempty, readable components (complete gzip-stream, JSON parse, public/private TAR stream) under a new private snapshot directory; previous historical October 27 file sets and Integration2 snapshot presence passed guards. Both current protected backups are now locally present at distinct paths:
+
+- Synthetic Integration2: `/workspace/development/frappe-bench/.ccpc-pr32-snapshots/ccpc-integration2.localhost-20261029T132329Z-99d6786e` (13:23:29 UTC).
+- Main group Companies: `/workspace/development/frappe-bench/.ccpc-pr32-snapshots/development.localhost-20261029T134505Z-f9d195ea` (13:45:05 UTC).
+
+Each contains database, site-config, public and private files; both site backup encryption guards succeeded. This is a **same-host local 4-component backup**, not a verified transactionally consistent multi-component point-in-time snapshot, SHA256 manifests, off-host copy, or independent restored environment. No production changes, code switch, worker restart or DB migration executed in the owner-provided commands. App Git source/AGENTS.md still guarded at initial execution; must recheck before any future code action.
+
+**NEXT:** No more repeat Docker separation investigations. To prepare an **off-host DEV-only protected copy** without touching the PRODUCTION backup workflow, verify the currently mounted legacy Synology share read-only before using it: `findmnt -rn -M /mnt/erpnext_backups -o SOURCE,FSTYPE` must return precisely the documented **`//192.168.50.132/erpnext_backups cifs`** and verify mountpoint, permissions/free space without reading share content. This is *current mount identity* verification, NOT generic infra re-audit. If incorrect/absent, stop (directory existence is insufficient). Design private DEV-only subfolder, permission/sensitive-data controls, separate approval for off-host data transfer if needed, checksum validation and later independent restore plan. Do not invoke legacy production backup script or alter existing NAS backups. PR32 remains draft/unmerged `061e65710eb4b527fc8ac579aaab8ccad4dd131d`; no app pull/checkout/migrate/merge, further CI or PRODUCTION action authorized.
