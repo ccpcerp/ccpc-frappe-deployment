@@ -1,5 +1,16 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-29 — Finance CI upstream setup fix PR #24 MERGED into feature (second CI run NOT authorized)
+
+**Owner-approved action completed:** Connected GitHub verified app [PR #24](https://github.com/ccpcerp/ccpcerp/pull/24) merge into **`feature/finance-mapping-lifecycle-2026-10-28` only**. New exact feature HEAD and GitHub merge commit **`0564e94f5eea5eaa3c07f16a4fdacb84871eafdc`**. PR CLOSED/MERGED; original review head lease `9ccc815ed5904af2bbd816fdce93bf7e02bce126`. Base compare with prior feature `317ad24...` verifies exactly two CI-only files: `finance_baseline_stage.sh` blob `bc837147f543ff60155525be496e992927886011` (two pinned fetches now use Bench's `upstream` remote) and `test_finance_ci_config_static.py` blob `2994901cf9dd79ec21a3388e5ba01a99520e074b` (18-line regression). No business code/DocTypes changed, no default `version-16` merge (read-back `cfcc19394a6646548f2b7050db040c8cf5ebafde`), and no DEVELOPMENT/PRODUCTION/site operation.
+
+**Test truth:** First hosted Finance CircleCI pipeline #11 on OLD feature SHA `317ad24...` failed **exit 128 before Finance DB tests** at Frappe clone remote `origin` (Bench actually cloned as `upstream`). The corrected new SHA has **NOT** run on CircleCI. Historical offline exact regression and source checks are not a hosted success. Complete incident and merge evidence: [CircleCI #11 failure/merge record](FINANCE-G2-CIRCLECI-PIPELINE-11-UPSTREAM-REMOTE-FAILURE-2026-10-29.md), docs update commit `f7903b4b5e03aea6765362764ff71b76fca8cc3d`.
+
+**Next one gate:** CircleCI project environment `CCPC_FINANCE_APPROVED_SHA` was previously set to the **OLD** `317ad24...` and is not updated. A new hosted run is **NOT approved** by permission to merge. To execute another, operator must explicitly approve a single new manually held disposable run, verify budget/auto-refill/cancel ability, then set the project setting to **`0564e94f5eea5eaa3c07f16a4fdacb84871eafdc`**, launch with both config/checkout branches `feature/finance-mapping-lifecycle-2026-10-28`, `run_finance_lifecycle=true`, legacy integration `false`; inspect exact SHA/held job before approval. Do not rerun #11 or automatic retries. **PRODUCTION NO-GO.**
+
+---
+
+
 ## 2026-10-29 — CircleCI Finance G2 #11 FAILED during Bench source-pin setup; PR #24 review fix (NO RERUN)
 
 **Verified first real hosted attempt:** Owner launched and manually approved the one bounded CircleCI Finance G2 pipeline #11 on `feature/finance-mapping-lifecycle-2026-10-28` @ `317ad24d603e3d78d13d13e35fe08aca6bd90193` (`run_finance_lifecycle=true`, old integration false). Starter passed. Owner-supplied build step log confirms disposable `bench init` succeeded, then `git -C apps/frappe fetch ... origin` failed **exit 128** because Bench cloned with remote `upstream`. **Finance eight real MariaDB tests were NOT reached**; no release/Finance acceptance evidence. No DEV/PROD changes.
