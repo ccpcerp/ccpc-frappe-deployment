@@ -27,7 +27,7 @@ New Script Report `CCPC Equipment Job Material Activity` under `ccpcerp/ccpc_erp
 4. Mandatory Company/posting from/to, optional Equipment; System Manager-only, required source DocType permission checks, Company and Equipment read and Company-match validation, and per-result Stock Entry/Slip/Equipment/Job document permission checks before returning data. Date window max 367 inclusive days, caps 800 material issue and 200 job rows, explicit fail-close on overflow and duplicate original source. Filter carries explicit warning that other unattributed Company issues are excluded. Report totals disabled.
 5. The work does not alter existing user permissions, original issue schema, stock/GL/invoice controllers, or any deployment.
 
-**Source-review preflight:** connected GitHub structural checks on the new implementation found 19/20 positive; the remaining false negative was an overly broad string scan catching `ws.job_order` in a comment that explicitly says **not** to use it; raw SQL itself never selects or joins `ws.job_order`. Treat this as a **source-only check**, not a passing executable test or proven SQL/runtime behavior.
+**Source-review preflight:** 19/20 initial GitHub structural checks passed; the apparent failure was an overly broad scan matching the explanatory comment `No read of ws.job_order`. A subsequent connector readback explicitly examined only the returned original-source SQL string and verified **no `ws.job_order`, `ws.department` or GL join**; thus the corrected code-aware static review was **20/20 PASS**. This is still source-only inspection, **not** an executable Frappe test or genuine SQL validation.
 
 ## Remaining acceptance
 
