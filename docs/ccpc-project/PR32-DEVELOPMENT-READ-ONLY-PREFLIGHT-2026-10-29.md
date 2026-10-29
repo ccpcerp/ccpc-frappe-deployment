@@ -76,3 +76,18 @@ The user authorized **read-only preflight only**, not deployment or remediation.
 **NEXT (read-only):** Main DEV only, for each of 4 represented Companies' internal Customer and Supplier, verify each has the **three other** represented Companies as allowed transacting companies (no duplicates, missing/extra or own Company), and exactly three account mappings (one for each other transacting Company) to the expected `1312 - Intercompany Receivable - <transacting abbr>` (Customer) or `2121 - Intercompany Payable - <transacting abbr>` (Supplier), with actual Account Company/Type/leaf/disabled metadata validated. The incoming and installed code use the **same blob** of `ccpcerp/patches/v1_0/create_intercompany_parties.py` from verified GitHub `96990516b4270709bc991e4b32fa9e8311fa6bea`. Strict 'exactly three' is a safety review and may flag extra existing rows that the original patch did not remove; never auto-clean or write to resolve. No password/data dumps, no SQL updates, no migrations, no release authorization.
 
 **Other open gates:** independent restore, current pre-deployment backup/off-host protection, host sharing, live role and financial postings. PRODUCTION remains NO-GO.
+
+## Step 11 — Exact four-Company intercompany allowed-company and account child rows PASS
+
+**2026-10-29, owner-run read-only terminal evidence, main `development.localhost` only:** The command first guarded the exact installed app Git HEAD `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41` and expected working tree `?? AGENTS.md` before reading party child rows. For each of the four represented group Companies, both internal Customer and Supplier passed:
+
+- Customer CCPC, Supplier CCPC: allowed 3/3 and accounts 3/3 each — PASS.
+- Customer RMC, Supplier RMC: allowed 3/3 and accounts 3/3 each — PASS.
+- Customer GSL, Supplier GSL: allowed 3/3 and accounts 3/3 each — PASS.
+- Customer WFC, Supplier WFC: allowed 3/3 and accounts 3/3 each — PASS.
+
+**Aggregate operator output:** `Party configurations: 8/8`; `Allowed-company coverage: 24/24`; `Valid account mappings: 24/24`; **`INTERCOMPANY PARTY CHILD MAPPINGS: PASS`**. This enforced for each party exactly three unique allowed *other* Companies (no self, missing, duplicates, extras) and exactly three Company-unique matching account rows; account identifiers, owning Company, receivable/payable Account Type, enabled state and ledger vs group status were validated against the known patch.
+
+**Scope:** This confirms **structural read-only accounting master data** for the **main DEVELOPMENT site**, not real intercompany invoice posting, SLE/GL integrity, real user permission or returns/reversal. The Integration2 test site is deliberately synthetic `TISS/TREQ`; no real-group intercompany party criteria should be imposed there. No DB or Git changes, migration, new backup, service restart or production actions were executed.
+
+**Next practical blocker toward reviewed PR32 integration:** Reinspect current **shared host Docker/Compose service scope read-only**, distinguishing DEV containers, legacy PRODUCTION containers and common services/ports; do not stop/recreate, inspect secrets or change Compose. Assess the **October 27 backup freshness and independent restore/off-host recovery** before separately proposing a current, scoped DEV-only backup or checkout. No deployment, backup creation or restore authorized by read-only preflight. The PR32 branch remains draft/unmerged; all 86/86 CircleCI disposable tests green but not real persistent DEVELOPMENT user/Company acceptance. **PRODUCTION NO-GO.**
