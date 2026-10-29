@@ -68,3 +68,27 @@ The owner explicitly authorized **one further** manually held disposable Finance
 The owner's CircleCI screenshot of **pipeline #12** shows a **green/successful pipeline**, `starter-validation` green (18s), `opt-in-finance-lifecycle` green (6m 8s), displayed checkout SHA prefix `0564e94`, and title `Merge PR #24: fix Finance CircleCI pinned upstream remote fetches`. This is user-visible provider workflow-state evidence, not a captured step log. **Eight Finance MariaDB test assertions, explicit final `Ran 8 tests ... OK`, skipped tests, and backend/fixture details have not yet been individually verified.** Operator was asked to open `finance-lifecycle-isolated-integration` → `Finance lifecycle MariaDB service tests, no HTTP server or ledger posting` and share the full step log before promoting Finance G2 from pipeline-green to validated integration evidence.
 
 **No third pipeline, rerun, CI variable change, GitHub app code change, DEVELOPMENT or PRODUCTION action authorized.** Any further DB/HTTP/stock/GL tests remain separate release gates.
+
+
+## 2026-10-29 — Pipeline #12 Finance G2 real MariaDB test log: 8/8 PASS
+
+**Evidence:** Operator-uploaded original CircleCI step text log `build_25_step_105_container_0.txt` from the successful, one-time pipeline #12, job step **Finance lifecycle MariaDB service tests, no HTTP server or ledger posting**. This is direct runner output, not only a green workflow screenshot.
+
+- Test site: `ci-finance-lifecycle.localhost` (disposable CircleCI-only site).
+- Bench module: `ccpcerp.ccpc_erp.test_finance_lifecycle_disposable_integration`.
+- Log reports `Running 8 unspecified-category tests for ccpcerp` and individually shows a green check for **all eight** `TestFinanceLifecycleDisposableIntegration` methods:
+  1. `test_a_schema_has_required_lifecycle_fields_and_no_general_permissions`
+  2. `test_b_draft_rejection_is_terminal_and_audited`
+  3. `test_c_signed_approval_is_once_only_and_denies_forged_reference`
+  4. `test_d_signing_version_failure_rolls_back_decision`
+  5. `test_e_retirement_request_replay_decline_and_accept_are_audited`
+  6. `test_f_unauthorized_guest_and_administrator_fail_closed`
+  7. `test_g_center_approval_uses_exact_company_department`
+  8. `test_h_rejection_audit_failure_rolls_back_event_and_state`
+- Final output: **`Ran 8 tests in 2.096s`**, **`OK`**, **`Finance disposable database tests finished; reconcile results before further stages`**.
+- **8/8 PASS, 0 failures, 0 errors, and no skipped tests indicated by the provided step output.** Screenshot had already shown `starter-validation` and `opt-in-finance-lifecycle` successful at source SHA prefix `0564e94`; independent GitHub branch read-back confirms full feature SHA **`0564e94f5eea5eaa3c07f16a4fdacb84871eafdc`**. Original CI setting was pinned to this SHA for the approved second run.
+- The prior #11 `origin` failure is resolved for this observed pipeline; the dedicated Frappe/MariaDB install and Finance step reached completion, though the full setup log for #12 was not separately uploaded in this session.
+
+**Acceptance boundary:** The **Finance G2 disposable eight-test SQL/service baseline is validated at the recorded source**, not production certification. It does **not** verify authenticated browser/HTTP/CSRF flows, independent multi-connection concurrency, all Stock Ledger/GL postings, end-to-end Withdrawal→intercompany invoices and reports, full persistent DEVELOPMENT acceptance, real Accounting signatory/Company grants, or dedicated PRODUCTION backup/restore/cutover.
+
+**Next:** Focus on the actual integrated withdrawal→material issue→stock/expense ledger→intercompany invoices and the four frozen day-one reports, with a reviewed exact-source acceptance plan. Separate owners' approvals for any future billable CI, persistent DEVELOPMENT or PRODUCTION modifications, and Finance signatories still apply. Do **not** automatically rerun pipeline #12.
