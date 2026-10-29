@@ -1,5 +1,7 @@
 # CCPC Department Material Consumption — PR #29 source review
 
+**Current superseding acceptance:** PR #29 source and CI preparation described below are historical stages. Owner-supplied **CircleCI Build #40 passed all 20 installed-Frappe tests (14 report unit + six real MariaDB integration)** at exact app commit `dd1375343d84a9b48de8063eb530786d463a4989`, with independently successful GitHub CircleCI checks. See [current Build #40 acceptance, scoped limitations and warnings](DEPARTMENT-REPORT-PR29-CIRCLECI40-REAL-MARIADB-ACCEPTANCE-2026-10-29.md). PR remains **DRAFT/UNMERGED**; no DEVELOPMENT or PRODUCTION changes. All prior `NOT EXECUTED` statuses below describe earlier checkpoints and are **superseded**, not current test status.
+
 **Date:** 2026-10-29. **Status:** GitHub-only five-file first implementation, draft/unmerged, not Frappe or MariaDB tested.
 
 ## Source-of-truth and existing accounting behavior
