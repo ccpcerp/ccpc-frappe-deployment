@@ -39,3 +39,10 @@ Review app [PR #28](https://github.com/ccpcerp/ccpcerp/pull/28) stays **DRAFT/UN
 ## Gate and next step
 
 The reviewed PR is **not yet merge-ready** for the real CCPC site. Before merge, run Python syntax/import and 13 report unit tests in a proper Frappe environment, then a **separately owner-approved** manually held exact-SHA disposable MariaDB suite for source/Company/ledger/invoice cases. Review any SQL or fixture failure and repair on PR #28, document actual results. No automatic CircleCI rerun/charge, DEVELOPMENT pull, PRODUCTION migration or deployment follows this document. **PRODUCTION NO-GO.**
+
+
+## Offline executable follow-up — 2026-10-29
+
+The previously unexecuted Python source-focused tests have now been exercised against the **byte-for-byte GitHub source** using a local minimal Frappe stub. The first attempt **12/13 PASS** found that `test_exact_original_sle_is_grouped_before_billing_join` incorrectly searched for `AND se.docstatus = 1` while the real SQL correctly uses `WHERE se.docstatus = 1`. This was only a test assertion mistake: no production SQL, permission, DocType or business Controller changed. App PR #28 HEAD now **`dfb63d975de009ea0168ddd5c9e09a60c26ad4c6`**.
+
+After the reviewed one-line test fix, **13/13 offline stubbed tests PASS**, **Python compile PASS**, and separately **12/12 synthetic in-memory SQLite SQL scenarios PASS**, with independent source/test Git blob hashes checked. This does **not** discharge the real Frappe/MariaDB, permission/HTTP or multi-company business acceptance gates. Full method, results, limitations and the exact next authorization in [offline execution record](INTERCOMPANY-REPORT-PR28-OFFLINE-EXECUTABLE-VALIDATION-2026-10-29.md). No further billable CircleCI, DEVELOPMENT or PRODUCTION action was initiated. **PR remains draft/unmerged; PRODUCTION NO-GO.**
