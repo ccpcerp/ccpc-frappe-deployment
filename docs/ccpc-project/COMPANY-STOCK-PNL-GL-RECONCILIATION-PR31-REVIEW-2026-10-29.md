@@ -1,5 +1,7 @@
 # PR #31 — Company-wide original stock vs posted P&L GL reconciliation
 
+**Current incident — Build #46: FAILED.** Owner-uploaded step-105 log reports **14/15 installed-Frappe unit PASS, one test-literal assertion FAIL** (`AND ledger.company = se.company` expected vs actual correct `ON ledger.company = se.company`). Native five-case MariaDB suite not shown as executed. GitHub old SHA `c27487c60f867be752417088b57186f83ee5997a` integration status **failure**. One-line **test-only** fix committed at NEW HEAD `5016ad711c8940258850cc602e9c9c58ec41c30b` (1 test file, +1/−1). **Corrected SHA NOT RETESTED; fresh separately approved run required**. Operator must update exact-SHA variable before rerun. See [Build #46 failure/correction record](COMPANY-GL-REPORT-PR31-CIRCLECI46-FAILURE-AND-FIX-2026-10-29.md). Older preparation and `NOT RUN` paragraphs below describe earlier stages. PR remains DRAFT/UNMERGED; DEV/PROD untouched.
+
 **2026-10-29. Status:** Source-only GitHub draft, no executable Frappe/MariaDB tests yet, unmerged and not deployable.
 
 ## Source-of-truth and design
