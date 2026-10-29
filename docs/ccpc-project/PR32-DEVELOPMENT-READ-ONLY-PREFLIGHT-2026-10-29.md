@@ -46,3 +46,15 @@
 - [GitHub-first workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md)
 - [Prior DEVELOPMENT controlled integration plan](DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md)
 - [PR32 real MariaDB CI acceptance](FOUR-REPORTS-PR32-CIRCLECI52-REAL-MARIADB-ACCEPTANCE-2026-10-29.md)
+
+## Step 8 — Company/account check: main PASS; synthetic Integration2 comparator was inapplicable
+
+**Owner terminal output, 2026-10-29:** The Step 8 GitHub-derived patch checker `ccpcerp/patches/v1_0/create_intercompany_material_accounts.py` verified **4/4 actual Companies and 20/20 intercompany accounts** on `development.localhost`, including expected Company abbreviations and account parent/ledger attributes. **Main DEVELOPMENT: PASS**.
+
+The **same check** on `ccpc-integration2.localhost` reported **0/4** expected real group-Company abbreviation matches and **0/20** accounts, followed by `RuntimeError: Master configuration requires review: ccpc-integration2.localhost`. **Interpretation correction:** The checker `continue`s before account lookups whenever a Company doesn't match, so `0/20` is **NOT evidence that the accounts are absent or invalid**; they were **not evaluated**. The check incorrectly assumed that this historically isolated test site used the four real CCPC group Companies.
+
+**Existing GitHub design resolves the likely explanation without changing any database:** [DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md](DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md), milestones D13–D15 and D19, records Integration2 as **synthetic two-Company Finance test fixture**: `Integration Test Issuer` (`TISS`) and `Integration Test Requester` (`TREQ`), with **two** Companies historically confirmed at D14; TISS had 30 eligible Expense Accounts, one eligible Cost Center, 13 eligible leaf Departments and five leaf Item Groups. It also records completed dedicated maker/checker authorization tests. Thus **the production-like four-Company / 20-intercompany-account check is inappropriate for Integration2 and must not be used as an acceptance gate for that site's synthetic fixtures.**
+
+**NEXT single read-only operator action:** On Integration2 only, count `tabCompany` rows, and verify the exact named/abbreviated TISS and TREQ records with bound SQL. Do not list unrelated Company names, secrets, accounts or financial entries. If both identities exist, classify Step 8 by site purpose: **main 4/4 + 20/20 PASS; Integration2 synthetic TISS/TREQ 2/2 PASS (separate criteria)**. If missing or changed, STOP and investigate; do not automatically create/rename Companies or rerun patches. Do not presume historical two-Company status is current without operator readback.
+
+The user authorized **read-only preflight only**, not deployment or remediation. Existing October 27 protected backups remain non-restoration-tested and potentially stale. GitHub app PR32 stays DRAFT/UNMERGED; **no checkout/pull/migration/DB write, CircleCI repeat or PRODUCTION actions**.
