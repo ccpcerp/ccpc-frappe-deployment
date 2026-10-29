@@ -1,5 +1,7 @@
 # PR #31 — CircleCI Build #46 source-policy assertion failure and one-line fix
 
+**Subsequent result (2026-10-29):** The single owner-approved Build #49 re-execution **PASSED 15/15 unit + 5/5 native MariaDB tests** at corrected SHA `5016ad711c8940258850cc602e9c9c58ec41c30b`. See [Build #49 acceptance](COMPANY-GL-REPORT-PR31-CIRCLECI49-REAL-MARIADB-ACCEPTANCE-2026-10-29.md). This file preserves Build #46's actual failure at its old SHA and the one-line GitHub repair, not the latest outcome. PR remains draft/unmerged; DEV/PROD untouched.
+
 **Recorded:** 2026-10-29. **State:** Build #46 integration FAILURE at old exact app SHA; one-line test-only correction subsequently committed. No paid rerun or native MariaDB acceptance yet.
 
 ## Identity and observed results
