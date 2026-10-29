@@ -1,5 +1,14 @@
 # CCPC ERPNext — CURRENT HANDOFF
 
+## 2026-10-29 — Hosted Finance G2 CircleCI #12 green at fixed source (eight-test log pending)
+
+**Owner-approved second run executed in CircleCI UI:** User screenshots show source and checkout branch `feature/finance-mapping-lifecycle-2026-10-28`, `run_finance_lifecycle=true`, legacy `run_integration=false`, `CCPC_FINANCE_APPROVED_SHA` masked suffix `afdc`, pretrigger 29,017 available credits. **CircleCI pipeline #12 now GREEN** with `starter-validation` 18s and `opt-in-finance-lifecycle` 6m 8s, prefix `0564e94` matching independently verified GitHub feature HEAD `0564e94f5eea5eaa3c07f16a4fdacb84871eafdc`. This is successful provider workflow status, **not yet captured evidence for the eight individual real MariaDB Finance tests**; step log, test count, skipped tests, and failures remain to be reviewed. No third pipeline or automatic retry authorized. No DEV/PRODUCTION changes. Incident and follow-up record: [CircleCI #11/#12](FINANCE-G2-CIRCLECI-PIPELINE-11-UPSTREAM-REMOTE-FAILURE-2026-10-29.md), docs commit `1b818d30c16160b77c4fda67d884c23b2a5d04b2`.
+
+**Next decisive action:** Owner opens pipeline #12 `finance-lifecycle-isolated-integration` and shares `Finance lifecycle MariaDB service tests, no HTTP server or ledger posting` step log; verify 8/8 outcome, no skips, and source/site evidence before declaring Finance G2 baseline acceptance. Then prioritize complete withdrawal→ledger→intercompany+four reports critical path; separate DEV/PRODUCTION approvals remain mandatory.
+
+---
+
+
 ## 2026-10-29 — Finance CI upstream setup fix PR #24 MERGED into feature (second CI run NOT authorized)
 
 **Owner-approved action completed:** Connected GitHub verified app [PR #24](https://github.com/ccpcerp/ccpcerp/pull/24) merge into **`feature/finance-mapping-lifecycle-2026-10-28` only**. New exact feature HEAD and GitHub merge commit **`0564e94f5eea5eaa3c07f16a4fdacb84871eafdc`**. PR CLOSED/MERGED; original review head lease `9ccc815ed5904af2bbd816fdce93bf7e02bce126`. Base compare with prior feature `317ad24...` verifies exactly two CI-only files: `finance_baseline_stage.sh` blob `bc837147f543ff60155525be496e992927886011` (two pinned fetches now use Bench's `upstream` remote) and `test_finance_ci_config_static.py` blob `2994901cf9dd79ec21a3388e5ba01a99520e074b` (18-line regression). No business code/DocTypes changed, no default `version-16` merge (read-back `cfcc19394a6646548f2b7050db040c8cf5ebafde`), and no DEVELOPMENT/PRODUCTION/site operation.
