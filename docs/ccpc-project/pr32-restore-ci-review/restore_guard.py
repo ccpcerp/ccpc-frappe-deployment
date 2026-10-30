@@ -8,6 +8,7 @@ Never supply real secrets until owner separately approves hosted decryption.
 from __future__ import annotations
 
 import hashlib
+from datetime import datetime, timedelta, timezone
 import io
 import json
 import os
@@ -100,16 +101,31 @@ def validate_presigned_url(url: str) -> None:
         algorithm = q.get("X-Amz-Algorithm", [])
         signature = q.get("X-Amz-Signature", [])
         date = q.get("X-Amz-Date", [])
+        credential = q.get("X-Amz-Credential", [])
+        headers = q.get("X-Amz-SignedHeaders", [])
+        allowed = {
+            "X-Amz-Algorithm", "X-Amz-Credential", "X-Amz-Date",
+            "X-Amz-Expires", "X-Amz-SignedHeaders", "X-Amz-Signature",
+            "X-Amz-Security-Token", "X-Amz-Content-Sha256",
+        }
+        timestamp = (datetime.strptime(date[0], "%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc)
+                     if len(date) == 1 and re.fullmatch(r"\d{8}T\d{6}Z", date[0])
+                     else None)
+        now = datetime.now(timezone.utc)
+        ttl = int(expiry[0]) if len(expiry) == 1 and expiry[0].isdecimal() else -1
         signed = (
             valid_origin
+            and set(q).issubset(allowed)
             and algorithm == ["AWS4-HMAC-SHA256"]
-            and len(expiry) == 1
-            and expiry[0].isdecimal()
-            and 0 < int(expiry[0]) <= 900
+            and 0 < ttl <= 900
+            and timestamp is not None
+            and now <= timestamp + timedelta(seconds=ttl)
+            and timestamp <= now + timedelta(seconds=30)
             and len(signature) == 1
             and bool(re.fullmatch(r"[0-9a-fA-F]{64}", signature[0]))
-            and len(date) == 1
-            and bool(re.fullmatch(r"\d{8}T\d{6}Z", date[0]))
+            and len(credential) == 1
+            and bool(credential[0])
+            and headers == ["host"]
         )
     except (TypeError, ValueError, AttributeError):
         signed = False
