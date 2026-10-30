@@ -1,0 +1,39 @@
+# CCPC PR32 — one-time confidential Integration2 CircleCI restore operator checklist
+
+**2026-10-30; executable CI still DEFAULT-OFF.** Owner replied "Approved all" following the completed Build #54 no-backup MariaDB rehearsal. Interpret as authority for the **one exact October 29 synthetic Integration2 backup** to be restored inside a new, disposable CircleCI Docker job and to establish purpose-limited B2 read/secret context controls. **Not** permission to access real production business data, modify shared DEVELOPMENT/PRODUCTION hosts, deploy/merge PR #32, reveal secrets to ChatGPT, schedule repeated tests, pay for new API service, or run an uncontrolled destructive restore.
+
+## Verified source and scope
+
+- App repo branch: `ccpcerp/ccpcerp:review/pr32-integration2-isolated-restore-2026-10-30`.
+- Latest reviewed app HEAD must be fetched fresh before entering SHA in CircleCI. Use **exact HEAD of the branch**, not historical smoke SHA `81cc275...` or original Integration2 source SHA `0c223d7...`. New commits invalidate a previously configured approval automatically.
+- CircleCI project from Build #54: `CCPCerp_2026/ccpcerp`. Docker executor `cimg/python:3.14-node`, sidecars MariaDB 11.8 and Redis 7 only. Run against `ci-ccpc-pr32-restore.localhost` and `ci_pr32_restore_20261030`. **NO persistent DEV/PROD endpoint, Docker bind mount, SSH access to CCPC servers, or NAS mounts.**
+- Original **October 29 Integration2 encrypted B2 object** privately stored in `ccpc-ci-restore-20261030`, restricted prefix `integration2-restore-20261030/`. Expected ciphertext length `1,137,112` bytes and SHA256 `92fe1ba22fa6f1ae53828cf6da5276c6d7a7310f8b99be74a33bca0939911560`. Never use another object, plaintext URL, archive or dump. Owner's original Ubuntu age private identity remains separate and protected.
+
+## Preflight and per-run secret custody — OPERATOR, not ChatGPT
+
+1. In CircleCI **Organization Settings → Contexts**, create a dedicated context named exactly `ccpc-pr32-integration2-restore-once`. Restrict it to the **ccpcerp CircleCI project**, a user/security group containing **only** the authorized owner, and add expression restrictions that fail closed on branch and SSH:
+   ```text
+   pipeline.git.repo_name == "ccpcerp"
+   and pipeline.git.repo_owner == "ccpcerp"
+   and pipeline.git.branch == "review/pr32-integration2-isolated-restore-2026-10-30"
+   and not job.ssh.enabled
+   ```
+   Some CircleCI integrations expose a different git-owner value; if the policy refuses the job, inspect the real pipeline value instead of weakening the restrictions. CircleCI docs: https://circleci.com/docs/guides/server/security/contexts/ and https://support.circleci.com/en/articles/16968400-pipeline-values-you-can-use-in-context-expression-restrictions. **Never allow All members / unfiltered projects**, and do not allow a rerun with SSH.
+2. Set context non-secret policy flags `CCPC_RESTORE_OWNER_DATA_EGRESS_APPROVED=yes` and `CCPC_RESTORE_SSH_DEBUGGING_DISABLED=yes`. This string acknowledgment is NOT the CircleCI expression restriction; both are required.
+3. Set **nonsecret** project variable `CCPC_RESTORE_APPROVED_SHA` equal to the **latest exact 40-hex app-branch HEAD**. Do not use `CCPC_SMOKE_APPROVED_SHA` or change it. Source runtime requires `CCPC_RESTORE_APPROVED_SHA == CIRCLE_SHA1 == git HEAD` in the checked-out CircleCI job.
+4. An owner-authorized, narrowly scoped temporary **B2 Read Only application key** may be used on a trusted owner device to create one short-lived S3-compatible presigned **GET** for this exact private ciphertext object. Do NOT put B2 application keys in CircleCI, project variables, GitHub, this chat or job logs. Keep URL validity at most **900 seconds**. Confirm signed URL has exact HTTPS host `s3.us-west-004.backblazeb2.com`, exact bucket/key, SigV4 and signed host. Verify the ciphertext was uploaded previously and still matches SHA; do not upload fresh data without source verification.
+5. Put `CCPC_RESTORE_OBJECT_GET_URL` (complete *bearer URL*) and `CCPC_RESTORE_AGE_IDENTITY` (single-line **AGE-SECRET-KEY-1...** identity, no comments or public recipient) **only inside this restricted context** just before the held job starts. The owner must transfer the identity from their protected location using a trusted secret-handling mechanism, **not by pasting it into ChatGPT, shell histories, GitHub or screenshots**. Do not copy the production MariaDB password, original site config, production API keys, or Backblaze master account key.
+6. From CircleCI **Pipelines → Trigger Pipeline**, select the restore branch above for both config and code checkout if separate selectors appear, with boolean `run_integration2_backup_restore=true` and all other opt-in parameters `false`. Verify **only** `integration2-restore-manual-approval` is waiting. **ONE** manual Approve only after restricted-context checks; the next job is an isolated replay with the exact approved SHA.
+7. Observe only sanitized result/step status. Stop at first error; NEVER automatically rerun, use SSH debug, or upload decrypted SQL/files as job artifacts. The source uses a fixed executor, four capped steps and no artifact/cache/workspace. No tool currently connected here can set these CircleCI variables, generate the private B2 URL from the owner account, retrieve owner-held identity, or press a CircleCI hold; operator must complete UI steps.
+
+## Execution specifics and expected acceptance
+
+The CI job must (a) check exact SHA/branch/project/sidecar; (b) fetch exact pinned Frappe `988e54f3...`, ERPNext `4048fb70...` and **clean, complete** original CCPC `0c223d7c...` source; fail if SSH access or Git object verification fails; (c) fetch exact private signed B2 object **without redirect/proxy**, validate SHA, decrypt in 0700 scratch using one-run age identity, validate all four component sizes/digests and nested public/private TAR paths; (d) verify MariaDB site/database absent, create disposable site, check same DB identity, then invoke pinned Frappe SQL restore against **that exact isolated target only**, (e) copy verified attachment bytes silently without following links or overwriting, and verify both Integration Test Issuer and Integration Test Requester Company rows. Logs print constant PASS/FAIL outcomes, no confidential file names or rows. **No migration to PR32's newer DocTypes**.
+
+**Known unverified items**: exact-run code is committed but not yet tested by a host CI job; the private GitHub SSH/deploy key required to fetch all original source blobs was NOT proven by #54; version compatibility, actual inner tar layout, site config persistence after pinned Frappe force-restore, and restored private attachment readability remain outstanding until execution. This test may fail closed with usable evidence. One-run stage limits cap subprocess time, **not money/credit consumption**. Last owner-reported CircleCI balance was 27,507 credits after Build #54; recheck before any actual test.
+
+## Post-run confidential cleanup
+
+After recording the sanitized result, remove from restricted CircleCI context the B2 presigned URL and age identity (and optionally delete the one-purpose context after confirmation). Revoke the scoped temporary B2 app key. B2 bucket is configured **Keep all versions**: delete **only all versions of the single exact ciphertext object** by version ID (or scope its lifecycle appropriately), then independently verify no versions remain. Never delete the whole bucket or other backups. Keep original Ubuntu encrypted backup, separate recovery identity and NAS backups intact. Do not remove the owner-held age identity until its separately protected recovery copy is verified.
+
+**PRODUCTION / DEVELOPMENT remain untouched.** A successful isolated restore does not approve PR32 merge, live migration or production cutover.
