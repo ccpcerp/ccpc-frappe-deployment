@@ -1,0 +1,60 @@
+# REVIEW-ONLY proposal in the DEPLOYMENT DOCS repository, not active CircleCI config.
+# This is a fragment; NOT a standalone executable .circleci/config.yml.
+# Original app CircleCI starter-validation is unconditional on pushes; a
+# separate release review must control auto-triggering before porting code.
+#
+# Add beneath pipeline.parameters (only in a separately approved app commit):
+#   run_integration2_backup_restore:
+#     type: boolean
+#     default: false
+#
+# The proposed job is INERT BY DESIGN. Do not remove its hard STOP until
+# an approved isolated restore implementation, real CI security restrictions,
+# and exact approved commit and credit budget have been reviewed.
+jobs:
+  integration2-backup-restore-isolated:
+    docker:
+      - image: cimg/python:3.14-node
+      - image: mariadb:11.8
+        environment:
+          MARIADB_ROOT_PASSWORD: ccpc-restore-disposable-db-only
+      - image: redis:7-alpine
+        command: ["redis-server", "--port", "13000"]
+      - image: redis:7-alpine
+        command: ["redis-server", "--port", "11000"]
+    resource_class: large
+    environment:
+      TEST_SITE: ci-ccpc-pr32-restore.localhost
+      CI_DB_HOST: "127.0.0.1"
+      CI_DB_NAME: ci_pr32_restore_20261030
+      CCPC_ALLOW_INTEGRATION2_RESTORE: approved-only
+    steps:
+      - checkout
+      - run:
+          name: Fail closed on wrong project, branch, SHA, site or pending egress consent
+          command: |
+            set -euo pipefail
+            # Proposed final location: .circleci/pr32_restore_guard.py
+            python .circleci/pr32_restore_guard.py
+      - run:
+          name: NOT ACTIVATED — no network transfer, decrypt or database restore
+          command: |
+            echo "REVIEW-ONLY: restore operation intentionally blocked"
+            exit 86
+
+# Add beneath workflows, only after independent CircleCI policy and trigger review:
+workflows:
+  opt-in-integration2-backup-restore:
+    when: << pipeline.parameters.run_integration2_backup_restore >>
+    jobs:
+      - integration2-restore-manual-approval:
+          type: approval
+          filters:
+            branches:
+              only: review/pr32-integration2-isolated-restore-2026-10-30
+      - integration2-backup-restore-isolated:
+          requires:
+            - integration2-restore-manual-approval
+          filters:
+            branches:
+              only: review/pr32-integration2-isolated-restore-2026-10-30
