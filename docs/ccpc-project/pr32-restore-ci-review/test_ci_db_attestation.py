@@ -75,7 +75,9 @@ class DBAttestationTests(unittest.TestCase):
         proof=db.AbsentDatabaseProof(('ephemeral','11.8.5-MariaDB','1'),'job-alpha','f'*40)
         config=self.site/'site_config.json'
         original=json.loads(config.read_text())
-        for k,v in [('db_host','192.168.50.166'),('db_name','development'),('db_user','root'),('db_port',3307),('redis_queue','redis://prod')]:
+        for k,v in [('db_host','192.168.50.166'),('db_name','development'),('db_user','root'),('db_port',3307),('redis_queue','redis://prod'),
+                    ('db_socket','/var/run/mysqld/mysqld.sock'),('mariadb_socket','/tmp/socket'),
+                    ('db_type','postgres'),('db_driver','sqlite')]:
             with self.subTest(k=k):
                 conf=dict(original);conf[k]=v;config.write_text(json.dumps(conf))
                 with patch.object(db,'_local_mariadb_probe') as mock:
