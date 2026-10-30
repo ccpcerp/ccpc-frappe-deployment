@@ -89,3 +89,16 @@ After the provider and approval: implement reviewed CI code + no-secret source g
 - [CircleCI 86/86 acceptance record](FOUR-REPORTS-PR32-CIRCLECI52-REAL-MARIADB-ACCEPTANCE-2026-10-29.md)
 - [Legacy Synology recovery design](recovery.md)
 - [Shared-host DEV/PROD infrastructure](DOCKER-DEV-PROD-ARCHITECTURE.md)
+
+
+## 2026-10-30 continuation — pinned bench source preflight (GitHub verified)
+
+Reopened the GitHub-first workflow, this active handoff, original app PR [#32](https://github.com/ccpcerp/ccpcerp/pull/32), docs-branch restore guards and pinned Frappe v16 new-site/installer source. App PR #32 remained **draft, open, unmerged** at \`061e65710eb4b527fc8ac579aaab8ccad4dd131d\`; its **86/86** combined report tests are historical synthetic-data Frappe/MariaDB acceptance, **not** a backup restore. No new app branch/CI activation.
+
+**New review-only docs-branch commits:**
+- \`e1164f00a961af56c945accbfdb5ec6ef9bdc57b\` — [ci_bench_preflight.py](pr32-restore-ci-review/ci_bench_preflight.py), verified Git blob \`09cf0480358979009923f1196db57e3a3f2527c5\`.
+- \`240880b9a2cddb0d10ec100490162f982514e326\` — [test_ci_bench_preflight.py](pr32-restore-ci-review/test_ci_bench_preflight.py), verified Git blob \`4e74ae13ae92cd006c9ac3c1e4cb70de82253fb4\`.
+
+The new code checks source SHA pins (Frappe 16/ERPNext 16 and the **original Integration2 app SHA**, not PR32), local-only Redis/DB config, scratch-site absence/presence phase, path ownership/permissions and symlink rejection. It cannot alter databases or download/decrypt any archive. **11/11 fresh local mock tests PASS**, plus Python compile PASS; exact Git blobs match locally tested source. Previous **24/24** mocked MariaDB/restore prototype cases remain a **separate earlier** test result; no new combined suite or live SQL test was performed. Confirmed pinned Frappe \`bench new-site\` explicitly accepts fixed \`--db-name\`, \`--db-user\`, \`--db-host\`, \`--db-port\`; generated site config may need owner-only chmod 0600 before existing \`ci_db_attestation\` post-check. [Source details and phases](pr32-restore-ci-review/README.md).
+
+**Remaining gating:** no actual MariaDB 11.8 sidecar provenance, bench creation/site provisioning, restore runner, safe silent tar extraction, real Integration2 SQL/files restoration or CircleCI security proof. CircleCI proposal is still **default OFF, manual hold and exit 86**. NEXT FASTEST SAFELY VALIDATED STEP is to request **a separate bounded authorization for one no-backup, no-key, no-decryption CircleCI disposable sidecar/Frappe bench smoke test** after static CI/credit and auto-trigger review. That rehearsal must prove the new site/DB is absent then present against the same real 127.0.0.1:3306 MariaDB, with pinned app sources, no host mounts/credentials, and safe logs. Do **not** upload/re-decrypt data, alter B2 keys, change secrets, spend CircleCI credits or modify persistent DEVELOPMENT/PRODUCTION without the respective explicit approvals. No source app PR #32 merge or production release.
