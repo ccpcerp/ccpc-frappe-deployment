@@ -31,7 +31,19 @@ if d.is_symlink() or not d.is_dir():
 fs = list(d.iterdir())
 if len(fs) != 4 or any(p.is_symlink() or not p.is_file() or not p.stat().st_size for p in fs):
     raise SystemExit("STOP: Integration2 snapshot missing one of four nonempty regular files")
-if sum(p.name.endswith("-database.sql.gz") for p in fs) != 1 or sum(p.name.endswith("-site_config_backup.json") for p in fs) != 1 or sum(p.name.endswith("-files.tar") for p in fs) != 1 or sum(p.name.endswith("-private-files.tar") for p in fs) != 1:
+dbs = [p for p in fs if p.name.endswith("-database.sql.gz")]
+if len(dbs) != 1:
+    raise SystemExit("STOP: Database component missing or duplicate")
+stem = dbs[0].name.removesuffix("-database.sql.gz")
+if not stem.endswith("-ccpc-integration2_localhost"):
+    raise SystemExit("STOP: Wrong backup site identity")
+expected = {
+    stem + "-database.sql.gz",
+    stem + "-site_config_backup.json",
+    stem + "-files.tar",
+    stem + "-private-files.tar",
+}
+if {p.name for p in fs} != expected:
     raise SystemExit("STOP: Unexpected backup component names")
 print("INTEGRATION2 SOURCE COMPONENTS: 4/4 PASS")
 print("INTEGRATION2 TOTAL BACKUP GiB:", round(sum(p.stat().st_size for p in fs) / (1024**3), 3))
