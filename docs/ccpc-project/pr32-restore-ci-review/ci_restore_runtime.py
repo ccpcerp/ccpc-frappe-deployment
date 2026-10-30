@@ -76,11 +76,11 @@ def _new_private_dir(root: Path) -> None:
         raise RuntimeError("Protected scratch permissions invalid")
 
 
-def _write_secret(path: Path, data: bytes) -> None:
+def _write_secret(path: Path, data: bytes, *, strict_parent: bool = True) -> None:
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
     with os.fdopen(fd, "wb") as handle:
         handle.write(data)
-    dbguard._owner_file(path)
+    dbguard._owner_file(path, strict_parent=strict_parent)
 
 
 def decrypt_and_validate(payload: bytes, identity: str, scratch: Path) -> tuple[dict[str, bytes], str]:
@@ -190,7 +190,7 @@ def _install_files(site: Path, scope: str, entries: list[tuple[tuple[str, ...], 
         else:
             if target.exists() or target.is_symlink():
                 raise RuntimeError("Refuse overwrite of existing attachment")
-            _write_secret(target, content)
+            _write_secret(target, content, strict_parent=False)
             written += 1
     return written
 
