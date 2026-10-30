@@ -26,6 +26,14 @@ def fixture(scope="public", name="example.txt", body=b"synthetic"):
 
 
 class RestoreRuntimeTests(unittest.TestCase):
+    def test_four_part_selector_distinguishes_public_and_private(self):
+        parts = {
+            "prefix-files.tar": b"public",
+            "prefix-private-files.tar": b"private",
+        }
+        self.assertEqual(r._file_component(parts, "-files.tar"), b"public")
+        self.assertEqual(r._file_component(parts, "-private-files.tar"), b"private")
+
     def test_one_regular_public_file(self):
         entries = r._safe_tar_entries(fixture(), "public")
         self.assertEqual(entries[-1], (("example.txt",), b"synthetic"))
