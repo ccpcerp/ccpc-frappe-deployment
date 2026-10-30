@@ -5,7 +5,8 @@ This directory preserves CCPC-specific ERPNext deployment and DEVELOPMENT engine
 ## Start here
 
 - **[GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) — permanent development rules.** Start every new thread here; keep PRODUCTION separate.
-- **[CURRENT-HANDOFF-2.md](CURRENT-HANDOFF-2.md) — ACTIVE compact rolling GitHub checkpoint.** Read after the workflow; it links latest code, test evidence, owner gates, next priorities. Keep it short and update it after verified milestones.
+- **[CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) — ACTIVE compact rolling GitHub checkpoint (2026-10-30).** Read after the workflow for exact current app/DEV/backup state, encrypted CircleCI restore design, owner approval limits and next priorities.
+- [CURRENT-HANDOFF-2.md](CURRENT-HANDOFF-2.md) — preserved previous checkpoint, now historical. It became oversized; do not keep appending milestone logs there.
 - [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) — historical comprehensive handoff (~1.3 MB), **preserved as archive/reference**, not the active file to append to. Consult only for historical details.
 - [Build #34 12/12 acceptance evidence](CURRENT-HANDOFF-CI34-ACCEPTANCE-2026-10-29.md) — tested Finance→Withdrawal→paired *draft* SI/PI source, no production acceptance.
 - [P20 conversation handoff](P20-HANDOFF-2026-10-10.md) — historical continuity log; newer GitHub-first section supersedes its P20A next-step proposals.
