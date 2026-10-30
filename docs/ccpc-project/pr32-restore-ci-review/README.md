@@ -9,8 +9,8 @@ The source app's PR #32 branch, \`ccpcerp/ccpcerp:review/four-day-one-reports-in
 
 ## Staged source
 
-- **\`restore_guard.py\`**: exact CircleCI project/job/branch/SHA/ephemeral site and DB validation; explicit hosted-decryption permission and SSH-debugging policy gates; exact private Backblaze B2 object URL allowlist; strict ciphertext length/SHA-256/age header; in-memory five-member tar manifest and exact four backup-component digest checks; exposes only the original site's \`encryption_key\` internally and never installs original site configuration. No network transfer, SQL or site modification functions in this module.
-- **\`test_restore_guard.py\`**: source-only stdlib tests with synthetic, non-sensitive in-memory fixtures, covering good and bad identities, checkout SHA mismatch, database host/site restrictions, URL constraints, wrong ciphertext sizes/digests, expected manifest and corrupted/oversized tar. Test does not use real backups, age secrets or CI credits.
+- **\`restore_guard.py\`**: exact CircleCI project/job/branch/SHA/ephemeral site and DB validation; explicit hosted-decryption permission and SSH-debugging policy gates; exact private Backblaze B2 object URL allowlist plus short-lived (at most 900-second) AWS SigV4 signature/date requirements; strict ciphertext length/SHA-256/age header; in-memory five-member tar manifest and exact four backup-component digest checks; exposes only the original site's \`encryption_key\` internally and never installs original site configuration. No network transfer, SQL or site modification functions in this module.
+- **\`test_restore_guard.py\`**: source-only stdlib tests with synthetic, non-sensitive in-memory fixtures, covering good and bad identities, checkout SHA mismatch, database host/site restrictions, URL constraints, wrong ciphertext sizes/digests, overly long/unsigned B2 URLs, expected manifest, corrupted/oversized tar and inert-config hard-stop. Test does not use real backups, age secrets or CI credits.
 - **\`config-proposal.yml\`**: partial configuration proposal with \`run_integration2_backup_restore\` default \`false\`, separate branch-filtered manual approval, disposable MariaDB and Redis sidecars, exact project/site checks. **Deliberate \`exit 86\`** prevents restoration even if accidentally activated. This is not a standalone complete CircleCI YAML document and MUST NOT be pasted as-is into an active config.
 
 ## Review against pinned source
@@ -39,7 +39,7 @@ The source app's PR #32 branch, \`ccpcerp/ccpcerp:review/four-day-one-reports-in
 
 ## Static review findings / limitations
 
-**Prepared and code-reviewed; no real CircleCI execution.** Current draft guard and source tests can be tested on a disconnected workstation with \`python -m unittest discover -s <this-directory> -p test_restore_guard.py -v\` (Python 3.10+). A local test, even if green, will **not** substitute for a separately approved real disposable MariaDB restore.
+**Prepared and manually/static-code-reviewed; the proposed Python unittests have NOT been executed in this conversation, and no real CircleCI execution occurred.** Current draft guard and source tests can be tested on a disconnected workstation with \`python -m unittest discover -s <this-directory> -p test_restore_guard.py -v\` (Python 3.10+). A local test, even if green, will **not** substitute for a separately approved real disposable MariaDB restore.
 
 **Blocked by design:** no cloud download/decrypt implementation, no key/context creation, no Frappe installation or DB restore code enabled; \`config-proposal.yml\` hard exits \`86\`. These are explicit next engineering tasks, not hidden “successes”. Source SHA/branch and literal date are proposed for this one-off rehearsal and may need updating before activation.
 
