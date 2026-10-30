@@ -43,6 +43,8 @@
 
 After the provider and approval: implement reviewed CI code + no-secret source guard, perform local encryption/source verification, separately approve/upload into the private temporary object, configure restricted CI context and approve **one** CI run. Later, if actual restore passes, request separate approval for coordinated **DEVELOPMENT-only** exact-SHA app switch, migrations on both sites, service smoke and actual four-report acceptance. **PRODUCTION NO-GO**.
 
+**Latest operator read-only tool check (2026-10-30):** on shared `ccpcerpserver`, both `age` and `age-keygen` were **NOT INSTALLED**. No encryption, install or backup upload performed. Current single next action: OS ID and `apt-cache policy age` **read-only** to confirm Ubuntu distro package candidate before asking for separately scoped host package installation approval. Do not run `apt update`, package install, or unverified downloads under this check. Official age documentation lists Ubuntu 22.04+ `apt install age`; Ubuntu official repository includes `age` package. The host also serves PRODUCTION; no unauthorized service or configuration changes.
+
 ## Key technical references
 
 - [PR32 two-site read-only preflight and backup/NAS/schema evidence](PR32-DEVELOPMENT-READ-ONLY-PREFLIGHT-2026-10-29.md)
