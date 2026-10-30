@@ -96,7 +96,9 @@ def attest_pinned_bench(home: Path, bench: Path, *, site_created: bool) -> None:
             raise ValueError("Unexpected global DB host")
         if config.get("db_port", 3306) != 3306:
             raise ValueError("Unexpected global DB port")
-        if any(k in config for k in ("db_name", "db_user", "db_password", "host_name", "mail_server")):
+        if config.get("db_type", "mariadb") != "mariadb":
+            raise ValueError("Unexpected global DB backend")
+        if any(k in config for k in ("db_name", "db_user", "db_password", "db_socket", "mariadb_socket", "mysql_socket", "host_name", "mail_server")):
             raise ValueError("Global config contains site/remote integration details")
     except (OSError, UnicodeError, json.JSONDecodeError, ValueError, TypeError):
         # Do not print configuration values, filenames from the backup or secrets.
