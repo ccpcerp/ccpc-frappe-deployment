@@ -89,10 +89,13 @@ def decrypt_and_validate(payload: bytes, identity: str, scratch: Path) -> tuple[
     _write_secret(scratch / "age-identity", (identity.strip() + "\n").encode("ascii"))
     # Ciphertext is verified BEFORE handing it to age; never print age output.
     guard.verify_ciphertext(payload)
-    plaintext = _run(
-        ["/usr/bin/age", "--decrypt", "--identity", str(scratch / "age-identity")],
-        input_data=payload, seconds=30
-    )
+    try:
+        plaintext = _run(
+            ["/usr/bin/age", "--decrypt", "--identity", str(scratch / "age-identity")],
+            input_data=payload, seconds=30
+        )
+    finally:
+        (scratch / "age-identity").unlink(missing_ok=True)
     if len(plaintext) > MAX_ARCHIVE:
         raise RuntimeError("Oversized decrypted payload")
     return guard.validate_decrypted_tar(plaintext)
@@ -252,9 +255,17 @@ def restore_once(env: dict[str, str], checkout_sha: str, home: Path, bench: Path
     url = env["CCPC_RESTORE_OBJECT_GET_URL"]
     scratch = home / ".ccpc-restore-payload"
     _new_private_dir(scratch)
-    verified, key = decrypt_and_validate(
-        fetch_exact_ciphertext(url), env["CCPC_RESTORE_AGE_IDENTITY"], scratch
-    )
+    try:
+        verified, key = decrypt_and_validate(
+            fetch_exact_ciphertext(url), env["CCPC_RESTORE_AGE_IDENTITY"], scratch
+        )
+    finally:
+        # Prevent later Frappe/bench child processes inheriting bearer URL/age key.
+        # These secrets are needed for only the early authenticated decrypt stage.
+        os.environ.pop("CCPC_RESTORE_OBJECT_GET_URL", None)
+        os.environ.pop("CCPC_RESTORE_AGE_IDENTITY", None)
+        env.pop("CCPC_RESTORE_OBJECT_GET_URL", None)
+        env.pop("CCPC_RESTORE_AGE_IDENTITY", None)
     public = _safe_tar_entries(_file_component(verified, "-files.tar"), "public")
     private = _safe_tar_entries(_file_component(verified, "-private-files.tar"), "private")
     sql = scratch / "verified.sql.gz"
