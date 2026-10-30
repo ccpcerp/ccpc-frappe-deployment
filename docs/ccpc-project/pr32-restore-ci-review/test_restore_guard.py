@@ -1,6 +1,7 @@
 # Copyright (c) 2026, CCPC and contributors
 """Source-only tests. No CircleCI, cloud access, secrets, site or DB needed."""
 import hashlib
+from datetime import datetime, timezone
 import importlib.util
 import io
 import json
@@ -99,10 +100,13 @@ class ReviewOnlyRestoreGuardTests(unittest.TestCase):
                 guard.require_local_disposable_target(site, host, db)
 
     def test_rejects_untrusted_or_public_download_paths(self):
+        signed_date = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         accepted = (
             "https://" + guard.B2_HOST + guard.B2_OBJECT_PATH +
             "?X-Amz-Algorithm=AWS4-HMAC-SHA256"
-            "&X-Amz-Date=20261030T100000Z&X-Amz-Expires=300"
+            "&X-Amz-Date=" + signed_date + "&X-Amz-Expires=300"
+            "&X-Amz-Credential=synthetic%2F20261030%2Fus-west-004%2Fs3%2Faws4_request"
+            "&X-Amz-SignedHeaders=host"
             "&X-Amz-Signature=" + "a" * 64
         )
         guard.validate_presigned_url(accepted)
@@ -114,7 +118,9 @@ class ReviewOnlyRestoreGuardTests(unittest.TestCase):
             "https://evil.example@" + guard.B2_HOST + guard.B2_OBJECT_PATH + "?token=x",
             accepted.replace("X-Amz-Expires=300", "X-Amz-Expires=3600"),
             accepted.replace("X-Amz-Signature=" + "a" * 64, "X-Amz-Signature=no"),
-            accepted.replace("X-Amz-Date=20261030T100000Z", "X-Amz-Date=x"),
+            accepted.replace("X-Amz-Date=" + signed_date, "X-Amz-Date=x"),
+            accepted.replace("X-Amz-Date=" + signed_date, "X-Amz-Date=20200101T000000Z"),
+            accepted.replace("X-Amz-SignedHeaders=host", "X-Amz-SignedHeaders=host%3Bx-extra"),
         ):
             with self.subTest(url=bad), self.assertRaises(RuntimeError):
                 guard.validate_presigned_url(bad)
