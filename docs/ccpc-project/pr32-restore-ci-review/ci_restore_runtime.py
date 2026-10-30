@@ -102,7 +102,8 @@ def decrypt_and_validate(payload: bytes, identity: str, scratch: Path) -> tuple[
 
 
 def _file_component(components: dict[str, bytes], suffix: str) -> bytes:
-    hits = [v for k, v in components.items() if k.endswith(suffix)]
+    hits = [v for k, v in components.items() if k.endswith(suffix)
+            and not (suffix == "-files.tar" and k.endswith("-private-files.tar"))]
     if len(hits) != 1:
         raise RuntimeError("Exact backup component absent")
     return hits[0]
