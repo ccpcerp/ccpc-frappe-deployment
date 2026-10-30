@@ -15,7 +15,7 @@ from pathlib import Path
 import re
 import subprocess
 import tarfile
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 BRANCH = "review/pr32-integration2-isolated-restore-2026-10-30"
 JOB = "integration2-backup-restore-isolated"
@@ -78,12 +78,43 @@ def require_local_disposable_target(site: str, db_host: str, db_name: str) -> No
         raise RuntimeError("CCPC existing database name forbidden")
 
 def validate_presigned_url(url: str) -> None:
-    """Validate before use; never print or log a bearer URL."""
-    p = urlsplit(url)
-    if (p.scheme != "https" or p.hostname != B2_HOST or p.netloc != B2_HOST
-            or p.path != B2_OBJECT_PATH or not p.query or p.fragment
-            or p.username or p.password or p.port):
-        raise RuntimeError("Untrusted encrypted-backup origin or object path")
+    """Require the exact single private object and short-lived AWS SigV4 GET.
+
+    URL is a bearer secret: do not print it or include it in exceptions.
+    """
+    try:
+        p = urlsplit(url)
+        valid_origin = (
+            p.scheme == "https"
+            and p.hostname == B2_HOST
+            and p.netloc == B2_HOST
+            and p.path == B2_OBJECT_PATH
+            and bool(p.query)
+            and not p.fragment
+            and not p.username
+            and not p.password
+            and p.port is None
+        )
+        q = parse_qs(p.query, keep_blank_values=True)
+        expiry = q.get("X-Amz-Expires", [])
+        algorithm = q.get("X-Amz-Algorithm", [])
+        signature = q.get("X-Amz-Signature", [])
+        date = q.get("X-Amz-Date", [])
+        signed = (
+            valid_origin
+            and algorithm == ["AWS4-HMAC-SHA256"]
+            and len(expiry) == 1
+            and expiry[0].isdecimal()
+            and 0 < int(expiry[0]) <= 900
+            and len(signature) == 1
+            and bool(re.fullmatch(r"[0-9a-fA-F]{64}", signature[0]))
+            and len(date) == 1
+            and bool(re.fullmatch(r"\d{8}T\d{6}Z", date[0]))
+        )
+    except (TypeError, ValueError, AttributeError):
+        signed = False
+    if not signed:
+        raise RuntimeError("Untrusted, unsigned or overlong encrypted-backup URL")
 
 def verify_ciphertext(payload: bytes) -> None:
     if len(payload) != CIPHERTEXT_BYTES:
