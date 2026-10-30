@@ -79,8 +79,11 @@ def _same_isolated_site(bench: Path) -> None:
             not isinstance(settings.get("db_password"), str) or
             not settings["db_password"]):
             raise ValueError("Unexpected site DB destination")
+        if settings.get("db_type", "mariadb") != "mariadb":
+            raise ValueError("Unexpected database backend")
         if any(key in settings for key in (
-            "redis_cache", "redis_queue", "redis_socketio", "host_name", "mail_server"
+            "redis_cache", "redis_queue", "redis_socketio", "host_name", "mail_server",
+            "db_socket", "mariadb_socket", "mysql_socket", "db_driver"
         )):
             # Source config should never be copied wholesale onto the new site.
             raise ValueError("Unexpected site-specific external integration settings")
