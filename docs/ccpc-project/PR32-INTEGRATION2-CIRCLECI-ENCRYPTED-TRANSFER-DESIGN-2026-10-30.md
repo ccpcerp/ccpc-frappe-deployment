@@ -108,3 +108,20 @@ Proposed later read key settings (do NOT create while job/backup is not ready):
 - Duration **86400 seconds (24 hours)**, starting at creation. If the test will not run promptly, wait instead of consuming expiry. A presigned GET URL should be substantially shorter-lived than the app key and treated as sensitive bearer material. For S3-compatible clients, some list-buckets operations require optional `listAllBucketNames` (visible only after selecting a single bucket); avoid granting this unless chosen tooling requires it. Direct `GetObject` signing may avoid bucket listing. [Official B2 key options](https://help.backblaze.com/hc/en-us/articles/360052129034-Creating-and-Managing-Application-Keys), [S3 compatibility](https://www.backblaze.com/docs/cloud-storage-s3-compatible-app-keys).
 
 **Immediate direction:** Cancel key form; no key generation, no secret screenshot, no upload, no API setup. Next safe step is read-only check whether owner-controlled workstation/server already has `age` and `age-keygen` tools, plus design of a provenance-verified installation if absent. Any software installation or sensitive copy still needs exact scope review. Cloud backup ingress and one CircleCI restore run remain unapproved.
+
+## 9. Protected age identity generated and canary round-trip verified (owner output, 2026-10-30)
+
+After the user-local Ubuntu 26.04 `age 1.2.1` binary installation, owner executed the reviewed identity creation/canary script on `gani@ccpcerpserver`. Exact owner-reported status:
+
+```text
+AGE KEY GENERATION: PASS
+PRIVATE KEY PERMISSIONS: PASS
+ENCRYPTION/DECRYPTION TEST: PASS
+PRIVATE KEY NOT DISPLAYED
+```
+
+**Evidence scope:** `~/.local/share/ccpc-integration2-restore/identity.txt` was created via `age-keygen -o` in a restricted mode-0700 directory, private identity mode 0600, public recipient derived in-process and a **nonsecret canary** successfully encrypted/decrypted. No keys, public recipient, plaintext application backups or protected data appeared in the user's output; **no real archive encryption, transfer, Backblaze upload, CI context or restore is proven**. A 0600 owner-local file is protected against ordinary users but remains accessible to host root; it is not an off-host disaster-recovery key backup.
+
+**Next explicitly bounded owner-local action:** Create one **new** restricted `~/ccpc-integration2-encrypted` directory separate from the identity; confirm existing four Integration2 October 29 snapshot components and site-origin prefix, individually SHA256 hash in memory; create a tar stream of exactly the four files plus embedded SHA256/size/source-commit manifest; encrypt with `age -r` using the public recipient derived from the protected identity; persist **only the `.tar.age` ciphertext** under an exclusive random filename (0600), never an unencrypted `.tar` file. Locally decrypt that ciphertext **in memory only** with the existing identity; verify tar membership, manifest equality, four byte sizes and SHA256s, then print the fixed PASS statuses, encrypted output path and ciphertext SHA256 only. Guard duplicate output-directory existence and unexpected source size; STOP rather than overwriting. The accepted source directory is `/home/gani/deployments/frappe_docker/development/frappe-bench/.ccpc-pr32-snapshots/ccpc-integration2.localhost-20261029T132329Z-99d6786e`. The owner has not yet executed this stage. This will read backup bytes locally but will **not** restore, modify original backups, create a cloud object, generate Backblaze app keys or spend CircleCI credits.
+
+**Key continuity:** Keep the private identity and ciphertext **separate**. Before any future deletion of this original local identity, arrange a separately approved, tested, protected offline recovery copy or CI-secret handoff; losing the identity means the encrypted archive cannot be decrypted. Do **not** show identity contents to ChatGPT or commit them. The external transfer of ciphertext, CI context creation and CI build remain separate deliberate decisions.
