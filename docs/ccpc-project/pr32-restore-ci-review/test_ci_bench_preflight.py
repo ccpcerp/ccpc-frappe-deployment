@@ -56,7 +56,8 @@ class BenchPreflightTests(unittest.TestCase):
 
     def test_denies_external_redis_or_db(self):
         for k, val in (("redis_cache", "redis://prod:13000"),
-                       ("db_host", "192.168.50.1"), ("db_port", 3307)):
+                       ("db_host", "192.168.50.1"), ("db_port", 3307),
+                       ("db_type", "postgres")):
             with self.subTest(k=k):
                 self.config[k] = val
                 self.write_config()
@@ -66,7 +67,8 @@ class BenchPreflightTests(unittest.TestCase):
         self.write_config()
 
     def test_denies_site_credentials_in_global_config(self):
-        for k in ("db_password", "db_user", "host_name", "mail_server"):
+        for k in ("db_password", "db_user", "db_socket", "mariadb_socket",
+                  "mysql_socket", "host_name", "mail_server"):
             with self.subTest(k=k):
                 self.config[k] = "synthetic-only"
                 self.write_config()
