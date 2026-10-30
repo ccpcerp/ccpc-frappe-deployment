@@ -101,7 +101,9 @@ class ReviewOnlyRestoreGuardTests(unittest.TestCase):
     def test_rejects_untrusted_or_public_download_paths(self):
         accepted = (
             "https://" + guard.B2_HOST + guard.B2_OBJECT_PATH +
-            "?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=synthetic"
+            "?X-Amz-Algorithm=AWS4-HMAC-SHA256"
+            "&X-Amz-Date=20261030T100000Z&X-Amz-Expires=300"
+            "&X-Amz-Signature=" + "a" * 64
         )
         guard.validate_presigned_url(accepted)
         for bad in (
@@ -110,6 +112,9 @@ class ReviewOnlyRestoreGuardTests(unittest.TestCase):
             accepted.replace(".tar.age", ".sql.gz"),
             accepted.replace("?X-", "#fragment?X-"),
             "https://evil.example@" + guard.B2_HOST + guard.B2_OBJECT_PATH + "?token=x",
+            accepted.replace("X-Amz-Expires=300", "X-Amz-Expires=3600"),
+            accepted.replace("X-Amz-Signature=" + "a" * 64, "X-Amz-Signature=no"),
+            accepted.replace("X-Amz-Date=20261030T100000Z", "X-Amz-Date=x"),
         ):
             with self.subTest(url=bad), self.assertRaises(RuntimeError):
                 guard.validate_presigned_url(bad)
@@ -132,6 +137,18 @@ class ReviewOnlyRestoreGuardTests(unittest.TestCase):
         for bad in (b"not a tar", b"x" * (32 * 1024 * 1024 + 1)):
             with self.assertRaises(RuntimeError):
                 guard.validate_decrypted_tar(bad)
+
+    def test_proposed_workflow_is_inert_even_if_accidentally_enabled(self):
+        config = SRC.with_name("config-proposal.yml").read_text(encoding="utf8")
+        self.assertIn("default: false", config)
+        self.assertIn("type: approval", config)
+        self.assertIn("exit 86", config)
+        self.assertIn("requires:", config)
+        self.assertIn("only: " + guard.BRANCH, config)
+        self.assertNotIn("bench restore", config)
+        self.assertNotIn("CCPC_RESTORE_AGE_IDENTITY_B64:", config)
+        self.assertNotIn("save_cache:", config)
+        self.assertNotIn("store_artifacts:", config)
 
     def test_no_network_database_or_restore_function_in_preflight_module(self):
         content = SRC.read_text(encoding="utf8")
