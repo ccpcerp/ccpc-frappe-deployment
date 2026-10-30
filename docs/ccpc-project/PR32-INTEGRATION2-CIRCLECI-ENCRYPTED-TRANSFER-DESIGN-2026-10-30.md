@@ -144,3 +144,21 @@ NO CLOUD UPLOAD OR SITE CHANGES
 **Status distinction:** The 1.1 MB original Integration2 backup and separate eight-file Synology copy are still intact as last reported; ciphertext has **not** been uploaded to Backblaze, placed in CI, transferred to a workstation, or restored. The owner-created private bucket `ccpc-ci-restore-20261030` remains previously verified empty from UI; no subsequent live bucket read performed. No B2 application key or CI restricted context has been created. Original `identity.txt` is on the shared CCPC host and is **not an independently retained recovery key**; before relying on cloud ciphertext, plan a protected, separate key backup/handoff that does not expose secret text in chat, GitHub or screenshots.
 
 **Next minimal operator step:** Move **only the encrypted `.tar.age` ciphertext** to the owner's local browser workstation using the already trusted existing SSH/SFTP connection (Windows built-in OpenSSH `scp` or operator's approved SFTP client), never copying `identity.txt`, original SQL/site-config/TARs or any other backup files. Verify workstation SHA-256 against the exact ciphertext hash `92fe1ba22fa6f1ae53828cf6da5276c6d7a7310f8b99be74a33bca0939911560` before considering upload. Avoid public links, browser sync folders, cloud auto-upload directories and clipboard transfer of private secrets. A separate approval is needed for actual cloud egress and CI billing/secret setup; don't initiate upload simply because local ciphertext is ready.
+
+## 11. Ciphertext-only download to owner Windows workstation: matching SHA-256 (2026-10-30)
+
+Owner used **Windows PowerShell via Windows OpenSSH** (VS Code Remote SSH host alias `erpnext`) to copy only the already generated encrypted artifact from the Ubuntu shared host to the Windows Downloads folder:
+
+```text
+scp "erpnext:/home/gani/ccpc-integration2-encrypted/integration2-restore-20261030-85ff2c424e4cb5cf.tar.age" "$env:USERPROFILE\Downloads\"
+```
+
+The `scp` terminal reported `100%` / `1110KB` transferred. Then the owner executed `Get-FileHash -Algorithm SHA256` on the Windows ciphertext; PowerShell reported:
+
+```text
+92FE1BA22FA6F1AE53828CF6DA5276C6D7A7310F8B99BE74A33BCA0939911560
+```
+
+This matches the source-side ciphertext SHA256 case-insensitively: `92fe1ba22fa6f1ae53828cf6da5276c6d7a7310f8b99be74a33bca0939911560`. **Transport byte-integrity PASS; local source encrypt/decrypt/integrity 4/4 PASS**. No indication that private `identity.txt`, a plaintext SQL/file backup or any site credential was copied to Windows. Owner's username/home path intentionally omitted here. Original host ciphertext and protected source/NAS backups remain separate.
+
+**Important scope:** A matching checksum alone does not authorize off-owner-network egress. **No Backblaze upload, bucket ACL recheck, new application key, CircleCI secret/job/build or actual restore has yet been evidenced or authorized.** Before instructions for the private B2 browser upload, ask for explicit *separate informed owner approval* to upload only this age-encrypted ciphertext to `ccpc-ci-restore-20261030` (external third-party retention; B2 `Keep all versions` lifecycle, delete exact versions after rehearsal). Confirm the private identity will **not** be uploaded to B2, GitHub or chat. Later CircleCI-hosted decryption of the actual Integration2 snapshot is a *different* high-trust exposure requiring another scoped permission and secured ephemeral environment. Plan identity recovery custody separately, avoiding plaintext key disclosure.
