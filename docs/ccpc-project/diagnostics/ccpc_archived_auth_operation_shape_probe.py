@@ -106,7 +106,7 @@ def classify_operation(line):
         suffix = line[len(prefix):]
         if re.match(rb'\s*\(', suffix):
             return 'INCONCLUSIVE_SQL_INSERT_COLUMN_LIST'
-        values = re.match(rb'([ \\t]+)(VALUES)\\b', suffix, re.IGNORECASE)
+        values = re.match(rb'([ \t]+)(VALUES)\b', suffix, re.IGNORECASE)
         if values:
             # All three features are chosen from fixed categories, not SQL data.
             # This reports multiple simultaneous deviations in one safe label.
@@ -119,9 +119,9 @@ def classify_operation(line):
                 after = 'SPACE_AFTER'
             elif tail.startswith(b'('):
                 after = 'NO_SPACE_AFTER'
-            elif tail.startswith(b'\\t'):
+            elif tail.startswith(b'\t'):
                 after = 'TAB_AFTER'
-            elif tail.startswith((b'\\r', b'\\n')):
+            elif tail.startswith((b'\r', b'\n')):
                 after = 'LINEBREAK_AFTER'
             else:
                 after = 'OTHER_AFTER'
