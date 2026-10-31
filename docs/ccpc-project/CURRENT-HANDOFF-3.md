@@ -759,3 +759,18 @@ Owner reported exact output of **pinned refined read-only diagnostic** `e5f2faff
 **Current authentic backup findings:** Previous owner-side in-memory archive scan `SITE_CONFIG_KEY_ABSENT FAIL`, protected backup ciphertext and all component hashes PASS; current DEV Integration2 site and common configs both report absent encryption key, but may not establish historic absence of encrypted credentials. Original archived SQL `__Auth` encrypted-flag status is **NOT YET VERIFIED**; the earlier standalone owner-local classifier is available pinned at `ffb5f4c9a719b7509468160ebe6e79485b9a058b` on PRIVATE docs branch if user later authorizes a strictly read-only archival source check. The new CI code itself will inspect the authenticated encrypted SQL only in a **separately authorized** future hosted restore.
 
 **Next shortest safe checkpoint:** Run the exact committed no-secret source-only unittest suite with Python 3.14 in a clean isolated checkout/CI **only with separately reviewed costs/authorization if using hosted CircleCI**; resolve any source test failures in GitHub. Only then assess whether a newly authorized one-shot confidential restore on the isolated disposable CI target is warranted, with SHA pin and valid restricted secrets, owner review of credential/key dependencies and budget. Do not pull to persistent DEVELOPMENT or deploy to PRODUCTION as a side effect.
+
+## 2026-10-31 — Source-only PR32 regression suite 92/92 PASS at exact GitHub commit
+
+**Owner-attested test execution (terminal transcript provided in conversation):** The owner ran an ordinary-user `gani@ccpcerpserver` temporary `mktemp` checkout of PRIVATE `ccpcerp/ccpcerp`, branch `review/pr32-integration2-isolated-restore-2026-10-30`; terminal script checked `git rev-parse HEAD` against **`7b81088e4c08b9a82d3f0b902dee492a6e899eab`** before executing exactly six Python 3.14 `-I -B -m unittest discover -s .circleci -p <filename> -v` suites with `PYTHONDONTWRITEBYTECODE=1`. Temporary clone cleaned via EXIT trap. Transcript reports all six `OK` and final **`GITHUB SOURCE-ONLY REGRESSION SUITE: PASS`**:
+- `test_restore_guard.py`: **17/17 PASS**
+- `test_ci_restore_runtime.py`: **29/29 PASS**
+- `test_ci_b2_native.py`: **12/12 PASS**
+- `test_ci_restore_config_static.py`: **13/13 PASS**
+- `test_ci_db_attestation.py`: **10/10 PASS**
+- `test_ci_bench_preflight.py`: **11/11 PASS**
+- **TOTAL 92/92 PASS; 0 fails, 0 errors**.
+
+**Verification:** Assistant independently rechecked app GitHub review branch HEAD unchanged at `7b81088e4c08b9a82d3f0b902dee492a6e899eab` and documentation branch HEAD before recording this evidence. This is a **synthetic/source-only** success, not a real age-encrypted archive restoration nor Frappe/MariaDB integration proof. The original backup's site config key is definitively absent; the original archived `__Auth` encrypted flag remains unverified. CI code will reject unknown or encrypted standard Auth entries if original key absent. The new code does not establish the absence of custom-app encryption dependencies.
+
+**Current next decision:** Source-only gate complete. Do not rerun confidential hosted CircleCI, reuse consumed Build #104 approval, or deploy to DEV/PROD. Review any remaining security concerns (including any encryption uses outside Frappe's `__Auth`), then seek fresh **explicit scoped approval** before a separately budgeted, SHA-pinned, isolated confidential restore with credentials and secure sidecar. No hidden automatic jobs, monitoring, API costs, or destructive server changes.
