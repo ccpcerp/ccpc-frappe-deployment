@@ -4,6 +4,7 @@
 No plaintext files, network, database access, secret display or dynamic errors.
 The original pinned archive checks and encrypted-row rejection are unchanged.
 Fixed labels distinguish unsupported Auth SQL operation shapes; never accept them.
+VALUES variants emit only three fixed categorical features, not SQL text.
 A NO_ENCRYPTED_AUTH_ROWS result covers only standard __Auth rows, not arbitrary
 custom-app encrypted fields, external credentials, or historical key recovery.
 This diagnostic does not authorize a database restore.
@@ -105,8 +106,26 @@ def classify_operation(line):
         suffix = line[len(prefix):]
         if re.match(rb'\s*\(', suffix):
             return 'INCONCLUSIVE_SQL_INSERT_COLUMN_LIST'
-        if re.match(rb'\s+VALUES\b', suffix, re.IGNORECASE):
-            return 'INCONCLUSIVE_SQL_INSERT_VALUES_VARIANT'
+        values = re.match(rb'([ \\t]+)(VALUES)\\b', suffix, re.IGNORECASE)
+        if values:
+            # All three features are chosen from fixed categories, not SQL data.
+            # This reports multiple simultaneous deviations in one safe label.
+            before = ('STANDARD_BEFORE' if values.group(1) == b' '
+                      else 'NONSTANDARD_BEFORE')
+            keyword = ('UPPERCASE_VALUES' if values.group(2) == b'VALUES'
+                       else 'NONSTANDARD_CASE')
+            tail = suffix[values.end():]
+            if tail.startswith(b' '):
+                after = 'SPACE_AFTER'
+            elif tail.startswith(b'('):
+                after = 'NO_SPACE_AFTER'
+            elif tail.startswith(b'\\t'):
+                after = 'TAB_AFTER'
+            elif tail.startswith((b'\\r', b'\\n')):
+                after = 'LINEBREAK_AFTER'
+            else:
+                after = 'OTHER_AFTER'
+            return 'INCONCLUSIVE_SQL_VALUES_' + '_'.join((before, keyword, after))
         if re.match(rb'\s+SELECT\b', suffix, re.IGNORECASE):
             return 'INCONCLUSIVE_SQL_INSERT_SELECT'
         if re.match(rb'\s+SET\b', suffix, re.IGNORECASE):
