@@ -103,13 +103,13 @@ def classify_operation(line):
     prefix = b'INSERT INTO `__Auth`'
     if line.startswith(prefix):
         suffix = line[len(prefix):]
-        if re.match(rb'\\s*\\(', suffix):
+        if re.match(rb'\s*\(', suffix):
             return 'INCONCLUSIVE_SQL_INSERT_COLUMN_LIST'
-        if re.match(rb'\\s+VALUES\\b', suffix, re.IGNORECASE):
+        if re.match(rb'\s+VALUES\b', suffix, re.IGNORECASE):
             return 'INCONCLUSIVE_SQL_INSERT_VALUES_VARIANT'
-        if re.match(rb'\\s+SELECT\\b', suffix, re.IGNORECASE):
+        if re.match(rb'\s+SELECT\b', suffix, re.IGNORECASE):
             return 'INCONCLUSIVE_SQL_INSERT_SELECT'
-        if re.match(rb'\\s+SET\\b', suffix, re.IGNORECASE):
+        if re.match(rb'\s+SET\b', suffix, re.IGNORECASE):
             return 'INCONCLUSIVE_SQL_INSERT_SET'
         return 'INCONCLUSIVE_SQL_INSERT_OTHER'
     if line.startswith(b'REPLACE INTO `__Auth`'):
