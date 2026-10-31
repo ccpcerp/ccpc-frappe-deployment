@@ -43,7 +43,7 @@ def scan_sql(sql_gz):
     guard_path = Path(__file__).with_name('restore_guard.py')
     require(guard_path.is_file(), 'GUARD_SOURCE_MISSING')
     source = guard_path.read_bytes()
-    git_blob = b'blob ' + str(len(source)).encode('ascii') + b'\\0' + source
+    git_blob = b'blob ' + str(len(source)).encode('ascii') + b'\0' + source
     require(hashlib.sha1(git_blob).hexdigest() ==
             'ccc3574acc12b0d9596af4a9df3daa4b62d061dd',
             'GUARD_SOURCE_INTEGRITY')
