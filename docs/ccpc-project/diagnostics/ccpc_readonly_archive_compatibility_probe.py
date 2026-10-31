@@ -80,8 +80,10 @@ def inspect_plaintext(plaintext):
                  'COMPONENT_CHECKSUM')
             parts[name] = content
         site_config = decode_json(parts[stem + '-site_config_backup.json'], 'SITE_CONFIG_JSON')
-        key = site_config.get('encryption_key')
-        gate(isinstance(key, str) and bool(key), 'SITE_CONFIG_KEY')
+        gate('encryption_key' in site_config, 'SITE_CONFIG_KEY_ABSENT')
+        key = site_config['encryption_key']
+        gate(isinstance(key, str), 'SITE_CONFIG_KEY_TYPE')
+        gate(bool(key), 'SITE_CONFIG_KEY_EMPTY')
 
 def main():
     for p in (CIPHERTEXT, IDENTITY):
