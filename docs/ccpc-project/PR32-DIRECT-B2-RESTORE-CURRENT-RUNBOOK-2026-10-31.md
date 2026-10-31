@@ -1,6 +1,6 @@
 # PR32 Integration2 isolated restore — CURRENT direct-key procedure (2026-10-31)
 
-**Status: code-only implementation on GitHub, NOT yet CI tested or restored.**
+**Status (2026-10-31): NEW direct-key source preflight VERIFIED PASS (CircleCI Build #64, 61/61 offline tests on exact SHA `133478c38259cef9ee1e93bff896b8d3d5c734af`). Real B2 ciphertext fetch / age decrypt / Frappe restore remain UNTESTED.**
 This replaces the former **15-minute signed URL** operator procedure. Historical signed-URL instructions in `PR32-INTEGRATION2-RESTORE-OPERATOR-RUNBOOK-2026-10-30.md` are superseded for any **new** pipeline from the updated review branch.
 
 ## One simple operator path, once confirmed safe
@@ -18,6 +18,11 @@ The owner created `ccpc-pr32-restore-read-replacement` with a NEW Key ID, visual
 
 ## Implementation / security review
 
-The review-branch source includes `.circleci/ci_b2_native.py` (Python stdlib, B2 Native v4 Basic authorization plus token-header file GET); `.circleci/ci_restore_runtime.py` now invokes it during early encrypted prefetch; `.circleci/config.yml` strips both B2 vars and age identity from compile/unit tests, dependency install, bench construction and final restore process. There are no artifact, cache, workspace or SSH debug steps. Unit tests in `test_ci_b2_native.py`, `test_ci_restore_runtime.py`, `test_ci_restore_config_static.py`, and `test_restore_guard.py` cover authorization restrictions, no-network mocks, fixed object/prefix, size/hash, no-redirect, CI gating, and credential isolation. They are **not yet executed on this new HEAD**; previously green Build #60 at `d363744` is not validation of this change.
+The review-branch source includes `.circleci/ci_b2_native.py` (Python stdlib, B2 Native v4 Basic authorization plus token-header file GET); `.circleci/ci_restore_runtime.py` now invokes it during early encrypted prefetch; `.circleci/config.yml` strips both B2 vars and age identity from compile/unit tests, dependency install, bench construction and final restore process. There are no artifact, cache, workspace or SSH debug steps. Unit tests in `test_ci_b2_native.py`, `test_ci_restore_runtime.py`, `test_ci_restore_config_static.py`, and `test_restore_guard.py` cover authorization restrictions, no-network mocks, fixed object/prefix, size/hash, no-redirect, CI gating, and credential isolation. **CircleCI Build #64** executed the six source-only suites at `133478c...`: 11 + 7 + 15 + 7 + 10 + 11 = **61/61 PASS**, and GitHub independently reports the held source-preflight approval and test job **success**. The mock ciphertext-fetch PASS marker is not an actual Backblaze request. No real restoration or key delivery to CircleCI has occurred.
 
 Official protocol: https://www.backblaze.com/apidocs/b2-authorize-account and https://www.backblaze.com/apidocs/b2-download-file-by-name.
+
+
+## Verified milestone after runbook draft (2026-10-31)
+
+The user uploaded Build #64 checkout and preflight stdout logs. The run matched GitHub branch SHA `133478c38259cef9ee1e93bff896b8d3d5c734af`; **61/61 offline tests PASS** and `OFFLINE RESTORE SOURCE PREFLIGHT: PASS`. GitHub's status checks independently show manual preflight approval success and source-preflight success: https://app.circleci.com/workflow/4a4aa7fb-1f78-4b9c-a685-cb0d311afdbb/job/37ac3477-ac44-4513-8e86-c78784f861e2 . The existing CircleCI project approval SHA from old signed-URL commit is intentionally stale; operator must update **only** `CCPC_RESTORE_APPROVED_SHA` to current `133478c38259cef9ee1e93bff896b8d3d5c734af` before staging restricted Context secrets and preparing any new real restore. This setting alone does not run CircleCI. Do not approve a confidential restore until final Context restrictions and private key expiry are confirmed.
