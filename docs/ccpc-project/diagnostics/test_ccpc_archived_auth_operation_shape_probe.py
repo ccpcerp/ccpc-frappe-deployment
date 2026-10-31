@@ -67,9 +67,9 @@ class OperationShapeTests(unittest.TestCase):
         cases = (
             (b"INSERT INTO `__Auth` VALUES('x','y','z','masked',0);",
              'INCONCLUSIVE_SQL_VALUES_STANDARD_BEFORE_UPPERCASE_VALUES_NO_SPACE_AFTER'),
-            (b"INSERT INTO `__Auth` VALUES\\t('x','y','z','masked',0);",
+            (b"INSERT INTO `__Auth` VALUES\t('x','y','z','masked',0);",
              'INCONCLUSIVE_SQL_VALUES_STANDARD_BEFORE_UPPERCASE_VALUES_TAB_AFTER'),
-            (b"INSERT INTO `__Auth` VALUES\\n('x','y','z','masked',0);",
+            (b"INSERT INTO `__Auth` VALUES\n('x','y','z','masked',0);",
              'INCONCLUSIVE_SQL_VALUES_STANDARD_BEFORE_UPPERCASE_VALUES_LINEBREAK_AFTER'),
             (b"INSERT INTO `__Auth`  values('x','y','z','masked',0);",
              'INCONCLUSIVE_SQL_VALUES_NONSTANDARD_BEFORE_NONSTANDARD_CASE_NO_SPACE_AFTER'),
