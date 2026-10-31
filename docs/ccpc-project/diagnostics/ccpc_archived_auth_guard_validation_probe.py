@@ -2,7 +2,7 @@
 """One-shot offline read-only authentic archive versus revised keyless CI Auth guard.
 
 No plaintext files, network, database access, secret display or dynamic errors.
-The original pinned archive checks and encrypted-row rejection are unchanged.
+Original pinned ciphertext and manifest-integrity checks remain unchanged.
 Original ciphertext/TAR/manifest guards remain. New CI guard classifies SQL in memory.
 A NO_ENCRYPTED_AUTH_ROWS result covers only standard __Auth rows, not arbitrary
 custom-app encrypted fields, external credentials, or historical key recovery.
@@ -42,6 +42,11 @@ def scan_sql(sql_gz):
     from importlib.util import module_from_spec, spec_from_file_location
     guard_path = Path(__file__).with_name('restore_guard.py')
     require(guard_path.is_file(), 'GUARD_SOURCE_MISSING')
+    source = guard_path.read_bytes()
+    git_blob = b'blob ' + str(len(source)).encode('ascii') + b'\\0' + source
+    require(hashlib.sha1(git_blob).hexdigest() ==
+            'ccc3574acc12b0d9596af4a9df3daa4b62d061dd',
+            'GUARD_SOURCE_INTEGRITY')
     spec = spec_from_file_location('ccpc_pinned_restore_guard', guard_path)
     require(spec is not None and spec.loader is not None, 'GUARD_SOURCE_MISSING')
     guard = module_from_spec(spec)
