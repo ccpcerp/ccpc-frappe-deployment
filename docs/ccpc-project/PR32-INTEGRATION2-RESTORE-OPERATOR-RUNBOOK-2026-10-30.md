@@ -1,5 +1,6 @@
 # CCPC PR32 — one-time confidential Integration2 CircleCI restore operator checklist
 
+> **SUPERSEDED OPERATOR STEPS (2026-10-31):** This document preserves historical review and signed-URL instructions for the old held CircleCI pipeline at `d363744`. Do **not** follow its presigned URL / `CCPC_RESTORE_OBJECT_GET_URL` instructions for new pipelines. The approved direct-key redesign is documented in [PR32-DIRECT-B2-RESTORE-CURRENT-RUNBOOK-2026-10-31.md](PR32-DIRECT-B2-RESTORE-CURRENT-RUNBOOK-2026-10-31.md). The earlier held workflow MUST NOT be approved. A new no-secret source preflight and verified B2 key pair are still required before new restore approval.\n\n
 **2026-10-30; executable CI still DEFAULT-OFF.** Owner replied "Approved all" following the completed Build #54 no-backup MariaDB rehearsal. Interpret as authority for the **one exact October 29 synthetic Integration2 backup** to be restored inside a new, disposable CircleCI Docker job and to establish purpose-limited B2 read/secret context controls. **Not** permission to access real production business data, modify shared DEVELOPMENT/PRODUCTION hosts, deploy/merge PR #32, reveal secrets to ChatGPT, schedule repeated tests, pay for new API service, or run an uncontrolled destructive restore.
 
 ## Verified source and scope
