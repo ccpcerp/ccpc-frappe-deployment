@@ -39,9 +39,9 @@ class OperationShapeTests(unittest.TestCase):
             (b"INSERT INTO `__Auth` (`doctype`,`name`) VALUES ('x','y');",
              'INCONCLUSIVE_SQL_INSERT_COLUMN_LIST'),
             (b"INSERT INTO `__Auth`  VALUES ('x','y','z','masked',0);",
-             'INCONCLUSIVE_SQL_INSERT_VALUES_VARIANT'),
+             'INCONCLUSIVE_SQL_VALUES_NONSTANDARD_BEFORE_UPPERCASE_VALUES_SPACE_AFTER'),
             (b"INSERT INTO `__Auth` values ('x','y','z','masked',0);",
-             'INCONCLUSIVE_SQL_INSERT_VALUES_VARIANT'),
+             'INCONCLUSIVE_SQL_VALUES_STANDARD_BEFORE_NONSTANDARD_CASE_SPACE_AFTER'),
             (b"INSERT INTO `__Auth` SELECT 1;",
              'INCONCLUSIVE_SQL_INSERT_SELECT'),
             (b"INSERT INTO `__Auth` SET encrypted=0;",
@@ -56,6 +56,25 @@ class OperationShapeTests(unittest.TestCase):
              'INCONCLUSIVE_SQL_UNQUOTED_TABLE'),
             (b"INSERT IGNORE INTO `__Auth` VALUES ('x','y','z','masked',0);",
              'INCONCLUSIVE_SQL_INSERT_IGNORE'),
+        )
+        for statement, label in cases:
+            with self.subTest(label=label):
+                with self.assertRaises(probe.Classified) as context:
+                    check_sql(statement)
+                self.assertEqual(context.exception.args, (label,))
+
+    def test_values_variant_features_are_fixed_and_independent(self):
+        cases = (
+            (b"INSERT INTO `__Auth` VALUES('x','y','z','masked',0);",
+             'INCONCLUSIVE_SQL_VALUES_STANDARD_BEFORE_UPPERCASE_VALUES_NO_SPACE_AFTER'),
+            (b"INSERT INTO `__Auth` VALUES\\t('x','y','z','masked',0);",
+             'INCONCLUSIVE_SQL_VALUES_STANDARD_BEFORE_UPPERCASE_VALUES_TAB_AFTER'),
+            (b"INSERT INTO `__Auth` VALUES\\n('x','y','z','masked',0);",
+             'INCONCLUSIVE_SQL_VALUES_STANDARD_BEFORE_UPPERCASE_VALUES_LINEBREAK_AFTER'),
+            (b"INSERT INTO `__Auth`  values('x','y','z','masked',0);",
+             'INCONCLUSIVE_SQL_VALUES_NONSTANDARD_BEFORE_NONSTANDARD_CASE_NO_SPACE_AFTER'),
+            (b"INSERT INTO `__Auth` VALUES;",
+             'INCONCLUSIVE_SQL_VALUES_STANDARD_BEFORE_UPPERCASE_VALUES_OTHER_AFTER'),
         )
         for statement, label in cases:
             with self.subTest(label=label):
