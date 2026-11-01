@@ -1212,3 +1212,22 @@ DEVELOPMENT JOB INSPECTION: COMPLETED
 **Operator availability and no-other-user confirmation:** Following the read-only Honcho / two-site `bench doctor` inspection, the owner responded **"Yes, I'm the only user of both at the moment"** to whether both DEVELOPMENT sites can be temporarily taken offline without conflicting users/financial entries. This fulfills the current owner attendance/downtime gate, while `bench doctor` showed no listed queued jobs (not a proof that no background activity of any kind can be in progress).
 
 **Next already-authorized singular operator runtime step:** On host `ccpcerpserver`, run a guarded `docker exec --user frappe frappe_docker_devcontainer-frappe-1 bash -lc` that reconfirms exact detached Git HEAD `0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`, sole `?? AGENTS.md`, fetched PR32 candidate `061e65710eb4b527fc8ac579aaab8ccad4dd131d`, and the **live** sole `honcho start` process with exact executable/argv, PID `380905`, PPID `0`, PGID `380905`, SID `380905`, TTY `?`, user `frappe`, two previously observed direct children. Then send **SIGINT to only PID `380905`** and boundedly await exit, never issue group-signal, SIGKILL, unscoped pkill or Docker/PRODUCTION commands. On any changed identity, abort **without signaling**; on no-exit, STOP without escalation. **Honcho exit is necessary but insufficient**: before PR32 source switch, run a separate read-only check to confirm managed web/socketio/watch/schedule/worker processes fully stopped, including indirect descendants. No source switch, migration, database transaction, worker restart or PRODUCTION work is combined into the graceful shutdown command. Existing Nov 1 both-site locally and NAS checksum-verified backup sets remain protected. **No shutdown has occurred at this documentation checkpoint.**
+
+## 2026-11-01 — Honcho PID absent after guarded shutdown; child process verification pending
+
+**Owner-reported immediately after the single guarded Honcho SIGINT step:** The operator said the SSH/terminal session exited while executing the stop command; exact final PASS/FAIL lines were not captured. A subsequent read-only probe returned:
+```text
+DEVELOPMENT CONTAINER STATUS:
+NAMES                                 STATUS
+frappe_docker_devcontainer-frappe-1   Up 2 weeks
+DEVELOPMENT HONCHO PROCESS CHECK:
+ORIGINAL HONCHO PID:
+ORIGINAL HONCHO PROCESS GROUP:
+awk: 1: unexpected character '\\'
+awk: line 1: syntax error at or near ==
+awk: 1: unexpected character '\\'
+PROCESS INSPECTION: COMPLETED
+```
+The named DEV container remained running and `ps -p 380905` printed **no original Honcho row**, indicating that original PID was no longer visible. **Critically, the old-group child check failed due to quoting in the operator command**; the trailing `PROCESS INSPECTION: COMPLETED` was printed despite AWK errors and is **not child-process verification**. Do not describe the full managed service shutdown as PASS, and do not rerun SIGINT, start Honcho, perform Git checkout, bench migrate, restore, or modify PRODUCTION on this evidence.
+
+**Next single operator step:** Read-only check from the named DEVELOPMENT container using Python and `ps -eo pid,ppid,pgid,sid,stat,comm` (no AWK and no credentials), enumerate original process PID 380905, previously observed direct children 381079/381080, all entries with PGID/SID 380905 and any fresh exact `honcho start` manager, then report whether any remain. Once the parent, prior process group and descendant managed processes are confirmed stopped, separately recheck pinned Git/worktree and both backup identities before the reviewed PR32 source switch. Both DEVELOPMENT sites are within the approved maintenance window; no full restore of November 1 backup has been performed.
