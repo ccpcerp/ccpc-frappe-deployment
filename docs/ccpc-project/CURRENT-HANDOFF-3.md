@@ -1747,3 +1747,50 @@ HOST PERMISSION CHECK: COMPLETED
 **Next one safe operator action:** Read-only Frappe `frappe.set_user` diagnostic on `development.localhost`: enumerate at most ten enabled, non-Administrator named Managers, confirm each session's effective System Manager role, report **only anonymized M1/M2/M3 labels and missing source DocType names (not user IDs/Company/amounts)** from the fixed union and independently calculated per-report `_require_access` PASS/denial counts. Guard exact detached app SHA and sole protected `?? AGENTS.md`, use `START TRANSACTION READ ONLY`, time-limit and explicit rollback with host non-errexit wrapper. Do not modify users/roles/permissions or production. If role is present and specific sources lack read, determine whether this is intentional least privilege; propose minimum explicitly approved test actor/grant plan only after reviewing actual needed Company permissions. If all source reads allowed but report denied, investigate request/session role resolution or code without broadening rights. Do not claim this is an authenticated browser acceptance.
 
 **Outstanding separate gates:** main Department missing original issue Department on one of two reconciled stock details; Equipment lacks frozen equipment-at-issue snapshot on both; no Job Order rows in sample; one active Draft intercompany billing claim with no SI/PI; synthetic Integration2 lacks Department Accounting Dimension; financial maker/checker setup/permissions, end-to-end invoice posting and independently restored recovery, release merge and PRODUCTION approval pending.
+
+## 2026-11-01 — All three named System Managers blocked on all four PR32 report source gates
+
+**Owner-provided output from guarded `development.localhost` read-only effective-role and source DocType `frappe.has_permission(..., 'read')` diagnostic:**
+```text
+READ-ONLY TRANSACTION: PASS
+NAMED MANAGERS TO CHECK: 3
+M1 EFFECTIVE SYSTEM MANAGER: YES
+M1 DOCTYPE READ ACCESS: 10/13
+M1 MISSING READ: Department
+M1 MISSING READ: Stock Entry
+M1 MISSING READ: Stock Ledger Entry
+M1 REPORT ACCESS: allowed=0/4 denied=4/4
+M2 EFFECTIVE SYSTEM MANAGER: YES
+M2 DOCTYPE READ ACCESS: 5/13
+M2 MISSING READ: Department
+M2 MISSING READ: Stock Entry
+M2 MISSING READ: Stock Ledger Entry
+M2 MISSING READ: Item
+M2 MISSING READ: Sales Invoice
+M2 MISSING READ: Purchase Invoice
+M2 MISSING READ: GL Entry
+M2 MISSING READ: Account
+M2 REPORT ACCESS: allowed=0/4 denied=4/4
+M3 EFFECTIVE SYSTEM MANAGER: YES
+M3 DOCTYPE READ ACCESS: 5/13
+M3 MISSING READ: Department
+M3 MISSING READ: Stock Entry
+M3 MISSING READ: Stock Ledger Entry
+M3 MISSING READ: Item
+M3 MISSING READ: Sales Invoice
+M3 MISSING READ: Purchase Invoice
+M3 MISSING READ: GL Entry
+M3 MISSING READ: Account
+M3 REPORT ACCESS: allowed=0/4 denied=4/4
+MANAGER PERMISSION DIAGNOSTIC: COMPLETED
+DATABASE TRANSACTION: ROLLED BACK
+HOST PERMISSION DIAGNOSTIC: COMPLETED
+```
+
+**Established:** Each of three real enabled named (not Administrator) `System Manager` users **has the effective role in a Frappe session**, but **none passes any of the four PR32 reports' `_require_access()` gates** (0/4 for M1, M2, M3). Each is denied read on Department, Stock Entry, and Stock Ledger Entry; M2/M3 additionally lack Item, Sales Invoice, Purchase Invoice, GL Entry, and Account. This explains the prior 0/4 single-M1 finding. Separate Guest and one named nonmanager correctly denied all four. Four Report JSON definitions are restricted to System Manager; report runtime also requires source Doctype-level read to pass. This is **a real operational-access blocker**, not a SQL failure, and not a reason to bypass or blanket-grant sensitive finance/stock rights. No manager Company-filter permissions, per-document row visibility, or authenticated browser usage was tested; source Doctype-level gates are earlier than those checks. The exact mechanism of missing read (role-permission matrix vs custom policy/user restrictions) **is still undetermined**. No role/user/permission/configuration/transaction/production mutations occurred. PR32 remains draft/unmerged at `061e65710eb4b527fc8ac579aaab8ccad4dd131d`.
+
+**Pinned source code check:** Four reviewed `_require_access` functions require System Manager role and `frappe.has_permission(dt, 'read')` on their fixed report source DocTypes. PR32 app `hooks.py` only supplies direct `has_permission` override for custom `MRS`, not Stock Entry/Stock Ledger Entry/GL Entry/Department. Thus the cause could be standard/custom DocPerm roles, role combinations or configured user-specific restrictions; do not claim the exact reason until verified.
+
+**Next narrow read-only task:** On main DEV, inspect effective `frappe.get_meta(doctype).permissions` for each of the eight specifically denied source DocTypes, using all three managers' real effective roles, and compare whether an unconditional permlevel-0 read grant exists to any of each actor's roles against `frappe.has_permission`. Print anonymized M1/M2/M3, Doctype names, yes/no aggregate; avoid usernames, grants changes, amounts or Company/customer identifiers. Guard pinned app SHA and sole protected `?? AGENTS.md`, 60s timeout and `START TRANSACTION READ ONLY` rollback. This distinguishes missing role grants from unexpected effective access denials but is not complete proof of every custom/User Permission mechanism. If role grants absent, propose **narrow reviewed reporting-access design** for Accounting approval, rather than automatically giving System Manager universal ledger/financial read. After decision/test, verify Company-scoped per-document access with a real authenticated named actor. Do not grant privileges, alter authorization policy or modify PROD without explicit owner approval.
+
+**Remaining work:** Main report source comparisons passed for sampled materials/SLE, GL voucher and existing Draft intercompany claim with no invoices. Main has one `MISSING_ISSUE_DEPARTMENT` row, two `LEGACY_NO_EQUIPMENT_SNAPSHOT` rows; sampled Job activity 0, no created SI/PI pair validated in persistent DEV. Synthetic Integration2 lacks Department Accounting Dimension and requires separate approved site configuration; independently restored backup, production release, accounting maker/checker and user acceptance remain pending.
