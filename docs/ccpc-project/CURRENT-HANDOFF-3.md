@@ -1477,3 +1477,21 @@ NO SERVICE RESTART OR MIGRATION PERFORMED
 **Scope of intended command:** Launch inside named DEVELOPMENT Frappe container as `frappe` to execute four PR32 Script Report `execute()` methods on each DEV site with a one-day Company filter, `START TRANSACTION READ ONLY`, explicit rollback. It did not include any intentional data modification, restart, migration, backup, PR merge or PRODUCTION operation. **Because runtime termination was not captured, do not certify that it completed or that all session cleanup ran.** Read-only MySQL transactions ordinarily roll back on disconnect, but need not infer the actual command's completion.
 
 **Next single operator step:** Reconnect to Ubuntu if needed, and perform **read-only** host reboot-time and exact named DEV Docker container `running/OOMKilled/restart-count` inspection, then verify pinned app SHA and protected `?? AGENTS.md` and exact live Honcho manager PID 519444 (if container remains up). Print only safe status flags; do not reproduce business records/secrets/logs. **Do not rerun Step 11**, start another Honcho, restart/recreate Docker, re-migrate, restore backups, adjust worker or DB settings, post financial entries, or act on PRODUCTION. Investigate any container/process discrepancy before designing a smaller single-site, per-report, bounded, separately captured/flush-safe acceptance test. PR32 remains draft/unmerged and PRODUCTION NO-GO.
+
+## 2026-11-01 — Interrupted report smoke follow-up: DEVELOPMENT host/container/Honcho healthy
+
+**Owner-reported read-only health diagnostic immediately after unexpected terminal exit during the eight-report smoke attempt:**
+```text
+UBUNTU HOST: REACHABLE
+HOST LAST BOOT:
+2026-10-12 11:00:06
+DEV CONTAINER: status=running running=true oom_killed=false restart_count=0
+PR32 SOURCE AND AGENTS.md: PASS
+DEVELOPMENT HONCHO: RUNNING
+REPORT TEST PROCESS CANDIDATES: 0
+READ-ONLY DEVELOPMENT HEALTH CHECK: COMPLETED
+```
+
+**Interpretation/evidence limit:** Ubuntu was reachable and had not rebooted since the reported boot time. The **named DEV Frappe container** was still running, with no container OOM kill flag or recorded restart. The exact reviewed PR32 source and protected `AGENTS.md` remained intact, and exact live Honcho PID 519444/command was observed. The diagnostic's `REPORT TEST PROCESS CANDIDATES: 0` matches only the script's narrowly defined `python -` / bench-sites cwd command shape and does **not** establish a universal process inventory. The previous report run has **no captured completion, failure type, report counts or exit code**, so no report smoke PASS or full reason for the SSH/terminal exit may be inferred. In particular do not blame a container crash/OOM or assert that PRODUCTION changed based on these checks. Bash `errexit` remaining enabled in an interactive shell is one possible explanation for a session closing when a child exits nonzero, not a verified root cause.
+
+**Immediate next work, low-risk and owner-approved read-only acceptance scope:** Replace the bulk 8-report interactive test with **one source-reviewed report on the synthetic `ccpc-integration2.localhost` site only**. Start with `CCPC Department Material Consumption`, exact verified TISS Company and a one-day date filter; guard source/sole protected untracked `AGENTS.md`, use Frappe `Administrator` execution context as a diagnostic only, `START TRANSACTION READ ONLY` and rollback/destroy, print only PASS or exception class and column/row counts. Constrain runtime with an **inner per-Python process timeout**, use unbuffered flushed output, and wrap host `docker exec` in a Bash `if ...; then ...; else ...; fi` so a normal nonzero exit does not trigger an inherited host-shell `set -e` logout. If any error/timeout, STOP without auto retry, migration, restart, credential change, posting, data restore or PRODUCTION interaction; inspect exact error and existing DEV logs separately. An empty-day PASS proves execution only, not report values or billing/GL correctness. Record full operator result before broadening to other reports. GitHub PR #32 remains draft/unmerged.
