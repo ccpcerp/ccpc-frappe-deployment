@@ -1794,3 +1794,49 @@ HOST PERMISSION DIAGNOSTIC: COMPLETED
 **Next narrow read-only task:** On main DEV, inspect effective `frappe.get_meta(doctype).permissions` for each of the eight specifically denied source DocTypes, using all three managers' real effective roles, and compare whether an unconditional permlevel-0 read grant exists to any of each actor's roles against `frappe.has_permission`. Print anonymized M1/M2/M3, Doctype names, yes/no aggregate; avoid usernames, grants changes, amounts or Company/customer identifiers. Guard pinned app SHA and sole protected `?? AGENTS.md`, 60s timeout and `START TRANSACTION READ ONLY` rollback. This distinguishes missing role grants from unexpected effective access denials but is not complete proof of every custom/User Permission mechanism. If role grants absent, propose **narrow reviewed reporting-access design** for Accounting approval, rather than automatically giving System Manager universal ledger/financial read. After decision/test, verify Company-scoped per-document access with a real authenticated named actor. Do not grant privileges, alter authorization policy or modify PROD without explicit owner approval.
 
 **Remaining work:** Main report source comparisons passed for sampled materials/SLE, GL voucher and existing Draft intercompany claim with no invoices. Main has one `MISSING_ISSUE_DEPARTMENT` row, two `LEGACY_NO_EQUIPMENT_SNAPSHOT` rows; sampled Job activity 0, no created SI/PI pair validated in persistent DEV. Synthetic Integration2 lacks Department Accounting Dimension and requires separate approved site configuration; independently restored backup, production release, accounting maker/checker and user acceptance remain pending.
+
+## 2026-11-01 — M1/M2/M3 report denial traced to absent effective role read grants
+
+**Owner-provided read-only effective DocPerm diagnostic on main DEVELOPMENT:**
+```text
+MANAGERS CHECKED: 3
+M1 DENIED Department: UNCONDITIONAL_ROLE_READ=NO OWNER_ONLY_READ=NO
+M1 DENIED Stock Entry: UNCONDITIONAL_ROLE_READ=NO OWNER_ONLY_READ=NO
+M1 DENIED Stock Ledger Entry: UNCONDITIONAL_ROLE_READ=NO OWNER_ONLY_READ=NO
+M1 DENIED SOURCES: 3/8
+M1 DENIED WITHOUT UNCONDITIONAL ROLE GRANT: 3
+M1 DENIED DESPITE UNCONDITIONAL ROLE GRANT: 0
+M2 DENIED Department: UNCONDITIONAL_ROLE_READ=NO OWNER_ONLY_READ=NO
+M2 DENIED Stock Entry: UNCONDITIONAL_ROLE_READ=NO OWNER_ONLY_READ=NO
+M2 DENIED Stock Ledger Entry: UNCONDITIONAL_ROLE_READ=NO OWNER_ONLY_READ=NO
+M2 DENIED Item: UNCONDITIONAL_ROLE_READ=NO OWNER_ONLY_READ=NO
+M2 DENIED Sales Invoice: UNCONDITIONAL_ROLE_READ=NO OWNER_ONLY_READ=NO
+M2 DENIED Purchase Invoice: UNCONDITIONAL_ROLE_READ=NO OWNER_ONLY_READ=NO
+M2 DENIED GL Entry: UNCONDITIONAL_ROLE_READ=NO OWNER_ONLY_READ=NO
+M2 DENIED Account: UNCONDITIONAL_ROLE_READ=NO OWNER_ONLY_READ=NO
+M2 DENIED SOURCES: 8/8
+M2 DENIED WITHOUT UNCONDITIONAL ROLE GRANT: 8
+M2 DENIED DESPITE UNCONDITIONAL ROLE GRANT: 0
+M3 DENIED Department: UNCONDITIONAL_ROLE_READ=NO OWNER_ONLY_READ=NO
+M3 DENIED Stock Entry: UNCONDITIONAL_ROLE_READ=NO OWNER_ONLY_READ=NO
+M3 DENIED Stock Ledger Entry: UNCONDITIONAL_ROLE_READ=NO OWNER_ONLY_READ=NO
+M3 DENIED Item: UNCONDITIONAL_ROLE_READ=NO OWNER_ONLY_READ=NO
+M3 DENIED Sales Invoice: UNCONDITIONAL_ROLE_READ=NO OWNER_ONLY_READ=NO
+M3 DENIED Purchase Invoice: UNCONDITIONAL_ROLE_READ=NO OWNER_ONLY_READ=NO
+M3 DENIED GL Entry: UNCONDITIONAL_ROLE_READ=NO OWNER_ONLY_READ=NO
+M3 DENIED Account: UNCONDITIONAL_ROLE_READ=NO OWNER_ONLY_READ=NO
+M3 DENIED SOURCES: 8/8
+M3 DENIED WITHOUT UNCONDITIONAL ROLE GRANT: 8
+M3 DENIED DESPITE UNCONDITIONAL ROLE GRANT: 0
+ROLE-PERMISSION RULE AUDIT: COMPLETED
+DATABASE TRANSACTION: ROLLED BACK
+HOST ROLE AUDIT: COMPLETED
+```
+
+**Specific diagnosis:** In `development.localhost`, M1 has three required source read gaps (Department, Stock Entry, Stock Ledger Entry) and M2/M3 have eight. Every observed `frappe.has_permission(doctype,'read')` denial coincides with **no unconditional permlevel-0 read grant to any currently assigned/effective role** and no owner-only read grant. There were **zero** cases of an effective unconditional read grant present but access denied. This establishes an effective **DocPerm role grant gap**, without proving no other restrictions might apply after a grant (e.g. Company User Permission and per-record visibility). The application currently correctly fails closed rather than ignoring source permissions. Do not paper over with Administrator, change report permission checks, or blanket-grant three sensitive DoTypes to the shared System Manager role.
+
+**Fastest controlled path:** Prefer a named, owner-selected **least-privilege main-DEV reporting actor**, M1 only as a provisional diagnostic candidate because only three missing sources, and a dedicated scoped role granting read-only on exactly Department, Stock Entry, Stock Ledger Entry, with an explicit owned Company scope and no `ignore_user_permissions` bypass; require **owner approval before any role/DocPerm/User Permission writes** and a rollback/log plan. The user's real actor identity is intentionally not printed; anonymized M1 is not consent to alter that account. Exact Frappe role union and Company-grant enforcement must be checked before execution. A Shared `System Manager` role grant would potentially expand access for all three Managers and other holders, and is not approved.
+
+**Next one read-only gate on main DEV:** Check anonymized sorted M1's existing Company User Permissions `allow='Company'`, `apply_to_all_doctypes`, scoped `applicable_for` versus `frappe.get_doc('Company',...).check_permission('read')`, available total Company count, and the `ignore_user_permissions` attribute of effective role read grants on the three target Doctypes (if any). Print counts/booleans only. A Company-specific User Permission does not by itself prove all raw SQL and role bypass paths enforce scope. If no adequate scope, stop and prepare an explicit dedicated-actor and Company-scoped permission design for Accounting/security approval; do not grant anything yet. Guard pinned app SHA `061e65710eb4b527fc8ac579aaab8ccad4dd131d`, protected sole `?? AGENTS.md`, bounded `START TRANSACTION READ ONLY` and rollback. No new report code changes, migrations, service or PRODUCTION actions.
+
+**Other unresolved:** main one `MISSING_ISSUE_DEPARTMENT` original row, two missing frozen Equipment-at-issue snapshots, zero sampled Job Order rows, Draft billing batch with neither actual SI/PI, synthetic Integration2 without active Accounting Dimension; authenticated named-user Company boundary, approved maker/checker, backup restore/PRODUCTION cutover still pending. PR32 draft/unmerged.
