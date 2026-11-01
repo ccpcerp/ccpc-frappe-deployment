@@ -1182,3 +1182,27 @@ READ-ONLY DEVELOPMENT MAINTENANCE PREFLIGHT: PASS
 The guarded source read was run **inside named DEVELOPMENT container** `frappe_docker_devcontainer-frappe-1` as `frappe`, checking detached old HEAD exactly **`0c223d7cbe8b27c2392d8b2303c45a99dd4d8b41`**, only untracked **`?? AGENTS.md`**, fetched exact PR32 remote head **`061e65710eb4b527fc8ac579aaab8ccad4dd131d`** and absence of incoming tracked `AGENTS.md`. Both November 1 site-local backup manifests found; Synology protected final folder `ccpc-development-pr32-20261101T045910Z-e8d2314ee0adc793` found under verified legacy CIFS mount. Site-config DB names checked distinct **without printing secret DB names**. The five intended `Procfile` process labels were observed in source; Python /proc search found **one** command-matched `honcho start` PID **380905** (PPID 0, PGID 380905, SID 380905, TTY ?, STAT Ss, elapsed 5-00:57:02). This is an **identity/process existence observation**, **not** a no-active-jobs / no-current-user-transactions guarantee, and not an approval or actual service stop.
 
 **Updated next operation:** Read-only current DEVELOPMENT queued/running/background job and Honcho child-process status. Prior historical October 27 stop runbook pinned PID 193 / PPID 14 / TTY pts/0 and MUST NOT be replayed: current Honcho identity is PID 380905 / PPID 0 / no controlling TTY. Verify exact executable/cmdline again immediately before any stop, no new instance and no protected Git/source changes. Have owner ensure no users are transacting in either DEVELOPMENT site and no critical background jobs are in progress; report or STOP on any active/unknown work. If clear, perform only a separately staged exact-identity graceful Honcho SIGINT stop (no unscoped `pkill`, no force escalation, no Docker restart, no PROD commands), then verify all five managed services are down before source switch. Both sites share code/processes and need coordinated migrations after reviewed candidate code switch. Git SHA reset alone cannot reverse DB migrations; Nov 1 snapshots were checksum-verified on NAS but not independently restored. No PR32 code checkout, migration, restart, financial posting or PRODUCTION action occurred in this read-only gate.
+
+## 2026-11-01 — PR32 DEVELOPMENT Honcho and bench-doctor read-only job inspection
+
+**Latest owner-provided read-only output, while DEV services still RUNNING:**
+```text
+CURRENT HONCHO IDENTITY:
+ 380905       0  380905  380905 Ss    5-01:00:56 /home/frappe/.pyenv/versions/3.14.2/bin/python3.14 /home/frappe/.local/bin/honcho start
+HONCHO DIRECT CHILD PROCESSES:
+ 381079  380905  380905 S     5-01:00:56 python3.14
+ 381080  380905  380905 S     5-01:00:56 python3.14
+JOB STATUS: ccpc-integration2.localhost
+-----Checking scheduler status-----
+Workers online: 1
+-----ccpc-integration2.localhost Jobs-----
+JOB STATUS: development.localhost
+-----Checking scheduler status-----
+Workers online: 1
+-----development.localhost Jobs-----
+DEVELOPMENT JOB INSPECTION: COMPLETED
+```
+
+**Interpretation:** Exactly one previously identified DEVELOPMENT Honcho PID `380905` was observed with verified command and same PID/PGID/SID, PPID 0 in container's PID presentation, no controlling TTY, two **direct** Python child processes. Other managed services may be deeper descendants; do not infer only two Procfile services are running. `bench --site ... doctor` on both intended sites reported **Workers online: 1** and no listed queued jobs. This is **not proof of zero executing jobs or absence of active HTTP transactions/user sessions**. NO process was sent a signal. Source, backups, DBs, container and PRODUCTION unchanged.
+
+**Immediate outstanding owner check:** The prior assistant asked the owner **both** to paste inspection output **and confirm that both DEVELOPMENT sites can become unavailable and no user is mid-transaction**. User has so far supplied only process/doctor output, NOT a downtime/no-live-user confirmation. Seek that single operational confirmation before generating or executing the exact-identity Honcho SIGINT step. Upon confirmation, recheck exact executable/PPID/PGID/SID and current sole process atomically at time of command; target the one DEV Honcho PID only, no process-group kill or force escalation. Monitor children and stop on unexpected conditions. Do not migrate before old DEV managed processes are confirmed stopped; never touch PRODUCTION. Approved broader DEV integration remains gated by verified source+schema steps and matched backups. Current PR32 candidate is still fetched/not installed.
