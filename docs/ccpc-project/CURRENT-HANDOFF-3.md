@@ -1343,3 +1343,50 @@ MAIN DEVELOPMENT DATABASE: NOT CHECKED OR MODIFIED
 **GitHub branch/source independently rechecked after user output:** app PR #32 still **open/draft** `review/four-day-one-reports-integration-2026-10-29` at `061e65710eb4b527fc8ac579aaab8ccad4dd131d`. Earlier main DEV read-only masters (Oct 29) verified 4/4 Companies, 20/20 intercompany Accounts and 24/24 party-account configurations, and both sites' 8 patch logs; these checks predate the new candidate's main migration and do not establish live business acceptance.
 
 **Next singular authorized DEVELOPMENT operation:** Main `development.localhost` migration, in the same owner-approved coordinated maintenance, with a NEW independent safety gate: host-side exact NAS mount and Nov 1 published backup directory, current detached reviewed app SHA and protected sole `?? AGENTS.md`, existence and private per-site Nov 1 snapshot manifests (already SHA256-verified in the immediately preceding gates), both site configurations with separate DB identities, current Integration2 5/5 lifecycle DocTypes and main pre-migration 0/5 (fail-closed if unexpected), 8/8 main recorded patches, absence of live Honcho/Bench web/worker/scheduler/socketio/watch processes (ignore only proven `Z` defunct remnant). Then run **only** `bench --site development.localhost migrate` once. May write site metadata, permissions, workflows and backfill records through `after_migrate`, plus shared cache/assets; this main four-company site is not disposable. If migration errors, STOP; no auto-rerun, Git reset, DB restore, server restart, destructive cleanup or PRODUCTION intervention. Upon PASS, verify same five new lifecycle DocTypes, physical columns, seven unique indexes, two extended Revision schemas, two roles and eight patches on **main only** before guarded DEV Honcho restart and two-site report/business acceptance. Both DEVELOPMENT sites remain offline until compatible and smoke-tested; the Nov 1 local/NAS backup sets passed 8/8 SHA256 but have **not** undergone an independent restore.
+
+## 2026-11-01 — PR32 main four-company DEVELOPMENT migration PASS; read-only schema verification next
+
+**Owner-reported actual terminal output for the previously approved, singly targeted `bench --site development.localhost migrate`:**
+```text
+SOURCE AND RECOVERY GUARDS: PASS
+DEVELOPMENT SERVICES STOPPED: PASS
+SITE DATABASE ISOLATION: PASS
+ccpc-integration2.localhost: EXPECTED SCHEMA STATE PASS
+development.localhost: EXPECTED SCHEMA STATE PASS
+MAIN CCPC PATCH LOG: 8/8 PASS
+MIGRATING: development.localhost
+Migrating development.localhost
+Updating DocTypes for frappe        : [========================================] 100%
+Updating DocTypes for erpnext       : [========================================] 100%
+Updating DocTypes for ccpcerp       : [========================================] 100%
+Syncing jobs...
+Syncing fixtures...
+Syncing dashboards...
+Updating Dashboard for frappe
+Updating Dashboard for erpnext
+Updating Dashboard for ccpcerp
+Syncing customizations...
+Syncing languages...
+Flushing deferred inserts...
+Removing orphan doctypes...
+Removing orphan Workspaces
+Removing orphan Dashboards
+Removing orphan Pages
+Removing orphan Reports
+Removing orphan Notifications
+Removing orphan Workspace Sidebars
+Removing Desktop Icons
+Syncing portal menu...
+Updating installed applications...
+Executing `after_migrate` hooks...
+Queued rebuilding of search index for development.localhost
+MAIN DEVELOPMENT MIGRATION: PASS
+PR32 SOURCE AND AGENTS.md POSTCHECK: PASS
+DEVELOPMENT HONCHO RESTART: NOT RUN
+```
+
+**What this establishes:** Both DEVELOPMENT sites completed their respective single-site `bench migrate` commands under pinned detached PR #32 app commit `061e65710eb4b527fc8ac579aaab8ccad4dd131d`. The new main-site migration reports successful Frappe, ERPNext, CCPC DocType sync and after-migrate execution, with independent source/only-untracked-`AGENTS.md` postguard PASS. Host-mounted NAS snapshot directory and local per-site manifests were guarded, and both databases are independently identified; Nov 1 snapshot checksum integrity was verified in preceding recorded gates. Shared Honcho/Bench services remain **stopped**; both sites have **not** been jointly smoke-tested. The search-index rebuild was **queued**, not proven complete.
+
+**Critical evidence boundary:** The main `development.localhost` post-migrate *physical* schema, seven unique indexes, two Revision rejection extensions, roles and exact patch records have **not yet been independently read back**. A successful migrate is not proof of role grants/maker-checker behavior, real financial report values, Withdrawal Slip → Stock/GL → intercompany invoice acceptance, true restore capability, or complete cutover. Both DEV databases are persistent, and prior Nov 1 backups are checksum-verified but still lack a demonstrated isolated restore. PR #32 remains draft/unmerged; **PRODUCTION remains entirely untouched and NO-GO**.
+
+**Next single safe action:** With Honcho still stopped, perform a **read-only, main-site-only** schema/metadata/physical-column/index/role/patch postcheck against `development.localhost`, using the exact pinned app JSON for five new Finance DocTypes (59 fields and seven single-column unique indices), both Revision four-field rejection extensions plus `Rejected` state, two Finance mapping Role definitions and all eight CCPC patch entries. Verify detached Git SHA and protected sole untracked `AGENTS.md`; never output DB credentials, users, Company records or finance amounts. Fail closed on unexpected results; do **not** remigrate, rerun patches, restore snapshots, restart Honcho, change branch, or touch PRODUCTION. After verified PASS, prepare separately guarded DEV Honcho restart and real two-site tests, preserving a distinct approval gate for service changes.
