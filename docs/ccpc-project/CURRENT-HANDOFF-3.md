@@ -1511,3 +1511,22 @@ HOST WRAPPER: REPORT TEST STOPPED (exit code=1)
 **GitHub source reviewed at exact app PR32 draft/unmerged head `061e65710eb4b527fc8ac579aaab8ccad4dd131d`:** `ccpcerp/ccpc_erp/report/ccpc_department_material_consumption/ccpc_department_material_consumption.py` exposes `_require_access()` (System Manager + Source DocType permission checks), `_validate_filters()` (Company permission, valid date), `_source_sql(False)` (parameterized SELECT with joins and grouped outbound stock ledger), and `execute()` (read-only source SQL and result attribution). The error class alone cannot distinguish permission-system SQL from source-SELECT SQL or the transaction guard.
 
 **Next one diagnostic step within approved DEV read-only scope:** On **synthetic Integration2 only**, with exact PR32 Git SHA/protected `AGENTS.md` guard, establish Frappe site context and `START TRANSACTION READ ONLY`, invoke separately named access, filter and nonexecuting `EXPLAIN SELECT` stages of pinned Department report with fixed TISS/2026-11-01 filters and 1,001 row limit, under a 45-second outer `timeout` and non-errexit host `if docker exec ...` wrapper. Print **only stage, Python error class, vendor numeric errno if available, and PASS/STOP**, never SQL text, DB IDs, record names, amounts, credentials or traceback. Always `frappe.db.rollback()`/destroy in `finally`. This does **not** repeat full report or test values; if EXPLAIN succeeds but report still fails, next narrow step will isolate actual SELECT versus result presentation without introducing data writes. Do not remigrate, auto-retry, restart services, modify source/users, run broad tests, or touch PRODUCTION. Any code fix requires GitHub review, narrow tests and another authorized controlled DEV integration.
+
+## 2026-11-01 — PR32 Department report 1054 Unknown Column at SQL EXPLAIN; metadata audit next
+
+**Owner-provided result from the narrow Integration2 diagnostic, pinned to app PR32 SHA `061e65710eb4b527fc8ac579aaab8ccad4dd131d`:**
+```text
+READ-ONLY TRANSACTION: PASS
+REPORT ACCESS: PASS
+REPORT FILTERS: PASS
+FAILED STAGE: SQL_EXPLAIN
+ERROR CLASS: OperationalError
+MARIADB ERROR CODE: 1054
+HOST DIAGNOSTIC: STOPPED (exit code=1)
+```
+
+**Established:** `CCPC Department Material Consumption` report metadata, Administrator-context source Doctype access checks, and Company/date filter validation PASSED against `ccpc-integration2.localhost` and `Integration Test Issuer` using Nov 1 date. `EXPLAIN` on exact PR32 `_source_sql(False)` failed with MariaDB **1054 (unknown column)** *before any report data read*. This is now a precise **query/schema mismatch or identifier resolution** investigation; it does not prove a required database field is absent until the offending reference has been identified. No actual report result or financial acceptance is confirmed, and the query was not modified.
+
+**Pinned GitHub source review:** The Department SELECT reads seven physical source tables through aliases `se` (Stock Entry), `sed` (Stock Entry Detail), `ws` (Withdrawal Slip), `issuer` (Company), `wsi` (Withdrawal Slip Item), `dept` (Department), and `sle` (Stock Ledger Entry), plus a `source_sle` derived projection. Physical source schema fields in these pre-existing DocTypes were NOT covered by the prior 5-new-finance-Doctype/59-field postchecks. Error code alone does not isolate whether the 1054 is in one of those physical fields or a derived alias; therefore do not add/rename any schema field or rerun migration on speculation.
+
+**Next single operator step (read-only synthetic Integration2 only):** guarded source SHA and sole protected `AGENTS.md`, time-limited Frappe read-only transaction, call `_source_sql(False)` **to obtain the query text in memory but do not execute it**, extract its fixed table-alias.column references and compare each to `INFORMATION_SCHEMA.COLUMNS` for the seven exact tables, separately account for derived `source_sle` projected aliases. Print only aggregate count and missing schema identifiers (not Company names, DB names, query text, financial values, credentials or traceback). Stop after audit; no second SQL EXPLAIN, report run, source edits, data writes, migrations, credentials, service changes, PRODUCTION or paid CI. If mismatch identified, review intended field source in pinned GitHub before any code correction; implement scoped fixes on appropriate GitHub review branch, test and obtain separately guarded DEV update approval. If none, next isolate the exact error identifier through sanitized 1054 error handling without exposing data.
