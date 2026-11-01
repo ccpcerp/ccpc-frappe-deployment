@@ -1231,3 +1231,16 @@ PROCESS INSPECTION: COMPLETED
 The named DEV container remained running and `ps -p 380905` printed **no original Honcho row**, indicating that original PID was no longer visible. **Critically, the old-group child check failed due to quoting in the operator command**; the trailing `PROCESS INSPECTION: COMPLETED` was printed despite AWK errors and is **not child-process verification**. Do not describe the full managed service shutdown as PASS, and do not rerun SIGINT, start Honcho, perform Git checkout, bench migrate, restore, or modify PRODUCTION on this evidence.
 
 **Next single operator step:** Read-only check from the named DEVELOPMENT container using Python and `ps -eo pid,ppid,pgid,sid,stat,comm` (no AWK and no credentials), enumerate original process PID 380905, previously observed direct children 381079/381080, all entries with PGID/SID 380905 and any fresh exact `honcho start` manager, then report whether any remain. Once the parent, prior process group and descendant managed processes are confirmed stopped, separately recheck pinned Git/worktree and both backup identities before the reviewed PR32 source switch. Both DEVELOPMENT sites are within the approved maintenance window; no full restore of November 1 backup has been performed.
+
+## 2026-11-01 — Honcho graceful stop left one defunct zombie; zero managers, live-service scan next
+
+**New owner-provided process inventory after graceful DEVELOPMENT Honcho shutdown:**
+```text
+OLD HONCHO/GROUP PROCESS COUNT: 1
+REMAINING PROCESS: 381080       1  380905  380905 Z    python3.14
+CURRENT HONCHO MANAGER COUNT: 0
+STOP: DEVELOPMENT PROCESSES REQUIRE REVIEW
+```
+The previous read-only Python script counted a **zombie (`STAT Z`)** in original process group `380905` and reported STOP because it did not distinguish zombie remnants from live workers. Zombie PID **`381080`**, adopted by PID 1, has already exited and **cannot run a job or accept a signal to terminate**. Honcho manager was absent (zero), but its original group still contains a defunct entry; do **not** describe zombie as an active web/worker process. No evidence of database corruption or production impact. No kill, Docker restart, source checkout or migration should follow merely to reap that zombie; it may persist until parent PID1 reaps it.
+
+**Next single operator gate:** Run a new **read-only** Python `/proc` + `ps` inventory strictly inside named DEVELOPMENT container, explicitly report defunct old-group members separately from live members, search **all** live processes for Frappe Bench-managed Python/Node/socketio/worker/scheduler/watch/web signatures and bench working directory even when reparented/removed from old process group, and report live Honcho managers. No secret-bearing arguments or environment values printed. If zero original-group live members, zero other Bench service candidates, and zero Honcho managers, proceed only to independently guarded exact-SHA checkout preflight while DEV services remain stopped. Any live candidate must be inspected before touching shared code. Do not rerun original graceful SIGINT or send signals to PID 1/zombie. DEVELOPMENT-only approval remains in effect for staged integration, not restoration, financial postings or PRODUCTION.
