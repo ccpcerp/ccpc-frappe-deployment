@@ -1279,3 +1279,44 @@ DATABASE MIGRATIONS: NOT RUN
 **GitHub independently reverified immediately after operator output:** PR #32 remains open/draft with HEAD **`061e65710eb4b527fc8ac579aaab8ccad4dd131d`**, 77 commits/62 changed files ahead of former DEV checkout. `ccpcerp/setup.py` candidate `after_migrate` is substantial: updates requestor/supervisor permissions, operational workflows, personnel and quantity backfills, creates custom fields, etc. `ccpcerp/patches.txt` retains 8 previously recorded patches. Five new Finance lifecycle DocTypes and two Revision schema extensions require schema synchronization on **both** sites. No source-only smoke or PR32 CircleCI result proves compatibility with these persistent databases; October 29 8/8 recorded patch logs were previously read-only validated.
 
 **Next one-site controlled mutation under existing owner-approved PR32 DEV-only maintenance:** Run one guarded `bench --site ccpc-integration2.localhost migrate` inside the named DEV container, verifying pinned code, untouched `AGENTS.md`, both protected current snapshot manifests, preserved NAS directory, no live old-group or independent Honcho/Bench managed process, both sites' config presence, and a fixed target site only. **Do not** migrate `development.localhost` in the same command or restart Honcho; do not rerun migration on failure, restore a DB automatically, reverse code blindly or affect PRODUCTION. A migration can modify Integration2's DocType schema/unique indexes, roles, workflows, custom fields, fixtures, patch logs, records/backfills, cached assets and potentially shared caches; failure requires careful error review, not assumed rollback. After PASS, independently inspect five new Finance DocTypes and two extended Revisions on **Integration2 only** before advancing to main-site approval/gate. Current November 1 backups were full-component checksummed on NAS, but a November 1 isolated restore has NOT been performed.
+
+## 2026-11-01 — PR32 synthetic Integration2 bench migrate PASS; seven-DocType schema check next
+
+**Operator executed only the pre-approved guarded one-site migration of synthetic `ccpc-integration2.localhost`** after exact-sha source switch `061e65710eb4b527fc8ac579aaab8ccad4dd131d`, DEV Honcho quiescence and protected Nov 1 two-site backup verification. User provided complete relevant terminal output:
+```text
+SOURCE AND RECOVERY GUARDS: PASS
+DEVELOPMENT SERVICES STOPPED: PASS
+MIGRATING: ccpc-integration2.localhost
+Migrating ccpc-integration2.localhost
+Updating DocTypes for frappe        : [========================================] 100%
+Updating DocTypes for erpnext       : [========================================] 100%
+Updating DocTypes for ccpcerp       : [========================================] 100%
+Syncing jobs...
+Syncing fixtures...
+Syncing dashboards...
+Updating Dashboard for frappe
+Updating Dashboard for erpnext
+Updating Dashboard for ccpcerp
+Syncing customizations...
+Syncing languages...
+Flushing deferred inserts...
+Removing orphan doctypes...
+Removing orphan Workspaces
+Removing orphan Dashboards
+Removing orphan Pages
+Removing orphan Reports
+Removing orphan Notifications
+Removing orphan Workspace Sidebars
+Removing Desktop Icons
+Syncing portal menu...
+Updating installed applications...
+Executing `after_migrate` hooks...
+Queued rebuilding of search index for ccpc-integration2.localhost
+INTEGRATION2 MIGRATION: PASS
+MAIN DEVELOPMENT MIGRATION: NOT RUN
+```
+**Interpretation:** Frappe, ERPNext and CCPC DocType sync and after-migrate completed with operator-reported success exit. Search-index rebuild was **queued**, not evidenced completed; no authenticated workflow/reports/stock GL acceptance or actual database restore. **Main `development.localhost` has NOT been migrated and must remain offline with shared DEV Honcho services stopped**; both DBs share current new code but are in a mixed-schema state until main migrate.
+
+**Fresh independent GitHub code review:** App PR32 branch still pinned `061e65710eb4b527fc8ac579aaab8ccad4dd131d`. Its five new Finance DocTypes are `CCPC Accounting Mapping Decision`, `CCPC Mapping Decision Use`, `CCPC Mapping Rejection Event`, `CCPC Mapping Retirement Event`, and `CCPC Mapping Retirement Request`; all five include unique-restriction fields in committed JSON. Existing `CCPC Expense Mapping Revision` and `CCPC Center Mapping Revision` add `rejected_by`, `rejected_at`, `rejection_reason`, `rejection_event` and `Rejected` approval-state option. Their versioned JSON files, `ccpcerp/setup.py` and eight previously recorded patches are sourced directly at the pinned PR32 commit, rather than assumed from former Oct 27 integration.
+
+**Next one operation: synthetic-only *read-only* schema and migration postcheck.** Guard the pinned detached source and sole protected `?? AGENTS.md`, then from sites cwd run read-only Frappe/MariaDB queries against **only `ccpc-integration2.localhost`** for exact five DocType definitions and physical tables, two Revision four-field additions and `Rejected` state, unique index presence on versioned lifecycle keys, two mapping roles and all 8 patch-log records. Print only PASS/fail aggregate labels; no site DB identifiers/user data/secrets. Halt on discrepancy; no automatic remigration, backup restoration, service startup or source reversal. After all PASS, next gated explicit main site migration with both DEV sites still in maintenance. No change or authorization for PRODUCTION.
