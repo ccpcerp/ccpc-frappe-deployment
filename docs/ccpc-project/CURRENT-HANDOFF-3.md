@@ -1912,3 +1912,26 @@ HOST COMPANY AUDIT: COMPLETED
 **Owner-reported live CircleCI status (not independently obtained from CircleCI):** One `opt-in-four-reports-acceptance` pipeline has been triggered and is **"On hold"** at the expected manual-approval gate. Owner inspected the CircleCI pipeline and replied **"Yes it's correct"** to explicit exact commit `532a28d99bd0548241854495156a61f94eb1ac6b` and expected branch `review/four-day-one-reports-integration-2026-10-29`; added **"do not worry about the remaining credit"**. GitHub PR32 head independently verified as same SHA in active conversation, still draft/unmerged. This does **not** prove that CircleCI approved-SHA project variable matches or that an isolated test actually executed. Credit review no longer a user-requested checkpoint; existing one-run, no retry, guard/branch/job/site boundaries remain in force.
 
 **Immediate exact next step for owner:** In CircleCI project's `Project Settings > Environment Variables`, ensure **only** `CCPC_FOUR_REPORTS_APPROVED_SHA` holds exactly `532a28d99bd0548241854495156a61f94eb1ac6b`. CircleCI conceals saved variable values; if it was used for old build #52, replace only that variable through the UI (delete old variable/re-add), not unrelated project settings or secrets. Continue keeping `four-reports-manual-approval` on hold until the setting is confirmed. Once verified, approve that one held run and share sanitized success/failure summary, no automatic rerun. CircleCI execution remains out of chat tool reach. No DEVELOPMENT/PRODUCTION changes.
+
+## 2026-11-01 — Executive four-Company reporting PR32 passed owner-approved held CircleCI job
+
+**User reported CircleCI result: "Success" after confirming exact-SHA hold, updating `CCPC_FOUR_REPORTS_APPROVED_SHA` to `532a28d99bd0548241854495156a61f94eb1ac6b` and releasing one approved manual integration job. This result is independently corroborated by the connected GitHub check-status API, queried during the same conversation against that exact SHA:**
+
+```text
+GitHub app PR #32: open, draft, unmerged
+Branch: review/four-day-one-reports-integration-2026-10-29
+HEAD: 532a28d99bd0548241854495156a61f94eb1ac6b
+
+ci/circleci: python-syntax                  success
+ci/circleci: four-reports-manual-approval   success
+ci/circleci: four-reports-isolated-integration success
+```
+
+**Evidence of completed disposable integration job:**
+https://app.circleci.com/workflow/a65fe235-0c04-4806-bb0e-039e795e28e4/job/d6e04795-15b5-41ca-bf9b-883b4099593b
+
+**What is verified:** GitHub's combined status API confirms **success on all three job contexts for this exact pushed PR32 SHA**, including the held gate and disposable four-report integration. The reviewed `.circleci/four_reports_stage.sh` tests phase includes the 10 new `ccpcerp.ccpc_erp.test_executive_reporting` mocked authorization unit tests, all four original report modules, plus the existing source/Stock Ledger/GL/intercompany synthetic native integration tests. Assuming its unmodified fail-fast script executed as committed, the job success indicates that these commanded tests finished successfully. This is stronger than source-only static checks and establishes a fresh verified CI milestone. However, no CircleCI **individual test count/log transcript** was independently fetched here, so do not independently claim a new numeric test count; prior build #52's 86 tests were for the **older** commit `061e657...`.
+
+**NOT yet proven:** actual browser login to new `/app/ccpc-group-executive-reporting` Page as a named role-bearing non-Administrator, real DEV Company-by-Company view across exactly four companies, absence of raw DocType/list access for those users in DEV, effective restriction of other 21 site Company records, per-Company exports/print/navigation, real production permission isolation, and persistent DEV/production stock-vs-GL financial acceptance. Role is not assigned to any live users, and no DEVELOPMENT or PRODUCTION code pull, migrate, restart, record edits or release occurred. PR32 remains draft and unmerged.
+
+**Next critical path:** Obtain explicit owner authorization for a bounded, guarded **persistent DEVELOPMENT** code integration using the exact reviewed SHA, after verifying current DEV app HEAD/branch/status, protecting untracked `AGENTS.md`, checking existing business data/backups and rollback, and avoiding any shared PRODUCTION resources. Keep live role assignment/user permissions as separate explicit authorization, initially to an intentionally scoped named test user. Then perform browser/API acceptance and cross-Company denial tests before general management assignment. Alternatively, if owner prefers to avoid persistent DEV mutation initially, perform isolated browser-level CI test on a disposable site; this would require separately bounded CI test authorization. Do not merge PR32 or deploy PRODUCTION without separate explicit approval.
