@@ -1548,3 +1548,32 @@ HOST SCHEMA DIAGNOSTIC: COMPLETED
 **Additional exact-PR32 GitHub source review:** `ccpcerp/ccpc_erp/withdrawal_issue_beneficiary.py` defines `require_department_gl_dimension()`, which tests that active `department` is in ERPNext `get_accounting_dimensions()` and `frappe.get_meta(doctype).has_field('department')` for **Stock Entry, Stock Entry Detail, and GL Entry**. `apply_issue_beneficiary` writes the explicitly resolved approved beneficiary into `entry.department` and every `row.department`; it rejects missing dimension or contradictory attribution rather than falling back to the editable Withdrawal Slip's requesting Department. `ccpcerp/setup.py::ensure_withdrawal_slip_stock_entry_fields` installs specific Withdrawal Slip and original mapping provenance custom fields but **does not itself create** the `department` Accounting Dimension columns. `ccpcerp/hooks.py` fixture Custom Field allowlist likewise does not install them. Thus the lack of physical fields is consistent with an **unconfigured/inactive Department Accounting Dimension**, but registration state and the other MAIN site and GL Entry must be verified rather than assumed. It would be unsafe to silently replace the original-issue Department with an editable source, map it to Cost Center, manufacture synthetic Department values, or execute schema writes just to make the report run.
 
 **Next single read-only operator step:** Query only the two existing DEVELOPMENT sites for `Accounting Dimension` registration for Department and physical/metadata existence of `department` on Stock Entry, Stock Entry Detail and GL Entry. Report binary/aggregate flags only, no table row contents or private data. Keep pinned app and protected `AGENTS.md` guards and read-only DB transaction with rollback. Stop on error. If both sites lack a Department GL Accounting Dimension, propose a separate **explicitly approved, scoped configuration and data-integrity migration plan**, synthetic Integration2 first, with transaction/GL/stock impact and recovery review. If registered on either site but missing columns, investigate Frappe metadata synchronization before writing. No automatic Accounting Dimension creation/rename, `bench migrate`, report code rewrite, master or GL changes, Docker restart, PRODUCTION operation or CI rerun; PR32 remains draft/unmerged.
+
+## 2026-11-01 — Department Accounting Dimension confirmed only on main DEVELOPMENT; synthetic site blocked
+
+**Owner-run read-only, both-site Accounting Dimension registration/metadata/physical-column diagnostic (following Integration2 Department-report EXPLAIN MariaDB 1054):**
+```text
+CHECKING: ccpc-integration2.localhost
+DEPARTMENT DIMENSION REGISTERED: 0
+DEPARTMENT DIMENSION ACTIVE: 0
+Stock Entry: physical=0 metadata=0
+Stock Entry Detail: physical=0 metadata=0
+GL Entry: physical=0 metadata=0
+ccpc-integration2.localhost: READ-ONLY CHECK PASS
+CHECKING: development.localhost
+DEPARTMENT DIMENSION REGISTERED: 1
+DEPARTMENT DIMENSION ACTIVE: 1
+Stock Entry: physical=1 metadata=1
+Stock Entry Detail: physical=1 metadata=1
+GL Entry: physical=1 metadata=1
+development.localhost: READ-ONLY CHECK PASS
+BOTH DEVELOPMENT DIMENSION CHECKS: COMPLETED
+NO ACCOUNTING CONFIGURATION CHANGES MADE
+HOST DIAGNOSTIC: COMPLETED
+```
+
+**Established:** The full reason for the previous Integration2 report's `EXPLAIN` 1054 is a site-specific missing **registered Department Accounting Dimension** and missing associated `department` physical/metadata columns on three accounting source DocTypes. The main four-company `development.localhost` independently has one registered/active Department dimension, with matching physical/metadata fields on Stock Entry, Stock Entry Detail and GL Entry. Both sites' PR32 Finance DocType/schema checks and basic web/worker registrations previously passed; these do not imply all site-level accounting prerequisites are equal. No report has passed runtime acceptance yet, and no configuration was changed. Reviewed pinned app `ccpcerp.ccpc_erp.withdrawal_issue_beneficiary.require_department_gl_dimension` demands active Department Accounting Dimension and fields; `apply_issue_beneficiary` preserves the approved original beneficiary, not editable requester data. The 5-new-DocType PR32 migrate does not automatically install this site configuration.
+
+**Next single safe action under existing DEV read-only acceptance scope:** Execute **only the pinned `CCPC Department Material Consumption` report** on **main `development.localhost`**, where required dimension exists, under one-day bounded source selection, Frappe `Administrator` context solely for diagnostic coverage, `START TRANSACTION READ ONLY` plus rollback and timeout. Print only stage, report row/column counts or exception class and numeric MariaDB error, not names/amounts/business records. Preserve pinned app SHA `061e65710eb4b527fc8ac579aaab8ccad4dd131d`, `?? AGENTS.md`, no code or DB changes and PRODUCTION entirely NO-GO. An empty result proves only SQL/runtime execution, not report accuracy. If it fails, stop and investigate exact failure, not automatically retry or remigrate.
+
+**Synthetic-site remediation remains a separate owner decision:** To test real original Department attribution and the proposed full reporting suite on `ccpc-integration2.localhost`, review a narrowly scoped **DEVELOPMENT Integration2-only** creation/activation of the Department Accounting Dimension through Frappe/ERPNext's supported configuration/ORM path, its generated fields, GL/stock implications, before/after database checks, dependency and rollback/backup risks. Obtain explicit approval **before** mutation, review existing synthetic transaction state and custom dimensions, and do not copy real group data, raw-SQL add columns, rerun migrations speculatively, restart Docker/Honcho, affect main DEV or PRODUCTION. Nov 1 site backup is checksum-verified but not independently restored. App PR #32 remains open/draft/unmerged.
