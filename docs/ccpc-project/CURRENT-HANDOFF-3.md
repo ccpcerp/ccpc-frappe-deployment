@@ -1390,3 +1390,25 @@ DEVELOPMENT HONCHO RESTART: NOT RUN
 **Critical evidence boundary:** The main `development.localhost` post-migrate *physical* schema, seven unique indexes, two Revision rejection extensions, roles and exact patch records have **not yet been independently read back**. A successful migrate is not proof of role grants/maker-checker behavior, real financial report values, Withdrawal Slip → Stock/GL → intercompany invoice acceptance, true restore capability, or complete cutover. Both DEV databases are persistent, and prior Nov 1 backups are checksum-verified but still lack a demonstrated isolated restore. PR #32 remains draft/unmerged; **PRODUCTION remains entirely untouched and NO-GO**.
 
 **Next single safe action:** With Honcho still stopped, perform a **read-only, main-site-only** schema/metadata/physical-column/index/role/patch postcheck against `development.localhost`, using the exact pinned app JSON for five new Finance DocTypes (59 fields and seven single-column unique indices), both Revision four-field rejection extensions plus `Rejected` state, two Finance mapping Role definitions and all eight CCPC patch entries. Verify detached Git SHA and protected sole untracked `AGENTS.md`; never output DB credentials, users, Company records or finance amounts. Fail closed on unexpected results; do **not** remigrate, rerun patches, restore snapshots, restart Honcho, change branch, or touch PRODUCTION. After verified PASS, prepare separately guarded DEV Honcho restart and real two-site tests, preserving a distinct approval gate for service changes.
+
+## 2026-11-01 — PR32 main DEVELOPMENT physical schema postcheck PASS; guarded Honcho resume next
+
+**Owner-supplied output from the completed main-site-only, read-only postcheck:**
+```text
+PINNED PR32 SOURCE: PASS
+NEW FINANCE DOCTYPES: 5/5 PASS
+NEW FINANCE PHYSICAL TABLES: 5/5 PASS
+NEW FINANCE FIELD DEFINITIONS: 59 PASS
+NEW FINANCE UNIQUE INDEXES: 7 PASS
+REVISION REJECTION FIELDS: 8/8 PASS
+REVISION REJECTED STATE OPTIONS: 2/2 PASS
+FINANCE MAPPING ROLES: 2/2 PASS
+CCPC PATCH LOG: 8/8 PASS
+MAIN DEVELOPMENT PR32 SCHEMA POSTCHECK: PASS
+HONCHO RESTART: NOT RUN
+PRODUCTION: NOT MODIFIED
+```
+
+**Verified milestone and boundary:** Both persistent DEVELOPMENT sites (`ccpc-integration2.localhost` synthetic and `development.localhost` four-company) have now completed separate one-site migrations and independent same-PR32 physical schema/metadata checks: five Finance lifecycle DocTypes, five physical tables, 59 source-listed fields, seven declared single-column unique indexes, 8/8 Revision rejection fields, 2/2 `Rejected` options, two Finance mapping role *definitions*, and 8/8 CCPC patches each. These are owner-reported command results rather than direct ChatGPT shell access. App GitHub PR #32 remains draft/unmerged at exact reviewed `061e65710eb4b527fc8ac579aaab8ccad4dd131d`. Protected untracked `AGENTS.md` stayed isolated per prior guards. No claim is made about search indexing completion, logged-in maker/checker permissions, report numerical correctness, queue processing, ledger/intercompany real posting, or successful restore of the Nov 1 snapshots. This postcheck did **not** start services or change PRODUCTION.
+
+**Next single operation under owner-approved November 1 gated DEV maintenance:** Guarded **DEVELOPMENT-only** single-Honcho restart inside `frappe_docker_devcontainer-frappe-1` with pinned detached source SHA, protected sole `?? AGENTS.md`, exactly five expected `Procfile` labels, no live Honcho/Bench web/worker/schedule/socketio/watch candidate processes, and a new private log path. Use the historically verified `docker exec -d --user frappe ... /home/frappe/.local/bin/honcho start` method, no Compose, Docker restart, broad process kill, source change or migration. Observe exact new manager identity/readiness once; if failed, **stop without auto-retry**. Then separately perform site-selected HTTP pings and read-only worker/scheduler process/queue checks on both sites; defer authenticated reports, finance mapping actor permissions, posting and cutover to their proper acceptance and authorization gates. PRODUCTION entirely NO-GO.
