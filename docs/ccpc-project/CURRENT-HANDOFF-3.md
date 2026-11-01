@@ -1320,3 +1320,26 @@ MAIN DEVELOPMENT MIGRATION: NOT RUN
 **Fresh independent GitHub code review:** App PR32 branch still pinned `061e65710eb4b527fc8ac579aaab8ccad4dd131d`. Its five new Finance DocTypes are `CCPC Accounting Mapping Decision`, `CCPC Mapping Decision Use`, `CCPC Mapping Rejection Event`, `CCPC Mapping Retirement Event`, and `CCPC Mapping Retirement Request`; all five include unique-restriction fields in committed JSON. Existing `CCPC Expense Mapping Revision` and `CCPC Center Mapping Revision` add `rejected_by`, `rejected_at`, `rejection_reason`, `rejection_event` and `Rejected` approval-state option. Their versioned JSON files, `ccpcerp/setup.py` and eight previously recorded patches are sourced directly at the pinned PR32 commit, rather than assumed from former Oct 27 integration.
 
 **Next one operation: synthetic-only *read-only* schema and migration postcheck.** Guard the pinned detached source and sole protected `?? AGENTS.md`, then from sites cwd run read-only Frappe/MariaDB queries against **only `ccpc-integration2.localhost`** for exact five DocType definitions and physical tables, two Revision four-field additions and `Rejected` state, unique index presence on versioned lifecycle keys, two mapping roles and all 8 patch-log records. Print only PASS/fail aggregate labels; no site DB identifiers/user data/secrets. Halt on discrepancy; no automatic remigration, backup restoration, service startup or source reversal. After all PASS, next gated explicit main site migration with both DEV sites still in maintenance. No change or authorization for PRODUCTION.
+
+## 2026-11-01 — PR32 Integration2 seven-DocType schema postcheck PASS; main DEV migration next
+
+**Owner returned successful read-only synthetic Integration2 post-migrate verification for exact installed PR32 `061e65710eb4b527fc8ac579aaab8ccad4dd131d`:**
+```text
+PINNED PR32 SOURCE: PASS
+NEW FINANCE DOCTYPES: 5/5 PASS
+NEW FINANCE PHYSICAL TABLES: 5/5 PASS
+NEW FINANCE FIELD DEFINITIONS: 59 PASS
+NEW FINANCE UNIQUE INDEXES: 7 PASS
+REVISION REJECTION FIELDS: 8/8 PASS
+REVISION REJECTED STATE OPTIONS: 2/2 PASS
+FINANCE MAPPING ROLES: 2/2 PASS
+CCPC PATCH LOG: 8/8 PASS
+INTEGRATION2 PR32 SCHEMA POSTCHECK: PASS
+MAIN DEVELOPMENT DATABASE: NOT CHECKED OR MODIFIED
+```
+
+**What is verified:** New `CCPC Accounting Mapping Decision`, `CCPC Mapping Decision Use`, `CCPC Mapping Rejection Event`, `CCPC Mapping Retirement Event`, and `CCPC Mapping Retirement Request` each exist in synthetic `ccpc-integration2.localhost` `tabDocType`, `tabDocField` and actual MariaDB `INFORMATION_SCHEMA.COLUMNS` for all 59 source-listed fields, with seven single-column unique indexes verified. Both older `CCPC Expense Mapping Revision` and `CCPC Center Mapping Revision` have the four new rejection field columns/metadata and `Rejected` select option. Both Finance mapping Role definitions and eight declared patch-log entries exist. This is schema/index/role-definition evidence, **not** reports' financial values, real maker/checker user grants, live intercompany/stock/GL acceptance, true schema rollback or proof queued search indexing completed. The exact operator result reported no main-site schema read or write from this postcheck.
+
+**GitHub branch/source independently rechecked after user output:** app PR #32 still **open/draft** `review/four-day-one-reports-integration-2026-10-29` at `061e65710eb4b527fc8ac579aaab8ccad4dd131d`. Earlier main DEV read-only masters (Oct 29) verified 4/4 Companies, 20/20 intercompany Accounts and 24/24 party-account configurations, and both sites' 8 patch logs; these checks predate the new candidate's main migration and do not establish live business acceptance.
+
+**Next singular authorized DEVELOPMENT operation:** Main `development.localhost` migration, in the same owner-approved coordinated maintenance, with a NEW independent safety gate: host-side exact NAS mount and Nov 1 published backup directory, current detached reviewed app SHA and protected sole `?? AGENTS.md`, existence and private per-site Nov 1 snapshot manifests (already SHA256-verified in the immediately preceding gates), both site configurations with separate DB identities, current Integration2 5/5 lifecycle DocTypes and main pre-migration 0/5 (fail-closed if unexpected), 8/8 main recorded patches, absence of live Honcho/Bench web/worker/scheduler/socketio/watch processes (ignore only proven `Z` defunct remnant). Then run **only** `bench --site development.localhost migrate` once. May write site metadata, permissions, workflows and backfill records through `after_migrate`, plus shared cache/assets; this main four-company site is not disposable. If migration errors, STOP; no auto-rerun, Git reset, DB restore, server restart, destructive cleanup or PRODUCTION intervention. Upon PASS, verify same five new lifecycle DocTypes, physical columns, seven unique indexes, two extended Revision schemas, two roles and eight patches on **main only** before guarded DEV Honcho restart and two-site report/business acceptance. Both DEVELOPMENT sites remain offline until compatible and smoke-tested; the Nov 1 local/NAS backup sets passed 8/8 SHA256 but have **not** undergone an independent restore.
