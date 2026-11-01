@@ -1595,3 +1595,27 @@ HOST TEST: COMPLETED
 **Unresolved site-specific blocker:** The same Department report cannot execute on `ccpc-integration2.localhost` because it lacks registered/active Department Accounting Dimension and all three physical/metadata Department fields. That is confirmed by owner-run read-only checks; creating it is accounting configuration with operational consequences requiring separate explicit scoped authorization and recovery review. No silent custom-field workaround, unapproved schema migration, report logic substitution or PRODUCTION changes. PR #32 still draft/unmerged at same GitHub SHA.
 
 **Next efficient read-only acceptance gate:** Exercise the **remaining three existing PR32 Script Reports** on MAIN `development.localhost` with one representative one-day submitted source, using exact pinned app and protected worktree guards, `Administrator` for controlled diagnosis only, read-only SQL transaction/rollback, a bounded `timeout`, explicit named per-report PASS/STOP with counts but no record names, financial values or private SQL. Select a distinct requesting Company for intercompany report; fail closed if no valid pair. Stop on first failure (do not auto-rerun) and capture stage + MariaDB error code. Check equipment/job, intercompany billing, and stock-vs-GL source SQL, then separately verify numerical correctness and real actor permissions. Main report already verified and must not be unnecessarily rerun. Test script may use `frappe.db.rollback` and `frappe.destroy` in finally. No transactions, migrations, Honcho restart, role grants, CI spend or PRODUCTION operations.
+
+## 2026-11-01 — PR32 all four main DEVELOPMENT reports execute with nonzero rows; financial reconciliation next
+
+**Owner-reported output from the second guarded, single-transaction, read-only main DEVELOPMENT report execution against pinned PR32 source:**
+```text
+MAIN DEV READ-ONLY TRANSACTION: PASS
+INTERCOMPANY FILTER: SOURCE PAIR
+EXISTING SOURCE DAY: SELECTED
+STARTING: ccpc_equipment_job_material_activity
+REPORT PASS: ccpc_equipment_job_material_activity columns=24 rows=2
+STARTING: ccpc_intercompany_withdrawal_billing_status
+REPORT PASS: ccpc_intercompany_withdrawal_billing_status columns=22 rows=1
+STARTING: ccpc_company_stock_pnl_gl_reconciliation
+REPORT PASS: ccpc_company_stock_pnl_gl_reconciliation columns=17 rows=4
+THREE MAIN DEV REPORT TESTS: PASS
+DATABASE TRANSACTION: ROLLED BACK
+HOST TEST: COMPLETED
+```
+
+**Combined with preceding, separate same-main-site Department report `columns=19 rows=2` PASS:** **4/4 distinct PR32 standard Script Reports successfully executed with nonzero results** against the persistent `development.localhost` MariaDB (19+24+22+17 column definitions; 2+2+1+4 reported result rows = **9 report rows across four reports**, not nine distinct vouchers, costs, transactions or Stock Entry Details). The tested representative date was selected from an existing submitted Withdrawal-linked Material Issue, and the intercompany pair came from its actual slip rather than a fabricated fallback. Both scripts used a bounded Python `Administrator` diagnostic execution context, `START TRANSACTION READ ONLY`, explicit rollback, separate output and timeout, exact detached source `061e65710eb4b527fc8ac579aaab8ccad4dd131d`, and protected `?? AGENTS.md` status guards. No business data or amounts printed, no intended writes/restore/migration/restart/PRODUCTION operation.
+
+**Acceptance boundary:** This is **live persistent DEVELOPMENT execution-path PASS** only. Report row counts are **not** independent verification that underlying stock quantity/valuation equals SLE, stock-voucher GL equals booked expense, invoice state is correct, repeated rows are unique, scopes match Company, or users other than `Administrator` have appropriate access. The four reports distinguish gross original SLE valuation, independent unpriced Job activity, invoice billing state and separately posted GL; summing nine rows would be meaningless. Existing Integration2 synthetic site still lacks registered/active Department Accounting Dimension on Stock Entry, Detail, GL Entry and consequently Department report fails SQL 1054 there; no config was changed. PR32 still draft/unmerged and PRODUCTION still NO-GO.
+
+**Next fastest safe test:** One **read-only, per-source Stock Ledger reconciliation on main** for the two live Department consumption rows. In one bounded `START TRANSACTION READ ONLY`, choose representative latest submitted Withdrawal-linked Material Issue day/company, run the already successful Department report once and match each returned `stock_entry_detail` against a separately executed **parameterized** per-detail original `tabStock Ledger Entry` aggregation (company, voucher, voucher detail, same day, `voucher_type='Stock Entry'`, `is_cancelled=0`, `actual_qty<0`), and original `tabStock Entry`/Detail references, with decimal tolerances appropriate to stock quantity and currency. Output only row counts, discrepancy/quality counts, and PASS/STOP, no identifiers, amounts, sensitive configuration or traceback. Treat absent historical SLE/attribution as explicit quality evidence, not invented proof. No new fixtures or postings and no retries after failure. After that proceed to independent voucher GL / invoice status checks and actor-level permissions. Do not imply Company-wide financial correctness from a two-row sample. Synthetic dimension addition requires separate explicit scoped DEV approval and recovery review. PRODUCTION NO-GO.
