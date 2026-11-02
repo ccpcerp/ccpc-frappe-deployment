@@ -2160,3 +2160,25 @@ READ-ONLY CHECK COMPLETED
 The four live candidates are `bash` sessions each with PPID 0 and their own PGID/SID, **not** an observed Honcho manager or clearly a web/worker service. The previous generic audit includes any service-named process whose CWD is the bench; this catches interactive terminal shells parked there. The audit is therefore **inconclusive**, not proof four Frappe services survived. The 12 `Z` zombies are defunct, not active. Following earlier `docker inspect`, DEVELOPMENT container `frappe_docker_devcontainer-frappe-1` reported `STATUS=running RUNNING=true EXIT_CODE=0 OOM_KILLED=false`. A previous transient terminal `Exited` message did not mean container shutdown. None of these observations permits terminating the four bash shells or blindly ignoring them.
 
 **Next single read-only operator action:** classify the four specific shell PIDs (exact argv shape without printing sensitive arguments, current CWD, TTY, FD0, state, child count), and independently scan all other `frappe` processes for executable/argv matches to Honcho, Frappe web/worker/scheduler, Node Socket.IO/watcher, Redis and known old PGIDs, ignoring the current inspection's own shell/Python. Fail closed if a shell has active children or an unexplained live service. Do not send signals, run Git checkout, bench migrate, restart Docker or touch PRODUCTION. On truly idle shell sessions plus zero DEV service candidates, proceed with already-approved pinned `532a28d99bd0548241854495156a61f94eb1ac6b` source switch as a separate step, preserving `AGENTS.md` and both November 2 protected backup sets.
+
+
+## 2026-11-02 — No DEV listeners; two Codex processes block safe source switch pending identification
+
+**Owner-provided read-only follow-up classification output:**
+```text
+SHELL SESSION CLASSIFICATION
+SHELL 14 STATE S CHILDREN 0 CLASS IDLE_SESSION
+SHELL 5088 STATE S CHILDREN 0 CLASS REVIEW_REQUIRED
+SHELL 16566 STATE S CHILDREN 0 CLASS IDLE_SESSION
+SHELL 17161 STATE S CHILDREN 0 CLASS IDLE_SESSION
+UNEXPECTED LIVE PROCESS COUNT: 3
+REVIEW PROCESS: 5088 bash S
+REVIEW PROCESS: 5450 codex S
+REVIEW PROCESS: 454863 codex S
+DEVELOPMENT SERVICE LISTENING PORTS: []
+STOP: DEVELOPMENT shutdown requires review
+NO SIGNALS, CHECKOUT OR MIGRATION
+```
+Three of the earlier four bash sessions are idle (no direct children). The fourth, PID `5088`, failed the strict idle-shell test; the output does not specify which criterion failed. Two **live Codex processes** PID `5450` and `454863` are captured by the generic DEV-bench process filter, potentially independent coding sessions with access to the shared Git worktree; do **not** assume these are Honcho service children, harmless, idle, or safe to terminate. The network port inspection found **zero** listeners among the five expected DEV service ports. The prior 12 zombies are already defunct and should be ignored for signaling, not force-cleaned. At this checkpoint **NO source checkout or migration has been performed**; DEV Honcho manager previously exited on guarded single-PID SIGINT.
+
+**NEXT exact one read-only operator action:** inspect process identity/provenance for **only** shell PID `5088`, Codex PIDs `5450`, `454863`, and the three already-classified idle shells. Report UID, state, PPID, PGID, SID, tty, executable basename, argv **count** not full arguments, CWD classification (bench/app/other), and number of live children; do not print credentials, environment, command flags, chat content, open files, or logs. Independently assert old detached Git SHA `061e65710eb4b527fc8ac579aaab8ccad4dd131d`, exact sole `?? AGENTS.md`, and fetched pinned target `532a28d99bd0548241854495156a61f94eb1ac6b` remain unchanged. If Codex sessions still access the app checkout or might write to it, user must identify/voluntarily finish or safely pause those agents before the source switch, rather than sending arbitrary kill or Docker stop. Continue only after confirmed DEV service and concurrent writer quiescence. PRODUCTION excluded, backup recovery sets preserved, PR #32 still draft/unmerged.
