@@ -35,3 +35,26 @@ Perform a **read-only DEVELOPMENT service-start readiness audit**: inspect Procf
 - Prior history: `docs/ccpc-project/CURRENT-HANDOFF-3.md`.
 - Workflow: `docs/ccpc-project/GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md`.
 - Code PR: https://github.com/ccpcerp/ccpcerp/pull/32 .
+
+
+## 2026-11-02 — DEVELOPMENT-only service restart readiness PASS (owner output)
+
+**Owner-reported read-only service-start audit after both DEV site migrations and successful four native report executions:**
+```text
+PINNED SOURCE AND AGENTS.md: PASS
+PROCFILE SERVICES: web, socketio, watch, schedule, worker
+PROCFILE FIVE SERVICES: PASS
+DEVELOPMENT SITE CONFIGURATIONS: PASS
+BENCH LOG DIRECTORY: PASS
+LIVE SERVICE CANDIDATES: 0
+ZOMBIE PROCESSES IGNORED: 48
+DEVELOPMENT SERVICE LISTENERS: []
+SERVICE RESTART READINESS: PASS
+NO PROCESSES SIGNALED
+NO SERVICES STARTED
+NO DATABASE CHANGES
+READINESS_AUDIT_EXIT_CODE=0
+```
+**Interpretation:** exact pinned detached PR32 source `532a28d99bd0548241854495156a61f94eb1ac6b` and protected `?? AGENTS.md` intact. The named DEV container has exactly the expected five bench Procfile labels; both DEV site configs and bench log directory present. No matching active service processes or listeners were found. **48 zombies are dead process entries, not services to signal or delete**. No files, Docker state, site DB, application code, scheduled queue state, or PRODUCTION changed by this audit. Connected GitHub reconfirms PR #32 draft/open/unmerged and head unchanged.
+
+**Previously owner-approved next controlled action:** re-guard source, backups, exact DEV container, Procfile labels, absence of active managers/workers/web/scheduler/watch/socketio/listeners; then launch exactly one detached DEV-only Honcho `/home/frappe/.local/bin/honcho start` from `/workspace/development/frappe-bench`, using a private non-clobber log there. Verify one live Honcho manager and pinned SHA after launch. Do not restart containers, affect shared host/PRODUCTION, clear zombie entries, rerun migrations, alter roles, merge PR or automatically retry a failed launch. Manager PASS alone does not establish site HTTP readiness; separately test both sites and queue/worker/scheduler on next operator step. Retain all local+Synology snapshots and original `AGENTS.md`.
