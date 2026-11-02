@@ -1,5 +1,8 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
+> **Latest active delivery checkpoint — November 2, 2026 (MAIN DEVELOPMENT):** Under the exact detached custom-app SHA `532a28d99bd0548241854495156a61f94eb1ac6b`, the owner ran a working-directory-corrected Frappe `execute()` smoke: all four report modules PASS (Department 19 columns/2 rows; Equipment 24/2; Intercompany 22/1; Stock/P&L GL 17/4), and both `Guest` and `Administrator` executive gateway denial probes PASS. MAIN DB used `START TRANSACTION READ ONLY` and rollback. No additional migrations/restarts or intentional business writes. The earlier `database.log` standalone failure was addressed by running from `frappe-bench/sites`; no logger directory change. **Next actionable gate:** review existing DEV five-entry `Procfile`, actual existing process/listener state and all-site scheduler implications, then obtain/confirm scope for one guarded DEV-only Honcho resume and two-site HTTP checks. Do not start `bench schedule` manually; Integration2's absent Department stock-entry columns remain an independent synthetic-site report limitation. PR #32 draft/unmerged at `532a28d`; PRODUCTION NO-GO. See appended November 2 milestone for evidence and limits.
+
+
 **Active compact GitHub-first checkpoint, 2026-10-30 (Asia/Manila).** Start with [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md); verify live GitHub state before further actions. [CURRENT-HANDOFF-2.md](CURRENT-HANDOFF-2.md) is preserved as the detailed historical checkpoint and **must not** be appended to further. Refer to linked technical records for evidence rather than repeating full transcripts.
 
 ## GitHub source of truth and approvals
@@ -2546,3 +2549,36 @@ LOG_TARGET_CHECK_EXIT_CODE=0
 This **rules out claiming** the missing `/workspace/development/frappe-bench/sites/logs` as the cause: the actual attempted log handler path was **outside** `/workspace/development/frappe-bench` and its parent was missing. The basename alone is `database.log`, so the full path/root cause remains unknown. `frappe.init` passed and log opening was intentionally intercepted before any file open, so this is not a completed `frappe.connect`. The Frappe runtime `execute()` and gateway permission tests **have not run**. Earlier both site migrations, MAIN metadata and all six raw SQL source statements passed; DEV services remain stopped; PRODUCTION unmodified. GitHub PR32 remains draft/open/unmerged at exact pinned `532a28d99bd0548241854495156a61f94eb1ac6b`.
 
 **Next one read-only action:** repeat bounded `FileHandler._open` interception inside exact DEVELOPMENT container and print **the normalized absolute attempted log path** (no file contents) as well as cwd and Frappe site path location, parent existence and an explanation of whether any path component is a symlink; no directory creation, logging-file open, database connection or restart. Preserve protected `?? AGENTS.md`. The unexpected path may be a standalone Frappe initialization parameter/working-directory mismatch rather than a missing legitimate DEV directory; compare actual path to established site and bench log folders before making any change. Do not create shared sites/logs based on prior suspicion.
+
+
+## 2026-11-02 — MAIN four-report Frappe execute 4/4 PASS and executive-denial 2/2 PASS
+
+**Operator-supplied exact terminal summary**, from within `frappe_docker_devcontainer-frappe-1` as `frappe`, working directory `/workspace/development/frappe-bench/sites`, with detached CCPC app HEAD guard `532a28d99bd0548241854495156a61f94eb1ac6b` and protected sole untracked `?? AGENTS.md`:
+
+```text
+PINNED DEVELOPMENT SOURCE: PASS
+DEVELOPMENT DATABASE ISOLATION: PASS
+FRAPPE INIT: PASS
+MAIN FRAPPE CONNECTION: PASS
+MAIN SQL READ-ONLY TRANSACTION: PASS
+DEPARTMENT PASS COLUMNS: 19 ROWS: 2
+EQUIPMENT PASS COLUMNS: 24 ROWS: 2
+INTERCOMPANY PASS COLUMNS: 22 ROWS: 1
+STOCK PNL GL PASS COLUMNS: 17 ROWS: 4
+REPORT EXECUTION: 4 OF 4 PASS
+GATEWAY Guest DENIED: PASS
+GATEWAY Administrator DENIED: PASS
+GATEWAY DENIAL TESTS: 2 OF 2 PASS
+DATABASE TRANSACTION: ROLLED BACK
+NO BUSINESS TRANSACTION WRITES REQUESTED
+NO MIGRATIONS OR SERVICE RESTARTS
+PRODUCTION: NOT TOUCHED
+MAIN FRAPPE RUNTIME TEST: PASS
+APPLICATION_TEST_EXIT_CODE=0
+```
+
+**Root-cause workaround verified immediately before:** a separate operator read-only static inspection of the *installed* Frappe logger implementation verified that working directory `/workspace/development/frappe-bench/sites` resolves `../logs/database.log` to the existing writable `/workspace/development/frappe-bench/logs/database.log`. `LOGGER_PATH_CHECK_EXIT_CODE=0`; no Frappe init/network/DB operations were performed in that static check. Earlier one-off Python calls from parent working directories caused missing-log-path symptoms; no logger fix, directory creation or source changes are justified by this evidence.
+
+**Scope and limitations:** These are real `execute()` calls in persistent MAIN `development.localhost` using `Administrator`, with fixed CCPC and CCPC/RMC source filters for October 1–31, 2026. The two executive gateway tests intentionally confirm denial for `Guest` and `Administrator` only; there is **no authorized regular executive success/Company-isolation test**, no real user role grants, browser/HTTP smoke after restoring services, no confirmation of numerical financial accuracy, complete row-level permission matrix, or independent backup restore. Nonzero rows prove representation executed on some data but not that totals are certified. DB transaction was read-only/rolled back, while Frappe initialization may touch cache/logs. The synthetic Integration2 site still lacks both Department accounting-dimension columns on its Stock Entry source tables; that limitation is unaffected by MAIN PASS. No scheduler, web/worker services or migrations were started during this test. GitHub PR #32 rechecked by connected GitHub `get_pr_info`: draft/open/unmerged at the exact installed SHA. PRODUCTION was not modified by this owner-reported operation; no independent production audit performed.
+
+**Next single operational decision:** DEVELOPMENT services are still reported stopped from the guarded source-transition/migration window. Inspect five-entry Procfile/start method and current DEV-only service/port state, with exact source/AGENTS/backup guards; because `bench schedule` runs an **all-site** scheduler in this bench, do not manually start it as a one-time diagnostic. A new DEV Honcho resume has real background-work implications for both persistent sites; secure a scoped operator approval and check both sites' scheduling/job state before one controlled start. No Docker/Compose recreation, filesystem repair, additional migration, automatic retry, or PRODUCTION work. After safe service resume, verify separate per-site HTTP ping and smoke, then continue actual authorized-account permissions/functional testing, with PR merge and PRODUCTION cutover separate decisions.
