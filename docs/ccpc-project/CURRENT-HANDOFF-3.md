@@ -2124,3 +2124,21 @@ NO CHECKOUT OR MIGRATION PERFORMED
 The live 25 descendant process list included spawned Python, shell, Node and esbuild processes; some were in descendant PGIDs other than Honcho's, so **never signal only a process group** as a substitute for supervising the parent. Both `bench doctor` outputs listed one online worker and no jobs, but that does not prove no in-flight web work or transactions. Prior owner confirmed being sole DEV user and approved downtime/maintenance; reconfirm no ongoing DEVELOPMENT transactions at command time. The existing source stays detached `061e65710eb4b527fc8ac579aaab8ccad4dd131d`, sole protected `?? AGENTS.md`, target fetched `532a28d99bd0548241854495156a61f94eb1ac6b`. November 2 same-host and NAS 8/8 backup copies remain intact. PR #32 is still draft/open/unmerged on GitHub at pinned target SHA.
 
 **Next single authorized operation:** tightly guarded one-PID `SIGINT` to the **freshly revalidated** Honcho manager 519444 in the named DEV container only, after verifying UID/executable/full argv/CWD, PPID=0, PGID=SID=519444, zero other managers, and both site/Git/backup guards. Bounded graceful wait with no escalation, group kill, container restart or PRODUCTION impact. Even after reported manager exit, **separately inspect all managed DEV web/worker/socketio/scheduler processes** for quiescence before checkout. On any identity drift, stop without signal; on timeout or survivors, preserve state and diagnose. No checkout/migration in same shutdown action.
+
+
+## 2026-11-02 — Guarded DEVELOPMENT Honcho SIGINT manager exit PASS; descendant quiescence pending
+
+**Owner-executed exact PID one-time guarded graceful shutdown, host NAS and DEV-only container checks:**
+```text
+PROTECTED SYNOLOGY RECOVERY: PASS
+DEVELOPMENT SOURCE AND RECOVERY GUARDS: PASS
+EXACT DEVELOPMENT HONCHO IDENTITY: PASS
+SENDING GRACEFUL SIGINT TO DEVELOPMENT HONCHO
+DEVELOPMENT HONCHO MANAGER EXIT: PASS
+NO FORCE SIGNAL OR PROCESS-GROUP KILL USED
+MANAGED SERVICE SHUTDOWN: REQUIRES SEPARATE VERIFICATION
+NO CHECKOUT OR MIGRATION PERFORMED
+```
+The command checked the expected CIFS mount and both November 2 NAS manifests, DEVELOPMENT old detached SHA `061e65710eb4b527fc8ac579aaab8ccad4dd131d`, exact fetched new SHA `532a28d99bd0548241854495156a61f94eb1ac6b`, sole preserved untracked `AGENTS.md`, and the local recovery manifests. Exact Honcho PID `519444` had PPID 0, PGID/SID 519444, UID `frappe`, CWD `/workspace/development/frappe-bench`, Python executable `/home/frappe/.pyenv/versions/3.14.2/bin/python3.14`, and `/home/frappe/.local/bin/honcho start` argv. The command sent a single `SIGINT` to **PID only**; manager became absent or zombie before the bounded timeout. No group signal, SIGKILL, Docker restart, code switch, migration or PRODUCTION operation was included. An earlier inspection had shown **25 live descendants**, including processes in independent PGIDs: manager exit **does not establish** that all DEV web/socketio/worker/scheduler/watch or orphaned grandchildren are dead.
+
+**Immediate next one read-only step:** verify exact DEVELOPMENT Git/status and protected source, then examine original process-group 519444 and separately known descendant PGIDs `519623,519627,519631,519634,519637`, the previously observed descendant PIDs (do not rely on historical PIDs as live identities), current `honcho start` managers, and any DEV-bench-CWD/`sites`-path web/worker/schedule/socketio/watch candidates; distinguish `Z` zombie remnants from live services. Do not kill or signal, restart containers, run `bench migrate`, or checkout code during this read-only test. Fail closed on unknown/remaining DEV service candidates, and inspect their identities in a separate step. Only when quiescence is verified may source switch proceed at the **pinned** SHA. Protect all November 2 backups and PRODUCTION, and remember database changes are not reversed by a Git switch.
