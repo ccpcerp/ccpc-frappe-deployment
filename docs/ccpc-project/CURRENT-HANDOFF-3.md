@@ -2037,3 +2037,28 @@ The exact Python command in the preceding conversation checked mountpoint `/mnt/
 **GitHub source status independently rechecked in this conversation:** App PR #32 remains **open, draft, unmerged**, head `review/four-day-one-reports-integration-2026-10-29` at **`532a28d99bd0548241854495156a61f94eb1ac6b`**, 19 commits ahead of the locally guarded old app `061e65710eb4b527fc8ac579aaab8ccad4dd131d`, 0 behind, changing 13 paths versus that old SHA. New paths include CCPC Group Executive Reporting page, API/tests, report access paths, plus `hooks.py` and `setup.py` changes. GitHub combined statuses for new head report success on `python-syntax`, `four-reports-manual-approval`, `four-reports-isolated-integration`, but no live DEVELOPMENT acceptance has been performed at new HEAD; previous exact-SHA 86/86 Build #52 occurred on original `061e657...` and cannot be presented as the new HEAD's detailed test count. Do **not** automatically float to a moving branch head or assume all new head behavior is DEV-tested.
 
 **NEXT critical path:** review exact SHA/scope and a fresh **read-only** check of shared DEV app worktree and processes before a separately scoped DEVELOPMENT code switch. Preserve the detached source and `?? AGENTS.md`, both site backups/local and NAS, both site databases and configurations. No `git pull`, branch checkout, migrations/patches, Honcho/worker restart, master/permission changes, PR merge or PRODUCTION activity yet. Select a pinned reviewed SHA (possibly the narrower original 061e report candidate versus newer executive page revisions), then plan coordinated two-site source+schema migration/rollback boundaries and owner approval. An independent restore rehearsal and realistic CCPC transaction/report acceptance are still distinct pending controls.
+
+
+## 2026-11-02 — Two-site DEVELOPMENT read-only installed-app preflight PASS; controlled migration approval gate
+
+**Owner executed the read-only Docker/bench preflight recommended after the 8/8 NAS transfer. Terminal output:**
+```text
+PROTECTED DEVELOPMENT GIT STATE: PASS
+SITE: development.localhost
+frappe  16.33.1 version-16
+erpnext 16.34.2 version-16
+ccpcerp 0.0.1   HEAD
+SITE: ccpc-integration2.localhost
+frappe  16.33.1 version-16
+erpnext 16.34.2 version-16
+ccpcerp 0.0.1   HEAD
+READ-ONLY DEVELOPMENT PREFLIGHT: PASS
+NO CHECKOUT OR MIGRATION PERFORMED
+```
+This passes the command's exact detached old app commit `061e65710eb4b527fc8ac579aaab8ccad4dd131d`, no local branch, exact sole `?? AGENTS.md`, site-config presence and installed-app enumeration guards. It does **not** establish live workers were quiesced, site schema is ready for new DocTypes, or any migration was carried out. The two sites share this source checkout; do not treat them as independent source versions. The November 2 fresh four-part sets and verified off-host published NAS directory `/mnt/erpnext_backups/ccpc-development-pr32-20261102T003434Z-237495dd9a3d4061` are protected per the preceding checkpoint.
+
+**Live GitHub PR#32 re-review:** GitHub independently confirms PR #32 is open/draft/unmerged at exactly `532a28d99bd0548241854495156a61f94eb1ac6b`, source branch `review/four-day-one-reports-integration-2026-10-29`; compare against installed HEAD `061e657...` is **19 ahead, 0 behind, 13 changed files**, no changes to `patches.txt` in those 19 commits. CI statuses on the new exact SHA: `python-syntax`, `four-reports-manual-approval` and `four-reports-isolated-integration` all success. Do not equate this with validated persistent DEVELOPMENT transactions or user access.
+
+**Migration-risk review from exact GitHub patch:** New `ccpcerp/hooks.py` adds `before_migrate` and `before_install` hooks to create **only** the `CCPC Group Executive Reporting` role, and `ccpcerp/setup.py` adds a role-creation function plus call in `after_migrate`; no named-user role assignments or Company permissions in these *new* lines. New reporting page and endpoint enforce four named Companies and a special report role. However the **pre-existing** `after_migrate` already executes setup/backfill routines for personnel, role assignments, MRS/purchasing/withdrawal workflows, stock entry custom fields and billing metadata. An approved `bench migrate` can therefore change persistent schema/master/workflow/permissions even if the latest incremental source edits are mostly read-only reports. Earlier Oct29 read-only schema check found the five Finance lifecycle DocTypes absent on both sites; no current migration has been run. Review role/backfill effects, patch applicability and snapshots before any command.
+
+**Next critical action/gate:** Obtain explicit scoped owner approval for a **maintenance-window, pinned-SHA, DEVELOPMENT-only** source transition and controlled two-site migrations (or first approve only the code-switch phase), including possible setup/backfill writes; preserve untracked `AGENTS.md`, old commit and site backups; stop if preconditions drift. Shared Docker host also serves PRODUCTION: no shared service/compose/container restart or host Docker cleanup without separate impact review. Never unconditionally `git pull`/checkout/clean/reset. Following approved source/migration, verify both site app versions, schema/roles, server/report functionality and four-report permission/Company acceptance. Neither PR merge nor PRODUCTION migration/release is approved. An independent restore rehearsal is still pending.
