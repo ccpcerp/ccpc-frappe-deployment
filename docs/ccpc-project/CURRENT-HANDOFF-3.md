@@ -2356,3 +2356,26 @@ DIAGNOSTIC_EXIT_CODE=0
 The DEVELOPMENT container remained running and the owner successfully executed a read-only PyMySQL `information_schema.COLUMNS` query directly against `ccpc-integration2.localhost`. **Both** `tabStock Entry.department` and `tabStock Entry Detail.department` are absent in this synthetic site after its successful migration. Pinned PR32 `ccpcerp/ccpc_erp/report/ccpc_department_material_consumption/ccpc_department_material_consumption.py` explicitly selects `sed.department` and `se.department` and joins on the former even without Department filters. Therefore its SQL cannot run against Integration2's present schema. This is a confirmed **schema incompatibility**, while the actual prior aborted six-query test's complete output/SQL error code is unavailable; do not claim all six SQLs failed or passed. Prior PASS remains valid for Integration2 migrate exit and four-report/Page/role metadata only. Department fields may be created through Accounting Dimension configuration: **do not manually add synthetic columns or change Accounting Dimensions without a separate reviewed decision**. No MAIN migration, service restart, PRODUCTION operation or report runtime verification has occurred. Exact pinned GitHub PR32 remains draft/open/unmerged and head `532a28d99bd0548241854495156a61f94eb1ac6b`.
 
 **Next one read-only step:** query `information_schema.COLUMNS` separately for both exact DEVELOPMENT sites, verifying distinct DB IDs, checking `tabStock Entry.department` and `tabStock Entry Detail.department` presence on MAIN, plus optional fixed Company existence, without leaking DB names/credentials. The MAIN site had previously executed four report SQLs before migration; this current fresh check determines whether the synthetic Integration2 issue is isolated. If MAIN columns both exist, the owner-approved **separate** MAIN DEV migration may proceed after usual unchanged-source, local+Synology snapshot, no-active-service and site distinctness guards. If absent, STOP and review schema/config first. Code and documentation changes, role assignments, schema repairs and PRODUCTION remain out of scope. Keep the four idle interactive shells and protected `AGENTS.md` untouched.
+
+
+## 2026-11-02 — MAIN DEV Department schema PASS; Integration2 synthetic columns missing; MAIN migration authorized next
+
+**Owner's read-only two-site schema comparison:**
+```text
+SITE: ccpc-integration2.localhost
+  tabStock Entry department: MISSING
+  tabStock Entry Detail department: MISSING
+SITE: development.localhost
+  tabStock Entry department: PRESENT
+  tabStock Entry Detail department: PRESENT
+DISTINCT DATABASES: PASS
+MAIN DEPARTMENT SCHEMA: PASS
+READ-ONLY SCHEMA CHECK COMPLETED
+NO DATABASE MIGRATION OR WRITES
+SCHEMA_CHECK_EXIT_CODE=0
+```
+Thus the known source SQL incompatibility is currently **specific to synthetic Integration2**, not MAIN. MAIN has both `se.department` and `sed.department` columns used by the pinned `ccpc_department_material_consumption` report and databases were verified distinct. The comparison proves only these two columns, **not** all 6 SQL queries or end-to-end four-report runtime. Integration2 previously passed `bench migrate` and metadata validation, with 0 executive-role user assignments; six-query smoke output was lost when the terminal closed. No schema repair performed. Earlier MAIN four native report queries had executed before this PR32 rollout, with known legacy data-quality flags, but must be retested after migration.
+
+**GitHub recheck:** PR #32 draft/open/unmerged head remains exactly `532a28d99bd0548241854495156a61f94eb1ac6b`, installed detached into DEV shared app, `AGENTS.md` preserved. Owner previously explicitly APPROVED sequential site migrations and downtime, with protected per-site Nov2 four-part recovery snapshots at `/workspace/development/frappe-bench/.ccpc-pr32-snapshots/` and verified NAS copy `/mnt/erpnext_backups/ccpc-development-pr32-20261102T003434Z-237495dd9a3d4061`. MAIN database *not yet migrated*; PRODUCTION untouched. Both backups are untested for full independent restore.
+
+**Next controlled owner action:** one guarded `bench --site development.localhost migrate` inside only exact DEV container `frappe_docker_devcontainer-frappe-1`; first recheck CIFS backup path and both snapshot SHA256SUMS, detached pinned SHA and sole untracked AGENTS, distinct site config DBs, two MAIN Department columns, Redis connectivity, and quiescence of DEV Honcho/web/workers/scheduler/other agents. If any preflight fails, STOP, no migration. Migration is authorized **database/schema/backfill write** and can affect existing workflows/roles/custom fields; no simultaneous site operation, broad Docker or PRODUCTION change. Print clear success/failure and leave services down. On success, separately perform post-migrate metadata, four-report SQL/runtime and permissions tests, then DEV-only service restart as approved. Do not claim this checkpoint is a completed MAIN migration.
