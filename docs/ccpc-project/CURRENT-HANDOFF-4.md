@@ -73,3 +73,27 @@ STOP: Do not automatically retry startup
 The script exited during **read-only Procfile validation**, before reaching its `docker exec -d` Honcho launch. Thus this attempt **did not start** a new DEVELOPMENT Honcho manager, run a migration, change code, or touch PRODUCTION. The preflight used the predicate `'socketio.js' in command` and rejected any `;\`, `&&`, `||`, `|`, or backtick; actual Socket.IO Procfile line was not printed, so it is **unknown whether the problem was the expected path fragment, a forbidden operator, or both**. Earlier read-only readiness audit found exactly five labels `web, socketio, watch, schedule, worker`, zero live service candidates, no DEV listeners, and 48 zombie process entries (defunct, do not signal). Nov2 NAS and local backup manifests and exact pinned source guards passed in the attempted restart. Full Frappe MAIN four-report execution and Guest/Admin gateway denial previously PASS; no positive executive user test. PR #32 remains draft/open/unmerged at pinned SHA `532a28d99bd0548241854495156a61f94eb1ac6b`.
 
 **Next one safe diagnostic:** read only the `socketio` entry in exact DEV bench `Procfile`; print its literal command after redacting any env-like secrets, and individual pass/fail booleans for `socketio.js` path fragment and each forbidden shell operator. Guard exact app SHA, detached status and protected sole `?? AGENTS.md`. No service launch or file modification. Then revise *the temporary startup guard*, not the app Procfile, based on its actual safe command; re-run full guarded DEV-only startup once after review, with no automatic retries. MAIN/Integration2 and PRODUCTION remain unchanged.
+
+
+## 2026-11-02 — Socket.IO Procfile confirmed `bench socketio`; adjust only temporary Honcho guard
+
+**Owner-run read-only exact DEVELOPMENT Procfile inspection after preflight-only startup block:**
+```text
+PINNED SOURCE: PASS
+PROCFILE SERVICE LABELS: PASS
+SOCKETIO COMMAND: bench socketio
+CONTAINS socketio.js: False
+CONTAINS realtime: False
+CONTAINS SHELL MARKER ';': False
+CONTAINS SHELL MARKER '&&': False
+CONTAINS SHELL MARKER '||': False
+CONTAINS SHELL MARKER '|': False
+CONTAINS SHELL MARKER '`': False
+SOCKETIO PROCFILE INSPECTION: COMPLETED
+NO FILES MODIFIED
+NO SERVICES STARTED
+SOCKETIO_INSPECTION_EXIT_CODE=0
+```
+**Established:** the prior startup preflight incorrectly hardcoded an old Socket.IO launch fragment (`socketio.js`). The actual valid current Procfile line is **`socketio: bench socketio`** without forbidden shell operators, and exactly the five labels `web, socketio, watch, schedule, worker` remain. Do **not** modify the Procfile, app or site databases to satisfy the previous test. Source stays detached pinned at `532a28d99bd0548241854495156a61f94eb1ac6b` with only protected untracked `AGENTS.md`. Previous startup attempt stopped **before launch**. No services started, no production change. All four MAIN complete report executions and Guest/Admin gateway-denial tests already PASS; positive named executive viewer not tested because role has 0 assignments. Connected GitHub PR32 rechecked still draft/open/unmerged with exact SHA.
+
+**Next authorized one action:** after repeating strict backup and process guards, modify only startup validation to accept `bench socketio` (exact command), and launch exactly one DEV-only Honcho process with non-clobber private bench log; verify single live manager and unchanged Git source. Fail closed on unexpected other Procfile commands, existing service processes/listeners or ambiguous launch state. No automatic retry, broad container restart, migrations, user-role edits, PR merge or PRODUCTION activity. If successful, next separate HTTP site and worker/scheduler health checks.
