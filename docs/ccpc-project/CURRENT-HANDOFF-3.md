@@ -2016,3 +2016,24 @@ The fresh MAIN backup was created in a new private local directory on November 2
 - MAIN: `/workspace/development/frappe-bench/.ccpc-pr32-snapshots/development.localhost-20261102T002314Z-7dc759b9afc9` (owner PASS above).
 
 **Next operator step:** use one new, collision-resistant staging directory on independently verified Synology CIFS mount `/mnt/erpnext_backups` with source `//192.168.50.132/erpnext_backups`. Read-only verify both new local manifests against exactly their own four files, copy both intact into staging without overwriting existing NAS paths, verify **copied** SHA256 independently for all 8 files and both manifests, then atomically publish a new uniquely named `ccpc-development-pr32-...` NAS directory. Preserve all October 29 local/NAS copies and prior failed `.partial-*` staging; stop on mismatch without deletion. No default backup cleanup, source checkout, migration, bench/service restart, CircleCI rerun, PR merge or PRODUCTION change. Even after verified copy, actual standalone restore and site-transaction acceptance are still pending.
+
+
+## 2026-11-02 — Two-site fresh off-host Synology backup 8/8 SHA256 PASS
+
+**Owner terminal output from guarded two-site copy (reported success; ChatGPT has no direct server filesystem access):**
+```text
+SYNOLOGY CIFS SOURCE: PASS
+BOTH LOCAL SHA256 MANIFESTS: PASS
+ccpc-integration2.localhost-20261102T001358Z-00771ef0fbcf: NAS COPY PASS
+development.localhost-20261102T002314Z-7dc759b9afc9: NAS COPY PASS
+NAS COPY SHA256: 8/8 PASS
+BOTH CHECKSUM MANIFESTS: PASS
+NAS BACKUP DIRECTORY: /mnt/erpnext_backups/ccpc-development-pr32-20261102T003434Z-237495dd9a3d4061
+NOVEMBER 2 OFF-HOST RECOVERY SETS: PASS
+OLDER BACKUPS AND PRODUCTION: UNTOUCHED
+```
+The exact Python command in the preceding conversation checked mountpoint `/mnt/erpnext_backups` as CIFS from `//192.168.50.132/erpnext_backups`, verified both *source* SHA256 manifests against four unique nonempty artifact files each, required an older October 29 NAS set to exist, checked free NAS space, copied all 8 artifacts plus both manifest files using exclusive create in a newly generated `.partial-*` stage, independently rehashed each NAS artifact, compared both manifest bytes, and renamed the completed new stage to the published directory. It did not invoke cleanup or change Git, databases, services, migrations or production. Older backups and prior failed staging directories were not targets of the command. **This is byte-verified off-host backup-copy evidence, NOT a successful independent full-site restore or a guaranteed atomic database/files snapshot**. The exact protected local source paths and prior October 29 sets remain recorded above.
+
+**GitHub source status independently rechecked in this conversation:** App PR #32 remains **open, draft, unmerged**, head `review/four-day-one-reports-integration-2026-10-29` at **`532a28d99bd0548241854495156a61f94eb1ac6b`**, 19 commits ahead of the locally guarded old app `061e65710eb4b527fc8ac579aaab8ccad4dd131d`, 0 behind, changing 13 paths versus that old SHA. New paths include CCPC Group Executive Reporting page, API/tests, report access paths, plus `hooks.py` and `setup.py` changes. GitHub combined statuses for new head report success on `python-syntax`, `four-reports-manual-approval`, `four-reports-isolated-integration`, but no live DEVELOPMENT acceptance has been performed at new HEAD; previous exact-SHA 86/86 Build #52 occurred on original `061e657...` and cannot be presented as the new HEAD's detailed test count. Do **not** automatically float to a moving branch head or assume all new head behavior is DEV-tested.
+
+**NEXT critical path:** review exact SHA/scope and a fresh **read-only** check of shared DEV app worktree and processes before a separately scoped DEVELOPMENT code switch. Preserve the detached source and `?? AGENTS.md`, both site backups/local and NAS, both site databases and configurations. No `git pull`, branch checkout, migrations/patches, Honcho/worker restart, master/permission changes, PR merge or PRODUCTION activity yet. Select a pinned reviewed SHA (possibly the narrower original 061e report candidate versus newer executive page revisions), then plan coordinated two-site source+schema migration/rollback boundaries and owner approval. An independent restore rehearsal and realistic CCPC transaction/report acceptance are still distinct pending controls.
