@@ -2502,3 +2502,25 @@ FRAPPE_DIAGNOSTIC_EXIT_CODE=1
 The **full report `execute()` and gateway denial checks did not run** because Frappe can `init` but errors during `connect` while opening log file `database.log`; only the filename basename was intentionally shown, so exact missing parent directory still unknown. This is a **logging setup or filesystem-path failure** in the standalone script entrypoint, not established as MariaDB connection/database migration or report SQL fault. MAIN migration, metadata and all six bounded raw SQL query paths previously PASS, including 2 Dept source, 2 equipment material, 0 equipment job, 1 intercompany source, 2 stock source, 2 P&L GL rows, with read-only queries. Both DEV site migrations completed; services still down. PR #32 draft/open/unmerged exact SHA `532a28d99bd0548241854495156a61f94eb1ac6b`; `AGENTS.md` untouched; PRODUCTION remains unmodified.
 
 **Next single action:** READ-ONLY inspection of DEVELOPMENT bench and site log directory existence, ownership/writability and whether `database.log` exists, and (optional) Frappe site-path resolution WITHOUT calling `frappe.connect` or creating directories/files. Check `/workspace/development/frappe-bench/logs`, `/workspace/development/frappe-bench/sites/logs`, and `/workspace/development/frappe-bench/sites/development.localhost/logs`, while protecting exact pinned HEAD/sole `?? AGENTS.md`. Display no file contents, credentials, traceback paths or log data. A missing parent is likely since Python's file logging can create a log file but cannot create an absent parent; confirm before any minimal fix, and never create broad directories, change DB, force restart or touch PRODUCTION without reviewed scope. After diagnosis propose smallest justified DEV-only logger-path fix and rerun controlled Frappe runtime test. No migration reruns.
+
+
+## 2026-11-02 — DEV logger-directory inspection: shared sites/logs absent; capture actual database.log target before fix
+
+**Owner's recent read-only directory inspection output:**
+```text
+PINNED SOURCE: PASS
+BENCH LOGS DIRECTORY PRESENT
+BENCH LOGS WRITABLE: True
+BENCH LOGS database.log: PRESENT
+SHARED SITE LOGS DIRECTORY MISSING
+SHARED SITE LOGS database.log: MISSING
+MAIN SITE LOGS DIRECTORY PRESENT
+MAIN SITE LOGS WRITABLE: True
+MAIN SITE LOGS database.log: PRESENT
+READ-ONLY LOG DIRECTORY INSPECTION: COMPLETED
+NO FILES OR DIRECTORIES CREATED
+LOG_DIRECTORY_CHECK_EXIT_CODE=0
+```
+**Meaning:** under the exact pinned DEVELOPMENT app HEAD `532a28d99bd0548241854495156a61f94eb1ac6b`, `/workspace/development/frappe-bench/logs` is present and writable, as is `/workspace/development/frappe-bench/sites/development.localhost/logs`, each with an existing `database.log`. However `/workspace/development/frappe-bench/sites/logs` **does not exist**. This is a plausible direct cause of earlier `frappe.connect()` `FileNotFoundError: database.log` when using a standalone script with explicit sites_path, but the diagnostic had shown only missing filename basename, **not the actual path**. Do not yet assert which parent the Frappe logger needs. Both migrations, MAIN post-migration metadata and 6/6 direct SQL SELECTs passed; complete Frappe report `execute()` and gateway denial tests have not run; no service restart, source changes, migration rerun or PRODUCTION change.
+
+**Next one safe read-only operator check:** in exact DEV container and only MAIN site context, instrument Python's `logging.FileHandler._open` in-process to intercept/abort **before any logger file open**, then call `frappe.init(...); frappe.connect()` solely to resolve the attempted `database.log` parent; report the attempted path as a bench-relative classification and parent existence/writability (never log contents, db name or secrets). If the resolved file is `sites/logs/database.log` and its parent missing, the smallest repair would be to create **that one DEV-only empty directory** with safe owner and permissions after explicit read/write scope; avoid broad `mkdir -p`, symlinks, file deletion, or host/PRODUCTION edits. Alternatively adapt the temporary test's site-path argument if this is only an invocation quirk. Run full Frappe runtime test only after logger resolution. No unapproved operations.
