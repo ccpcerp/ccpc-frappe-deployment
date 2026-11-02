@@ -1,5 +1,8 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
+> **Latest authenticated HTTP acceptance finding — Nov 2, 2026:** Owner executed fresh checksum-verified private-logged MAIN DEVELOPMENT one-shot `ccpc_exec_http_logged_one_shot_20261102.sh` and provided safe status. **PASS** pinned DEV safeguards, temporary account creation, actual cookie HTTP login/identity, canonical `/desk` CSRF token extraction; **stopped at first missing-CSRF negative assertion**: `AUTHENTICATED HTTP TEST: FAIL / missing CSRF rejection: POST WITHOUT CSRF ACCEPTED`, child exit `1`. New temporary System User `ccpc-exec-http-logged-20261102@example.test` **DISABLED** and sessions **REVOKED (PASS)** in same run. Four report authenticated POST positives/Company tests were **not reached**. Connected GitHub confirmed **test harness classification error**: `denied()` accepts 401/403/405/417 automatically, but pinned Frappe `CSRFTokenError.http_status_code` is **400**; for 400 with `CSRFTokenError`, helper returns False because it only recognizes `PermissionError` in JSON `exc_type`. Exact response status/body was not recorded, so **NO proof of a CSRF bypass** and **NO confirmation the missing-token request was rejected**. Do not present this as a security hole or PASS. Script consumed, **do not rerun/re-enable**. Private log `.../private-executive-http-20261102-v2/acceptance.log` exists owner-side; no credentials in published script. Fix future negative HTTP test by verifying 400 `CSRFTokenError` explicitly with safe metadata, not blanket status 400, and do not create new account without fresh approval. App PR #32 still OPEN/DRAFT/UNMERGED. See appended checkpoint.
+
+
 > **Latest one-shot HTTP acceptance delivery — Nov 2, 2026:** After the earlier Ubuntu terminal exited and original HTTP test output could not be recovered, the owner authorized a **fresh one-time DEVELOPMENT-only HTTP test with private logging**. Connected GitHub published and refetched the reviewed script `scripts/development/operator/ccpc_exec_http_logged_one_shot_20261102.sh` to the private deployment docs branch `docs/ccpc-checkpoint-2026-10-10`, initial commit `4f78c4ac3c12f5b5c1f699601e183d068c44c19c`, exact UTF-8 SHA256 **`e82a6ef84d673fac022f0b36328c5c8ea34d4b9f9adf3c7c3a328b090e6fe140`**, 13,347 bytes. **PUBLISHED ONLY, NOT STAGED OR EXECUTED ON UBUNTU**. Source closely preserves previous tested-in-process real Frappe `/desk` CSRF HTTP case, adds new never-before-used test identity `ccpc-exec-http-logged-20261102@example.test` and preflight checks that both prior one-shot users remain disabled, and writes child stdout/stderr only to new owner-private mode-600 `$HOME/ccpc-reviewed-scripts/private-executive-http-20261102-v2/acceptance.log`; displays sanitized status and real child exit, wrapper returns zero to prevent parent `errexit` SSH exit. Intended cleanup disables new test account/revokes sessions, but interruption still requires rescue. Stage first by exact SHA256 via manual GitHub delivery before executing. No application change or PRODUCTION action. See appended checkpoint.
 
 
@@ -2940,3 +2943,47 @@ The rescue script independently checked that MAIN/Integration2 DB names differ, 
 **Design/safety:** Bash `set -uo pipefail` intentionally **without** `errexit`; after running the child's `docker exec` with redirected stdout/stderr, captures its numeric exit code, prints only allowlisted status lines to stdout, prints private log path and `RESULT: PASS REPORTED / NOT VERIFIED`, then **exits zero** to prevent an interactive parent with `set -e` closing on a failing test. The printed child status and gated PASS/check are authoritative, not wrapper's zero return. Private one-shot log directory is atomically created with mode 700 and a file mode 600; existing directory means `NOT EXECUTED`, preventing accidental reruns. New temp account `ccpc-exec-http-logged-20261102@example.test` is checked absent before creation; previous one-shot IDs are checked disabled, and all active executive System Users are forbidden by guard. New system user is created only in `development.localhost`, gets executive viewer Role with no System Manager/Finance/Stock role, random unsurfaced password, and is committed to allow real cookie session. Existing main/Integration2 DB separation and exact MAIN app HEAD `532a28d99bd0548241854495156a61f94eb1ac6b` + protected `?? AGENTS.md` checked; Frappe site and four Company abbreviations checked. HTTPS not claimed: test uses loopback `127.0.0.1:8000` and Frappe session cookie+CSRF from `/desk`; HTTP 4 reports positive, 4 allowed Company scopes, three invalid inputs, missing CSRF and GET denied. On normal Python exception, `finally` disables new user, commits disabled status, revokes sessions and verifies zero remaining session rows; disabled user audit record may remain. Power/SSH interruption can bypass cleanup and requires separate bounded rescue. Neither app source nor financial data is intentionally modified. No known secret baked into script, no source exports or credentials in GitHub.
 
 **Status/gates:** **ONLY GITHUB-PUBLISHED.** The new script has not been staged or run; the new account is not known to exist. Owner should manually stage via previously reviewed isolated SSH GitHub fetch+exact branch commit+SHA256 verification outside protected checkout. Do **not** run same one-shot twice. Once staged, owner executes manually under already expressed approval with private capture; inspect printed status and exit. If any uncertainty, run one single recovery verification for new user, not original script again. No PR merge, DEVELOPMENT app code checkout, migration, worker/scheduler activation, CircleCI rerun or PRODUCTION changes. App PR #32 remains open/draft/unmerged at `009223d54ea88f5d9b64bc763fea24b929b770cb`; three CircleCI checks success at last review. Actual authenticated HTTP suite remains pending until user provides result.
+
+
+## 2026-11-02 — Third logged HTTP one-shot stopped at CSRF-negative assertion; test harness omits Frappe HTTP 400
+
+**Owner terminal output:**
+
+```text
+VERIFIED: STARTING ONE-TIME DEVELOPMENT HTTP TEST
+STARTED: one-time DEVELOPMENT HTTP test; logging privately
+SAFE STATUS FROM LOG:
+PINNED DEVELOPMENT / PREVIOUS DISABLEMENT: PASS
+NEW TEMP ACCOUNT RESCUE ID: ccpc-exec-http-logged-20261102@example.test
+TEMP ACCOUNT CREATED FOR ONE TEST
+REAL COOKIE LOGIN / IDENTITY: PASS
+CANONICAL /desk CSRF BOOTSTRAP: PASS
+TEMP ACCOUNT: DISABLED; SESSIONS REVOKED (PASS)
+AUTHENTICATED HTTP TEST: FAIL / missing CSRF rejection: POST WITHOUT CSRF ACCEPTED
+CCPC_HTTP_CHILD_EXIT_CODE: 1
+PRIVATE_LOG_PATH: /home/gani/ccpc-reviewed-scripts/private-executive-http-20261102-v2/acceptance.log
+RESULT: NOT VERIFIED / FAILED — DO NOT RERUN
+SAFETY: verify ccpc-exec-http-logged-20261102@example.test disabled with zero sessions
+WRAPPER FINISHED - CHECK CHILD EXIT CODE AND RESULT ABOVE
+```
+
+**Scope and interpretation:** Real password-authenticated request login/session identity and canonical `/desk` HTML CSRF extraction succeeded. New test account disabled in the Python `finally`, `frappe.sessions.clear_sessions(user=USER, force=True)` completed, and code explicitly verifies `enabled==0` and `frappe.db.count('Sessions', {'user': USER})==0` before printing `TEMP ACCOUNT: DISABLED; SESSIONS REVOKED (PASS)`. The outer script printed this safe status and child exit `1`. No positive gateway report POST or four-company HTTP tests were attempted: the first missing-token denial assertion triggered `AssertionError`. No code, role or business transaction changes except committed temporary User and disabled audit row/session cleanup. PRODUCTION untouched as designed; actual host state not directly accessible to ChatGPT.
+
+**Identified test-harness bug from exact GitHub source:** In committed artifact `scripts/development/operator/ccpc_exec_http_logged_one_shot_20261102.sh`, the helper is:
+
+```python
+def denied(reply):
+    if reply.status_code in (401, 403, 405, 417):
+        return True
+    if reply.status_code == 200:
+        return False
+    try:
+        data = reply.json()
+    except ValueError:
+        return False
+    return 'PermissionError' in str(data.get('exc_type', ''))
+```
+
+Pinned public `frappe/frappe` source at `988e54f3c4c291e2077a83809663f123731abe76` has `frappe/exceptions.py: class CSRFTokenError(Exception): http_status_code = 400`; `frappe/auth.py:HTTPRequest.validate_csrf_token()` throws `frappe.CSRFTokenError` on a mismatched/missing token when none of its exceptions apply. Consequently a **correctly rejected HTTP 400 CSRFTokenError** would be incorrectly classified as NOT DENIED by this test helper, producing exactly the user-visible `POST WITHOUT CSRF ACCEPTED` assertion message. **But since the test did not record `response.status_code`, `exc_type` or exception safely, we cannot infer it was 400 rather than HTTP 200/another status.** Avoid claiming an actual CSRF bypass or successful negative check; need a future request to record status and safe `exc_type` and assert `status=400 AND exc_type='CSRFTokenError'` when appropriate. `400` alone is not sufficient because it can represent unrelated client errors. `frappe.conf.ignore_csrf` was checked false in test preflight (and passed). Check gateway response validation separately and do not bypass security or use API keys to mask the issue.
+
+**Future gates:** Current version consumed, do **not rerun** or reenable the new user. Only after separate owner authorization, a fresh one-time corrected and logged test with a new test identity could exercise 400/CSRFTokenError correctly and continue to four authenticated POST positives and four-company isolation. Alternatively review suitably scoped DEVELOPMENT access logs read-only if available (do not dump raw tokens/headers/logs) to see actual HTTP status from prior call; no guarantee logs retained it. Document exact outcome and cleanup afterward. Existing mocked/isolated CI and previous in-process MAIN executive positive/negative checks remain valid independently. PR #32 remains open/draft/unmerged at exact head `009223d54ea88f5d9b64bc763fea24b929b770cb` on `review/four-day-one-reports-integration-2026-10-29`; no app code changes, DEVELOPMENT pull/migrate, service restart, production changes or merge authorized by this diagnostic.
