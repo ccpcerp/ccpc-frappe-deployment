@@ -2379,3 +2379,21 @@ Thus the known source SQL incompatibility is currently **specific to synthetic I
 **GitHub recheck:** PR #32 draft/open/unmerged head remains exactly `532a28d99bd0548241854495156a61f94eb1ac6b`, installed detached into DEV shared app, `AGENTS.md` preserved. Owner previously explicitly APPROVED sequential site migrations and downtime, with protected per-site Nov2 four-part recovery snapshots at `/workspace/development/frappe-bench/.ccpc-pr32-snapshots/` and verified NAS copy `/mnt/erpnext_backups/ccpc-development-pr32-20261102T003434Z-237495dd9a3d4061`. MAIN database *not yet migrated*; PRODUCTION untouched. Both backups are untested for full independent restore.
 
 **Next controlled owner action:** one guarded `bench --site development.localhost migrate` inside only exact DEV container `frappe_docker_devcontainer-frappe-1`; first recheck CIFS backup path and both snapshot SHA256SUMS, detached pinned SHA and sole untracked AGENTS, distinct site config DBs, two MAIN Department columns, Redis connectivity, and quiescence of DEV Honcho/web/workers/scheduler/other agents. If any preflight fails, STOP, no migration. Migration is authorized **database/schema/backfill write** and can affect existing workflows/roles/custom fields; no simultaneous site operation, broad Docker or PRODUCTION change. Print clear success/failure and leave services down. On success, separately perform post-migrate metadata, four-report SQL/runtime and permissions tests, then DEV-only service restart as approved. Do not claim this checkpoint is a completed MAIN migration.
+
+
+## 2026-11-02 — MAIN DEVELOPMENT `bench migrate` PASS at exact pinned PR32 SHA; post-migrate validation next
+
+**Owner's guarded MAIN-only migration terminal result:**
+```text
+MAIN DEVELOPMENT MIGRATION COMMAND: PASS
+PINNED SOURCE AND AGENTS.md PRESERVED: PASS
+MAIN MIGRATION STEP: COMPLETED
+DEVELOPMENT SERVICES: NOT RESTARTED
+PRODUCTION: NOT TOUCHED
+MAIN_MIGRATION_STEP_EXIT_CODE=0
+```
+This confirms the previously authorized `bench --site development.localhost migrate` completed with exit status zero under shared DEVELOPMENT app pinned detached to `532a28d99bd0548241854495156a61f94eb1ac6b`, preserving sole local untracked `AGENTS.md`. Earlier guarded wrapper checked NAS recovery path and local Nov2 manifests, distinct Integration2/MAIN DBs, MAIN Department columns, Redis reachability, and competing DEV service quiescence before calling bench; the owner supplied its final success lines, not the full console migration log. No DEVELOPMENT Honcho/web/worker restart, Git PR merge or PRODUCTION action. **Both** Integration2 and MAIN migration commands are now successful, but post-migration MAIN metadata, actual report SQL, runtime gateway permissions and restored services remain **UNVERIFIED**. Integration2 remains synthetic with missing `tabStock Entry.department` and `tabStock Entry Detail.department` columns even after its migration; MAIN had both columns on pre-migrate read-only comparison. Nov2 local site recovery sets and independently hash-checked Synology backups are preserved; no independent full restore has been tested.
+
+**GitHub rechecked at checkpoint:** draft/open/unmerged PR #32 head still exact `532a28d99bd0548241854495156a61f94eb1ac6b`; authoritative GitHub-first workflow reviewed on `docs/ccpc-checkpoint-2026-10-10`. No new source commits or app changes authorized or needed yet.
+
+**NEXT one safe action:** a read-only, exclusively `development.localhost` PyMySQL metadata verification using actual site config, with distinct DB-name guard and pinned worktree/AGENTS guard: executive Role exists, exclusive Page role, 4 standard Script Reports of correct reference DocTypes each only `System Manager`, required source DocTypes, both Department columns, **zero** named users assigned the new executive role. Roll back/close transaction, no data rows printed. If fails, stop and diagnose rather than restart; if passes, separately run six underlying SQL SELECTs in a read-only bounded sample followed by gateway/runtime permission tests. DEVELOPMENT services remain stopped; PRODUCTION outside scope.
