@@ -2397,3 +2397,41 @@ This confirms the previously authorized `bench --site development.localhost migr
 **GitHub rechecked at checkpoint:** draft/open/unmerged PR #32 head still exact `532a28d99bd0548241854495156a61f94eb1ac6b`; authoritative GitHub-first workflow reviewed on `docs/ccpc-checkpoint-2026-10-10`. No new source commits or app changes authorized or needed yet.
 
 **NEXT one safe action:** a read-only, exclusively `development.localhost` PyMySQL metadata verification using actual site config, with distinct DB-name guard and pinned worktree/AGENTS guard: executive Role exists, exclusive Page role, 4 standard Script Reports of correct reference DocTypes each only `System Manager`, required source DocTypes, both Department columns, **zero** named users assigned the new executive role. Roll back/close transaction, no data rows printed. If fails, stop and diagnose rather than restart; if passes, separately run six underlying SQL SELECTs in a read-only bounded sample followed by gateway/runtime permission tests. DEVELOPMENT services remain stopped; PRODUCTION outside scope.
+
+
+## 2026-11-02 — MAIN DEVELOPMENT post-migrate metadata PASS at exact PR32 commit; SQL smoke next
+
+**Owner-executed read-only MAIN-only PyMySQL validation after `bench --site development.localhost migrate`:**
+```text
+PINNED DEVELOPMENT SOURCE: PASS
+DISTINCT SITE DATABASES: PASS
+MAIN DATABASE IDENTITY: PASS
+EXECUTIVE ROLE: PASS
+EXECUTIVE PAGE: PASS
+EXECUTIVE PAGE EXCLUSIVE ROLE: PASS
+REPORT METADATA: CCPC Department Material Consumption: PASS
+REPORT PERMISSIONS: CCPC Department Material Consumption: PASS
+REPORT METADATA: CCPC Equipment Job Material Activity: PASS
+REPORT PERMISSIONS: CCPC Equipment Job Material Activity: PASS
+REPORT METADATA: CCPC Intercompany Withdrawal Billing Status: PASS
+REPORT PERMISSIONS: CCPC Intercompany Withdrawal Billing Status: PASS
+REPORT METADATA: CCPC Company Stock PNL GL Reconciliation: PASS
+REPORT PERMISSIONS: CCPC Company Stock PNL GL Reconciliation: PASS
+DOCTYPE: Stock Entry: PASS
+DOCTYPE: Equipment Registry: PASS
+DOCTYPE: Intercompany Material Billing Batch: PASS
+MAIN DEPARTMENT COLUMNS: PASS
+EXECUTIVE ROLE USER ASSIGNMENTS: 0
+NO UNAPPROVED EXECUTIVE ASSIGNMENTS: PASS
+MAIN METADATA VALIDATION: PASS
+MAIN REPORT SQL: NOT YET TESTED
+NO DATABASE WRITES
+DEVELOPMENT SERVICES: NOT RESTARTED
+PRODUCTION: NOT TOUCHED
+MAIN_METADATA_CHECK_EXIT_CODE=0
+```
+**Meaning:** MAIN `development.localhost` now has the executive Role, standard Page `ccpc-group-executive-reporting` restricted to exactly `CCPC Group Executive Reporting`, four standard native Script Report records each restricted to `System Manager` and expected reference DocTypes, the three required source DocTypes, both Department source columns, and **zero user-role assignments** to the new executive role. Test connected to MAIN DB (checked against independent Integration2 site DB) under `START TRANSACTION READ ONLY`, rolled back and closed. Source remained exact pinned detached `532a28d99bd0548241854495156a61f94eb1ac6b` with only `?? AGENTS.md`. Operator reported no writes, migrations, service restart, or PRODUCTION action. This validates **metadata only**; cannot certify runtime gateway authorization, company isolation, report output, accounting balances, or SQL execution. Synthetic Integration2 lacks Department Accounting Dimension source columns despite passing metadata and migration; do not patch them automatically.
+
+**Current GitHub:** PR #32 remains draft/open/unmerged at pinned SHA per connected GitHub. Workflow reviewed on `docs/ccpc-checkpoint-2026-10-10`. Nov2 local+Synology protected snapshot manifests are preserved; independent restoration has not been tested.
+
+**NEXT action:** one guarded, read-only MAIN-site six-source-SQL smoke test for four reports, with bounded date window and LIMIT parameters, explicit PyMySQL `START TRANSACTION READ ONLY`, distinct DB-name/actual DB guards, no row contents printed; capture per-query success/count or sanitized failure code and keep the operator terminal open even if one query fails. Queries: department `_source_sql(False)`, equipment `_material_sql(False)` + `_job_sql(False)`, intercompany `_source_sql()`, stock GL `_stock_sql()` + `_pnl_sql()` from installed pinned sources. Failures do not authorize automatic schema repair, migration reruns, Git reset or service restart. On PASS, separately validate Frappe runtime report output and executive endpoint permission deny paths before DEV-only service restoration. PRODUCTION remains untouched.
