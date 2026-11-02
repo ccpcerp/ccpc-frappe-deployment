@@ -1,5 +1,8 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
+> **Latest live DEVELOPMENT milestone — November 2, 2026:** Owner-reported guarded one-time Honcho start of **only** `web socketio` in named DEV container **PASS**. App detached exact PR32 SHA `532a28d99bd0548241854495156a61f94eb1ac6b`, sole `?? AGENTS.md` protected, CIFS recovery and loopback host ports checked, 1 Honcho manager and internal listening ports `[8000, 9000]`; scheduler, workers and watcher **not started**. Startup command log: `/workspace/development/frappe-bench/logs/ccpc-dev-ui-pr32-20261102T045413Z-4055145.log` (private DEV log). HTTP endpoint behavior, site routing and browser login **not yet tested**. **Next:** guarded read-only site-selected GET `/api/method/ping` for each of `development.localhost` and `ccpc-integration2.localhost` with explicit Host + X-Frappe-Site-Name, no legacy site request. Do not start full stack because `ccpc-integration.localhost` is still present and not scheduler-paused. PRODUCTION untouched. See appended evidence checkpoint.
+
+
 > **Latest operational safety gate — November 2, 2026:** After the four MAIN report `execute()` PASS and 2/2 denied gateway checks, owner explicitly approved one guarded DEVELOPMENT-only Honcho resume. The next read-only preflight passed NAS/source/Procfile/process guards but disclosed **three** Frappe site directories, including the known-broken `ccpc-integration.localhost` with neither scheduler pause nor disable explicitly set. Starting the default five-process Honcho stack would start all-site `schedule` and `worker` and could enqueue/execute work touching that site. **Do not start the full Procfile yet.** Recommended narrow scope: Honcho named processes `web socketio` only (no `watch`, `schedule`, or `worker`), under fresh no-service/source/backup guards, for read-only two-site browser/HTTP acceptance. This is a recommendation and **has not yet been started**. Do not alter third-site config, delete site, enable workers/scheduler or touch PRODUCTION without separate scope. Details in latest appended checkpoint.
 
 
@@ -2613,3 +2616,32 @@ RESTART_PREFLIGHT_EXIT_CODE=0
 ```
 
 **Interpretation and safety decision:** The host NAS at `/mnt/erpnext_backups` remained the expected CIFS source and Nov 2 published snapshot directory existed; application source was exact detached `532a28d99bd0548241854495156a61f94eb1ac6b` with protected sole untracked `AGENTS.md`. Five expected Procfile labels and zero active DEV-bench service/agent candidates/listeners verified at that moment. However the third previously broken `ccpc-integration.localhost` remains under `sites/` and neither `pause_scheduler` nor `disable_scheduler` is explicitly set for any of the three sites. The scheduler source previously inspected invokes `enqueue_events_for_all_sites()` and must not be assumed to exclude the broken site. The extra site is a meaningful **risk to unrestricted scheduler/worker resume**, not a failure of source or backup preflight. Honcho's documented named-process start supports selecting only `web` and `socketio`; this avoids explicitly starting `schedule`, `worker` or `watch`, permitting basic DEV browser/HTTP smoke under the existing scoped approval. This does not validate business/background workflows and existing queued jobs should be reviewed before later worker enablement. No site config, source, recovery assets, startup process or PRODUCTION changed as of this checkpoint. Next: guarded one-time web/socketio-only Honcho start (no retries on failure), verify both valid sites separately; do not start full Procfile or mutate third site automatically.
+
+
+## 2026-11-02 — Approved DEV UI-only Honcho startup PASS; two-site HTTP pending
+
+**Owner-supplied guarded operator terminal summary:**
+```text
+DEVELOPMENT LOOPBACK PORTS: PASS
+PINNED DEVELOPMENT SOURCE: PASS
+WEB AND SOCKETIO PROCFILE GUARDS: PASS
+THREE SITE INVENTORY: PASS
+MAIN AND INTEGRATION2 DATABASE ISOLATION: PASS
+LIVE DEVELOPMENT SERVICE CANDIDATES: 0 PASS
+DEVELOPMENT LISTENER QUIESCENCE: PASS
+CORRECTED RESTART GUARDS: PASS
+STARTING ONLY: web socketio
+SINGLE HONCHO START SUBMITTED
+PRIVATE DEVELOPMENT LOG: /workspace/development/frappe-bench/logs/ccpc-dev-ui-pr32-20261102T045413Z-4055145.log
+HONCHO MANAGER COUNT: 1
+FORBIDDEN BACKGROUND PROCESSES: 0
+ACTIVE PORTS: [8000, 9000]
+SCHEDULER/WORKERS/WATCHER: NOT REQUESTED
+DEVELOPMENT UI START: PASS
+PRODUCTION: NOT TOUCHED
+DEVELOPMENT_UI_START_EXIT_CODE=0
+```
+
+**Verification and scope:** Earlier initial startup guard correctly failed before any launch because it erroneously expected a direct Node Socket.IO Procfile entry. A separate read-only owner probe confirmed actual installed Procfile `socketio: bench socketio`, `web: bench serve --port 8000`; corrected guard then PASS. The approved startup is a named-process `/home/frappe/.local/bin/honcho start web socketio` in existing DEV container `frappe_docker_devcontainer-frappe-1`, with existing host-published ports `127.0.0.1:8000` and `127.0.0.1:9000`, source exact detached `532a28d99bd0548241854495156a61f94eb1ac6b`, protected only untracked `AGENTS.md`, no competing DEV process/listener and Synology Nov 2 backup recovery guard. Monitoring observed exactly one managed Honcho manager and two expected listening ports, zero `bench schedule`/`worker`/`watch` candidates. **This demonstrates startup and listener readiness at that moment only**, not site-specific HTTP 200, successful browser login or job/queue health. It also does not prove that a user connected through the web route cannot manually enqueue tasks; only the three Procfile background services were deliberately omitted. Three site directories remain: both active intended sites plus known broken, unpaused `ccpc-integration.localhost`. Avoid unrestricted all-site scheduler startup until explicit containment plan. PRODUCTION not touched by owner-reported DEV operation; no direct host access by assistant. No schema, Git source, migrations, site configuration, background workers, Docker/Compose recreation or business records were modified by the startup script. PR #32 remains open draft/unmerged at exact tested SHA (rechecked via connected GitHub).
+
+**Next one safe operator step:** read-only HTTP smoke inside *exact* DEVELOPMENT container: recheck source/AGENTS and single process manager; require no scheduler/worker/watcher candidates; issue bounded `GET http://127.0.0.1:8000/api/method/ping` separately with both `Host` and `X-Frappe-Site-Name` set to `development.localhost` and `ccpc-integration2.localhost`, verify HTTP 200/pong only, never print response content or secrets and do not probe broken legacy site. If failed, diagnose existing private DEV log with bounded filtered output and **do not restart automatically**. Then proceed with authenticated browser reports/read-only permissions as separately scoped; no job processing or PRODUCTION authorization inferred.
