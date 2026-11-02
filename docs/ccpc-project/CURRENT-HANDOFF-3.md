@@ -2478,3 +2478,27 @@ STOP: Review failed checks before restoring services
 This test failed **before** printing `MAIN FRAPPE READ-ONLY SESSION: PASS` and **before** invoking any of the four report `execute()` functions or the two permission denial probes. Its broad setup `except` handler suppressed which exact operation or filesystem path failed. No basis to claim the report implementation or authorization logic failed. Pinned Git source guard PASS. Previously demonstrated MAIN migrations and post-migration metadata PASS plus **all 6 actual raw SQL query shapes passed** in a separate explicit read-only SQL test, with counts 2 department, 2 equipment material, 0 equipment jobs, 1 intercompany, 2 stock, 2 P&L GL. MAIN and Integration2 remain separate DBs, the latter synthetic with missing Department accounting-dimension source columns. No service restarts, new migrations, user-role changes or PRODUCTION operations authorized or reported. PR #32 remains draft/open/unmerged at exact `532a28d99bd0548241854495156a61f94eb1ac6b`.
 
 **NEXT one scoped action:** read-only, minimal **Frappe bootstrap diagnostic** only in DEVELOPMENT container, without actual report execution. Check pinned source and site file presence; instrument stages `frappe.init`, `frappe.connect`, `frappe.set_user` and `START TRANSACTION READ ONLY`/identity query. Print last successful stage, exception class, `FileNotFoundError.filename` **basename only**, and limited innermost function names (not secrets/traceback values). Always rollback/destroy if connected. Outer host `set +e` wrapper to preserve interactive terminal. Depending on result, fix only diagnostic's site-path invocation or documented DEV-only environment limitation; do NOT create missing files, change source/database, repeat migrations or restart services. Only after bootstrap success rerun full report output and gateway tests. The user did not supply the exact missing file path, so do not guess.
+
+
+## 2026-11-02 — Frappe MAIN runtime test setup traced to logging `database.log` FileNotFoundError
+
+**Owner's follow-up focused MAIN Frappe bootstrap diagnostic:**
+```text
+PINNED SOURCE: PASS
+SITE CONFIG FILES: PRESENT
+DATABASE ISOLATION: PASS
+TESTING: FRAPPE INIT
+FRAPPE INIT: PASS
+TESTING: FRAPPE CONNECT
+DIAGNOSTIC FAILED AT: FRAPPE CONNECT
+ERROR CLASS: FileNotFoundError
+MISSING FILE BASENAME: database.log
+ERROR CALL FUNCTIONS: __init__ > __init__ > __init__ > _open
+FRAPPE BOOTSTRAP DIAGNOSTIC: REVIEW REQUIRED
+NO REPORTS EXECUTED
+NO MIGRATIONS OR SERVICE RESTARTS
+FRAPPE_DIAGNOSTIC_EXIT_CODE=1
+```
+The **full report `execute()` and gateway denial checks did not run** because Frappe can `init` but errors during `connect` while opening log file `database.log`; only the filename basename was intentionally shown, so exact missing parent directory still unknown. This is a **logging setup or filesystem-path failure** in the standalone script entrypoint, not established as MariaDB connection/database migration or report SQL fault. MAIN migration, metadata and all six bounded raw SQL query paths previously PASS, including 2 Dept source, 2 equipment material, 0 equipment job, 1 intercompany source, 2 stock source, 2 P&L GL rows, with read-only queries. Both DEV site migrations completed; services still down. PR #32 draft/open/unmerged exact SHA `532a28d99bd0548241854495156a61f94eb1ac6b`; `AGENTS.md` untouched; PRODUCTION remains unmodified.
+
+**Next single action:** READ-ONLY inspection of DEVELOPMENT bench and site log directory existence, ownership/writability and whether `database.log` exists, and (optional) Frappe site-path resolution WITHOUT calling `frappe.connect` or creating directories/files. Check `/workspace/development/frappe-bench/logs`, `/workspace/development/frappe-bench/sites/logs`, and `/workspace/development/frappe-bench/sites/development.localhost/logs`, while protecting exact pinned HEAD/sole `?? AGENTS.md`. Display no file contents, credentials, traceback paths or log data. A missing parent is likely since Python's file logging can create a log file but cannot create an absent parent; confirm before any minimal fix, and never create broad directories, change DB, force restart or touch PRODUCTION without reviewed scope. After diagnosis propose smallest justified DEV-only logger-path fix and rerun controlled Frappe runtime test. No migration reruns.
