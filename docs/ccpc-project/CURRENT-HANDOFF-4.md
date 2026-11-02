@@ -58,3 +58,18 @@ READINESS_AUDIT_EXIT_CODE=0
 **Interpretation:** exact pinned detached PR32 source `532a28d99bd0548241854495156a61f94eb1ac6b` and protected `?? AGENTS.md` intact. The named DEV container has exactly the expected five bench Procfile labels; both DEV site configs and bench log directory present. No matching active service processes or listeners were found. **48 zombies are dead process entries, not services to signal or delete**. No files, Docker state, site DB, application code, scheduled queue state, or PRODUCTION changed by this audit. Connected GitHub reconfirms PR #32 draft/open/unmerged and head unchanged.
 
 **Previously owner-approved next controlled action:** re-guard source, backups, exact DEV container, Procfile labels, absence of active managers/workers/web/scheduler/watch/socketio/listeners; then launch exactly one detached DEV-only Honcho `/home/frappe/.local/bin/honcho start` from `/workspace/development/frappe-bench`, using a private non-clobber log there. Verify one live Honcho manager and pinned SHA after launch. Do not restart containers, affect shared host/PRODUCTION, clear zombie entries, rerun migrations, alter roles, merge PR or automatically retry a failed launch. Manager PASS alone does not establish site HTTP readiness; separately test both sites and queue/worker/scheduler on next operator step. Retain all local+Synology snapshots and original `AGENTS.md`.
+
+
+## 2026-11-02 — Honcho restart blocked by overrestrictive socketio Procfile preflight; no launch
+
+**Owner-reported output from step 23, the guarded DEVELOPMENT-only postmigration Honcho startup attempt:**
+```text
+PROTECTED SYNOLOGY BACKUPS: PASS
+PINNED SOURCE AND LOCAL BACKUPS: PASS
+STOP: Review Procfile command socketio
+DEVELOPMENT_START_EXIT_CODE=1
+STOP: Do not automatically retry startup
+```
+The script exited during **read-only Procfile validation**, before reaching its `docker exec -d` Honcho launch. Thus this attempt **did not start** a new DEVELOPMENT Honcho manager, run a migration, change code, or touch PRODUCTION. The preflight used the predicate `'socketio.js' in command` and rejected any `;\`, `&&`, `||`, `|`, or backtick; actual Socket.IO Procfile line was not printed, so it is **unknown whether the problem was the expected path fragment, a forbidden operator, or both**. Earlier read-only readiness audit found exactly five labels `web, socketio, watch, schedule, worker`, zero live service candidates, no DEV listeners, and 48 zombie process entries (defunct, do not signal). Nov2 NAS and local backup manifests and exact pinned source guards passed in the attempted restart. Full Frappe MAIN four-report execution and Guest/Admin gateway denial previously PASS; no positive executive user test. PR #32 remains draft/open/unmerged at pinned SHA `532a28d99bd0548241854495156a61f94eb1ac6b`.
+
+**Next one safe diagnostic:** read only the `socketio` entry in exact DEV bench `Procfile`; print its literal command after redacting any env-like secrets, and individual pass/fail booleans for `socketio.js` path fragment and each forbidden shell operator. Guard exact app SHA, detached status and protected sole `?? AGENTS.md`. No service launch or file modification. Then revise *the temporary startup guard*, not the app Procfile, based on its actual safe command; re-run full guarded DEV-only startup once after review, with no automatic retries. MAIN/Integration2 and PRODUCTION remain unchanged.
