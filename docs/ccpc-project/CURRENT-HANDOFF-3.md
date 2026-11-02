@@ -1,5 +1,8 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
+> **Latest MAIN DEVELOPMENT executive authorization acceptance — Nov 2, 2026:** Owner approved one temporary DEVELOPMENT-only executive test account, then executed a guarded local Frappe **in-process** SQL/role gateway probe at pinned installed app SHA `532a28d99bd0548241854495156a61f94eb1ac6b`. **PASS:** four native Script Reports denied to the executive user; same user obtained gateway responses `department 19 columns/2 rows`, `equipment 24/2`, `intercompany 22/1`, `stock_gl 17/4`; all four canonical Company Department report filters passed (CCPC 2, RMC/GSL/WFC 0 rows); unlisted Company, same-Company intercompany, unknown filter and disabled-user requests all denied. **Temporary test user REMOVED BY ROLLBACK**, no retained DEVELOPMENT account or persistent business/permissions changes reported; PRODUCTION untouched. This validates a real four-Company *in-process* authorization path, **not authenticated web/browser login or HTTP POST**; zero RMC/GSL/WFC results do not prove their transaction-level data isolation on nonempty records. GitHub PR #32 currently draft/open/unmerged at head `009223d54ea88f5d9b64bc763fea24b929b770cb`, only 2 CI test files/3 commits ahead of MAIN pinned source; CircleCI job success verified at this SHA. **Next fastest safe delivery:** independent PR review and, if separately authorized, guarded DEV source transition to reviewed exact SHA while preserving `?? AGENTS.md`, existing business data and browser setup, then HTTP role test or review before production readiness. Never auto-enable all-site scheduler/worker while broken third site is present. See latest appended checkpoint.
+
+
 > **Latest real-site authorization inventory — Nov 2, 2026:** Owner ran the guarded, **read-only** MAIN DEVELOPMENT inventory in the existing exact pinned app source `532a28d99bd0548241854495156a61f94eb1ac6b`. All four canonical Company name/abbreviation records match the executive allowlist, and the `CCPC Group Executive Reporting` role **is installed**, but **ENABLED EXECUTIVE USERS = 0** and **EXECUTIVE USERS WITHOUT SYSTEM MANAGER = 0**. This is not proof of a broken app or denied positive authentication: the positive live-user path has **no eligible account to test**. Session ran an explicit database read-only transaction and rollback; no user, role, Company, transaction or configuration changes. Further positive DEV testing requires a separately scoped, controlled permission/test-account decision, not silent assignment to a real finance user; negative Guest/Administrator checks and synthetic CircleCI positive gateway have already passed. PR #32 still draft/open at new test-only head `009223d54ea88f5d9b64bc763fea24b929b770cb`; DEV remains pinned at earlier functional head. PRODUCTION untouched. See appended evidence.
 
 
@@ -2779,3 +2782,37 @@ PRODUCTION: NOT TOUCHED
 ```
 
 **Interpretation:** These prove all four Company name/abbreviation pairs exist in MAIN and match hard-coded gateway canonical values, executive Role row exists, and no *enabled System User other than Guest/Administrator* currently holds that role. No credentials/identifiers are printed. No live, assigned positive executive user exists to test the gateway/UI. Do not expand the meaning of the query to imply that no disabled users or no employees exist, or that existing System Managers have no access to native reports. Real MAIN `Guest` and `Administrator` gateway denial 2/2 had already passed; synthetic CI positive real-Frappe Role/User test on disposable Company fixtures passed at job level on PR32 exact new SHA. A new real-Company live positive path still requires **explicit authorization** to use or create a temporary DEVELOPMENT-only test identity and grant the executive role, with strict disposal/recovery controls; avoid escalating existing real users without explicit choice. Separately, absence of a role-assigned user does not establish four-company financial correctness, User Permission edge coverage, or production release readiness. Existing main UI, four native report acceptance, read-only ledger comparison and source status unchanged. No CI rerun, PR merge, DEV pull, database migrations, background scheduler/worker startup, or PRODUCTION action undertaken.
+
+
+## 2026-11-02 — MAIN positive executive gateway all four reports and rollback PASS
+
+**User authorization and actual terminal output:** Owner explicitly approved creating a temporary DEVELOPMENT-only executive test user for access verification and disabling/removing afterward. The supplied one-shot in-process MAIN operator probe checked exact pinned detached app SHA `532a28d99bd0548241854495156a61f94eb1ac6b`, sole protected `?? AGENTS.md`, distinct MAIN and Integration2 DB names, existence of four canonical Companies with exact abbreviations and executive Role/Page, then began a SQL transaction. Temporary enabled System User received `CCPC Group Executive Reporting` role but no System Manager, Accounts Manager/Accounts User, Stock Manager/Stock User, or Finance Controller roles. Under `frappe.set_user(actor)`, all four direct native Script Reports were denied with `frappe.PermissionError`; `run_group_report` served the four real MYSQL source reports with expected columns/data-row counts. All four Company keys accepted through Department report; negative unknown/same Company/extra filter rejected; after the temporary user was disabled, gateway denied again. Finally the transaction was rolled back and SQL existence check reported no persisted account. Owner terminal:
+
+```text
+TEMPORARY USER: REMOVED BY ROLLBACK
+PINNED MAIN DEVELOPMENT SAFETY GUARDS: PASS
+NATIVE department: DENIED (PASS)
+EXECUTIVE department: PASS columns=19 rows=2
+NATIVE equipment: DENIED (PASS)
+EXECUTIVE equipment: PASS columns=24 rows=2
+NATIVE intercompany: DENIED (PASS)
+EXECUTIVE intercompany: PASS columns=22 rows=1
+NATIVE stock_gl: DENIED (PASS)
+EXECUTIVE stock_gl: PASS columns=17 rows=4
+COMPANY CCPC: PASS rows=2
+COMPANY RMC: PASS rows=0
+COMPANY GSL: PASS rows=0
+COMPANY WFC: PASS rows=0
+UNLISTED COMPANY: DENIED (PASS)
+SAME COMPANY INTERCOMPANY: DENIED (PASS)
+UNKNOWN FILTER: DENIED (PASS)
+DISABLED USER: DENIED (PASS)
+EXECUTIVE POSITIVE/NEGATIVE ACCESS: PASS
+NO DEVELOPMENT ACCOUNT RETAINED
+NO PERSISTENT BUSINESS OR PERMISSION CHANGES
+PRODUCTION: NOT TOUCHED
+```
+
+**Interpretation and limits:** This was genuine MAIN Frappe `frappe.connect()` and real report SQL under a temporary role-bearing user, not just mocked permissions. Results establish the eligible-user positive and negative *server in-process* gateway behavior on actual four Company masters and Oct 1–31, 2026 filtered records. Since RMC, GSL and WFC returned zero rows on Department report, this is **valid scope acceptance but not populated foreign-Company data isolation proof**. It does not test remote authenticated HTTP POST, CSRF/session, browser Page visibility, future permanent role provisioning, or complete accounting postings. No retained test account, Company, Role, invoice, SLE or GL changes were reported; original User and Role data remain unchanged. No password/token printed. The earlier synthetic disposable CI actual pair and replay tests passed only at hosted job level on newer review SHA; application runtime code is unchanged across the 3 commits (exact comparison only `.circleci/test_four_reports_ci_config_static.py` and `ccpcerp/ccpc_erp/test_four_reports_28_disposable_integration.py`). GitHub PR #32 is still OPEN/DRAFT/UNMERGED at `009223d54ea88f5d9b64bc763fea24b929b770cb`, with CircleCI python syntax + manual approval + isolated integration success. Persistent DEV remains old source SHA `532a28d99bd0548241854495156a61f94eb1ac6b`; protected untracked `AGENTS.md` cannot be overwritten or committed. No DEV Git update, migrations, services restarts, worker/scheduler, PR merge, CI reruns or PRODUCTION actions authorized by this test.
+
+**Fastest next gated progression:** Read-only independent review of open PR #32 against `feature/finance-mapping-lifecycle-2026-10-28` and successful hosted CircleCI result, then obtain separate authorization for guarded DEVELOPMENT pull/checkout of reviewed exact SHA (only test files differ; preserving clean tracked worktree and protected AGENTS.md), followed by exact source verification and browser/HTTP acceptance if a temporary credential-controlled identity can be safely used without persistent user or password leakage. No need to recreate four GUI reports solely because source difference is test-only. Formal PR merge, production rollout, backups/rollback and DEV worker/scheduler activation are independent decisions.
