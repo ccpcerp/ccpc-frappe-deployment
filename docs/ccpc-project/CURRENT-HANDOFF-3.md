@@ -2524,3 +2524,25 @@ LOG_DIRECTORY_CHECK_EXIT_CODE=0
 **Meaning:** under the exact pinned DEVELOPMENT app HEAD `532a28d99bd0548241854495156a61f94eb1ac6b`, `/workspace/development/frappe-bench/logs` is present and writable, as is `/workspace/development/frappe-bench/sites/development.localhost/logs`, each with an existing `database.log`. However `/workspace/development/frappe-bench/sites/logs` **does not exist**. This is a plausible direct cause of earlier `frappe.connect()` `FileNotFoundError: database.log` when using a standalone script with explicit sites_path, but the diagnostic had shown only missing filename basename, **not the actual path**. Do not yet assert which parent the Frappe logger needs. Both migrations, MAIN post-migration metadata and 6/6 direct SQL SELECTs passed; complete Frappe report `execute()` and gateway denial tests have not run; no service restart, source changes, migration rerun or PRODUCTION change.
 
 **Next one safe read-only operator check:** in exact DEV container and only MAIN site context, instrument Python's `logging.FileHandler._open` in-process to intercept/abort **before any logger file open**, then call `frappe.init(...); frappe.connect()` solely to resolve the attempted `database.log` parent; report the attempted path as a bench-relative classification and parent existence/writability (never log contents, db name or secrets). If the resolved file is `sites/logs/database.log` and its parent missing, the smallest repair would be to create **that one DEV-only empty directory** with safe owner and permissions after explicit read/write scope; avoid broad `mkdir -p`, symlinks, file deletion, or host/PRODUCTION edits. Alternatively adapt the temporary test's site-path argument if this is only an invocation quirk. Run full Frappe runtime test only after logger resolution. No unapproved operations.
+
+
+## 2026-11-02 — Logger interception: database.log target outside DEVELOPMENT bench; do not create sites/logs yet
+
+**Owner-reported read-only interception test of Frappe `logging.FileHandler._open` on MAIN site:**
+```text
+PINNED SOURCE: PASS
+FRAPPE INIT: PASS
+ATTEMPTED LOG FILE: OUTSIDE_DEVELOPMENT_BENCH
+LOG FILE BASENAME: database.log
+PARENT DIRECTORY EXISTS: False
+PARENT DIRECTORY WRITABLE: NOT APPLICABLE
+LOGGER FILE OPEN INTERCEPTED: PASS
+NO LOG FILE OPENED BY INTERCEPTED HANDLER
+NO REPORTS OR MIGRATIONS RUN
+PRODUCTION: NOT TOUCHED
+LOG TARGET DIAGNOSTIC: COMPLETED
+LOG_TARGET_CHECK_EXIT_CODE=0
+```
+This **rules out claiming** the missing `/workspace/development/frappe-bench/sites/logs` as the cause: the actual attempted log handler path was **outside** `/workspace/development/frappe-bench` and its parent was missing. The basename alone is `database.log`, so the full path/root cause remains unknown. `frappe.init` passed and log opening was intentionally intercepted before any file open, so this is not a completed `frappe.connect`. The Frappe runtime `execute()` and gateway permission tests **have not run**. Earlier both site migrations, MAIN metadata and all six raw SQL source statements passed; DEV services remain stopped; PRODUCTION unmodified. GitHub PR32 remains draft/open/unmerged at exact pinned `532a28d99bd0548241854495156a61f94eb1ac6b`.
+
+**Next one read-only action:** repeat bounded `FileHandler._open` interception inside exact DEVELOPMENT container and print **the normalized absolute attempted log path** (no file contents) as well as cwd and Frappe site path location, parent existence and an explanation of whether any path component is a symlink; no directory creation, logging-file open, database connection or restart. Preserve protected `?? AGENTS.md`. The unexpected path may be a standalone Frappe initialization parameter/working-directory mismatch rather than a missing legitimate DEV directory; compare actual path to established site and bench log folders before making any change. Do not create shared sites/logs based on prior suspicion.
