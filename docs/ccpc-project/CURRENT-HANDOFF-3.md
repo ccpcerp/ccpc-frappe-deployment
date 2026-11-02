@@ -1993,3 +1993,26 @@ The command verified the shared DEVELOPMENT app's exact detached old HEAD `061e6
 **Status distinctions:** This action created only a **new same-host, one-site local** recovery set; MAIN still needs a fresh November 2 set and both new sets need verified protected off-host copies, appropriate independent recovery/restore confidence and guarded shared-bench integration. The earlier October 29 local sets and Oct 30 8/8 verified NAS copy remain protected. Backup source DB/files were live during capture; no proven atomic full-site restore. No shared app checkout, DEV site migration, user/role assignment, web or process restart, CircleCI rerun, PR merge or PRODUCTION change.
 
 **Next single operator action (already within owner-approved safeguarded DEV integration):** guarded fresh `development.localhost` `BackupGenerator` backup into a **new** exclusively created `0700` snapshot directory with random suffix under `/workspace/development/frappe-bench/.ccpc-pr32-snapshots`. Preconditions: old protected Git HEAD/detached/`?? AGENTS.md`; both exact October 29 snapshot folders and the new Integration2 folder; site config exists; backup encryption disabled (fail closed if enabled); adequate free space; avoid printing credentials/files. Use exact four output paths, check 4 components (compressed SQL, site_config JSON, public/private TAR), generate SHA256 manifest; never touch other site or any PRODUCTION service or stored backups. Stop on error and leave partial private directory preserved. Then copy *both new* snapshots off host, verify separate per-file SHA256/manifest, review maintenance-window/rollback scope before code switch.
+
+
+## 2026-11-02 — Fresh MAIN DEVELOPMENT backup PASS; both sites ready for protected NAS copy
+
+**Owner terminal output, verified as owner-reported execution (not independent server access):**
+```text
+PROTECTED DEVELOPMENT SOURCE: PASS
+SOURCE, SITE AND EXISTING BACKUP GUARDS: PASS
+DATABASE BACKUP: PASS
+CONFIG BACKUP: PASS
+PUBLIC BACKUP: PASS
+PRIVATE BACKUP: PASS
+BACKUP CHECKSUM MANIFEST: PASS
+BACKUP DIRECTORY: /workspace/development/frappe-bench/.ccpc-pr32-snapshots/development.localhost-20261102T002314Z-7dc759b9afc9
+MAIN DEVELOPMENT FRESH RECOVERY SET: PASS
+```
+The fresh MAIN backup was created in a new private local directory on November 2. The guarded generator action verified protected detached app HEAD `061e65710eb4b527fc8ac579aaab8ccad4dd131d`, the sole preserved untracked `AGENTS.md`, source snapshots, site configuration, adequate space and backup-encryption setting; its four generated artifacts passed gzip/JSON/TAR streaming checks and a new SHA256 manifest was written. **Manifest creation is confirmed by script output; independent follow-up checksum revalidation and restore are not yet complete.** The backup was of the live site, not an established fully atomic DB/files snapshot.
+
+**Two new November 2 local sets now exist, pending protected off-host copies:**
+- INTEGRATION2: `/workspace/development/frappe-bench/.ccpc-pr32-snapshots/ccpc-integration2.localhost-20261102T001358Z-00771ef0fbcf` (owner PASS in preceding milestone).
+- MAIN: `/workspace/development/frappe-bench/.ccpc-pr32-snapshots/development.localhost-20261102T002314Z-7dc759b9afc9` (owner PASS above).
+
+**Next operator step:** use one new, collision-resistant staging directory on independently verified Synology CIFS mount `/mnt/erpnext_backups` with source `//192.168.50.132/erpnext_backups`. Read-only verify both new local manifests against exactly their own four files, copy both intact into staging without overwriting existing NAS paths, verify **copied** SHA256 independently for all 8 files and both manifests, then atomically publish a new uniquely named `ccpc-development-pr32-...` NAS directory. Preserve all October 29 local/NAS copies and prior failed `.partial-*` staging; stop on mismatch without deletion. No default backup cleanup, source checkout, migration, bench/service restart, CircleCI rerun, PR merge or PRODUCTION change. Even after verified copy, actual standalone restore and site-transaction acceptance are still pending.
