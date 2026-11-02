@@ -97,3 +97,18 @@ SOCKETIO_INSPECTION_EXIT_CODE=0
 **Established:** the prior startup preflight incorrectly hardcoded an old Socket.IO launch fragment (`socketio.js`). The actual valid current Procfile line is **`socketio: bench socketio`** without forbidden shell operators, and exactly the five labels `web, socketio, watch, schedule, worker` remain. Do **not** modify the Procfile, app or site databases to satisfy the previous test. Source stays detached pinned at `532a28d99bd0548241854495156a61f94eb1ac6b` with only protected untracked `AGENTS.md`. Previous startup attempt stopped **before launch**. No services started, no production change. All four MAIN complete report executions and Guest/Admin gateway-denial tests already PASS; positive named executive viewer not tested because role has 0 assignments. Connected GitHub PR32 rechecked still draft/open/unmerged with exact SHA.
 
 **Next authorized one action:** after repeating strict backup and process guards, modify only startup validation to accept `bench socketio` (exact command), and launch exactly one DEV-only Honcho process with non-clobber private bench log; verify single live manager and unchanged Git source. Fail closed on unexpected other Procfile commands, existing service processes/listeners or ambiguous launch state. No automatic retry, broad container restart, migrations, user-role edits, PR merge or PRODUCTION activity. If successful, next separate HTTP site and worker/scheduler health checks.
+
+
+## 2026-11-02 — Corrected DEV startup preflight stops at worker command; no Honcho launch
+
+**Owner report from second guarded startup attempt:**
+```text
+PROTECTED SYNOLOGY BACKUPS: PASS
+PINNED SOURCE AND LOCAL BACKUPS: PASS
+STOP: Review Procfile worker
+DEVELOPMENT_START_EXIT_CODE=1
+STOP: Do not automatically retry startup
+```
+This exited at read-only Procfile validation, **before** the one detached Honcho launch instruction. The previous Socket.IO mismatch was fixed in the temporary script: actual Procfile entry `socketio: bench socketio`. The worker failed because the script requires `shlex.split(command)[:2] == ['bench','worker']` and disallows certain shell metacharacters, but the actual worker command and precise failed predicate were not printed. It is **not** evidence that the worker is misconfigured. Earlier Procfile inspection verified five entries: web, socketio, watch, schedule, worker. The pinned source/AGENTS and NAS/local backup presence guards passed on attempted launch. Both DEV migrations, MAIN 6/6 raw SQL, four real report `execute()` functions and Guest/Admin gateway denial PASS. No service launch, code/schema/data change or PRODUCTION modification from this attempt. PR32 remains draft/open/unmerged at `532a28d99bd0548241854495156a61f94eb1ac6b` per connected GitHub.
+
+**Next one read-only action:** inspect all five exact DEV `Procfile` commands, their tokenized command heads, and whether the current start-script validation would reject each, redacting sensitive assignments. Avoid repeating blind startup attempts. Then revise **only the temporary validation logic**, not the Procfile, to match reviewed safe commands; recheck live processes/listeners before any authorized DEV-only single-Honcho launch. No automatic retry, migrations, Docker restart, role edits, PR merge or PRODUCTION action.
