@@ -2271,3 +2271,26 @@ This inspection rechecked detached exact old app `061e65710eb4b527fc8ac579aaab8c
 **GitHub rechecked:** Draft/unmerged PR #32 head `532a28d99bd0548241854495156a61f94eb1ac6b`, 19 ahead/0 behind versus the protected old app, changes 13 paths. Previous source fetch and both November 2 local four-part snapshots plus Synology published path `/mnt/erpnext_backups/ccpc-development-pr32-20261102T003434Z-237495dd9a3d4061` were validated, NAS 8/8 real SHA256 copy checks passed. Independent full-site restore has not been demonstrated. No PRODUCTION or broad Docker operation authorized.
 
 **Next one owner-approved scoped mutation:** repeat host NAS CIFS/source and both snapshot path presence guards, protected detached old HEAD, exact untracked `AGENTS.md` SHA256, approved target object and ancestry with no tracked `AGENTS.md` collision, and a last DEV-only idle-shell/service/port quiescence check. Only if all PASS, perform `git -c core.hooksPath=/dev/null switch --detach 532a28d99bd0548241854495156a61f94eb1ac6b` in **existing DEVELOPMENT app checkout only**, without clean/reset/stash, process signals, DB changes or service restarts. Verify new exact detached HEAD/status and protected `AGENTS.md` hash after checkout. STOP without automatic reset on error. Then separately migrate synthetic `ccpc-integration2.localhost` first and validate before MAIN `development.localhost` migration; services must remain down during coordinated site migration. **This checkpoint records pre-switch PASS, not a completed code switch.**
+
+
+## 2026-11-02 — Exact PR32 DEVELOPMENT source switch PASS at 532a28d; Integration2 migrate next
+
+**Owner-executed guarded source switch, full terminal verification:**
+```text
+PROTECTED SYNOLOGY RECOVERY: PASS
+SOURCE AND LOCAL BACKUP GUARDS: PASS
+PRESERVED IDLE SHELLS: 4
+LIVE DEVELOPMENT SERVICE CANDIDATES: 0
+DEVELOPMENT SERVICE LISTENERS: []
+DEVELOPMENT QUIESCENCE RECHECK: PASS
+Previous HEAD position was 061e657 ci(four reports): run six pure-source guard checks in cheap starter validation
+HEAD is now at 532a28d ui: label the four executive report choices without exposing report route
+PR32 DEVELOPMENT SOURCE SWITCH: PASS
+EXACT TARGET SHA: 532a28d99bd0548241854495156a61f94eb1ac6b
+PROTECTED AGENTS.md: PRESERVED
+DATABASE MIGRATIONS: NOT RUN
+DEVELOPMENT SERVICES: NOT RESTARTED
+```
+**Verified reported milestone:** in only the named DEVELOPMENT Docker container `frappe_docker_devcontainer-frappe-1`, existing CCPC app source is now detached `HEAD=532a28d99bd0548241854495156a61f94eb1ac6b` after safe `git switch --detach` (disabled hooks). Only `?? AGENTS.md` remains, original content SHA256 unchanged. All host Synology CIFS recovery and both Nov 2 local site snapshot-manifest presence checks passed. Quiescence rechecked: 0 live DEV service candidates, 0 expected listeners, 4 idle shells preserved. No database migrations, app/bench service restarts, Git merges, force operations or PRODUCTION changes. Fetched PR32 head independently checked again via connected GitHub: exact same pinned SHA, still draft/open/unmerged. New reviewed code `hooks.py` has before_migrate role ensure and after_migrate existing foundation/backfill/role/permission/workflow routines; migration is intentional site database schema/data write, **not** mere source sync. Recovery snapshots have verified local + Synology checksums but no proven independent full restore.
+
+**Next authorized step:** migrate **only** `ccpc-integration2.localhost` under newly pinned DEV app code, with fresh checkout/status/backup/site/other-services guards, and stop on error. Keep the shared DEV bench web, workers and scheduler down; do not concurrently migrate `development.localhost`. Be prepared for missing Redis services to cause migration failure; do not automatically restart broad Honcho or Docker, change code, or suppress errors. If Integration2 migration completes, capture full concise status and next do separate read-only post-migration tests for expected DocTypes/page/report/role before MAIN DEV migration. No PRODUCTION operation authorized. **At this checkpoint migrations have NOT begun.**
