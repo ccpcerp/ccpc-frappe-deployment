@@ -2232,3 +2232,23 @@ PROTECTED DEVELOPMENT SOURCE: PASS
 BOTH EXACT CODEX IDENTITIES: PASS
 ```
 This *precheck only* verified old detached source SHA `061e65710eb4b527fc8ac579aaab8ccad4dd131d`, exact fetched PR32 candidate `532a28d99bd0548241854495156a61f94eb1ac6b`, lone protected untracked `AGENTS.md` and the exact Codex parent PID 5450 / child 454863 metadata and parent-child relationships (per preceding script). It used `os.pidfd_open` only as a support/probe and closed it; **no SIGTERM, SIGKILL or other signal was sent** and no checkout/migration performed. The owner previously granted explicit permission for scoped graceful SIGTERM to those two PIDs only. Next one already approved operator command must revalidate exact process identities and start ticks immediately before opening stable pidfds, use `signal.pidfd_send_signal` only on the two verified handles in child-then-parent order, never send a group or force signal, wait boundedly for process exit and stop on unexpected status. Do not modify Git or databases as part of this step. Afterward separately verify no Codex writers/Honcho-managed DEV services before approved pinned SHA source switch; PRODUCTION remains excluded.
+
+
+## 2026-11-02 — Owner-approved exact-pidfd Codex graceful SIGTERM PASS; final DEV quiescence check next
+
+**Owner-executed command, reported terminal output:**
+```text
+PROTECTED DEVELOPMENT SOURCE: PASS
+EXACT CODEX PIDFD IDENTITIES: PASS
+CODEX CHILD SIGTERM: SENT
+CODEX PARENT SIGTERM: SENT
+BOTH CODEX PROCESSES EXITED: PASS
+NO FORCE KILL OR GROUP SIGNAL USED
+PROTECTED AGENTS.md: PRESERVED
+GIT CHECKOUT: UNCHANGED
+NO DATABASE MIGRATION PERFORMED
+CODEX GRACEFUL SHUTDOWN STEP: COMPLETED
+```
+The owner previously gave separate explicit scoped approval for graceful SIGTERM *only* to Codex PIDs `454863` (child) and `5450` (parent). The executed script rechecked old exact detached shared DEV Git HEAD `061e65710eb4b527fc8ac579aaab8ccad4dd131d`, exact fetched target `532a28d99bd0548241854495156a61f94eb1ac6b`, only untracked `AGENTS.md` and its hash, exact PID UID, args count, cwd, PPID/PGID/SID/TTY, start tick, tree and pidfds; it sent SIGTERM through pidfds to child then parent and observed both absent or defunct. Neither SIGKILL nor group signal was issued; no file cleanup, Git switch, Docker/container restart, database migration or PRODUCTION action. This is operator output, not an independently observed host audit. It establishes two named processes exited, **not** zero other background agents or DEV service descendants.
+
+**Next single operator step:** one final **read-only** protected Git/source + running DEV bench service/agent process/expected TCP listener audit; account for four proven idle human-owned bash shells in bench/app working directories without treating them as active ERPNext workers; leave zombie processes alone. Check for any newly started Codex, Honcho, worker/web/scheduler/socketio/watch/redis processes; stop if any identified. After PASS, execute reviewed pinned detached Git switch from old `061e657...` to exact `532a28d...` with no reset, clean, stash or overwrite of `AGENTS.md`. Then separately migrate `ccpc-integration2.localhost` first (validate), then `development.localhost` (validate), resume DEV-only Honcho and test reports/permissions. Protected November 2 local snapshots and published Synology copy `/mnt/erpnext_backups/ccpc-development-pr32-20261102T003434Z-237495dd9a3d4061` remain the recovery basis; not independently restored. PRODUCTION is excluded and app PR #32 remains unmerged/draft.
