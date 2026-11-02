@@ -1,5 +1,8 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
+> **Latest operational safety gate — November 2, 2026:** After the four MAIN report `execute()` PASS and 2/2 denied gateway checks, owner explicitly approved one guarded DEVELOPMENT-only Honcho resume. The next read-only preflight passed NAS/source/Procfile/process guards but disclosed **three** Frappe site directories, including the known-broken `ccpc-integration.localhost` with neither scheduler pause nor disable explicitly set. Starting the default five-process Honcho stack would start all-site `schedule` and `worker` and could enqueue/execute work touching that site. **Do not start the full Procfile yet.** Recommended narrow scope: Honcho named processes `web socketio` only (no `watch`, `schedule`, or `worker`), under fresh no-service/source/backup guards, for read-only two-site browser/HTTP acceptance. This is a recommendation and **has not yet been started**. Do not alter third-site config, delete site, enable workers/scheduler or touch PRODUCTION without separate scope. Details in latest appended checkpoint.
+
+
 > **Latest active delivery checkpoint — November 2, 2026 (MAIN DEVELOPMENT):** Under the exact detached custom-app SHA `532a28d99bd0548241854495156a61f94eb1ac6b`, the owner ran a working-directory-corrected Frappe `execute()` smoke: all four report modules PASS (Department 19 columns/2 rows; Equipment 24/2; Intercompany 22/1; Stock/P&L GL 17/4), and both `Guest` and `Administrator` executive gateway denial probes PASS. MAIN DB used `START TRANSACTION READ ONLY` and rollback. No additional migrations/restarts or intentional business writes. The earlier `database.log` standalone failure was addressed by running from `frappe-bench/sites`; no logger directory change. **Next actionable gate:** review existing DEV five-entry `Procfile`, actual existing process/listener state and all-site scheduler implications, then obtain/confirm scope for one guarded DEV-only Honcho resume and two-site HTTP checks. Do not start `bench schedule` manually; Integration2's absent Department stock-entry columns remain an independent synthetic-site report limitation. PR #32 draft/unmerged at `532a28d`; PRODUCTION NO-GO. See appended November 2 milestone for evidence and limits.
 
 
@@ -2582,3 +2585,31 @@ APPLICATION_TEST_EXIT_CODE=0
 **Scope and limitations:** These are real `execute()` calls in persistent MAIN `development.localhost` using `Administrator`, with fixed CCPC and CCPC/RMC source filters for October 1–31, 2026. The two executive gateway tests intentionally confirm denial for `Guest` and `Administrator` only; there is **no authorized regular executive success/Company-isolation test**, no real user role grants, browser/HTTP smoke after restoring services, no confirmation of numerical financial accuracy, complete row-level permission matrix, or independent backup restore. Nonzero rows prove representation executed on some data but not that totals are certified. DB transaction was read-only/rolled back, while Frappe initialization may touch cache/logs. The synthetic Integration2 site still lacks both Department accounting-dimension columns on its Stock Entry source tables; that limitation is unaffected by MAIN PASS. No scheduler, web/worker services or migrations were started during this test. GitHub PR #32 rechecked by connected GitHub `get_pr_info`: draft/open/unmerged at the exact installed SHA. PRODUCTION was not modified by this owner-reported operation; no independent production audit performed.
 
 **Next single operational decision:** DEVELOPMENT services are still reported stopped from the guarded source-transition/migration window. Inspect five-entry Procfile/start method and current DEV-only service/port state, with exact source/AGENTS/backup guards; because `bench schedule` runs an **all-site** scheduler in this bench, do not manually start it as a one-time diagnostic. A new DEV Honcho resume has real background-work implications for both persistent sites; secure a scoped operator approval and check both sites' scheduling/job state before one controlled start. No Docker/Compose recreation, filesystem repair, additional migration, automatic retry, or PRODUCTION work. After safe service resume, verify separate per-site HTTP ping and smoke, then continue actual authorized-account permissions/functional testing, with PR merge and PRODUCTION cutover separate decisions.
+
+
+## 2026-11-02 — DEV service preflight finds third unpaused site; restrict resume to UI-only processes
+
+**Owner supplied guarded read-only preflight output:**
+```text
+PROTECTED SYNOLOGY RECOVERY: PASS
+PINNED DEVELOPMENT SOURCE: PASS
+PROCFILE LABEL COUNT: 5
+PROCFILE LABELS: web, socketio, watch, schedule, worker
+PROCFILE STRUCTURE: PASS
+SITE: ccpc-integration.localhost PAUSE_SCHEDULER: UNSET DISABLE_SCHEDULER: UNSET
+SITE: ccpc-integration2.localhost PAUSE_SCHEDULER: UNSET DISABLE_SCHEDULER: UNSET
+SITE: development.localhost PAUSE_SCHEDULER: UNSET DISABLE_SCHEDULER: UNSET
+DISCOVERABLE SITE COUNT: 3
+ADDITIONAL SITES: ['ccpc-integration.localhost']
+LIVE BENCH SERVICE OR AGENT CANDIDATES: 0
+DEVELOPMENT SERVICE LISTENERS: []
+DEVELOPMENT PROCESS QUIESCENCE: PASS
+SCHEDULER CONFIGURATION: INSPECTED
+NO SERVICES STARTED
+NO SOURCE OR DATABASE CHANGES
+PRODUCTION: NOT TOUCHED
+RESTART PREFLIGHT: PASS
+RESTART_PREFLIGHT_EXIT_CODE=0
+```
+
+**Interpretation and safety decision:** The host NAS at `/mnt/erpnext_backups` remained the expected CIFS source and Nov 2 published snapshot directory existed; application source was exact detached `532a28d99bd0548241854495156a61f94eb1ac6b` with protected sole untracked `AGENTS.md`. Five expected Procfile labels and zero active DEV-bench service/agent candidates/listeners verified at that moment. However the third previously broken `ccpc-integration.localhost` remains under `sites/` and neither `pause_scheduler` nor `disable_scheduler` is explicitly set for any of the three sites. The scheduler source previously inspected invokes `enqueue_events_for_all_sites()` and must not be assumed to exclude the broken site. The extra site is a meaningful **risk to unrestricted scheduler/worker resume**, not a failure of source or backup preflight. Honcho's documented named-process start supports selecting only `web` and `socketio`; this avoids explicitly starting `schedule`, `worker` or `watch`, permitting basic DEV browser/HTTP smoke under the existing scoped approval. This does not validate business/background workflows and existing queued jobs should be reviewed before later worker enablement. No site config, source, recovery assets, startup process or PRODUCTION changed as of this checkpoint. Next: guarded one-time web/socketio-only Honcho start (no retries on failure), verify both valid sites separately; do not start full Procfile or mutate third site automatically.
