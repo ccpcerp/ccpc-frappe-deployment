@@ -1974,3 +1974,22 @@ READ-ONLY PREFLIGHT FINISHED; NO SOURCE SWITCH OR MIGRATION
 **Correction to milestone wording:** The October 29 local backup **inventory is 4/4 + 4/4 present/nonempty**, but this latest run did **not** retest gzip/TAR/JSON contents or hashes, and the NAS `SHA256SUMS` was checked only as nonempty; prior October 30 8/8 SHA256 verified copy evidence remains historical. These backups are several days old and independently restoring the live site remains unproven. Do not claim restore assurance or readiness to migrate on that basis.
 
 **Next critical path:** Avoid a third generic file inventory loop. Follow owner-approved safeguarded DEVELOPMENT integration plan by creating a **new non-overwriting, current 4-component backup** for each valid DEV site, with exact-SHA Git and `AGENTS.md` guards and explicit no-default-cleanup Frappe BackupGenerator, verify content integrity and private storage, protect copies off host with checksums before shared-code source switch. Do NOT run `bench backup` default cleanup, overwrite October 29 local/NAS files, perform git checkout, migration, worker stop/restart, role assignment or PRODUCTION actions in that same preflight. Maintain one operator step at a time.
+
+## 2026-11-02 — Fresh Integration2 DEV backup PASS; fresh main DEV backup next
+
+**Owner terminal output from approved one-site, no-cleanup `BackupGenerator` action:**
+```text
+PROTECTED DEVELOPMENT SOURCE: PASS
+DATABASE BACKUP: PASS
+CONFIG BACKUP: PASS
+PUBLIC BACKUP: PASS
+PRIVATE BACKUP: PASS
+BACKUP CHECKSUM MANIFEST: PASS
+BACKUP DIRECTORY: /workspace/development/frappe-bench/.ccpc-pr32-snapshots/ccpc-integration2.localhost-20261102T001358Z-00771ef0fbcf
+INTEGRATION2 FRESH RECOVERY SET: PASS
+```
+The command verified the shared DEVELOPMENT app's exact detached old HEAD `061e65710eb4b527fc8ac579aaab8ccad4dd131d` and sole preserved `?? AGENTS.md` before writing a new unique local snapshot. The generator was invoked through a directly imported `frappe.utils.backups.BackupGenerator`, with `ignore_conf=True`, `get_backup(force=True, ignore_files=False)`, a new private location outside ordinary Frappe backup cleanup; no attempt to run `bench backup` or delete old files. The user-reported output confirms four nonempty components passed the script's gzip/config/tar checks and a SHA256 manifest was **created** (not independently revalidated later). Target snapshot path above is now the exact authoritative file layout and should be preserved. Python emitted `RuntimeWarning: Unexpected value in sys.prefix / sys.exec_prefix` because the script used relative `../env/bin/python` from `sites`; the backup itself completed. Use the absolute venv executable `/workspace/development/frappe-bench/env/bin/python` in subsequent commands, without weakening source guards.
+
+**Status distinctions:** This action created only a **new same-host, one-site local** recovery set; MAIN still needs a fresh November 2 set and both new sets need verified protected off-host copies, appropriate independent recovery/restore confidence and guarded shared-bench integration. The earlier October 29 local sets and Oct 30 8/8 verified NAS copy remain protected. Backup source DB/files were live during capture; no proven atomic full-site restore. No shared app checkout, DEV site migration, user/role assignment, web or process restart, CircleCI rerun, PR merge or PRODUCTION change.
+
+**Next single operator action (already within owner-approved safeguarded DEV integration):** guarded fresh `development.localhost` `BackupGenerator` backup into a **new** exclusively created `0700` snapshot directory with random suffix under `/workspace/development/frappe-bench/.ccpc-pr32-snapshots`. Preconditions: old protected Git HEAD/detached/`?? AGENTS.md`; both exact October 29 snapshot folders and the new Integration2 folder; site config exists; backup encryption disabled (fail closed if enabled); adequate free space; avoid printing credentials/files. Use exact four output paths, check 4 components (compressed SQL, site_config JSON, public/private TAR), generate SHA256 manifest; never touch other site or any PRODUCTION service or stored backups. Stop on error and leave partial private directory preserved. Then copy *both new* snapshots off host, verify separate per-file SHA256/manifest, review maintenance-window/rollback scope before code switch.
