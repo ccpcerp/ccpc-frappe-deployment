@@ -144,3 +144,35 @@ STOP: Inspect state before any further startup attempt
 **Scope and interpretation:** The temporary startup script's Python preflight compared every directory under the DEV bench `sites/*/site_config.json` to an **exact** set containing only `development.localhost` and `ccpc-integration2.localhost`. The strict set-equality failed. This can indicate additional legitimate site configs, a missing named config, or another filesystem issue; do not infer any particular third site without an inventory. Earlier audits confirmed both named DEV site configs exist, so additional site(s) are plausible. The script exited **before** the `docker exec -d` Honcho launch, with no startup/migration/code or production operation from this attempt. NAS/local recovery manifest and pinned source+AGENTS, five Procfile commands and worker append redirection guards passed. No PR merge; GitHub confirms PR32 draft/open/unmerged at `532a28d99bd0548241854495156a61f94eb1ac6b`.
 
 **NEXT safe step:** read-only exact DEVELOPMENT bench site_config inventory from the named DEV container, guard pinned app SHA and protected AGENTS, print site directory names and classify expected/extra, detect symlinks and anonymous distinct DB checks without printing credentials, DB names or contents; do not mutate files. **Before starting Honcho**, review whether any extra site is potentially PRODUCTION or otherwise a workload not authorized to restart, since a bench-wide scheduler/worker can operate on all configured sites and DEV and PROD may share host infrastructure. Do not merely relax the set to allow arbitrary sites, and do not rerun startup until scope is understood. If all extras are verified DEV-only, change the startup guard to check both approved sites are present and no production/unknown sites would be acted on. All previous migrations and MAIN reporting tests remain PASS; web/workers/scheduler still down as of last verified inspection.
+
+
+## 2026-11-02 — Three DEV bench site configs found; third known broken integration site excluded from rollout
+
+**Owner's read-only exact DEV bench inventory after third guarded Honcho preflight stop:**
+```text
+PINNED SOURCE: PASS
+SITE CONFIGURATION COUNT: 3
+EXPECTED SITES PRESENT: True
+ADDITIONAL SITE COUNT: 1
+SITE: ccpc-integration.localhost
+CLASSIFICATION: ADDITIONAL - REVIEW REQUIRED
+SITE DIRECTORY SYMLINK: False
+CONFIGURATION SYMLINK: False
+SITE: ccpc-integration2.localhost
+CLASSIFICATION: EXPECTED DEVELOPMENT
+SITE DIRECTORY SYMLINK: False
+CONFIGURATION SYMLINK: False
+SITE: development.localhost
+CLASSIFICATION: EXPECTED DEVELOPMENT
+SITE DIRECTORY SYMLINK: False
+CONFIGURATION SYMLINK: False
+SITE INVENTORY: COMPLETED
+NO CONFIGURATION CONTENTS DISPLAYED
+NO FILES OR DATABASES MODIFIED
+NO SERVICES STARTED
+PRODUCTION: NOT TOUCHED
+SITE_INVENTORY_EXIT_CODE=0
+```
+**Important GitHub reconciliation:** Earlier authoritative `CURRENT-HANDOFF-3.md`, `DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md` and `PR32-DEVELOPMENT-READ-ONLY-PREFLIGHT-2026-10-29.md` explicitly call `ccpc-integration.localhost` a **known incomplete/failed/broken integration site excluded from the approved two-site migration/recovery scope**. Thus the third site is **not an unknown PRODUCTION site on existing documentary evidence**, but it is explicitly **not part of the tested/migrated rollout**, and its lingering `site_config.json` might still be enumerated by bench-wide scheduler/web workers on a Honcho start. Do not simply relax the startup guard and treat all three as valid; do not remove, rename, migrate, restore or alter the broken site without separate review/authorization. The strict exact-two check correctly stopped before launch and exposed this latent topology risk. HEAD still pinned `532a28d99bd0548241854495156a61f94eb1ac6b`, only protected `?? AGENTS.md`; NAS/local backups and five exact Procfile commands passed previously. Both approved DEV migrations, MAIN metadata, 6/6 raw SQL, all four native report `execute()`, and Guest/Admin gateway-denials PASS. DEVELOPMENT services remain down at last observed audit. PRODUCTION untouched; PR32 draft/open/unmerged.
+
+**NEXT safe owner action:** one read-only targeted three-site configuration/scheduler-scope check inside named DEV container: compare database names for 3/3 distinctness **without printing names, secrets, or hostname**, inspect site-level `disable_scheduler` and `maintenance_mode` flags, and report whether the known broken site's config is complete or points to any approved DEV DB. Avoid contacting/writing the broken site DB, changing any files or starting services. Depending on evidence, review Frappe's actual bench-wide scheduler site-selection behavior before the next DEV Honcho start. Full launch requires explicit scoped decision to keep broken site inactive or otherwise safely isolate it; no unapproved changes to site configs or PRODUCTION.
