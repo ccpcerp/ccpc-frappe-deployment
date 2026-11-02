@@ -2309,3 +2309,34 @@ The approved `bench --site ccpc-integration2.localhost migrate` command returned
 **GitHub source refreshed:** PR #32 remains draft/open/unmerged at exact head `532a28d99bd0548241854495156a61f94eb1ac6b`. Pinned source `ccpcerp/hooks.py` includes `before_migrate=ccpcerp.setup.ensure_ccpc_group_executive_reporting_role`, `after_migrate=ccpcerp.setup.after_migrate`; the new Page JSON is `ccpc-group-executive-reporting` with role `CCPC Group Executive Reporting`, the four Script Report JSONs target `CCPC Department Material Consumption`, `CCPC Equipment Job Material Activity`, `CCPC Intercompany Withdrawal Billing Status`, `CCPC Company Stock PNL GL Reconciliation`, each role `System Manager`. No executive role assignment to a named user is authorized. Recovery is backed by verified November 2 Synology and local snapshots, but independent full restore was not tested.
 
 **Immediate next single step:** read-only exact-site Integration2 database validation (using its own site config) of role existence, Page metadata/role, four report records/type/ref_doctype/roles, required DocTypes and source columns, and number of named users with the executive role (record but do not assign). Keep services down. Stop/review failures or unsafe findings before MAIN migration. Known possible synthetic Integration2 Department Accounting Dimension column omission may still break full native report SQL despite migration success: test those separately, do not misrepresent as passing report execution. Preserve PRODUCTION and all backups; no repeat migrate until validated.
+
+
+## 2026-11-02 — Integration2 post-migrate executive-reporting metadata verification PASS
+
+**Owner-reported command output from narrow, read-only Integration2 PyMySQL transaction after successful migration at pinned `532a28d99bd0548241854495156a61f94eb1ac6b`:**
+```text
+PINNED DEVELOPMENT SOURCE: PASS
+EXECUTIVE ROLE: PASS
+EXECUTIVE PAGE METADATA: PASS
+EXECUTIVE PAGE EXCLUSIVE ROLE: PASS
+REPORT METADATA: CCPC Department Material Consumption: PASS
+NATIVE REPORT ROLE: CCPC Department Material Consumption: PASS
+REPORT METADATA: CCPC Equipment Job Material Activity: PASS
+NATIVE REPORT ROLE: CCPC Equipment Job Material Activity: PASS
+REPORT METADATA: CCPC Intercompany Withdrawal Billing Status: PASS
+NATIVE REPORT ROLE: CCPC Intercompany Withdrawal Billing Status: PASS
+REPORT METADATA: CCPC Company Stock PNL GL Reconciliation: PASS
+NATIVE REPORT ROLE: CCPC Company Stock PNL GL Reconciliation: PASS
+DOCTYPE: Intercompany Material Billing Batch: PASS
+DOCTYPE: Stock Entry: PASS
+DOCTYPE: Equipment Registry: PASS
+EXECUTIVE ROLE USER ASSIGNMENTS: 0
+NO UNAPPROVED EXECUTIVE USER ASSIGNMENTS: PASS
+INTEGRATION2 METADATA VALIDATION: PASS
+REPORT SQL EXECUTION: NOT YET TESTED
+MAIN DEVELOPMENT: NOT MIGRATED
+PRODUCTION: NOT TOUCHED
+```
+**Interpretation:** DB metadata confirms executive-only standard Page and its single `CCPC Group Executive Reporting` role, four present standard Script Reports with only native `System Manager` role, required source DocTypes, and zero named executive-role assignments, all on Integration2. Source status guard PASS. The operator's script used `START TRANSACTION READ ONLY`, rolled back and closed. No proof of actual report SQL or runtime permission enforcement yet. Pinned GitHub report implementations inspected: department `_source_sql(False)`; equipment `_material_sql(False)` and `_job_sql(False)`; intercompany `_source_sql()`; stock/P&L `_stock_sql()` and `_pnl_sql()`, totaling six independent raw SELECTs across four reports. SQL uses Company, posting-date, and bounded LIMIT bind params. A prior synthetic Integration2 setup may lack Department Accounting Dimension `se.department`/`sed.department` columns; do not silently patch database or code if SQL fails. MAIN `development.localhost` remains unmigrated; PRODUCTION remains untouched. Protected Nov2 snapshots verified but never restored in isolation.
+
+**Next one read-only step:** source-pinned, Integration2-only SQL **smoke** test on those six SELECTs with exact fixed Company/date filters and small row limits inside explicit read-only DB transaction; print only query label, row count and sanitized error code/identifier (never row contents/secrets), plus relevant Department column presence. This does not execute the entire report Python permission/presentation pathway; record this limitation. If synthetic Integration2 schema fails, diagnose separately before deciding whether MAIN migration can proceed safely. No additional roles, transactions, migrations, service restarts, or PRODUCTION operations in this step. GitHub branch PR #32 remains unmerged pending integration verification.
