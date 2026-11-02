@@ -2142,3 +2142,21 @@ NO CHECKOUT OR MIGRATION PERFORMED
 The command checked the expected CIFS mount and both November 2 NAS manifests, DEVELOPMENT old detached SHA `061e65710eb4b527fc8ac579aaab8ccad4dd131d`, exact fetched new SHA `532a28d99bd0548241854495156a61f94eb1ac6b`, sole preserved untracked `AGENTS.md`, and the local recovery manifests. Exact Honcho PID `519444` had PPID 0, PGID/SID 519444, UID `frappe`, CWD `/workspace/development/frappe-bench`, Python executable `/home/frappe/.pyenv/versions/3.14.2/bin/python3.14`, and `/home/frappe/.local/bin/honcho start` argv. The command sent a single `SIGINT` to **PID only**; manager became absent or zombie before the bounded timeout. No group signal, SIGKILL, Docker restart, code switch, migration or PRODUCTION operation was included. An earlier inspection had shown **25 live descendants**, including processes in independent PGIDs: manager exit **does not establish** that all DEV web/socketio/worker/scheduler/watch or orphaned grandchildren are dead.
 
 **Immediate next one read-only step:** verify exact DEVELOPMENT Git/status and protected source, then examine original process-group 519444 and separately known descendant PGIDs `519623,519627,519631,519634,519637`, the previously observed descendant PIDs (do not rely on historical PIDs as live identities), current `honcho start` managers, and any DEV-bench-CWD/`sites`-path web/worker/schedule/socketio/watch candidates; distinguish `Z` zombie remnants from live services. Do not kill or signal, restart containers, run `bench migrate`, or checkout code during this read-only test. Fail closed on unknown/remaining DEV service candidates, and inspect their identities in a separate step. Only when quiescence is verified may source switch proceed at the **pinned** SHA. Protect all November 2 backups and PRODUCTION, and remember database changes are not reversed by a Git switch.
+
+
+## 2026-11-02 — After SIGINT, DEV service candidate audit flags four bash shells; classify before checkout
+
+**Owner's read-only post-Honcho-stop audit:**
+```text
+DEVELOPMENT ZOMBIES: 12
+LIVE DEVELOPMENT SERVICE CANDIDATES: 4
+LIVE: 14 0 14 14 S bash
+LIVE: 5088 0 5088 5088 S bash
+LIVE: 16566 0 16566 16566 S bash
+LIVE: 17161 0 17161 17161 S bash
+STOP: Live processes require review
+READ-ONLY CHECK COMPLETED
+```
+The four live candidates are `bash` sessions each with PPID 0 and their own PGID/SID, **not** an observed Honcho manager or clearly a web/worker service. The previous generic audit includes any service-named process whose CWD is the bench; this catches interactive terminal shells parked there. The audit is therefore **inconclusive**, not proof four Frappe services survived. The 12 `Z` zombies are defunct, not active. Following earlier `docker inspect`, DEVELOPMENT container `frappe_docker_devcontainer-frappe-1` reported `STATUS=running RUNNING=true EXIT_CODE=0 OOM_KILLED=false`. A previous transient terminal `Exited` message did not mean container shutdown. None of these observations permits terminating the four bash shells or blindly ignoring them.
+
+**Next single read-only operator action:** classify the four specific shell PIDs (exact argv shape without printing sensitive arguments, current CWD, TTY, FD0, state, child count), and independently scan all other `frappe` processes for executable/argv matches to Honcho, Frappe web/worker/scheduler, Node Socket.IO/watcher, Redis and known old PGIDs, ignoring the current inspection's own shell/Python. Fail closed if a shell has active children or an unexplained live service. Do not send signals, run Git checkout, bench migrate, restart Docker or touch PRODUCTION. On truly idle shell sessions plus zero DEV service candidates, proceed with already-approved pinned `532a28d99bd0548241854495156a61f94eb1ac6b` source switch as a separate step, preserving `AGENTS.md` and both November 2 protected backup sets.
