@@ -2093,3 +2093,34 @@ NO SOURCE SWITCH OR MIGRATION PERFORMED
 The owner executed the scoped container command as `frappe`. Its exact commit/detached source and sole untracked `AGENTS.md` guards passed before and after the fetch; Git origin allowlist and SSH strict host-key requirements passed; `FETCH_HEAD` resolved exactly to the approved SHA; ancestry from `061e65710eb4b527fc8ac579aaab8ccad4dd131d` was confirmed; incoming target had no tracked root `AGENTS.md`, and the protected local `AGENTS.md` hash remained unchanged. This only updated Git objects/remote-tracking information, not the worktree or either site's database. PR#32 independently remained draft/open/unmerged and pinned at `532a28d99bd0548241854495156a61f94eb1ac6b` on GitHub.
 
 **Next single operator step:** read-only inspect current live **DEVELOPMENT-only** Honcho identity, exact parent/child/process group/session and running Bench worker/web/socketio processes, and `bench doctor` for both sites. No `kill`/signal, migration, checkout, Docker restart or PRODUCTION action in this inspection. The older Honcho PID 519444 is historical and must not be assumed still live. Only a fresh unique exact-process identity and user-confirmed downtime/active-jobs guard can permit the next supervised graceful DEV-only stop. Preserve the verified November 2 local+Synology 8/8 snapshots. A future git switch must target exact pinned SHA, not a moving branch name.
+
+
+## 2026-11-02 — DEVELOPMENT Honcho PID 519444 read-only audit PASS; gated graceful stop next
+
+**Owner operator output from fresh read-only Docker `frappe_docker_devcontainer-frappe-1` inspection:**
+```text
+DEVELOPMENT SOURCE AND SITE GUARDS: PASS
+LIVE DEVELOPMENT HONCHO MANAGERS: 1
+HONCHO PID: 519444
+HONCHO PPID: 0
+HONCHO PGID: 519444
+HONCHO SID: 519444
+HONCHO STATE: S
+HONCHO EXECUTABLE: /home/frappe/.pyenv/versions/3.14.2/bin/python3.14
+LIVE HONCHO DESCENDANTS: 25
+DEVELOPMENT HONCHO IDENTITY CHECK: PASS
+JOB STATUS: development.localhost
+-----Checking scheduler status-----
+Workers online: 1
+-----development.localhost Jobs-----
+JOB STATUS: ccpc-integration2.localhost
+-----Checking scheduler status-----
+Workers online: 1
+-----ccpc-integration2.localhost Jobs-----
+READ-ONLY DEVELOPMENT SERVICE INSPECTION: COMPLETED
+NO SERVICES STOPPED
+NO CHECKOUT OR MIGRATION PERFORMED
+```
+The live 25 descendant process list included spawned Python, shell, Node and esbuild processes; some were in descendant PGIDs other than Honcho's, so **never signal only a process group** as a substitute for supervising the parent. Both `bench doctor` outputs listed one online worker and no jobs, but that does not prove no in-flight web work or transactions. Prior owner confirmed being sole DEV user and approved downtime/maintenance; reconfirm no ongoing DEVELOPMENT transactions at command time. The existing source stays detached `061e65710eb4b527fc8ac579aaab8ccad4dd131d`, sole protected `?? AGENTS.md`, target fetched `532a28d99bd0548241854495156a61f94eb1ac6b`. November 2 same-host and NAS 8/8 backup copies remain intact. PR #32 is still draft/open/unmerged on GitHub at pinned target SHA.
+
+**Next single authorized operation:** tightly guarded one-PID `SIGINT` to the **freshly revalidated** Honcho manager 519444 in the named DEV container only, after verifying UID/executable/full argv/CWD, PPID=0, PGID=SID=519444, zero other managers, and both site/Git/backup guards. Bounded graceful wait with no escalation, group kill, container restart or PRODUCTION impact. Even after reported manager exit, **separately inspect all managed DEV web/worker/socketio/scheduler processes** for quiescence before checkout. On any identity drift, stop without signal; on timeout or survivors, preserve state and diagnose. No checkout/migration in same shutdown action.
