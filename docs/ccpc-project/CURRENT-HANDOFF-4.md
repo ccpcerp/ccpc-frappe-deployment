@@ -176,3 +176,40 @@ SITE_INVENTORY_EXIT_CODE=0
 **Important GitHub reconciliation:** Earlier authoritative `CURRENT-HANDOFF-3.md`, `DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md` and `PR32-DEVELOPMENT-READ-ONLY-PREFLIGHT-2026-10-29.md` explicitly call `ccpc-integration.localhost` a **known incomplete/failed/broken integration site excluded from the approved two-site migration/recovery scope**. Thus the third site is **not an unknown PRODUCTION site on existing documentary evidence**, but it is explicitly **not part of the tested/migrated rollout**, and its lingering `site_config.json` might still be enumerated by bench-wide scheduler/web workers on a Honcho start. Do not simply relax the startup guard and treat all three as valid; do not remove, rename, migrate, restore or alter the broken site without separate review/authorization. The strict exact-two check correctly stopped before launch and exposed this latent topology risk. HEAD still pinned `532a28d99bd0548241854495156a61f94eb1ac6b`, only protected `?? AGENTS.md`; NAS/local backups and five exact Procfile commands passed previously. Both approved DEV migrations, MAIN metadata, 6/6 raw SQL, all four native report `execute()`, and Guest/Admin gateway-denials PASS. DEVELOPMENT services remain down at last observed audit. PRODUCTION untouched; PR32 draft/open/unmerged.
 
 **NEXT safe owner action:** one read-only targeted three-site configuration/scheduler-scope check inside named DEV container: compare database names for 3/3 distinctness **without printing names, secrets, or hostname**, inspect site-level `disable_scheduler` and `maintenance_mode` flags, and report whether the known broken site's config is complete or points to any approved DEV DB. Avoid contacting/writing the broken site DB, changing any files or starting services. Depending on evidence, review Frappe's actual bench-wide scheduler site-selection behavior before the next DEV Honcho start. Full launch requires explicit scoped decision to keep broken site inactive or otherwise safely isolate it; no unapproved changes to site configs or PRODUCTION.
+
+
+## 2026-11-02 — Three DEV site configs distinct; broken excluded site's scheduler not disabled; hold Honcho startup
+
+**Owner's read-only three-site config/scheduler-scope check output:**
+```text
+PINNED SOURCE: PASS
+SITE CONFIGURATIONS: 3/3 PRESENT
+ALL DATABASE NAMES CONFIGURED: True
+ALL THREE DATABASE NAMES DISTINCT: True
+TWO APPROVED DATABASES DISTINCT: True
+COMMON DISABLE_SCHEDULER: NOT SET
+SITE: development.localhost
+DB CONFIGURED: True
+DB HOST CONFIGURED: True
+SITE DISABLE_SCHEDULER: NOT SET
+SITE MAINTENANCE_MODE: NOT SET
+SITE: ccpc-integration2.localhost
+DB CONFIGURED: True
+DB HOST CONFIGURED: True
+SITE DISABLE_SCHEDULER: NOT SET
+SITE MAINTENANCE_MODE: NOT SET
+SITE: ccpc-integration.localhost
+DB CONFIGURED: True
+DB HOST CONFIGURED: True
+SITE DISABLE_SCHEDULER: NOT SET
+SITE MAINTENANCE_MODE: NOT SET
+CONFIGURATION INSPECTION: COMPLETED
+DATABASE CONNECTIONS: NONE
+NO FILES OR DATABASES MODIFIED
+NO SERVICES STARTED
+PRODUCTION: NOT TOUCHED
+SITE_SCOPE_CHECK_EXIT_CODE=0
+```
+**Interpretation:** all three site configs have separate configured database names and database hosts and no explicit site-level scheduler disable or maintenance settings, with no common disable_scheduler flag. The third `ccpc-integration.localhost` is a known incomplete/broken **DEVELOPMENT** site explicitly excluded from owner-approved two-site backup/migration/release testing per `CURRENT-HANDOFF-3.md` and controlled DEV plan. Distinct names rule out *configured aliasing between these three DB names*, not host-level or credentials isolation; they do not guarantee no scheduler activity. No Frappe DB was connected in this check; cannot infer enabled site scheduler from config alone, since database-held scheduler/maintenance state and installed framework code may affect behavior. Starting full bench-wide Honcho without identifying installed scheduler site enumeration could attempt work on broken third site. **Hold DEV startup until verified or explicit safe isolation decision.** Latest operator command was read-only, no server processes launched or PRODUCTION touched. Pinned PR32 `532a28d99bd0548241854495156a61f94eb1ac6b` remains draft/open/unmerged as independently rechecked on connected GitHub. Successful two-site migrations, MAIN metadata, 6/6 raw SQL, four native report `execute()`, Guest/Admin gateway denials unchanged.
+
+**NEXT safe read-only operator action:** inspect the **installed** `apps/frappe` scheduler source around site enumeration, `bench schedule`, and disabled-site checks with bounded excerpts only, using exact DEV container/app source guard; inspect no credentials/DB contents, run no scheduler, Frappe session, migrations or startup. Determine whether shared `bench schedule` will include the broken third site by default. Review site isolation options before any configuration-write authorization; do not rename/delete site, set flags, change Procfile, or start Honcho without appropriate scope.
