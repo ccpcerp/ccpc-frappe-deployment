@@ -2435,3 +2435,30 @@ MAIN_METADATA_CHECK_EXIT_CODE=0
 **Current GitHub:** PR #32 remains draft/open/unmerged at pinned SHA per connected GitHub. Workflow reviewed on `docs/ccpc-checkpoint-2026-10-10`. Nov2 local+Synology protected snapshot manifests are preserved; independent restoration has not been tested.
 
 **NEXT action:** one guarded, read-only MAIN-site six-source-SQL smoke test for four reports, with bounded date window and LIMIT parameters, explicit PyMySQL `START TRANSACTION READ ONLY`, distinct DB-name/actual DB guards, no row contents printed; capture per-query success/count or sanitized failure code and keep the operator terminal open even if one query fails. Queries: department `_source_sql(False)`, equipment `_material_sql(False)` + `_job_sql(False)`, intercompany `_source_sql()`, stock GL `_stock_sql()` + `_pnl_sql()` from installed pinned sources. Failures do not authorize automatic schema repair, migration reruns, Git reset or service restart. On PASS, separately validate Frappe runtime report output and executive endpoint permission deny paths before DEV-only service restoration. PRODUCTION remains untouched.
+
+
+## 2026-11-02 — MAIN six raw SQL report-source queries PASS 6/6; actual Frappe execute / gateway enforcement next
+
+**Owner-reported successful SQL smoke on migrated MAIN `development.localhost`, exact pinned PR32 `532a28d99bd0548241854495156a61f94eb1ac6b`:**
+```text
+PINNED DEVELOPMENT SOURCE: PASS
+DISTINCT DEVELOPMENT DATABASES: PASS
+PINNED REPORT SQL IMPORTS: PASS
+MAIN READ-ONLY TRANSACTION: PASS
+TEST COMPANY FILTERS: PASS
+SQL PASS: DEPARTMENT MATERIAL ROWS: 2
+SQL PASS: EQUIPMENT MATERIAL ROWS: 2
+SQL PASS: EQUIPMENT JOB ROWS: 0
+SQL PASS: INTERCOMPANY BILLING ROWS: 1
+SQL PASS: STOCK SOURCE ROWS: 2
+SQL PASS: PNL GENERAL LEDGER ROWS: 2
+SQL QUERIES PASSED: 6 OF 6
+READ-ONLY DATABASE TEST COMPLETED
+DEVELOPMENT SERVICES: NOT RESTARTED
+PRODUCTION: NOT TOUCHED
+MAIN SQL SMOKE TEST: PASS
+MAIN_SQL_TEST_EXIT_CODE=0
+```
+One fixed test Company CCPC (and pair CCPC/RMC for intercompany) and Oct 1–31 2026 date window with per-query LIMIT 5 was used, inside explicit PyMySQL read-only transaction, rolled back; only counts were printed (no financial data). All six SQL statements imported from the actual pinned report code and executed in MAIN with no SQL errors. Equipment Job returned **0** rows (SQL path succeeded but row formatting not exercised). This verifies physical DB compatibility, but **not** actual report `execute()` presentation, Frappe row-level DocPerm enforcement, end-to-end authenticated four-company executive gateway, browser behavior, cross-Company denial, calculations, or financial accuracy. Earlier MAIN postmigration metadata verified four Script Reports native `System Manager` only, executive Page exclusive new role and zero users assigned executive role. Services remain stopped. Integration2 remains synthetic with missing department accounting dimension columns; do not auto-repair. PR #32 remains draft/open/unmerged at same pinned head per fresh GitHub check, no PRODUCTION touches.
+
+**NEXT safe operator test:** in MAIN only, using guarded exact source SHA, user `frappe`, site `development.localhost` and explicit DB read-only transaction, initialize real Frappe site and set diagnostic `Administrator` context; run the four actual source report `execute()` functions (not only the six raw SELECTs) with bounded Oct1-31 Company filters, printing only column and result row counts/exception type; verify denied executive gateway requests for Guest and Administrator without creating/granting users or invoking privileged success gateway. Consider Frappe runtime may invoke cache writes, but prohibit SQL writes via read-only transaction, always rollback, destroy session. If a test fails, stop and inspect rather than changing permissions/DB or restarting services. Further live user-role denied/Company isolation and browser/web-worker checks require separate steps. No new production changes, migration reruns or app merge at this checkpoint.
