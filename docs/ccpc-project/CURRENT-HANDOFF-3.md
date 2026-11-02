@@ -2073,3 +2073,23 @@ This passes the command's exact detached old app commit `061e65710eb4b527fc8ac57
 **Execution boundaries:** Approval permits guarded fetch into the DEVELOPMENT app's Git object database, followed by supervised DEV-only Honcho quiescence, exact detached source switch to **pinned SHA**, synthetic Integration2 migration and validation first, then MAIN migration and validation, then DEV-only service resume + report/role tests. Shared host also serves PRODUCTION; do **not** stop/recreate Docker, kill arbitrary process groups, modify PRODUCTION, run default cleanup/restore, force Git operations, merge PR, grant group executive roles to real users, or do unreviewed business transactions. Failure at any gate is an immediate stop and review; Git SHA rollback alone does not undo DB migrations. Owner authorization is confirmed; no need to request the same blanket approval again. A separate operator command and observed output are required for every operational stage. **At this checkpoint the November 2 authorization is recorded only: no new fetch, shutdown, checkout or migration performed.**
 
 **Next one staged action:** guarded and exact-SHA `git fetch` of the reviewed PR branch inside named DEVELOPMENT container, verify fetched `FETCH_HEAD` equals `532a28d...`, ancestor relationship and no tracked `AGENTS.md` target collision, reconfirm unchanged detached current checkout/status and protected AGENTS file hash. Fetch must not checkout, update application files, start/stop services or run migrations. Then read-only identify live DEV Honcho manager and services before any supervised DEV-only shutdown. PRODUCTION NO-GO.
+
+
+## 2026-11-02 — Exact pinned PR32 532a28d fetch PASS; no DEVELOPMENT checkout/migration
+
+**Owner-executed actual guarded Git fetch output:**
+```text
+PROTECTED DEVELOPMENT CHECKOUT: PASS
+From github.com:ccpcerp/ccpcerp
+ * branch            review/four-day-one-reports-integration-2026-10-29 -> FETCH_HEAD
+   061e657..532a28d  review/four-day-one-reports-integration-2026-10-29 -> origin/review/four-day-one-reports-integration-2026-10-29
+PINNED PR32 SOURCE FETCH: PASS
+TARGET SHA: 532a28d99bd0548241854495156a61f94eb1ac6b
+TARGET DESCENDS FROM CURRENT HEAD: PASS
+PROTECTED AGENTS.md: PRESERVED
+CURRENT DEVELOPMENT CHECKOUT: UNCHANGED
+NO SOURCE SWITCH OR MIGRATION PERFORMED
+```
+The owner executed the scoped container command as `frappe`. Its exact commit/detached source and sole untracked `AGENTS.md` guards passed before and after the fetch; Git origin allowlist and SSH strict host-key requirements passed; `FETCH_HEAD` resolved exactly to the approved SHA; ancestry from `061e65710eb4b527fc8ac579aaab8ccad4dd131d` was confirmed; incoming target had no tracked root `AGENTS.md`, and the protected local `AGENTS.md` hash remained unchanged. This only updated Git objects/remote-tracking information, not the worktree or either site's database. PR#32 independently remained draft/open/unmerged and pinned at `532a28d99bd0548241854495156a61f94eb1ac6b` on GitHub.
+
+**Next single operator step:** read-only inspect current live **DEVELOPMENT-only** Honcho identity, exact parent/child/process group/session and running Bench worker/web/socketio processes, and `bench doctor` for both sites. No `kill`/signal, migration, checkout, Docker restart or PRODUCTION action in this inspection. The older Honcho PID 519444 is historical and must not be assumed still live. Only a fresh unique exact-process identity and user-confirmed downtime/active-jobs guard can permit the next supervised graceful DEV-only stop. Preserve the verified November 2 local+Synology 8/8 snapshots. A future git switch must target exact pinned SHA, not a moving branch name.
