@@ -17,6 +17,14 @@ Implemented on the isolated review branch:
 
 Next safe gate: review migration/schema impact and the drafted PR; design a separately gated, one-run disposable MariaDB acceptance for the 10 updated bridge cases; then obtain protected MAIN DEVELOPMENT checkout/status/role-grant inspection before a separately approved migration/pull. Any actual corrective invoice/credit-note processing must be separately reconciled by Accounting, not generated automatically.
 
+## CircleCI parser correction after first manual trigger (2026-11-03)
+
+Operator saved the initial review SHA and manually triggered CircleCI. CircleCI rejected the `opt-in-billing-controls` workflow at config parsing with **Unclosed `<<` tag** in the newly added job's `python - <<'PY'`. This is a **pre-job configuration failure**, not evidence of database test failure or a successful provider run. The previously reviewed Finance job had already used escaped heredoc syntax; the new Billing job was corrected to use `python - \\<<'PY'`. Added stdlib regression test to require escaped heredocs for CircleCI config v2.1+.
+
+**Verified current Draft PR #33 app head: `fae43f5ecc059e2cd3233bac0eafe3477d983ff5`** on `review/billing-authorization-correction-2026-11-03`. GitHub compare prior prepared SHA `1b0b5398f589fcf2f9e232da2f3585c11cd78028` → current head shows exactly two changed CI-related files: `.circleci/config.yml` and `.circleci/test_billing_controls_ci_guard.py`. No business code changed; review branch remains open/draft. This is a source-verified syntax patch, **not yet confirmed by CircleCI parser**, and no MariaDB ten-case result is known.
+
+**Next:** Set existing CircleCI project variable `CCPC_BILLING_APPROVED_SHA=fae43f5ecc059e2cd3233bac0eafe3477d983ff5`, retain the earlier CI-only manual-approval, branch/commit/site restrictions and all other opt-in pipeline parameters false. Re-trigger manually and stop at the hold for independent SHA verification before any job execution. The first pipeline failed before test execution and does not exhaust approval for the one real bounded integration; no automatic retries or repeated credit check. No DEVELOPMENT or PRODUCTION modifications.
+
 ## Separate Billing Controls CI acceptance prepared — one owner-approved run, NOT executed (2026-11-03)
 
 The app's Draft PR #33 review head was independently verified at **`1b0b5398f589fcf2f9e232da2f3585c11cd78028`** after five CI-only/test-harness GitHub commits. GitHub compare from `66a4c3f786de02dc83a861a05539eeca15dc388c` shows exactly these five changed files:
