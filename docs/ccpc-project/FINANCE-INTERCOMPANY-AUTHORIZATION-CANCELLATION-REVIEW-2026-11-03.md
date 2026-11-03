@@ -1,9 +1,21 @@
 # CCPC ERPNext — Finance / intercompany release gate: authorization and cancellation
 
 **Review date:** 2026-11-03  
-**Status:** GitHub source review completed; policy choices pending owner/Accounting approval; no code, real users, database, or site changed.  
+**Status (updated 2026-11-03):** Owner approved independent billing Preparer/Finance Checker controls and fail-closed audited cancelled-pair correction review. Source implementation exists in **unmerged draft [ccpcerp PR #33](https://github.com/ccpcerp/ccpcerp/pull/33)**, not yet tested in hosted MariaDB or DEVELOPMENT. No real users, database, or production site changed.  
 **Authoritative application branch:** `ccpcerp/ccpcerp` — `feature/finance-mapping-lifecycle-2026-10-28` at `a2f0e89f12afbc28ac10dab71b6af47a455fdc95`  
 **Evidence:** CircleCI Build #131, `ci-finance-lifecycle.localhost`, baseline **8/8** and withdrawal-to-posted-invoice bridge **7/7** PASS, checks SUCCESS on same SHA. This proves behavior only in a synthetic disposable MariaDB site; it does **not** prove that actual CCPC users can perform it with correct permissions on persistent DEVELOPMENT.
+
+## Subsequent approved engineering implementation (unmerged draft)
+
+**Review branch:** `review/billing-authorization-correction-2026-11-03` (based on green `a2f0e89f12afbc28ac10dab71b6af47a455fdc95`), **draft PR [#33](https://github.com/ccpcerp/ccpcerp/pull/33)** targeting the previously green Finance feature branch. The findings below are a snapshot of the **base commit**, not the new draft code.
+
+Implemented on the isolated review branch:
+- New **CCPC Billing Preparer** role definition (only created during a future approved pre-migration role bootstrap; no real-user assignments) and a stricter Billing Batch DocPerm matrix. Role-specific UI and server actions require named enabled Preparer or distinct Finance Controller checker; both must possess explicit Company User Permission grants for issuing and requesting Companies. No normal Administrator or System Manager approval bypass.
+- A new private **CCPC Intercompany Billing Correction** audit DocType (zero general DocPerm) and whitelisted, server-enforced **request → distinct Finance review** after BOTH original paired invoices are cancelled. Decisions are one-time and track Frappe Version changes; approval is **only for manual Accounting correction review**, not a new Sales/Purchase Invoice or automatic rebilling. Original batch and posted source claim stay reserved; one-sided cancellation and repeated requests/decisions fail closed.
+- 14 new mocked/source authorization/correction tests; existing disposable Finance Bridge suite expanded from **7 to 10 proposed real MariaDB tests**, including independent actors/Company permissions, correction audit and duplicate/partial-pair denial; UI tests revised. **19/19 targeted textual/source invariants and both JavaScript syntax parses passed** in chat. **Python unit tests, full static checks, native UI tests, actual database/Version/transaction tests, HTTP/CSRF, and persistent DEV verification are NOT yet run for PR #33.**
+- Existing CI opt-in guard remains on the original branch; PR #33 must **not** be merged or deployed on source checks alone. No new CircleCI workflow was scheduled and no cost/balance check is requested.
+
+Next safe gate: review migration/schema impact and the drafted PR; design a separately gated, one-run disposable MariaDB acceptance for the 10 updated bridge cases; then obtain protected MAIN DEVELOPMENT checkout/status/role-grant inspection before a separately approved migration/pull. Any actual corrective invoice/credit-note processing must be separately reconciled by Accounting, not generated automatically.
 
 ## Current implementation — source-verified facts
 
@@ -14,7 +26,7 @@
 5. **Cancelled paired invoices retain batch reservation, with no approved correction workflow.** After both linked invoices are cancelled, the test explicitly asserts both batch references are retained. `IntercompanyMaterialBillingBatch._validate_status_transition` only permits `Draft/Under Review -> Cancelled` when no protected invoice/approval fields, while `Approved -> Cancelled` is forbidden. `_get_active_source_claim` treats every batch whose status is not `Cancelled` as holding the source Stock Entry detail. The DocType declares `Invoiced` status but current transition logic has no operational `Approved -> Invoiced` service path. Therefore the current state is **fail-closed against automatic rebilling**, but there is no established procedure to correct an approved batch after native SI/PI cancellation; reporting semantics of `Approved` vs actually posted/cancelled invoices must be specified.
 6. **Real invoice posting rights are not the same as billing-approval rights.** In Build #131 the real draft-to-submitted and cancellation tests use a synthetic site and Administrator for native invoice posting. Separate native Sales/Purchase Invoice submit/cancel DocPerms, Company permissions, and production user role memberships have **not** been verified end-to-end for nominated accounting staff.
 
-## Recommended release policy — PROPOSAL ONLY, NOT IMPLEMENTED
+## Original policy proposal (historical; owner approved 2026-11-03 for draft implementation)
 
 **A. Two-person billing approval:** a named Billing Preparer can create/refresh/finalize the monthly batch; an independently named Finance Checker with the approved authorization role and scoped Company grants can approve and create draft invoices. The checker **must differ from** `finalized_by`; prevent self-approval including any API path. No stockroom user can approve. Decide the exact preparer/checker roles and whether System Manager/Administrator retains any formally audited break-glass exception. Both issuing and requesting Companies must be explicitly authorized according to Accounting's agreed access matrix; do not silently grant cross-company rights.
 
@@ -30,7 +42,7 @@
 - Review accounting period locks, tax and currency policy (current builder explicitly denies unlike Company currencies), posting dates, linked invoices and correction/credit-note policy on disposable records. Do not insert transactions into MAIN DEV without an approved controlled test plan.
 - Confirm migration/schema/index implications, finance permission matrices and duplicate financial-transaction guards before any branch merge/deploy. PRODUCTION requires separate backup/recovery/rollback review and explicit approval.
 
-## Next decision required from owner / Accounting
+## Original decision request (resolved for source implementation; independent DEV and deployment approvals still required)
 
 Approve, revise, or reject **A (independent Billing Preparer and Finance Checker with explicit Company grants)** and **C (fail-closed audit-preserving correction of cancelled invoice pair)**, including which real job roles should serve each lane and whether any break-glass System Manager exception is permitted. The review does not authorize modifying real users, changing account policy, implementing new financial workflow transitions, or deploying to DEVELOPMENT/PRODUCTION.
 
