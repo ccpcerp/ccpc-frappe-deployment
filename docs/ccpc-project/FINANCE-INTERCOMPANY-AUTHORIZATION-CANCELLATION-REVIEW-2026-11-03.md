@@ -17,6 +17,22 @@ Implemented on the isolated review branch:
 
 Next safe gate: review migration/schema impact and the drafted PR; design a separately gated, one-run disposable MariaDB acceptance for the 10 updated bridge cases; then obtain protected MAIN DEVELOPMENT checkout/status/role-grant inspection before a separately approved migration/pull. Any actual corrective invoice/credit-note processing must be separately reconciled by Accounting, not generated automatically.
 
+## Separate Billing Controls CI acceptance prepared — one owner-approved run, NOT executed (2026-11-03)
+
+The app's Draft PR #33 review head was independently verified at **`1b0b5398f589fcf2f9e232da2f3585c11cd78028`** after five CI-only/test-harness GitHub commits. GitHub compare from `66a4c3f786de02dc83a861a05539eeca15dc388c` shows exactly these five changed files:
+
+- `.circleci/config.yml`: default-off `run_billing_controls` parameter, independent approval hold, single `billing-controls-isolated-integration` job restricted to the PR #33 branch
+- `.circleci/billing_controls_stage.sh`: per-stage project/branch/job/exact-SHA/site checks, pinned Frappe/ERPNext source and only ten bridge database tests
+- `.circleci/test_billing_controls_ci_guard.py`: source-only negative tests for site, branch, SHA, missing environment identity, manual workflow and 90-minute cumulative bound
+- `ccpcerp/ccpc_erp/ci_billing_controls_site_guard.py`: independent CI-only authorization using new project variable `CCPC_BILLING_APPROVED_SHA`
+- `ccpcerp/ccpc_erp/test_finance_withdrawal_billing_bridge_disposable.py`: accepts either original strictly guarded Finance runner or the new separately guarded Billing Controls runner before fixture creation
+
+The original Finance runner, its old exact-SHA project variable and previously green base code were not changed. The new job uses a disposable **`ci-billing-review.localhost`** Frappe/MariaDB site, fixed source revisions and a 90-minute cumulative command deadline; no schedule, shared CircleCI context, SSH key setup or host Docker socket was introduced. No app controller, permissions, user data, DEVELOPMENT or PRODUCTION state was modified for this CI work.
+
+**Evidence level:** GitHub commit/diff and source assertions verified; the new provider config parser, Python static suite and ten MariaDB tests have **not yet run**. Previous Finance Build #131 remains proof only of the former 15/15 suite at its earlier pinned SHA.
+
+**One-run manual trigger authorized, NOT executed:** Add `CCPC_BILLING_APPROVED_SHA` as a CircleCI project variable with the exact 40-character current app head `1b0b5398f589fcf2f9e232da2f3585c11cd78028`. Trigger a single pipeline with both checkout/config branch `review/billing-authorization-correction-2026-11-03`, set **only** `run_billing_controls=true`, and keep `run_integration`, `run_finance_lifecycle`, `run_finance_bridge`, `run_four_reports_integrated` false. Verify the checkout SHA and expected `billing-controls-manual-approval` hold before releasing that one run. Do not launch/retry automatically. The 90-minute deadline does not cap provider cost; no repeated credit check is requested. The ChatGPT GitHub connection can prepare code but has no CircleCI execution action. Collect config-validation and case-level CI output before any DEVELOPMENT recommendation.
+
 ## Current implementation — source-verified facts
 
 1. **Mapping Maker/Checker already has independent identities and explicit Company grants.** `ccpcerp/ccpc_erp/bc_mapping_workflow.py` calls `_real_authority(preparer, "CCPC Mapping Preparer", company)` and `_real_authority(checker, "CCPC Accounting Mapping Approver", company)`, then `assert_independent_review(doc.owner, checker)`. `bc_issue_runtime.py::_real_authority` requires an enabled named User, explicit Has Role record, specific `User Permission` for `Company` with `apply_to_all_doctypes=1`, and denies Stockroom Personnel and Administrator/Guest. Build #131's eight Finance tests use separate synthetic Maker and Checker users and affirm signed decision audit/rollback. Actual persistent DEVELOPMENT role and Company grants remain unverified.
