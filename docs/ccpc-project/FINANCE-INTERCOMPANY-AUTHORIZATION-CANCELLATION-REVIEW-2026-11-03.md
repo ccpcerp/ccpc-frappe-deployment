@@ -5,6 +5,25 @@
 **Authoritative application branch:** `ccpcerp/ccpcerp` — `feature/finance-mapping-lifecycle-2026-10-28` at `a2f0e89f12afbc28ac10dab71b6af47a455fdc95`  
 **Evidence:** CircleCI Build #131, `ci-finance-lifecycle.localhost`, baseline **8/8** and withdrawal-to-posted-invoice bridge **7/7** PASS, checks SUCCESS on same SHA. This proves behavior only in a synthetic disposable MariaDB site; it does **not** prove that actual CCPC users can perform it with correct permissions on persistent DEVELOPMENT.
 
+## MAIN DEVELOPMENT protected read-only billing schema and role inventory (2026-11-03)
+
+Following GitHub-verified Build #143 **10/10 PASS** on synthetic disposable MariaDB, the operator conducted an approved, non-identifying **MAIN DEVELOPMENT** inspection on persistent `development.localhost`. This used Frappe in container `frappe_docker_devcontainer-frappe-1` with `START TRANSACTION READ ONLY` plus rollback/cleanup, and displayed only DocType/Role existence, enabled named System User counts and count with at least two generic `Company` User Permissions:
+
+| Inspection | Actual owner-reported MAIN DEV result |
+| --- | --- |
+| Intercompany Material Billing Batch DocType | **Present** |
+| CCPC Intercompany Billing Correction DocType | **Absent** |
+| CCPC Billing Preparer role | **Absent** |
+| Enabled named System Users holding CCPC Billing Preparer | **0** |
+| Of those, holding 2+ generic Company grants | **0** |
+| Finance Controller role | **Present** |
+| Enabled named System Users holding Finance Controller | **0** |
+| Of those, holding 2+ generic Company grants | **0** |
+
+Two Python `sys.prefix` warnings preceded a successful `READ-ONLY INVENTORY: COMPLETE`. The counts are **not proof that no User Permissions exist**: the SQL only considers enabled named `System User` holders of the named role and checks at least two Company values, not the exact two actual business companies. User identities, effective DocPerm and native invoice-submit rights remain **unverified**. Prior owner-terminal Git checkout inspection found detached app HEAD `e1d67f2716d15e8ffdf42f0547c44d8324516d7e`, no tracked worktree modifications, **protected `?? AGENTS.md`**. GitHub compare to PR #33 reviewed commit `9f174bb9ce9b9ae103bf968c87c0d703aa039c34` reports 46 commits ahead / zero behind, but **do not pull or modify the checkout** without a reviewed DEV-only safe update plan.
+
+**Implications:** Synthetic Billing Controls MariaDB acceptance is green, but the persistent DEV role, correction schema and actual named dual-Company authorization are **not deployed/verified**. Next safe path is a reviewed DEVELOPMENT-only backup/worktree/branch/DocType migration plan followed by separate explicit approval, plus nominated distinct billing actors and a least-privilege permission audit; do not apply the synthetic `CCPC CI Billing Master Read Only` role to actual users. No user grant, DocType creation, database write, git pull, migration, merge or PRODUCTION action is authorized by the read-only audit. Preserve production separation and documented recovery checks.
+
 ## Build #143 — final ten-case Billing Controls disposable MariaDB CI acceptance: PASS (2026-11-03)
 
 **Verified source evidence:** Owner-supplied CircleCI Build #143 step-105 log says `ci-billing-review.localhost`, module `ccpcerp.ccpc_erp.test_finance_withdrawal_billing_bridge_disposable`, **10 tests, 56.217 seconds, `OK`**. Individual cases `a` through `j` all show checks. Tests cover (a) signed issue to actual ledger and billing candidate; (b) unsigned exclusion; (c) real month-end finalized paired draft invoices; (d) SQL savepoint rollback and no orphan draft on forced second insert failure; (e) submitted SI and PI balanced company GL; (f) cancelled invoice GL reversal leaving original Stock Entry/SLE intact; (g) deny unauthorized native invoice submit; (h) independent maker/checker, self-approval and incorrect Company denial; (i) single cancelled pair human correction, immutable audit, native `Version` evidence and no automatic invoice recreation; (j) deny partially cancelled pair correction. This is **real disposable Frappe/ERPNext/MariaDB integration evidence**, not source-only/mock proof.
