@@ -1,5 +1,47 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## SUPPORT IMAGE TRANSFER TEMPORARY KEY CREATED — 2026-11-06
+
+**Owner executed approved temporary SSH key creation on OLD `gani@ccpcerpserver`.** Reported terminal output:
+
+```text
+SUPPORT_TRANSFER_TEMP_KEY_CREATED
+256 SHA256:ONJlWrCRTBIJ1anTVYJTpre2E56D4RtjsLXREEdJFqA ccpc-support-images-transfer-20261106 (ED25519)
+```
+
+**PASS — newly generated key creation reported:** Temporary key at `/home/gani/.ssh/id_ed25519_ccpc_support_images_transfer_20261106`, paired public key `.pub`, verified ED25519 fingerprint `SHA256:ONJlWrCRTBIJ1anTVYJTpre2E56D4RtjsLXREEdJFqA`. Key is uniquely dedicated to approved support-image archive transfer; no NEW-host authorization, receiver, or image bytes yet. Private key must never be printed/shared/committed.
+
+**NEXT one OLD-host read-only operator step — fingerprint-check and print only PUBLIC key:**
+
+```bash
+bash <<'EOF'
+set -euo pipefail
+
+if [ "$(hostnamectl --static)" != 'ccpcerpserver' ] ||
+   [ "$(id -un)" != 'gani' ]; then
+  echo 'STOP: wrong OLD host or account'; exit 1
+fi
+
+pub="$HOME/.ssh/id_ed25519_ccpc_support_images_transfer_20261106.pub"
+expected='SHA256:ONJlWrCRTBIJ1anTVYJTpre2E56D4RtjsLXREEdJFqA'
+
+if [ ! -f "$pub" ] || [ -L "$pub" ] ||
+   [ "$(stat -c '%U:%a' "$pub")" != 'gani:644' ]; then
+  echo 'STOP: unexpected or missing public key'; exit 1
+fi
+
+actual="$(ssh-keygen -lf "$pub" | awk '{print $2}')"
+if [ "$actual" != "$expected" ]; then
+  echo 'STOP: public-key fingerprint mismatch'; exit 1
+fi
+
+echo 'SUPPORT_TRANSFER_PUBLIC_KEY_VERIFIED'
+cat -- "$pub"
+EOF
+```
+
+Expected `SUPPORT_TRANSFER_PUBLIC_KEY_VERIFIED` and exactly one `ssh-ed25519` public key line with comment `ccpc-support-images-transfer-20261106`. **Never request/print private key.** On unexpected result STOP. After recording exact public key, install restricted source-IP-only forced receiver on NEW `ccpc-prod`; then probe SSH before transferring the exact archive `/var/tmp/ccpc-prod-support-images.HlHFN8R6/mariadb-11.8_redis-8.6-alpine.tar` (145522176 bytes; SHA-256 `e301707c5ff75fd48c4a782e0ddf0c95608062016b9ae64e136f185bd6b8ac08`). No Docker load, start, restore, old PROD/DEV modifications, or cutover approved.
+
 ## SUPPORT IMAGE ARCHIVE ENCRYPTED TRANSFER APPROVED — 2026-11-06
 
 **Owner explicitly replied "Approved"** to the separately scoped transfer of the single previously verified 145,522,176-byte `mariadb:11.8` + `redis:8.6-alpine` archive from OLD `gani@ccpcerpserver` (source IP `192.168.50.166`) to private staging on NEW `ccpcadmin@ccpcerp-prod` (IP `192.168.50.186`). This explicitly includes setup of one **new, dedicated, short-lived, source-IP-limited, forced-command SSH transfer key**, then **revoking the NEW authorization and retiring OLD key** following successful destination verification. This does not authorize loading the support images into NEW Docker, creating containers, starting ERPNext, restoring MariaDB data, modifying OLD PROD/DEV, or cutting over.
