@@ -1,5 +1,26 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## TEMPORARY IMAGE TRANSFER PUBLIC KEY CREATED — 2026-11-06
+
+**Owner's actual OLD `gani@ccpcerpserver` output from approved child-shell `ssh-keygen` operation:**
+
+```text
+TEMP_TRANSFER_KEY_CREATED
+PUBLIC_KEY_FILE=/home/gani/.ssh/id_ed25519_ccpc_prod_image_transfer_20261106.pub
+256 SHA256:DQoxNuufbGbgD1KfvlmeZOYk40DaMXgUsI3MnzDBgf8 ccpc-prod-image-transfer-20261106 (ED25519)
+```
+
+**PASS — source-side temporary key created.** The `ssh-keygen` output is consistent with the uniquely named temporary key; the matching public key's fingerprint was displayed. No private key contents were shared. The existing `id_ed25519_ccpc_backup` key is intentionally untouched. **NEW host has not yet authorized this new key**, and no image transfer, `docker load`, ERPNext restore, PROD/DEV change or cutover has occurred.
+
+**NEXT one read-only OLD-host step — capture public half and source IPv4 route:** 
+
+```bash
+ip -4 route get 192.168.50.186
+cat "$HOME/.ssh/id_ed25519_ccpc_prod_image_transfer_20261106.pub"
+```
+
+The first command reveals the actual old-host source address chosen by routing to new host. The second prints **only the public key**; it is safe to provide this one-line public half for restricted `authorized_keys` provisioning. **Never print the matching file without `.pub`**. Before installing authorization on NEW `ccpcadmin`, confirm public key fingerprint matches `SHA256:DQoxNuufbGbgD1KfvlmeZOYk40DaMXgUsI3MnzDBgf8`, restrict to the observed source IP with `from="..."` plus `restrict` where supported, do not overwrite existing `authorized_keys`, and preserve strict NEW host fingerprint `SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c`. This is the separately authorized temporary transfer-access setup; retire after checksum-matched transfer.
+
 ## OWNER AUTHORIZED DEDICATED TEMPORARY TRANSFER SSH KEY — 2026-11-06
 
 **Owner explicitly said "Approved"** after review of the failed default SSH public-key authentication from OLD `gani@ccpcerpserver` to NEW `ccpcadmin@ccpcerp-prod`. Approval covers (1) creating a **dedicated, temporary** ED25519 SSH transfer key on OLD `ccpcerpserver`, (2) installing **only the public half** as a restricted authorized key for `ccpcadmin` on the NEW dedicated host, and (3) revoking the temporary authorization after the image-only transfer has been verified. The existing `id_ed25519_ccpc_backup` key and scheduled backups remain untouched. No permanent unrestricted login, production Docker/service changes, image import, database restore or cutover is authorized.
