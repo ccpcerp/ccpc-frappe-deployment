@@ -1,5 +1,23 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## EXISTING OLD-HOST SSH PUBLIC KEY INVENTORY — 2026-11-06
+
+**Owner ran read-only filenames-only key inventory** under `gani@ccpcerpserver` using `find "$HOME/.ssh" -maxdepth 1 -type f -name '*.pub' -printf '%f\\n' 2>/dev/null`. Output was exactly:
+
+```text
+id_ed25519_ccpc_backup.pub
+```
+
+This is **not** evidence that the backup key should be reused for the dedicated-production transfer, that the corresponding private key exists, or that the NEW `ccpcadmin` account authorizes it. The custom filename suggests backup-specific purpose, and SSH may not auto-offer it absent matching configuration. Do **not** read/publish the private key, automatically copy the public key into `authorized_keys`, replace the backup key or change existing backup authentication.
+
+**Next ONE read-only command on OLD host `gani@ccpcerpserver`** to display only effective authentication key filename choices (no private key content or SSH login attempts):
+
+```bash
+ssh -G -o BatchMode=yes ccpcadmin@192.168.50.186 | awk '$1=="identityfile" || $1=="identitiesonly" {print}'
+```
+
+Interpret carefully: `ssh -G` shows configuration, **not** proof that files exist, keys are offered or a login will succeed. If only default keys show, the backup-named key was not selected by default. Choose a minimally scoped, dedicated transfer authentication path after reviewing results; adding a key to the NEW host changes SSH access policy and needs separate explicit approval. The user has already approved transfer of the **image archive only**, not unrestricted SSH account access changes or loading/running Docker on the NEW host. The source archive remains protected at `/var/tmp/ccpc-prod-image-export.7blpZWnf/ccpcerp-v16.50.0.tar`, with source SHA-256 `8a8ecc8a98c653105a75c6c77d6457d4ac00ebed7430f0bbd18b4619a2fcb009`. No transfer has occurred.
+
 ## SAFE RECHECK AFTER TERMINAL EXIT — SSH AUTH REJECTED, 2026-11-06
 
 **Owner successfully reconnected to OLD `gani@ccpcerpserver`** and ran `hostnamectl --static` → `ccpcerpserver`. A subsequent SSH login test was correctly run inside a child `bash <<'EOF'` shell, preserving their interactive terminal, with host fingerprint checked against independently verified NEW-host key `SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c`, `StrictHostKeyChecking=yes`, `BatchMode=yes`, ED25519-only server algorithm and `PreferredAuthentications=publickey`.
