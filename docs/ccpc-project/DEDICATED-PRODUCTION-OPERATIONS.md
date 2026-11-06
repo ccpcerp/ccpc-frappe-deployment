@@ -36,7 +36,7 @@ def stop(reason):
     print(f'STOP: {reason}; no authorized_keys change')
     raise SystemExit(1)
 
-if socket.gethostname() != 'ccpcerp-prod' or os.getuid() == 0 or os.getlogin() == 'root':
+if socket.gethostname() != 'ccpcerp-prod' or os.getuid() == 0:
     stop('wrong hostname or root execution')
 if os.environ.get('USER') != 'ccpcadmin' or Path.home() != Path('/home/ccpcadmin'):
     stop('unexpected account')
@@ -92,7 +92,7 @@ print('VERIFIED_NOV05_BACKUPS_RETAINED')
 PY
 ```
 
-`os.getlogin()` can fail in non-login shell contexts; if so the script stops before any file changes. The check for `os.getuid() == 0` and `$USER` is sufficient if that call must be removed when troubleshooting. Avoid printing contents of `authorized_keys` or site config. A strictly read-only independent marker-count check should follow any successful revocation before OLD private/public key retirement. Never assume authentication has been fully revoked by output markers alone.
+Avoid printing contents of `authorized_keys` or site config. A strictly read-only independent marker-count check should follow any successful revocation before OLD private/public key retirement. Never assume authentication has been fully revoked by output markers alone.
 
 **Current outstanding operations:** NEW PRODUCTION app image is already loaded and image-ID-matched; four historical backups now independently verified; **no restored site or live services on NEW**. A separately approved isolated restoration rehearsal still requires a controlled plan and explicit authorization. Owner says this is the most recent backup; that does not yet establish the absence of changes after 02:00 on Nov 5.
 
