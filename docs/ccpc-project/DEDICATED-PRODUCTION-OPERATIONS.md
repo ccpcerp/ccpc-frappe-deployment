@@ -1,5 +1,26 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## OWNER APPROVED NOV 5 FOUR-ARTIFACT BACKUP TRANSFER — 2026-11-06
+
+**Explicit owner response**: "Approved, The November 5, 2026 is the latest and there are no transaction after that day" to the separate request for **protected, encrypted, four-artifact-only transfer** from OLD live `ccpcerpserver`'s Synology NAS `/mnt/erpnext_backups/2026-11-05_02-00` to NEW `ccpcerp-prod` private staging. Approval covers moving **only** the previously fixed November 5 backup and verifying four source/destination hashes. It does **not** authorize restoring any database, launching a Compose stack, starting scheduler/email/integrations, changing existing OLD PROD/DEV, modifying production data, or cutting over traffic.
+
+**Owner data-freshness statement:** Owner says Nov 5 is the latest backup and no transactions occurred **after that day**. The documented source was captured **2026-11-05 02:00:01 Asia/Manila**. The statement does **not by itself confirm** there were zero transactions **later on November 5 after 02:00**, nor that there were zero background/configuration/file updates after the backup. Before any final cutover, verify ERPNext write/activity cutoffs, database/doc timestamps, site/attachment consistency and reconcile with the intended source. Do not force a new backup absent need or silently accept loss of newer changes; the chosen snapshot is approved for an **isolated restoration rehearsal** now.
+
+**Four source artifacts and source SHA-256 values (already independently obtained by OLD owner):**
+
+| File | Bytes | Source SHA-256 |
+| --- | ---: | --- |
+| `20261105_020001-ccpcerp_local-database.sql.gz` | 1198839 | `8fb7a6fab1c5eade05515ad75372c9901dc9e2d8fdbc272655a3a97ab176db87` |
+| `20261105_020001-ccpcerp_local-files.tar` | 10240 | `200764d74f208c9bc7d3d89fd20b713147e96b3a5bdc4d24c051db7af14ac0e6` |
+| `20261105_020001-ccpcerp_local-private-files.tar` | 20480 | `60768b87cc3e585ff4179f03b23dae87d065c5e1d076b39d8a33f2e2f1285daf` |
+| `20261105_020001-ccpcerp_local-site_config_backup.json` | 280 | `b3ec5b32272476e01d6f29e6e69b5533aeb94e6b7d4dde591150018149742e1b` |
+
+All four files earlier passed read-only gzip/tar/JSON format checks. The small site config may contain credentials/encryption material; **never print or paste file contents**. Protect DB and attachments as confidential business data. Source backup files must remain unchanged and no old NAS retention policy may be changed by this transfer.
+
+**SSH transport constraint:** Prior temporary SSH image-transfer key `id_ed25519_ccpc_prod_image_transfer_20261106` was explicitly revoked and retired after exact-image transfer. Existing `id_ed25519_ccpc_backup` must not be repurposed or changed. OLD-to-NEW default SSH public-key login previously failed. Plan a **new dedicated short-lived, receive-only backup-transfer SSH key** with trusted NEW host-key fingerprint `SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c` and verified source IP `192.168.50.166` for destination `192.168.50.186`. Restrict to the four exact backup objects and verify independent destination checksums, then revoke access and retire temporary key. **The owner has approved the backup transfer but has not separately authorized changing SSH account access** for this second transfer; ask for that narrow approval rather than assuming the prior image-only SSH key approval extends to a new key. Avoid loosening archive permissions, copying public credentials, adding unrestricted keys, or altering live scheduled-backup credentials.
+
+**Immediate next action:** Request consent to create and temporarily authorize a separate, source-IP-restricted, receive-only SSH backup-transfer key (and revoke/remove it after successful independent verification). After consent, guide one checked step at a time; do not execute auth changes without it. The exact original PRODUCTION Docker image is already loaded on NEW and verified at `sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8`; don't repeat image transfer.
+
 ## VERIFIED NEW-HOST DOCKER IMAGE LOAD — 2026-11-06
 
 **Owner-run approved operation on NEW `ccpcadmin@ccpcerp-prod`:** The guarded import script checked the correct NEW host and account, private staging/archive metadata and SHA-256, required an unused destination image tag, then ran `sudo docker image load --input "$archive"`. Actual operator output:
