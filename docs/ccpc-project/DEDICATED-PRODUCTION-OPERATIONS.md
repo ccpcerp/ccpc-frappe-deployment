@@ -1,5 +1,101 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NOV 5 FOUR NEW-HOST BACKUP FILES INDEPENDENTLY VERIFIED — 2026-11-06
+
+**Owner-run read-only verification directly on NEW `ccpcadmin@ccpcerp-prod`**, after source and receiver both reported successful checksums for all four owner-selected 2026-11-05 02:00 backup artifacts. The local verification checked correct NEW hostname and account, private backup-staging directory ownership/mode `ccpcadmin:700`, each file's ownership/mode/size `ccpcadmin:600:<expected bytes>`, and exact independent SHA-256 hash of each file. Actual owner output:
+
+```text
+NOV05_DESTINATION_SHA256_OK 20261105_020001-ccpcerp_local-database.sql.gz
+NOV05_DESTINATION_SHA256_OK 20261105_020001-ccpcerp_local-files.tar
+NOV05_DESTINATION_SHA256_OK 20261105_020001-ccpcerp_local-private-files.tar
+NOV05_DESTINATION_SHA256_OK 20261105_020001-ccpcerp_local-site_config_backup.json
+NOV05_DESTINATION_ALL_FOUR_VERIFIED
+```
+
+**PASS:** All four files are present and independently SHA-256-verified, owned by `ccpcadmin` with restricted `0600` file and `0700` staging permissions, on NEW at `/home/ccpcadmin/.ccpc-nov05-backup-transfer-20261106`. Baseline exact SHA-256:
+- database `8fb7a6fab1c5eade05515ad75372c9901dc9e2d8fdbc272655a3a97ab176db87` (1,198,839 bytes)
+- public files `200764d74f208c9bc7d3d89fd20b713147e96b3a5bdc4d24c051db7af14ac0e6` (10,240 bytes)
+- private files `60768b87cc3e585ff4179f03b23dae87d065c5e1d076b39d8a33f2e2f1285daf` (20,480 bytes)
+- site config `b3ec5b32272476e01d6f29e6e69b5533aeb94e6b7d4dde591150018149742e1b` (280 bytes; **never print the payload**)
+
+An irrelevant, garbled shell echo `EOFo 'NOV05_DESTINATION_ALL_FOUR_VERIFIED'` preceded the expected marker output. There is no contrary failure marker in the supplied actual result.
+
+**Next already approved security step:** Revoke the dedicated NEW `ccpc-nov05-backup-transfer-20261106` public key entry from `ccpcadmin` `~/.ssh/authorized_keys`, preserving all other existing SSH authorization lines *byte-for-byte*, keeping transferred files and receiver stage untouched. The owner explicitly approved temporary key creation, restricted authorization, then removal after verification. Do not treat key revocation as permission to delete backups, backup stage, existing NAS backup SSH key, or any Docker/ERPNext files. Do not reboot, migrate, restore, run Compose, or cut over.
+
+**ONE guarded local action on NEW `ccpcadmin@ccpcerp-prod`:**
+
+```bash
+python3 - <<'PY'
+import os
+import socket
+import stat
+import tempfile
+from pathlib import Path
+
+def stop(reason):
+    print(f'STOP: {reason}; no authorized_keys change')
+    raise SystemExit(1)
+
+if socket.gethostname() != 'ccpcerp-prod' or os.getuid() == 0 or os.getlogin() == 'root':
+    stop('wrong hostname or root execution')
+if os.environ.get('USER') != 'ccpcadmin' or Path.home() != Path('/home/ccpcadmin'):
+    stop('unexpected account')
+
+sshdir = Path.home() / '.ssh'
+auth = sshdir / 'authorized_keys'
+stage = Path.home() / '.ccpc-nov05-backup-transfer-20261106'
+expected = (
+    'from="192.168.50.166",restrict,'
+    'command="/home/ccpcadmin/.ccpc-nov05-backup-transfer-20261106/receive-backup.sh" '
+    'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH2RioVBTIvEhayHxbVeFNBQaUVq8iDmnDjixt9tXnL5 '
+    'ccpc-nov05-backup-transfer-20261106'
+).encode('ascii')
+try:
+    sd, ak, st = os.lstat(sshdir), os.lstat(auth), os.lstat(stage)
+except OSError as e:
+    stop(f'required file missing: {e}')
+if not (stat.S_ISDIR(sd.st_mode) and stat.S_ISREG(ak.st_mode) and stat.S_ISDIR(st.st_mode) and
+        sd.st_uid == ak.st_uid == st.st_uid == os.getuid() and
+        stat.S_IMODE(sd.st_mode) == 0o700 and stat.S_IMODE(ak.st_mode) == 0o600 and
+        stat.S_IMODE(st.st_mode) == 0o700 and ak.st_nlink == 1):
+    stop('unexpected SSH file type, owner, permissions or link count')
+
+data = auth.read_bytes()
+lines = data.splitlines(keepends=True)
+matching = [line for line in lines if line.rstrip(b'\r\n') == expected]
+marker = b'ccpc-nov05-backup-transfer-20261106'
+if len(matching) != 1 or sum(marker in line for line in lines) != 1:
+    stop('expected exactly one matching backup-transfer authorization')
+
+remaining = b''.join(line for line in lines if line.rstrip(b'\r\n') != expected)
+temp = None
+try:
+    fd, temp = tempfile.mkstemp(prefix='.ccpc-nov05-auth-revoke-', dir=sshdir)
+    with os.fdopen(fd, 'wb') as out:
+        out.write(remaining)
+        out.flush()
+        os.fsync(out.fileno())
+    os.chmod(temp, 0o600)
+    os.replace(temp, auth)
+    temp = None
+finally:
+    if temp is not None:
+        os.unlink(temp)
+
+if auth.read_bytes() != remaining:
+    print('STOP: post-write authorization verification failed; investigate')
+    raise SystemExit(1)
+
+print('NOV05_TEMP_TRANSFER_AUTH_REVOKED')
+print('OTHER_AUTHORIZED_KEYS_PRESERVED')
+print('VERIFIED_NOV05_BACKUPS_RETAINED')
+PY
+```
+
+`os.getlogin()` can fail in non-login shell contexts; if so the script stops before any file changes. The check for `os.getuid() == 0` and `$USER` is sufficient if that call must be removed when troubleshooting. Avoid printing contents of `authorized_keys` or site config. A strictly read-only independent marker-count check should follow any successful revocation before OLD private/public key retirement. Never assume authentication has been fully revoked by output markers alone.
+
+**Current outstanding operations:** NEW PRODUCTION app image is already loaded and image-ID-matched; four historical backups now independently verified; **no restored site or live services on NEW**. A separately approved isolated restoration rehearsal still requires a controlled plan and explicit authorization. Owner says this is the most recent backup; that does not yet establish the absence of changes after 02:00 on Nov 5.
+
 ## NOV 5 FOUR BACKUP FILES TRANSFERRED WITH RECEIVER CHECKSUM PASS — 2026-11-06
 
 **Owner-run authorized OLD-to-NEW encrypted four-file backup transfer completed**. The guarded source command performed a read-only validation of the OLD NAS CIFS mount, all four source file sizes and SHA-256s, the dedicated temporary key, and the NEW SSH server fingerprint, then streamed each file to NEW restricted receiver from OLD `gani@ccpcerpserver` to NEW `ccpcadmin@ccpcerp-prod`. The owner reported full successful output:
