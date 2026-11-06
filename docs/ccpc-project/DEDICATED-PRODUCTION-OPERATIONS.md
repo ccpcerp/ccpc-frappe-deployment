@@ -1,5 +1,23 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## VERIFIED OLD LIVE PRODUCTION CONTAINER INVENTORY — 2026-11-06
+
+**Owner-run, read-only on old host `gani@ccpcerpserver`**: `hostnamectl --static` printed `ccpcerpserver`; `sudo docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}'` showed the active live PRODUCTION Compose project `frappe_docker` and separate DEV Compose project `frappe_docker_devcontainer`.
+
+- **Six PRODUCTION app containers** `frappe_docker-frontend-1`, `frappe_docker-queue-short-1`, `frappe_docker-backend-1`, `frappe_docker-queue-long-1`, `frappe_docker-websocket-1`, `frappe_docker-scheduler-1` all use the same locally tagged application image **`ccpcerp:v16.50.0`** and reported `Up 3 weeks`. **Do not use the earlier `release-2026-09-16` or unmerged billing PR #33 instead.** The tag alone does *not* prove immutable image bytes, application Git SHA, exact Frappe/ERPNext revisions or installed patches.
+- **PRODUCTION database** `frappe_docker-db-1` is `mariadb:11.8`, reported `Up 3 weeks (healthy)`; `frappe_docker-redis-cache-1` and `frappe_docker-redis-queue-1` use `redis:8.6-alpine`.
+- **Separate DEVELOPMENT project** `frappe_docker_devcontainer`: a `vsc-frappe_docker-…-uid` Frappe container, `mariadb:11.8` database and two `redis:alpine` containers. All four reported `Up 3 weeks`; they are **not** migration sources and must not be copied/reconfigured.
+- This was a metadata-only observation, not a full application health or backup validation. No container was restarted, copied, or changed. The source host's sudo password was entered locally; it was not supplied to chat.
+
+**Next operator step (single bounded read-only inspection on OLD host):** Confirm the actual running backend container's image ID matches the local `ccpcerp:v16.50.0` tag before freezing image provenance:
+
+```bash
+sudo docker inspect --format 'running_backend_image_id={{.Image}}' frappe_docker-backend-1
+sudo docker image inspect ccpcerp:v16.50.0 --format 'tag_image_id={{.Id}} created={{.Created}}'
+```
+
+Stop and investigate if the image IDs differ; do not `pull`, `build`, `save`, `commit`, or modify either environment yet. After identity alignment, read installed Frappe/ERPNext/CCPC versions and exact Git commits with a separately reviewed read-only procedure; then plan/authorize complete backup, new-host isolated restore and cutover.
+
 ## CURRENT DECISION — 2026-11-06: migrate **only existing live PRODUCTION**, unchanged in functionality
 
 **Owner-directed scope change (supersedes the earlier candidate app PR #33 release path and this document's prior 'accounting acceptance first' recommendation):** Relocate the **already running live production** from the shared legacy Ubuntu host `ccpcerpserver` to the new physically dedicated `ccpcerp-prod`, without promoting unfinished DEVELOPMENT features. The application, version, database and business configuration source of truth is the **actual active legacy PRODUCTION deployment**, not DEVELOPMENT Git state and not a future release candidate. The old host's DEVELOPMENT installation remains untouched and continues independently.
