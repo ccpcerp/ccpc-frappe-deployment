@@ -1,5 +1,37 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## OWNER AUTHORIZED DEDICATED TEMPORARY TRANSFER SSH KEY — 2026-11-06
+
+**Owner explicitly said "Approved"** after review of the failed default SSH public-key authentication from OLD `gani@ccpcerpserver` to NEW `ccpcadmin@ccpcerp-prod`. Approval covers (1) creating a **dedicated, temporary** ED25519 SSH transfer key on OLD `ccpcerpserver`, (2) installing **only the public half** as a restricted authorized key for `ccpcadmin` on the NEW dedicated host, and (3) revoking the temporary authorization after the image-only transfer has been verified. The existing `id_ed25519_ccpc_backup` key and scheduled backups remain untouched. No permanent unrestricted login, production Docker/service changes, image import, database restore or cutover is authorized.
+
+**First approved operator step only, on OLD `gani@ccpcerpserver`:** Create a new uniquely named key without overwriting anything; do not print or submit its private contents.
+
+```bash
+bash <<'EOF'
+key="$HOME/.ssh/id_ed25519_ccpc_prod_image_transfer_20261106"
+if [ -e "$key" ] || [ -e "$key.pub" ]; then
+  echo "STOP: transfer key path already exists; no key created"
+elif [ ! -d "$HOME/.ssh" ]; then
+  echo "STOP: ~/.ssh directory missing; no key created"
+else
+  umask 077
+  if ssh-keygen -q -t ed25519 -N '' -C 'ccpc-prod-image-transfer-20261106' -f "$key"; then
+    chmod 600 "$key"
+    chmod 644 "$key.pub"
+    echo "TEMP_TRANSFER_KEY_CREATED"
+    echo "PUBLIC_KEY_FILE=$key.pub"
+    ssh-keygen -lf "$key.pub"
+  else
+    echo "STOP: key generation failed; check paths before retrying"
+  fi
+fi
+EOF
+```
+
+**Security scope:** Passwordless **temporary** private key permits scripted SSH transfer without exposing a passphrase; it is sensitive and must remain `0600`, never be pasted into ChatGPT, logged or committed. This key will not be auto-selected by normal SSH defaults; explicitly target it with `-i` and `IdentitiesOnly=yes` only for the approved transfer. A later operator-controlled NEW-host `authorized_keys` edit must use at least no-agent/no-X11/no-port-forward/no-PTY restrictions and preferably a confirmed OLD-host source-IP or forced command. Confirm the key fingerprint, exact public key, source IP and the trusted NEW host-key fingerprint `SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c` before installing authorization. **Do not install access or copy the image in this first step.** The 907840000-byte protected Docker image archive remains only on OLD source.
+
+**Execution still pending:** Owner approval has been recorded; no new SSH key or `authorized_keys` change has been verified in chat.
+
 ## EFFECTIVE OLD-TO-NEW SSH IDENTITIES — 2026-11-06
 
 **Owner-run read-only on OLD `gani@ccpcerpserver`:**
