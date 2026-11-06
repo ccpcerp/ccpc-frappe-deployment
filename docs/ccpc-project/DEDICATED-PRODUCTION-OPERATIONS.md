@@ -1,5 +1,88 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## SUPPORTING-IMAGES RECEIVER SSH PROBE PASSED — 2026-11-06
+
+**Owner-run from OLD `gani@ccpcerpserver` using temporary dedicated key and independently matched NEW ED25519 SSH server fingerprint**, after the restricted NEW receiver was installed. Actual output:
+
+```text
+SUPPORT_IMAGE_TRANSFER_SSH_AUTH_OK
+SUPPORT_IMAGE_TRANSFER_SSH_PROBE_PASS
+```
+
+**PASS:** The NEW receiver accepts the restricted `probe` request from OLD `192.168.50.166`; one-off transfer credentials are working. No image archive contents transferred yet; NEW MariaDB and Redis image load is *not authorized*. Existing OLD PROD/DEV and NEW Docker runtimes untouched.
+
+**NEXT single already-approved action:** Stream **only** the root-private existing OLD Docker image archive `/var/tmp/ccpc-prod-support-images.HlHFN8R6/mariadb-11.8_redis-8.6-alpine.tar`, exactly 145522176 bytes and SHA-256 `e301707c5ff75fd48c4a782e0ddf0c95608062016b9ae64e136f185bd6b8ac08`, over SSH to the NEW forced `receive-support-images` command. Revalidate OLD hostname and `gani` user, source archive root owner, `0700` stage, `0600` archive, exact byte count and digest; validate temporary user key and pinned NEW ED25519 fingerprint `SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c`; never expose private key or change old scheduled-backup key. Keep `sudo -v` outside the transfer pipeline to avoid prompt output mixing with binary data; `sudo -n cat` streams the root-private tar as bytes. `pipefail` must remain inside a child shell to protect the operator's interactive terminal.
+
+```bash
+bash <<'EOF'
+set -euo pipefail
+umask 077
+
+if [ "$(hostnamectl --static)" != "ccpcerpserver" ] ||
+   [ "$(id -un)" != "gani" ]; then
+  echo 'STOP: wrong source host or account'; exit 1
+fi
+
+stage='/var/tmp/ccpc-prod-support-images.HlHFN8R6'
+archive="$stage/mariadb-11.8_redis-8.6-alpine.tar"
+key="$HOME/.ssh/id_ed25519_ccpc_support_images_transfer_20261106"
+expected_key_fp='SHA256:ONJlWrCRTBIJ1anTVYJTpre2E56D4RtjsLXREEdJFqA'
+expected_host_fp='SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c'
+expected_sha='e301707c5ff75fd48c4a782e0ddf0c95608062016b9ae64e136f185bd6b8ac08'
+
+if [ ! -f "$key" ] || [ -L "$key" ] ||
+   [ ! -f "$key.pub" ] || [ -L "$key.pub" ] ||
+   [ "$(stat -c '%U:%a' "$key")" != 'gani:600' ] ||
+   [ "$(ssh-keygen -lf "$key.pub" | awk '{print $2}')" != "$expected_key_fp" ]; then
+  echo 'STOP: temporary transfer identity invalid'; exit 1
+fi
+
+sudo -v
+if sudo -n test -L "$stage" || sudo -n test -L "$archive"; then
+  echo 'STOP: source path is a symbolic link'; exit 1
+fi
+if [ "$(sudo -n stat -c '%U:%a' "$stage")" != 'root:700' ] ||
+   [ "$(sudo -n stat -c '%U:%a:%s' "$archive")" != 'root:600:145522176' ]; then
+  echo 'STOP: source archive ownership, permissions or size changed'; exit 1
+fi
+
+actual_sha="$(sudo -n sha256sum "$archive" | awk '{print $1}')"
+if [ "$actual_sha" != "$expected_sha" ]; then
+  echo 'STOP: source archive SHA-256 mismatch'; exit 1
+fi
+
+scanned="$(ssh-keyscan -T 5 -t ed25519 192.168.50.186 2>/dev/null)"
+actual_host_fp="$(printf '%s\n' "$scanned" | ssh-keygen -lf - | awk '{print $2}')"
+if [ "$actual_host_fp" != "$expected_host_fp" ]; then
+  echo 'STOP: destination SSH host fingerprint mismatch'; exit 1
+fi
+
+kh="$(mktemp)"
+trap 'rm -f -- "$kh"' EXIT
+chmod 600 "$kh"
+printf '%s\n' "$scanned" > "$kh"
+
+echo 'BEGIN_APPROVED_SUPPORT_IMAGES_TRANSFER'
+if response="$(sudo -n cat -- "$archive" | ssh -T -i "$key" \
+  -o IdentitiesOnly=yes -o BatchMode=yes \
+  -o PreferredAuthentications=publickey -o PasswordAuthentication=no \
+  -o KbdInteractiveAuthentication=no -o StrictHostKeyChecking=yes \
+  -o HostKeyAlgorithms=ssh-ed25519 -o UserKnownHostsFile="$kh" \
+  -o ConnectTimeout=8 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 \
+  ccpcadmin@192.168.50.186 receive-support-images)"; then
+  if [ "$response" != 'SUPPORT_IMAGE_ARCHIVE_SHA256_OK' ]; then
+    echo 'STOP: unexpected receiver confirmation; do not retry'; exit 1
+  fi
+  echo "$response"
+  echo 'SUPPORT_IMAGES_TRANSFER_SOURCE_AND_RECEIVER_CHECKS_OK'
+else
+  echo 'STOP: encrypted transfer failed; do not retry blindly'; exit 1
+fi
+EOF
+```
+
+**Expected success:** `BEGIN_APPROVED_SUPPORT_IMAGES_TRANSFER`, `SUPPORT_IMAGE_ARCHIVE_SHA256_OK`, then `SUPPORT_IMAGES_TRANSFER_SOURCE_AND_RECEIVER_CHECKS_OK`. Any error means STOP; do not retry or clear a `.partial` because receiver intentionally refuses overwrite. After successful transfer, independently verify NEW file size, owner-only permissions and SHA-256 at `/home/ccpcadmin/.ccpc-support-images-transfer-20261106/mariadb-11.8_redis-8.6-alpine.tar`. Then, and only then, revoke NEW temporary public authorization and remove OLD temporary private/public key pair as expressly approved. **Do not invoke `docker load` or create containers without separate consent.**
+
 ## SUPPORTING-IMAGES TRANSFER RECEIVER SETUP REPORTED — 2026-11-06
 
 **Owner-run NEW `ccpcadmin@ccpcerp-prod` temporary receive-only SSH receiver setup** for exact `mariadb:11.8` and `redis:8.6-alpine` Docker archive. Operator's command paste showed garbled echo fragments before the two expected success markers:
