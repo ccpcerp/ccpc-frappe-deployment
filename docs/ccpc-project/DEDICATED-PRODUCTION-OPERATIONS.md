@@ -1,5 +1,19 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## OLD PRODUCTION IMAGE SIZE VERIFIED — 2026-11-06
+
+**Owner-run read-only on OLD `gani@ccpcerpserver`:** `sudo docker image inspect ccpcerp:v16.50.0 --format 'source_image_bytes={{.Size}}'` returned `source_image_bytes=907815909`, about **866 MiB** (0.908 GB decimal). This is the image identified by the previously verified live backend image ID `sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8`. The new dedicated host has `740G` free on its single shared root filesystem as last reported.
+
+**Scope:** Image inspection did not write or restart any container. Docker's image `.Size` is **not** a measured `docker save` archive size, and it does not cover the site/database restore, free space on OLD host or any staging overhead. The exact original image is still to be preserved, without a new build from DEVELOPMENT.
+
+**NEXT single read-only operator step, OLD host `ccpcerpserver`:**
+
+```bash
+df -h /var/lib/docker /home/gani
+```
+
+This confirms actual filesystem headroom for a protected, separately approved *local image export*, without placing export files in the old NAS backup-retention tree or touching active Docker objects. After old-host capacity and the remaining application-container image IDs are verified, propose one bounded export/staging operation for explicit approval; create no archive or transfer yet. The selected Nov 5 backup remains a rehearsal snapshot, not final cutover data.
+
 ## DEDICATED HOST DISK SPACE VERIFIED — 2026-11-06
 
 **Owner-run read-only on NEW `ccpcadmin@ccpcerp-prod`:** `df -h / /var/lib/docker /home/ccpcadmin` showed each path on the **same** device `/dev/mapper/ubuntu--vg-ubuntu--lv`, filesystem size `787G`, used `7.1G`, available `740G`, utilization `1%`. **PASS — substantial free space currently available**. These three rows report one shared filesystem, **not three separate 740G reserves**. No allocation or transfer was performed.
