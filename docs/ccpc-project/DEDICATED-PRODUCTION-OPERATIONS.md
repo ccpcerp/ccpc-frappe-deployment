@@ -1,5 +1,34 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## TEMPORARY NEW-HOST SSH AUTHORIZATION REVOCATION REPORTED SUCCESS — 2026-11-06
+
+**Owner-run on NEW `ccpcadmin@ccpcerp-prod`:** Executed previously approved exact-line removal of temporary OLD-to-NEW transfer key from NEW `~/.ssh/authorized_keys`, via guarded local Python that checked owner, file types, staging permissions and size, exact one-line match, wrote remaining lines to a fresh `0600` temporary file, then atomically replaced `authorized_keys` and checked resulting file bytes.
+
+Owner's terminal paste showed some **garbled echo/paste fragments**, followed by all three expected success markers:
+
+```text
+TEMP_TRANSFER_SSH_AUTH_REVOKED
+OTHER_AUTHORIZED_KEYS_PRESERVED
+VERIFIED_IMAGE_ARCHIVE_RETAINED
+```
+
+**Status:** Script-reported successful revocation of only the dedicated `ccpc-prod-image-transfer-20261106` entry, preservation of other authorization lines, and retention of the independently checksum-matched image archive on NEW. Because the paste includes garbled text, perform a separate **read-only** confirmation before removing OLD temporary private-key files. Do not print any remaining `authorized_keys` lines or alter SSH configuration. No Docker load, Compose start, DB restore or cutover performed.
+
+**NEXT read-only check on NEW host:**
+
+```bash
+if [ "$(hostnamectl --static)" != 'ccpcerp-prod' ]; then
+  echo 'STOP: wrong host'
+elif [ ! -f "$HOME/.ssh/authorized_keys" ]; then
+  echo 'STOP: authorized_keys missing'
+else
+  count="$(grep -Fc 'ccpc-prod-image-transfer-20261106' "$HOME/.ssh/authorized_keys" || true)"
+  printf 'TEMP_TRANSFER_KEY_ENTRIES=%s\n' "$count"
+fi
+```
+
+Expected `TEMP_TRANSFER_KEY_ENTRIES=0`. On nonzero or STOP, investigate before touching the OLD transfer key. The NEW archive must remain `/home/ccpcadmin/.ccpc-prod-image-transfer-20261106/ccpcerp-v16.50.0.tar`, `907840000` bytes, archive SHA-256 `8a8ecc8a98c653105a75c6c77d6457d4ac00ebed7430f0bbd18b4619a2fcb009`. Source image remains live on OLD and development untouched. Old backup key `id_ed25519_ccpc_backup` must remain intact. OLD temporary transfer private/public key pair retirement is a later distinct step once revocation is confirmed; image import, NAS backup copy and go-live require separate approvals.
+
 ## INDEPENDENT NEW-HOST IMAGE ARCHIVE INTEGRITY VERIFIED — 2026-11-06
 
 **Owner-run read-only directly on NEW `ccpcadmin@ccpcerp-prod`**, independently of the restricted SSH receiver's in-band validation:
