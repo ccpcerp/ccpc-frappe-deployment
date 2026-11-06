@@ -1,5 +1,19 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## OLD SOURCE ADDRESS AND PUBLIC KEY VERIFIED — 2026-11-06
+
+**Owner-run read-only OLD `gani@ccpcerpserver`:** `ip -4 route get 192.168.50.186` resolved `192.168.50.186 dev enp7s0 src 192.168.50.166 uid 1000`. Thus the network path OLD `192.168.50.166` → NEW `192.168.50.186` is the observed source for this transfer. The public half of the newly created temporary key was read from `/home/gani/.ssh/id_ed25519_ccpc_prod_image_transfer_20261106.pub`; its exact key text is:
+
+```text
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJYzObYx7p4c4wOs2zXaikEYu6RCZijmuvsOndUf+mXO ccpc-prod-image-transfer-20261106
+```
+
+**Verified:** independently recomputing SHA-256 over its decoded SSH public-key blob yields the same key fingerprint as user-reported `ssh-keygen`: `SHA256:DQoxNuufbGbgD1KfvlmeZOYk40DaMXgUsI3MnzDBgf8`. This is a **public** key, not a credential or private key. The source's scheduled-backup key remains untouched. No NEW authorized-keys change or image transfer yet.
+
+**NEXT one separately approved NEW-host step** (the owner already explicitly approved creating/installing a restricted dedicated transfer key): On `ccpcadmin@ccpcerp-prod` (guard hostname and user), create a unique `0700` private staging directory `/home/ccpcadmin/.ccpc-prod-image-transfer-20261106` and a `0700` receive-only helper script there; append exactly one new `authorized_keys` entry for **this** ED25519 public key, with `from="192.168.50.166",restrict,command="/home/ccpcadmin/.ccpc-prod-image-transfer-20261106/receive-image.sh"`. Do not overwrite existing authorized keys or enable shell/forwarding. Enforce no-clobber transfer and only accept a `receive-image` SSH command that streams at most `907840001` bytes, requires exact `907840000` bytes and SHA-256 `8a8ecc8a98c653105a75c6c77d6457d4ac00ebed7430f0bbd18b4619a2fcb009` before moving the private `.partial` file to `ccpcerp-v16.50.0.tar`; additionally allow a `probe` command that prints `TRANSFER_SSH_AUTH_OK` without modifying files. Reject all other SSH commands. The helper limits the one approved transfer and its temporary authentication to this exact object.
+
+**Security and scope:** New-host authorization is an expressly approved access-control change, while image upload itself is separately approved. Existing `authorized_keys` entries and OLD backup key must not be removed/changed. The destination NEW `ccpcerp-prod` ED25519 host key remains pinned to `SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c`. Initial setup command must run in a bounded child shell, not `set -e` in an interactive login. No copy, Docker load, Compose run, DB/site restoration, cutover, or production data modifications under this specific setup step. Verify actual setup output before attempting the OLD-host SSH probe and file transfer.
+
 ## TEMPORARY IMAGE TRANSFER PUBLIC KEY CREATED — 2026-11-06
 
 **Owner's actual OLD `gani@ccpcerpserver` output from approved child-shell `ssh-keygen` operation:**
