@@ -1,5 +1,26 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## OWNER-SELECTED NOVEMBER 5, 2026 PRODUCTION BACKUP — 2026-11-06
+
+**Owner explicitly directed: "USE NOVEMBER 05, 2026".** The selected **existing live-PRODUCTION** recovery set for the **isolated, non-live migration rehearsal** is:
+
+`/mnt/erpnext_backups/2026-11-05_02-00` on **OLD** `ccpcerpserver`, verified mounted from `//192.168.50.132/erpnext_backups` (`cifs`). This is a *source selection*, not a successful restore, host-copy approval, final cutover authorization, or acceptance of any lost transactions.
+
+**Owner-run read-only inventory:**
+
+| Artifact | Verified filename | Bytes |
+| --- | --- | ---: |
+| Database | `20261105_020001-ccpcerp_local-database.sql.gz` | 1198839 |
+| Public files | `20261105_020001-ccpcerp_local-files.tar` | 10240 |
+| Private files | `20261105_020001-ccpcerp_local-private-files.tar` | 20480 |
+| Site configuration | `20261105_020001-ccpcerp_local-site_config_backup.json` | 280 |
+
+**Verification status:** Four expected *names* present as nonempty regular files. File integrity, contents, application compatibility, restorability and completeness remain unverified. Small tar archives could be legitimate or contain little/no data; inspect safely rather than assuming completeness. Site configuration may contain passwords/encryption keys; **never display or paste its contents**.
+
+**Freshness/RPO boundary:** A snapshot created 2026-11-05 02:00:01 +08 predates the current 2026-11-06 conversation. Transactions, attachments, user changes and other writes **after** the snapshot will not exist in that restored snapshot. Owner's choice authorizes **using it for preparation/rehearsal**; **do not infer** approval to go live with that older dataset while there may be subsequent transactions. Before cutover, either perform a separately approved final consistent synchronized copy with old writes fenced and reconciliation, or obtain an explicit business-signed data-loss/recovery decision—do not silently drop later entries. Keep old production live and untouched.
+
+**Next bounded read-only step on OLD host:** Test this exact source set's gzip/tar archive structures and site-config JSON syntax without extracting or printing sensitive contents, before any transfer. Preserve the original files; no archive rewriting, database restore, service operation or cleanup.
+
 ## OLD PROD NAS DIRECTORY RECENCY CHECK — 2026-11-06
 
 **Owner-provided read-only directory name inventory from OLD live `ccpcerpserver`:** `sudo find /mnt/erpnext_backups -mindepth 1 -maxdepth 1 -type d -name '20??-??-??_??-??' -printf '%f\\n' | LC_ALL=C sort -r | head -n 10` returned:
