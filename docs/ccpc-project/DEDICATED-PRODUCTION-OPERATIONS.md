@@ -1,5 +1,29 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## VERIFIED RUNNING PROD BACKEND IMAGE SHA-256 — 2026-11-06
+
+**Owner-reported from OLD live `gani@ccpcerpserver`, read-only Docker metadata only.** Commands:
+
+```bash
+sudo docker inspect --format 'running_backend_image_id={{.Image}}' frappe_docker-backend-1
+sudo docker image inspect ccpcerp:v16.50.0 --format 'tag_image_id={{.Id}} created={{.Created}}'
+```
+
+Results:
+
+- Backend container actual image ID: `sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8`
+- Local `ccpcerp:v16.50.0` image ID: **the same** `sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8`
+- Local image created: `2026-09-16T15:55:49.950715082+08:00`
+- Outcome: **PASS for backend container/tag identity at observed time**. Does not yet prove other five app containers' immutable IDs, or the inner application Git SHAs/dirty patch state. No Docker files, application data, or containers modified.
+
+**Next operator step (read-only, on OLD `ccpcerpserver` only):**
+
+```bash
+sudo docker exec frappe_docker-backend-1 bash -lc 'for app in frappe erpnext ccpcerp; do printf "%s " "$app"; git -C "/home/frappe/frappe-bench/apps/$app" rev-parse HEAD; done'
+```
+
+This reads the three application Git commit IDs from the running backend; do not run `bench migrate`, `git pull`, `git reset`, image build, or app installation. The next gate after commits is checking clean/modified source and compatibility, then separately approved complete four-part backup and a non-live restore rehearsal.
+
 ## VERIFIED OLD LIVE PRODUCTION CONTAINER INVENTORY — 2026-11-06
 
 **Owner-run, read-only on old host `gani@ccpcerpserver`**: `hostnamectl --static` printed `ccpcerpserver`; `sudo docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}'` showed the active live PRODUCTION Compose project `frappe_docker` and separate DEV Compose project `frappe_docker_devcontainer`.
