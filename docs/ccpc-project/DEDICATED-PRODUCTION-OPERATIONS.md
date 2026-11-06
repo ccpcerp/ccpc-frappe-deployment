@@ -1,5 +1,27 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## OWNER APPROVED SECURE IMAGE-ONLY TRANSFER — 2026-11-06
+
+**Owner explicitly replied "aPPROVED"** to the separately scoped request for a secure, authenticated SSH transfer of **only** the exported existing live PRODUCTION image archive from OLD `ccpcerpserver` to NEW `ccpcerp-prod`, into restricted destination staging, with a destination SHA-256 verification. This is approval for that bounded transfer, **not** for any `docker load`, container startup, Compose deployment, production/site restore, database/config changes, DNS switch, user traffic cutover, deletion or DEV operation.
+
+**Pinned source artifact (already locally exported, not yet transferred):**
+
+- OLD host root-private: `/var/tmp/ccpc-prod-image-export.7blpZWnf/ccpcerp-v16.50.0.tar`
+- Bytes: `907840000`
+- Archive SHA-256: `8a8ecc8a98c653105a75c6c77d6457d4ac00ebed7430f0bbd18b4619a2fcb009`
+- Embedded current live image ID: `sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8`
+
+**Preflight before any bytes leave OLD host:** Verify SSH host identity and fingerprint of NEW dedicated host; confirm a trusted working SSH authentication path between source and destination. Do not disable StrictHostKeyChecking, automatically trust an unauthenticated `ssh-keyscan` result or expose the archive with world/group-readable permissions. Old admin `gani` and new admin `ccpcadmin` are distinct accounts; do not assume keys or cross-host sudo grants are already configured. Prefer minimal private staging on both sides, no sensitive content to terminal/GitHub, and fail safely on existing targets or interrupted streams. Record source/destination host identities and check the exact destination hash before accepting success. Avoid accidental overwrites and never remove the source archive without a separate retention decision.
+
+**Next single read-only operator step on NEW `ccpcerp-prod`:**
+
+```bash
+hostnamectl --static
+sudo ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub
+```
+
+Expected hostname `ccpcerp-prod`. The second command displays the new host's **public** ED25519 server-key fingerprint (not a private key). Record it to authenticate the host key seen from OLD before SSH trust or copying. If the public key is missing or unexpected, stop and inspect safely. No transfer, file change or services have yet been run under this fresh approval.
+
 ## ACTUAL OLD-HOST LIVE IMAGE EXPORT COMPLETED — 2026-11-06
 
 **Owner-run output from the previously authorized `docker save` on OLD live `gani@ccpcerpserver`:**
