@@ -1,5 +1,23 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## OLD HOST STAGING CAPACITY VERIFIED — 2026-11-06
+
+**Owner-run read-only on OLD `ccpcerpserver`:** `df -h /var/lib/docker /home/gani` reported the same root filesystem `/dev/nvme0n1p2` for both paths: **915G total, 182G used, 687G available, 21% utilization**. These are two views of **one** filesystem, not 1,374G of free space. The NEW `ccpcerp-prod` host separately reported **740G free** on its root logical volume. Both appear to have ample headroom for the approximately 866 MiB source application image, but the actual `docker save` archive, temporary copies, loaded layers and restore footprint remain unmeasured.
+
+**NEXT single OLD-host read-only identity check, all six PRODUCTION application containers:** Confirm their immutable image IDs before proposing an image archive export:
+
+```bash
+sudo docker inspect --format '{{.Name}} {{.Image}}' \
+  frappe_docker-frontend-1 \
+  frappe_docker-backend-1 \
+  frappe_docker-queue-short-1 \
+  frappe_docker-queue-long-1 \
+  frappe_docker-websocket-1 \
+  frappe_docker-scheduler-1
+```
+
+All six outputs **should match** the already verified backend/container-and-tag image ID `sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8`. If not, STOP; do not export a single image assuming uniform source. Only after this read-only step should the operator be asked for **separate approval** of a bounded archive export. No file transfers, image writes, Docker restarts, database changes, or new-host deployment authorized or performed. The Nov 5 four-file source backup is selected for isolated rehearsal only; post-snapshot live transactions remain protected.
+
 ## OLD PRODUCTION IMAGE SIZE VERIFIED — 2026-11-06
 
 **Owner-run read-only on OLD `gani@ccpcerpserver`:** `sudo docker image inspect ccpcerp:v16.50.0 --format 'source_image_bytes={{.Size}}'` returned `source_image_bytes=907815909`, about **866 MiB** (0.908 GB decimal). This is the image identified by the previously verified live backend image ID `sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8`. The new dedicated host has `740G` free on its single shared root filesystem as last reported.
