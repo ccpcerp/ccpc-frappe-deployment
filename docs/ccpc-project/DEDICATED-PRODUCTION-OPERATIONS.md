@@ -1,5 +1,70 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NOV 5 NEW-HOST RESTRICTED BACKUP RECEIVER SETUP REPORTED — 2026-11-06
+
+**Owner-run approved setup on NEW `ccpcadmin@ccpcerp-prod`**, adding a dedicated temporary source-IP-restricted public key entry with forced command and creating private staging/receiver for exactly the four previously verified November 5, 2026 02:00 backup files. Owner's pasted terminal output showed **garbled paste echo** intermixed with command text but finished with the two expected markers:
+
+```text
+NOV05_RECEIVER_STAGING_READY
+NOV05_TEMP_TRANSFER_KEY_AUTHORIZED
+```
+
+**Status:** Owner's two success markers indicate the new receiver setup script reached its normal completion. However, its independent SSH forced-command behavior is **not yet verified**. No backup files have been streamed or restored; no ERPNext or Docker configuration changed. Proceed with a **probe-only**, previously authorized, no-content SSH test from OLD host before any data transfer.
+
+**NEXT one operator step on OLD `gani@ccpcerpserver`:** Child-shell probe validates source host/account, dedicated temporary key mode and public fingerprint, independently matches the NEW SSH ED25519 host key fingerprint, and invokes only `probe` on NEW restricted receiver.
+
+```bash
+bash <<'EOF'
+set -euo pipefail
+if [ "$(hostnamectl --static)" != 'ccpcerpserver' ] ||
+   [ "$(id -un)" != 'gani' ]; then
+  echo 'STOP: wrong source host or user'; exit 1
+fi
+
+key="$HOME/.ssh/id_ed25519_ccpc_nov05_backup_transfer_20261106"
+pub="$key.pub"
+expected_pub_fp='SHA256:f/ZQCIfeauyPQ7RpP1rQlXs4/Ej50pvxuGCTAF0wIeA'
+expected_host_fp='SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c'
+
+if [ ! -f "$key" ] || [ -L "$key" ] ||
+   [ ! -f "$pub" ] || [ -L "$pub" ] ||
+   [ "$(stat -c '%U:%a' "$key")" != 'gani:600' ]; then
+  echo 'STOP: temporary transfer key invalid'; exit 1
+fi
+
+actual_pub_fp="$(ssh-keygen -lf "$pub" | awk '{print $2}')"
+if [ "$actual_pub_fp" != "$expected_pub_fp" ]; then
+  echo 'STOP: public key fingerprint mismatch'; exit 1
+fi
+
+scanned="$(ssh-keyscan -T 5 -t ed25519 192.168.50.186 2>/dev/null)"
+actual_host_fp="$(printf '%s\n' "$scanned" | ssh-keygen -lf - | awk '{print $2}')"
+if [ "$actual_host_fp" != "$expected_host_fp" ]; then
+  echo 'STOP: NEW host SSH fingerprint mismatch'; exit 1
+fi
+
+kh="$(mktemp)"
+trap 'rm -f -- "$kh"' EXIT
+chmod 600 "$kh"
+printf '%s\n' "$scanned" > "$kh"
+
+if ssh -T -i "$key" \
+  -o IdentitiesOnly=yes -o BatchMode=yes \
+  -o PreferredAuthentications=publickey -o PasswordAuthentication=no \
+  -o KbdInteractiveAuthentication=no -o StrictHostKeyChecking=yes \
+  -o HostKeyAlgorithms=ssh-ed25519 -o UserKnownHostsFile="$kh" \
+  -o ConnectTimeout=8 \
+  ccpcadmin@192.168.50.186 probe; then
+  echo 'NOV05_TRANSFER_SSH_PROBE_PASS'
+else
+  echo 'STOP: NOV05_TRANSFER_SSH_PROBE_FAILED'
+  exit 1
+fi
+EOF
+```
+
+Expected exactly `NOV05_TRANSFER_SSH_AUTH_OK` from forced receiver and `NOV05_TRANSFER_SSH_PROBE_PASS` from OLD script. STOP, do not attempt to copy anything, if probe fails. Temporary known-host file created/deleted locally only. Leave existing backup-specific key, files, imported Docker image and running PROD/DEV unchanged. Only after probe PASS should a distinct guarded source checksum and encrypted four-file stream be offered.
+
 ## NOV 5 BACKUP TRANSFER PUBLIC KEY VERIFIED — 2026-11-06
 
 **Owner's read-only OLD-host inspection output**:
