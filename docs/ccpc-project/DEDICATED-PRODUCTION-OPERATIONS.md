@@ -1,5 +1,84 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NOV 5 FOUR BACKUP FILES TRANSFERRED WITH RECEIVER CHECKSUM PASS — 2026-11-06
+
+**Owner-run authorized OLD-to-NEW encrypted four-file backup transfer completed**. The guarded source command performed a read-only validation of the OLD NAS CIFS mount, all four source file sizes and SHA-256s, the dedicated temporary key, and the NEW SSH server fingerprint, then streamed each file to NEW restricted receiver from OLD `gani@ccpcerpserver` to NEW `ccpcadmin@ccpcerp-prod`. The owner reported full successful output:
+
+```text
+VERIFYING_ALL_FOUR_SOURCE_FILES
+SOURCE_SHA256_OK 20261105_020001-ccpcerp_local-database.sql.gz
+SOURCE_SHA256_OK 20261105_020001-ccpcerp_local-files.tar
+SOURCE_SHA256_OK 20261105_020001-ccpcerp_local-private-files.tar
+SOURCE_SHA256_OK 20261105_020001-ccpcerp_local-site_config_backup.json
+BEGIN_APPROVED_NOV05_FOUR_FILE_TRANSFER
+TRANSFERRING 20261105_020001-ccpcerp_local-database.sql.gz
+NOV05_BACKUP_SHA256_OK 20261105_020001-ccpcerp_local-database.sql.gz
+TRANSFERRING 20261105_020001-ccpcerp_local-files.tar
+NOV05_BACKUP_SHA256_OK 20261105_020001-ccpcerp_local-files.tar
+TRANSFERRING 20261105_020001-ccpcerp_local-private-files.tar
+NOV05_BACKUP_SHA256_OK 20261105_020001-ccpcerp_local-private-files.tar
+TRANSFERRING 20261105_020001-ccpcerp_local-site_config_backup.json
+NOV05_BACKUP_SHA256_OK 20261105_020001-ccpcerp_local-site_config_backup.json
+NOV05_FOUR_BACKUP_FILES_TRANSFERRED
+```
+
+**PASS — source and receiver in-band verification:** Four source checksum passes and four NEW receiver checksum passes. This supports successful transfer to NEW private staging `/home/ccpcadmin/.ccpc-nov05-backup-transfer-20261106`. **Independent local NEW-host verification is still pending**, as is subsequent key revocation. No site config or DB secrets should be printed. No Docker/ERPNext service starts, database restore, migration, cutover, or OLD PROD/DEV modifications were authorized/performed.
+
+**NEXT read-only destination verification on NEW `ccpcadmin@ccpcerp-prod` only:**
+
+```bash
+bash <<'EOF'
+set -euo pipefail
+
+if [ "$(hostnamectl --static)" != 'ccpcerp-prod' ] ||
+   [ "$(id -un)" != 'ccpcadmin' ]; then
+  echo 'STOP: wrong destination host or account'
+  exit 1
+fi
+
+stage="$HOME/.ccpc-nov05-backup-transfer-20261106"
+names=(
+  '20261105_020001-ccpcerp_local-database.sql.gz'
+  '20261105_020001-ccpcerp_local-files.tar'
+  '20261105_020001-ccpcerp_local-private-files.tar'
+  '20261105_020001-ccpcerp_local-site_config_backup.json'
+)
+sizes=(1198839 10240 20480 280)
+hashes=(
+  '8fb7a6fab1c5eade05515ad75372c9901dc9e2d8fdbc272655a3a97ab176db87'
+  '200764d74f208c9bc7d3d89fd20b713147e96b3a5bdc4d24c051db7af14ac0e6'
+  '60768b87cc3e585ff4179f03b23dae87d065c5e1d076b39d8a33f2e2f1285daf'
+  'b3ec5b32272476e01d6f29e6e69b5533aeb94e6b7d4dde591150018149742e1b'
+)
+
+if [ ! -d "$stage" ] || [ -L "$stage" ] ||
+   [ "$(stat -c '%U:%a' "$stage")" != 'ccpcadmin:700' ]; then
+  echo 'STOP: unexpected private destination directory'; exit 1
+fi
+
+for i in "${!names[@]}"; do
+  name="${names[$i]}"
+  file="$stage/$name"
+  if [ ! -f "$file" ] || [ -L "$file" ] ||
+     [ "$(stat -c '%U:%a:%s' "$file")" != "ccpcadmin:600:${sizes[$i]}" ]; then
+    echo "STOP: unexpected destination file metadata: $name"
+    exit 1
+  fi
+  actual="$(sha256sum "$file" | awk '{print $1}')"
+  if [ "$actual" != "${hashes[$i]}" ]; then
+    echo "STOP: destination checksum mismatch: $name"
+    exit 1
+  fi
+  echo "NOV05_DESTINATION_SHA256_OK $name"
+done
+echo 'NOV05_DESTINATION_ALL_FOUR_VERIFIED'
+EOF
+```
+
+Expected four `NOV05_DESTINATION_SHA256_OK` lines plus `NOV05_DESTINATION_ALL_FOUR_VERIFIED`. Do not proceed with key retirement until this result is supplied. The script is read-only; it never prints the configuration JSON or database payload. On any error STOP without deletion/retry. After independent verification, the temporary `ccpc-nov05-backup-transfer-20261106` authorization can be precisely revoked (already explicitly approved), then OLD temporary public/private key pair retired, preserving existing backup-specific SSH identity. Do not remove either backup copy during security cleanup.
+
+**Final cutover remains separately gated**: No backup newer than 2026-11-05 02:00 per owner; this does not prove whether any user/background writes happened later on Nov 5. Reconcile before committing live data.
+
 ## NOV 5 BACKUP RECEIVER SSH PROBE VERIFIED — 2026-11-06
 
 **Owner-run probe-only command on OLD `gani@ccpcerpserver`, with dedicated temporary key, trusted NEW ED25519 host fingerprint and restricted receiver** returned:
