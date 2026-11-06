@@ -1,5 +1,81 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## SUPPORTING-IMAGES TRANSFER RECEIVER SETUP REPORTED — 2026-11-06
+
+**Owner-run NEW `ccpcadmin@ccpcerp-prod` temporary receive-only SSH receiver setup** for exact `mariadb:11.8` and `redis:8.6-alpine` Docker archive. Operator's command paste showed garbled echo fragments before the two expected success markers:
+
+```text
+SUPPORT_IMAGE_RECEIVER_STAGING_READY
+SUPPORT_IMAGE_TEMP_TRANSFER_KEY_AUTHORIZED
+```
+
+**Status:** Setup script reported that it created owner-only `~/.ccpc-support-images-transfer-20261106` protected staging, the forced-command receiver `receive-support-images.sh`, and appended the public key restricted to OLD source IP `192.168.50.166` with SSH `restrict` options. This remains **reported, not independently authenticated**, until a probe succeeds. No supporting archive bytes have been transferred and no Docker images were loaded on NEW. Existing PROD and DEV have not been changed.
+
+**NEXT one source-side read-only SSH probe**, on OLD `gani@ccpcerpserver`, with key `/home/gani/.ssh/id_ed25519_ccpc_support_images_transfer_20261106` (ED25519 public fingerprint `SHA256:ONJlWrCRTBIJ1anTVYJTpre2E56D4RtjsLXREEdJFqA`), NEW `192.168.50.186` server pinned ED25519 SSH fingerprint `SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c`. Do not invoke `receive-support-images` yet.
+
+```bash
+bash <<'EOF'
+set -euo pipefail
+
+if [ "$(hostnamectl --static)" != "ccpcerpserver" ] ||
+   [ "$(id -un)" != "gani" ]; then
+  echo 'STOP: wrong OLD host or account'; exit 1
+fi
+
+key="$HOME/.ssh/id_ed25519_ccpc_support_images_transfer_20261106"
+pub="$key.pub"
+expected_key_fp='SHA256:ONJlWrCRTBIJ1anTVYJTpre2E56D4RtjsLXREEdJFqA'
+expected_host_fp='SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c'
+
+if [ ! -f "$key" ] || [ -L "$key" ] ||
+   [ ! -f "$pub" ] || [ -L "$pub" ] ||
+   [ "$(stat -c '%U:%a' "$key")" != 'gani:600' ]; then
+  echo 'STOP: temporary transfer key invalid'; exit 1
+fi
+
+key_fp="$(ssh-keygen -lf "$pub" | awk '{print $2}')"
+if [ "$key_fp" != "$expected_key_fp" ]; then
+  echo 'STOP: transfer key fingerprint mismatch'; exit 1
+fi
+
+scanned="$(ssh-keyscan -T 5 -t ed25519 192.168.50.186 2>/dev/null)"
+host_fp="$(printf '%s\n' "$scanned" | ssh-keygen -lf - | awk '{print $2}')"
+if [ "$host_fp" != "$expected_host_fp" ]; then
+  echo 'STOP: NEW SSH server fingerprint mismatch'; exit 1
+fi
+
+kh="$(mktemp)"
+trap 'rm -f -- "$kh"' EXIT
+chmod 600 "$kh"
+printf '%s\n' "$scanned" > "$kh"
+
+if ssh -T -i "$key" \
+  -o IdentitiesOnly=yes \
+  -o BatchMode=yes \
+  -o PreferredAuthentications=publickey \
+  -o PasswordAuthentication=no \
+  -o KbdInteractiveAuthentication=no \
+  -o StrictHostKeyChecking=yes \
+  -o HostKeyAlgorithms=ssh-ed25519 \
+  -o UserKnownHostsFile="$kh" \
+  -o ConnectTimeout=8 \
+  ccpcadmin@192.168.50.186 probe; then
+  echo 'SUPPORT_IMAGE_TRANSFER_SSH_PROBE_PASS'
+else
+  echo 'STOP: SUPPORT_IMAGE_TRANSFER_SSH_PROBE_FAILED'
+  exit 1
+fi
+EOF
+```
+
+Expected:
+```text
+SUPPORT_IMAGE_TRANSFER_SSH_AUTH_OK
+SUPPORT_IMAGE_TRANSFER_SSH_PROBE_PASS
+```
+
+**Stop on any other output.** The command only contacts the restricted receiver with `probe` and creates/deletes a temporary client known_hosts pin; it does not transfer or change image/archive contents, Docker, database, or containers. `set -euo pipefail` is in a child Bash, avoiding interactive-shell closure. Following a PASS, the next separately bounded operation is the already-approved encrypted transfer of OLD root-owned archive `/var/tmp/ccpc-prod-support-images.HlHFN8R6/mariadb-11.8_redis-8.6-alpine.tar`, exactly **145522176** bytes SHA-256 `e301707c5ff75fd48c4a782e0ddf0c95608062016b9ae64e136f185bd6b8ac08`. On NEW, independently verify checksum, then revoke temporary SSH authorization and remove the OLD temporary key. No Docker import/load or restore/cutover without separate owner approval.
+
 ## SUPPORT IMAGE TRANSFER PUBLIC KEY INDEPENDENTLY CHECKED — 2026-11-06
 
 **Owner executed the guarded OLD-host public-key-only read** after temporary key creation and supplied:
