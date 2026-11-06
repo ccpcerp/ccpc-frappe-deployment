@@ -1,5 +1,98 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## OWNER APPROVED EXACT PRODUCTION MARIADB AND REDIS IMAGE EXPORT — 2026-11-06
+
+**Owner explicitly said "Approved"** to creating **one protected local Docker image archive** of the exactly verified `mariadb:11.8` and `redis:8.6-alpine` tags on the OLD `gani@ccpcerpserver` host. This authorizes **local image export only**, not copying the archive to NEW, Docker image load on NEW, container creation, database restore, changes to OLD PROD/DEV, or production cutover.
+
+**Pinned source image IDs from nine confirmed running OLD PRODUCTION `frappe_docker` containers:**
+- `mariadb:11.8` image ID `sha256:efb4959ef2c835cd735dbc388eb9ad6aab0c78dd64febcd51bc17481111890c4`, size `106208155` bytes.
+- `redis:8.6-alpine` image ID `sha256:2cc044fc5a07c9b701f8f1255a309ae9ad7856e694ac03513bf3648c01e40763`, size `34498212` bytes.
+- Six app containers on exact already-migrated `ccpcerp:v16.50.0` image ID `sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8`.
+
+**ONE operator step on OLD `gani@ccpcerpserver`:** Run child-shell script checking host/account, source image IDs, three running PROD container identities/project labels, at least 1GiB local free space; `sudo docker image save` to a newly created root-owned 0700 `/var/tmp/ccpc-prod-support-images.XXXXXXXX` directory, archive mode 0600; verify entire tar structure, Docker manifest includes both expected tags, record byte count and SHA-256. The runbook must preserve the reported unique archive path/hash/size from terminal output. If failure after staging creation, leave partial content protected for inspection—**no blind rerun or cleanup**.
+
+```bash
+bash <<'EOF'
+set -euo pipefail
+
+if [ "$(hostnamectl --static)" != "ccpcerpserver" ] ||
+   [ "$(id -un)" != "gani" ]; then
+  echo 'STOP: wrong OLD host or account'
+  exit 1
+fi
+
+expected_db='sha256:efb4959ef2c835cd735dbc388eb9ad6aab0c78dd64febcd51bc17481111890c4'
+expected_redis='sha256:2cc044fc5a07c9b701f8f1255a309ae9ad7856e694ac03513bf3648c01e40763'
+
+sudo -v
+
+db_id="$(sudo -n docker image inspect --format '{{.Id}}' mariadb:11.8)"
+redis_id="$(sudo -n docker image inspect --format '{{.Id}}' redis:8.6-alpine)"
+if [ "$db_id" != "$expected_db" ] || [ "$redis_id" != "$expected_redis" ]; then
+  echo 'STOP: supporting Docker image IDs changed'
+  exit 1
+fi
+
+for name in frappe_docker-db-1 frappe_docker-redis-queue-1 frappe_docker-redis-cache-1; do
+  case "$name" in
+    frappe_docker-db-1) expected="$expected_db" ;;
+    *) expected="$expected_redis" ;;
+  esac
+  current="$(sudo -n docker inspect --format '{{.Image}}|{{.State.Running}}|{{index .Config.Labels "com.docker.compose.project"}}' "$name")"
+  if [ "$current" != "$expected|true|frappe_docker" ]; then
+    echo "STOP: PROD container identity or running status unexpected: $name"
+    exit 1
+  fi
+done
+
+free_kb="$(df -Pk /var/tmp | awk 'NR==2 {print $4}')"
+if [ -z "$free_kb" ] || [ "$free_kb" -lt 1048576 ]; then
+  echo 'STOP: less than 1 GiB local export space'
+  exit 1
+fi
+
+stage="$(sudo -n mktemp -d /var/tmp/ccpc-prod-support-images.XXXXXXXX)"
+echo "SUPPORT_EXPORT_PRIVATE_STAGE=$stage"
+if [ -L "$stage" ] ||
+   [ "$(sudo -n stat -c '%U:%a' "$stage")" != 'root:700' ]; then
+  echo 'STOP: export staging directory is not root-private'
+  exit 1
+fi
+
+archive="$stage/mariadb-11.8_redis-8.6-alpine.tar"
+echo 'BEGIN_APPROVED_SUPPORT_IMAGE_EXPORT'
+sudo -n docker image save --output "$archive" mariadb:11.8 redis:8.6-alpine
+sudo -n chmod 600 "$archive"
+
+if [ -L "$archive" ] ||
+   [ "$(sudo -n stat -c '%U:%a' "$archive")" != 'root:600' ]; then
+  echo 'STOP: archive permissions or ownership unexpected'
+  exit 1
+fi
+
+sudo -n tar -tf "$archive" >/dev/null
+if ! sudo -n tar -xOf "$archive" manifest.json |
+  python3 -c 'import json,sys; m=json.load(sys.stdin); tags={t for item in m for t in item.get("RepoTags", [])}; sys.exit(0 if {"mariadb:11.8","redis:8.6-alpine"}.issubset(tags) else 1)'; then
+  echo 'STOP: Docker archive manifest does not contain both expected tags'
+  exit 1
+fi
+
+bytes="$(sudo -n stat -c '%s' "$archive")"
+digest="$(sudo -n sha256sum "$archive" | awk '{print $1}')"
+if [ "$bytes" -le 0 ] || [[ ! "$digest" =~ ^[0-9a-f]{64}$ ]]; then
+  echo 'STOP: archive size or hash invalid'
+  exit 1
+fi
+
+echo "SUPPORT_IMAGE_ARCHIVE_PATH=$archive"
+echo "SUPPORT_IMAGE_ARCHIVE_BYTES=$bytes"
+echo "SUPPORT_IMAGE_ARCHIVE_SHA256=$digest"
+echo 'SUPPORT_IMAGES_EXPORTED_AND_CHECKED'
+EOF
+```
+
+**Precautions:** The `set -euo pipefail` is confined to the child shell to avoid the old interactive-shell exit incident. Docker image export is not a DB dump and does not include business records or database volumes. Do not transfer or load this archive without later explicit scope approval. Leave OLD running PROD+DEV intact; use separate encrypted transfer and independent destination verification following a fresh narrowly authorized SSH credential if approved.
+
 ## OLD PRODUCTION SUPPORTING IMAGE IDS VERIFIED — 2026-11-06
 
 **Owner-run read-only Docker inspection on OLD `gani@ccpcerpserver`**, scoped to running containers with Compose project label `frappe_docker`, returned nine active PRODUCTION containers, and exact supporting image IDs:
