@@ -1,5 +1,50 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NOV 5 TEMPORARY OLD TRANSFER KEY RETIRED — 2026-11-06
+
+**Owner-run previously authorized, fingerprint-checked cleanup on OLD `gani@ccpcerpserver` finished successfully**, after NEW SSH authorization was independently verified absent (`NOV05_TEMP_TRANSFER_KEY_ENTRIES=0`). The owner supplied actual output:
+
+```text
+NOV05_OLD_TEMP_TRANSFER_KEY_PAIR_RETIRED
+EXISTING_BACKUP_KEY_UNTOUCHED
+```
+
+**PASS — source-side script-reported retirement:** The two named OLD temporary SSH key files for `ccpc-nov05-backup-transfer-20261106` were removed after confirming host, account, original public and private key fingerprint `SHA256:f/ZQCIfeauyPQ7RpP1rQlXs4/Ej50pvxuGCTAF0wIeA`, ownership and mode. The unrelated scheduled-backup SSH identity was not a deletion target. This normal unlink is not physical secure erasure. The OLD November 5 backup remains on NAS; all four NEW copies were independently hash-matched. NEW Docker `ccpcerp:v16.50.0` is loaded with identical pinned original image ID. **No NEW ERPNext runtime containers, MariaDB/site restore, PROD cutover or OLD PROD/DEV runtime change has been authorized/performed**.
+
+**Next read-only preparation** on NEW `ccpcadmin@ccpcerp-prod`: inspect locally present MariaDB 11.8 and Redis 8.6-alpine images, Docker containers and volumes, and free disk space, to plan an isolated, no-scheduler/no-external-effects restoration rehearsal. No pulling/building images, starting services, or restoring databases until a separate owner approval.
+
+```bash
+bash <<'EOF'
+set -euo pipefail
+if [ "$(hostnamectl --static)" != 'ccpcerp-prod' ] ||
+   [ "$(id -un)" != 'ccpcadmin' ]; then
+  echo 'STOP: wrong server or account'; exit 1
+fi
+sudo -v
+echo '=== APP IMAGE ==='
+sudo -n docker image inspect ccpcerp:v16.50.0 --format 'IMAGE_ID={{.Id}}'
+echo '=== DATABASE AND REDIS IMAGES ==='
+for image in mariadb:11.8 redis:8.6-alpine; do
+  if sudo -n docker image inspect "$image" >/dev/null 2>&1; then
+    printf 'IMAGE_PRESENT %s\n' "$image"
+  else
+    printf 'IMAGE_NOT_PRESENT %s\n' "$image"
+  fi
+done
+echo '=== EXISTING CONTAINERS ==='
+sudo -n docker ps -a --format 'CONTAINER={{.Names}} IMAGE={{.Image}} STATUS={{.Status}}'
+echo '=== EXISTING DOCKER VOLUMES ==='
+sudo -n docker volume ls --format 'VOLUME={{.Name}}'
+echo '=== DOCKER FILESYSTEM AVAILABLE ==='
+df -h /var/lib/docker
+echo 'NEW_HOST_READ_ONLY_PREFLIGHT_COMPLETE'
+EOF
+```
+
+This probe uses Docker inspection/listing only, no network pulls, writes, Docker image load, container creation, restart or backups manipulation. Check any unexpected existing containers/volumes before designing an isolated rehearsal. Existing deployment git checkouts remain unchanged.
+
+**Data cutoff caveat:** Owner says 2026-11-05 02:00 is latest *backup* and no transactions occurred after November 5. This alone does not establish whether any record or file writes happened between Nov 5 at 02:00 and end of that day. Reconcile the final source and cutover transaction boundary before ever treating the restored snapshot as authoritative.
+
 ## NOV 5 TEMPORARY SSH AUTHORIZATION INDEPENDENTLY ABSENT — 2026-11-06
 
 **Owner-run independent read-only check on NEW `ccpcadmin@ccpcerp-prod` returned:**
