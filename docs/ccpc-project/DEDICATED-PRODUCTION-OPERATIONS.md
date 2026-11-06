@@ -1,5 +1,19 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## LIVE IMAGE BUILD LABELS ABSENT — EXACT-IMAGE MIGRATION PATH, 2026-11-06
+
+**Owner read-only result on old `ccpcerpserver`:** `sudo docker image inspect ccpcerp:v16.50.0 --format 'frappe={{index .Config.Labels "org.ccpc.frappe.sha"}} erpnext={{index .Config.Labels "org.ccpc.erpnext.sha"}} ccpcerp={{index .Config.Labels "org.ccpc.ccpcerp.sha"}} patch={{index .Config.Labels "org.ccpc.erpnext.patch.sha256"}} overlay={{index .Config.Labels "org.ccpc.erpnext.overlay.sha256"}}'` printed `frappe= erpnext= ccpcerp= patch= overlay=`. This specific existing image does **not** expose the queried build-input labels. Their absence is **not** an application failure and does **not** undo the verified container/image ID match.
+
+**Chosen approach:** Do **not** waste migration time guessing Git SHAs or rebuilding `ccpcerp:v16.50.0` from later GitHub source. Treat the already verified running image `sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8` as the immutable migration baseline. During a **later separately approved** image-transfer stage, make a protected `docker save` archive of the **existing old-host image**, securely transfer, `docker load` only on the new isolated host, and verify the resulting image ID matches exactly before use. Review archive size/destination/free space, checksums, permissions, secure transfer and recovery. Image export/import is not yet authorized. The application image alone does **not** carry the live MariaDB DB or site volumes/files.
+
+**Move to recovery readiness now:** Old legacy recovery guide `recovery.md` names host path `/mnt/erpnext_backups` and a past NAS source `//192.168.50.132/erpnext_backups`. Older manual backup evidence is historical and cannot certify present backups. Next *single read-only old-host step* checks **exact active mount** without reading backup contents or credentials:
+
+```bash
+findmnt --mountpoint /mnt/erpnext_backups --output TARGET,SOURCE,FSTYPE --noheadings || echo NOT_MOUNTED
+```
+
+Expected if unchanged is filesystem `cifs` and **exact source** `//192.168.50.132/erpnext_backups`; anything else (including `NOT_MOUNTED`) is a **STOP**, not permission to write backups to a local fallback directory. After mount identification, separately verify recent *complete* four-artifact backup and recovery readiness, then seek explicit approval for a fresh consistent production backup and isolated new-host restore. No current PROD or DEV write has been authorized or performed.
+
 ## NO .git IN LIVE IMAGE — EXPECTED BUILD PACKAGING, 2026-11-06
 
 **Observed old live `ccpcerpserver`**: operator executed `sudo docker exec frappe_docker-backend-1 bash -lc 'for app in frappe erpnext ccpcerp; do printf "%s " "$app"; git -C "/home/frappe/frappe-bench/apps/$app" rev-parse HEAD; done'`. Each returned `fatal: not a git repository`; this means that **this in-container Git lookup is unavailable**. It is **not** evidence that installed applications are missing or damaged, and no install/migration/restore should be attempted in response.
