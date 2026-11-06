@@ -1,5 +1,45 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NOV 5 BACKUP TRANSFER TEMPORARY PUBLIC KEY CREATED — 2026-11-06
+
+**Owner-executed dedicated temporary OLD-host SSH key generation**, after explicit permission to create a source-IP-restricted, forced-command, receive-only backup transfer on NEW. Reported terminal output:
+
+```text
+NOV05_TRANSFER_KEY_CREATED
+256 SHA256:f/ZQCIfeauyPQ7RpP1rQlXs4/Ej50pvxuGCTAF0wIeA ccpc-nov05-backup-transfer-20261106 (ED25519)
+```
+
+**PASS:** The newly generated temporary ED25519 key at `/home/gani/.ssh/id_ed25519_ccpc_nov05_backup_transfer_20261106` has public fingerprint `SHA256:f/ZQCIfeauyPQ7RpP1rQlXs4/Ej50pvxuGCTAF0wIeA`. The private half is confidential, `0600`, not to be printed, pasted, copied to NEW or committed to GitHub. Owner's separately existing `id_ed25519_ccpc_backup` remains excluded. Temporary NEW `authorized_keys` access has **not** been installed; no NAS backup bytes sent.
+
+**NEXT one read-only OLD-host step — print only the validated PUBLIC key line** for establishing the exact NEW-host restricted authorization, without accessing/displaying the private key:
+
+```bash
+bash <<'EOF'
+set -euo pipefail
+if [ "$(hostnamectl --static)" != 'ccpcerpserver' ] ||
+   [ "$(id -un)" != 'gani' ]; then
+  echo 'STOP: wrong host/account'; exit 1
+fi
+
+pub="$HOME/.ssh/id_ed25519_ccpc_nov05_backup_transfer_20261106.pub"
+expected='SHA256:f/ZQCIfeauyPQ7RpP1rQlXs4/Ej50pvxuGCTAF0wIeA'
+if [ ! -f "$pub" ] || [ -L "$pub" ] ||
+   [ "$(stat -c %U "$pub")" != 'gani' ]; then
+  echo 'STOP: public key missing, linked or wrong owner'; exit 1
+fi
+
+actual="$(ssh-keygen -lf "$pub" | awk '{print $2}')"
+if [ "$actual" != "$expected" ]; then
+  echo 'STOP: unexpected public key fingerprint'; exit 1
+fi
+
+echo 'NOV05_PUBLIC_KEY_FINGERPRINT_OK'
+cat -- "$pub"
+EOF
+```
+
+Output must contain exactly one `ssh-ed25519` **public** key line matching the expected fingerprint; never request or share the private key. After obtaining it, a separate bounded NEW-host step may create a private receive-only directory and forced-command SSH receiver restricted to this key and to OLD source IP `192.168.50.166`, with checksum checks for exactly the four approved Nov 5 artifacts. Stop if input differs; do not assume old image-transfer credentials can be reused.
+
 ## OWNER APPROVED TEMPORARY NOV 5 BACKUP TRANSFER SSH ACCESS — 2026-11-06
 
 **Explicit owner response:** "Approved, the Nov. 05 2:00 AM is the latest there are no latest than that". This approves the previously requested **separate, dedicated, temporary SSH authentication key and restricted NEW-host public-key authorization** for encrypted transfer of only the four owner-selected November 5, 2026 02:00 OLD-PRODUCTION NAS artifacts. The source old host IP remains `192.168.50.166`, new host IP `192.168.50.186` and trusted NEW ED25519 SSH server host-key fingerprint `SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c`. Remove temporary NEW authorization and retire dedicated OLD key after independently verifying all destination files. This is **not** authorization for unbounded SSH access, for reuse of the old `id_ed25519_ccpc_backup` key, or for Docker/container creation, restoring business data, schema migration, scheduler/email/integration activation or cutover.
