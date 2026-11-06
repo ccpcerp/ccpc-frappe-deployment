@@ -1,5 +1,34 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## FOUR FORMAT CHECKS PASS — OWNER-SELECTED NOV 5 SNAPSHOT, 2026-11-06
+
+**Owner-run exact Nov 5 file-format verification on OLD `ccpcerpserver`:** The previously supplied read-only script tested the compressed database with `gzip -t`, both public/private TAR archives with `tar -tf >/dev/null`, and the site-configuration file with `python3 -m json.tool >/dev/null`. Owner reported four success markers, in order:
+
+```text
+DATABASE_GZIP_OK
+PUBLIC_FILES_TAR_OK
+PRIVATE_FILES_TAR_OK
+SITE_CONFIG_JSON_OK
+```
+
+**PASS — narrow:** The chosen `2026-11-05_02-00` set contains four nonempty files and these format-level checks succeeded. This is **not** evidence that all expected business records or attachments were captured, that the backup is self-consistent, or that a Frappe restore will succeed. Never print site-config JSON (it may contain secrets), extract to the active production server, or delete an existing restore point.
+
+**NEXT one read-only operator check on OLD host only — capture exact source file SHA-256 digests prior to any approved transfer:**
+
+```bash
+sudo bash -c '
+set -e
+cd /mnt/erpnext_backups/2026-11-05_02-00
+sha256sum -- \
+  20261105_020001-ccpcerp_local-database.sql.gz \
+  20261105_020001-ccpcerp_local-files.tar \
+  20261105_020001-ccpcerp_local-private-files.tar \
+  20261105_020001-ccpcerp_local-site_config_backup.json
+'
+```
+
+The command only **reads** four named backup artifacts and prints hashes and filenames, not file contents. Keep the source backups unchanged and verify corresponding hashes after a separately approved protected transfer. Check disk capacity, secure archive-handling and preservation of old/current transactions before any `docker save`, file copy, isolated restore or cutover. **Nov 5 is a rehearsal source**; do not replace live current business records with a stale snapshot without a separate, explicit reconciliation/data-loss decision.
+
 ## OWNER-SELECTED NOVEMBER 5, 2026 PRODUCTION BACKUP — 2026-11-06
 
 **Owner explicitly directed: "USE NOVEMBER 05, 2026".** The selected **existing live-PRODUCTION** recovery set for the **isolated, non-live migration rehearsal** is:
