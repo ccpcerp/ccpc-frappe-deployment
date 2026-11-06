@@ -1,5 +1,33 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NOV 5 TEMPORARY SSH AUTHORIZATION REMOVAL REPORTED SUCCESS — 2026-11-06
+
+**Owner executed the previously authorized exact-line SSH `authorized_keys` revocation on NEW `ccpcadmin@ccpcerp-prod`.** The owner-provided terminal paste contained garbled command echo `data = auth.read_bytes()` and `PYint(...)` fragments, followed by all three expected success markers:
+
+```text
+NOV05_TEMP_TRANSFER_AUTH_REVOKED
+OTHER_AUTHORIZED_KEYS_PRESERVED
+VERIFIED_NOV05_BACKUPS_RETAINED
+```
+
+**Status:** Script-reported success removing only the temporary `ccpc-nov05-backup-transfer-20261106` public-key authorization from `~/.ssh/authorized_keys`, preserving other lines and retaining all four already independently checksum-verified November 5 02:00 backup artifacts in private NEW-host staging. The output alone does not independently establish absence of the line; verify via a **read-only count on NEW** before retiring the temporary OLD key pair. No backups or Docker images were deleted, no restore/run/cutover approved.
+
+**NEXT single read-only command on NEW `ccpcadmin@ccpcerp-prod`:**
+
+```bash
+if [ "$(hostnamectl --static)" != "ccpcerp-prod" ] ||
+   [ "$(id -un)" != "ccpcadmin" ]; then
+  echo 'STOP: wrong server or user'
+elif [ ! -f "$HOME/.ssh/authorized_keys" ]; then
+  echo 'STOP: authorized_keys missing'
+else
+  count="$(grep -Fc 'ccpc-nov05-backup-transfer-20261106' "$HOME/.ssh/authorized_keys" || true)"
+  printf 'NOV05_TEMP_TRANSFER_KEY_ENTRIES=%s\n' "$count"
+fi
+```
+
+Expected `NOV05_TEMP_TRANSFER_KEY_ENTRIES=0`. This neither prints other SSH keys nor alters data. If nonzero or STOP, investigate only; **do not remove the OLD key yet**. Upon zero confirmation, retire exactly the new temporary key pair on OLD via guarded fingerprint-checked file unlink, not the existing `id_ed25519_ccpc_backup`. Never delete the backup copies on OLD or NEW. Rehearsal restore and any production cutover require separate approval, and later-than-backup changes must be reviewed before live cutover.
+
 ## NOV 5 FOUR NEW-HOST BACKUP FILES INDEPENDENTLY VERIFIED — 2026-11-06
 
 **Owner-run read-only verification directly on NEW `ccpcadmin@ccpcerp-prod`**, after source and receiver both reported successful checksums for all four owner-selected 2026-11-05 02:00 backup artifacts. The local verification checked correct NEW hostname and account, private backup-staging directory ownership/mode `ccpcadmin:700`, each file's ownership/mode/size `ccpcadmin:600:<expected bytes>`, and exact independent SHA-256 hash of each file. Actual owner output:
