@@ -1,5 +1,62 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## OWNER APPROVED NEW-HOST EXACT IMAGE LOAD — 2026-11-06
+
+**Explicit owner response: "aPPROVED"** to the separately scoped operation of loading the already transferred and independently SHA-256-verified `ccpcerp:v16.50.0` archive into Docker's image store on the NEW `ccpcerp-prod` host, then inspecting the loaded image ID. This allows a NEW-host Docker image-store write only. **It does not authorize** starting any containers/services, pulling or building newer app code, copying/restoring MariaDB or site files, switching DNS/users, editing OLD PRODUCTION/DEVELOPMENT, or any database migration. **Execution and loaded result still pending**.
+
+**Input archive:** `/home/ccpcadmin/.ccpc-prod-image-transfer-20261106/ccpcerp-v16.50.0.tar` — expected exactly **907840000** bytes, file mode `0600`, directory mode `0700`, owner `ccpcadmin`. SHA-256 `8a8ecc8a98c653105a75c6c77d6457d4ac00ebed7430f0bbd18b4619a2fcb009`; source running immutable image ID `sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8`. Earlier NEW filesystem free space was ~740G; actual import size/used space not yet measured.
+
+**ONE operator step on NEW `ccpcadmin@ccpcerp-prod` ONLY — guarded child-shell import:**
+
+```bash
+bash <<'EOF'
+set -euo pipefail
+
+if [ "$(hostnamectl --static)" != "ccpcerp-prod" ] || [ "$(id -un)" != "ccpcadmin" ]; then
+  echo 'STOP: wrong host or account'; exit 1
+fi
+
+stage="$HOME/.ccpc-prod-image-transfer-20261106"
+archive="$stage/ccpcerp-v16.50.0.tar"
+expected_sha='8a8ecc8a98c653105a75c6c77d6457d4ac00ebed7430f0bbd18b4619a2fcb009'
+expected_image='sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8'
+
+if [ -L "$stage" ] || [ -L "$archive" ] ||
+   [ ! -d "$stage" ] || [ ! -f "$archive" ] ||
+   [ "$(stat -c '%U:%a' "$stage")" != "ccpcadmin:700" ] ||
+   [ "$(stat -c '%U:%a:%s' "$archive")" != "ccpcadmin:600:907840000" ]; then
+  echo 'STOP: archive path, size, ownership or permissions unexpected'; exit 1
+fi
+
+actual_sha="$(sha256sum "$archive" | awk '{print $1}')"
+if [ "$actual_sha" != "$expected_sha" ]; then
+  echo 'STOP: archive hash mismatch'; exit 1
+fi
+
+sudo -v
+sudo -n docker info >/dev/null
+
+if sudo -n docker image inspect ccpcerp:v16.50.0 >/dev/null 2>&1; then
+  echo 'STOP: destination image tag already exists; nothing loaded'; exit 1
+fi
+
+echo 'BEGIN_APPROVED_NEW_HOST_DOCKER_IMAGE_LOAD'
+sudo -n docker image load --input "$archive"
+
+actual_image="$(sudo -n docker image inspect --format '{{.Id}}' ccpcerp:v16.50.0)"
+printf 'NEW_IMAGE_ID=%s\n' "$actual_image"
+if [ "$actual_image" != "$expected_image" ]; then
+  echo 'STOP: loaded image ID does not match original; do not run it'; exit 1
+fi
+
+echo 'NEW_IMAGE_ID_MATCH_OK'
+EOF
+```
+
+The `set -euo pipefail` applies **inside a child Bash**, so any failure will not exit the operator's interactive shell. `sudo -v` is deliberately completed before image operations. The script reads archive and Docker metadata, checks the destination tag is not already present, writes only the new image into Docker via `docker image load`, and compares the resulting image ID. Successful `docker load` has not yet happened. Stop on any `STOP`/error, do not retry or remove image/archive without review. The temporary transfer key has already been retired and NEW authorized-keys entry revoked; preserve image archive for recovery.
+
+**Following step:** Owner shares actual load output. Only then can we record successful immutable source-to-destination image match and separately scope next work on the Nov 5 four-part data **for isolated rehearsal only**, with no silent loss of post-snapshot business transactions.
+
 ## OLD TEMPORARY TRANSFER SSH KEY PAIR RETIRED — 2026-11-06
 
 **Owner-executed the previously approved guarded key retirement on OLD `gani@ccpcerpserver`**, after independently verifying the NEW host no longer contained the dedicated `ccpc-prod-image-transfer-20261106` authorized-keys entry (`TEMP_TRANSFER_KEY_ENTRIES=0`). The child-shell script validated OLD host and user identity; checked that exactly the two specifically named OLD transfer key files existed as regular, non-symlink, user-owned files; confirmed private-key mode `0600`; derived public and private fingerprints and compared each to `SHA256:DQoxNuufbGbgD1KfvlmeZOYk40DaMXgUsI3MnzDBgf8`; then unlinked only those two files. Owner supplied actual output:
