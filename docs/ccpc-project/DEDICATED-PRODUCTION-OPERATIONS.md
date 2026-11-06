@@ -1,5 +1,27 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## DESTINATION SSH PUBLIC HOST KEY DIRECTLY VERIFIED — 2026-11-06
+
+**Owner-run read-only directly on NEW `ccpcadmin@ccpcerp-prod`:**
+
+```text
+hostnamectl --static
+ccpcerp-prod
+sudo ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub
+256 SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c root@ccpcerp-prod (ED25519)
+```
+
+**PASS (direct-host identity observation):** New host name matches expected `ccpcerp-prod` and a server ED25519 **public** host-key fingerprint was measured locally. This fingerprints the specific currently configured host key, not the network presentation yet. Host-key trust is **not** installed and OLD-to-NEW authentication is **not** established. No transfer made.
+
+**NEXT one OLD-host read-only command** to obtain the key presented by NEW host's SSH listener over the LAN and compare it to the independently measured local fingerprint, without automatically accepting it:
+
+```bash
+set -o pipefail
+ssh-keyscan -T 5 -t ed25519 192.168.50.186 2>/dev/null | ssh-keygen -lf -
+```
+
+Expected fingerprint for `192.168.50.186`: `SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c`. **STOP on mismatch or scan failure.** `ssh-keyscan` alone is not an authenticated trust source; its use here is only comparison against the independently verified out-of-band public key. Do not use `StrictHostKeyChecking=no`, unauthenticated `ssh-keyscan >> ~/.ssh/known_hosts`, loose source permissions or plaintext transfers. After matching, determine an approved secure SSH authentication and root-restricted destination staging procedure, without transferring yet. Prior approval covers image-only SSH transfer; no image import, restore, Compose or cutover.
+
 ## OWNER APPROVED SECURE IMAGE-ONLY TRANSFER — 2026-11-06
 
 **Owner explicitly replied "aPPROVED"** to the separately scoped request for a secure, authenticated SSH transfer of **only** the exported existing live PRODUCTION image archive from OLD `ccpcerpserver` to NEW `ccpcerp-prod`, into restricted destination staging, with a destination SHA-256 verification. This is approval for that bounded transfer, **not** for any `docker load`, container startup, Compose deployment, production/site restore, database/config changes, DNS switch, user traffic cutover, deletion or DEV operation.
