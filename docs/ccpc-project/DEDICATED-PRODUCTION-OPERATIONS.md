@@ -1,5 +1,63 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW HOST READ-ONLY DOCKER PREFLIGHT VERIFIED — 2026-11-06
+
+**Owner-run on dedicated NEW `ccpcadmin@ccpcerp-prod`** checked existing Docker image tags, running/stopped containers, Docker volumes, and filesystem space without any image pulls or Docker mutation. Full reported output:
+
+```text
+=== APP IMAGE ===
+IMAGE_ID=sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8
+=== DATABASE AND REDIS IMAGES ===
+IMAGE_NOT_PRESENT mariadb:11.8
+IMAGE_NOT_PRESENT redis:8.6-alpine
+=== EXISTING CONTAINERS ===
+=== EXISTING DOCKER VOLUMES ===
+=== DOCKER FILESYSTEM AVAILABLE ===
+Filesystem                         Size  Used Avail Use% Mounted on
+/dev/mapper/ubuntu--vg-ubuntu--lv  787G   12G  735G   2% /
+NEW_HOST_READ_ONLY_PREFLIGHT_COMPLETE
+```
+
+**PASS — read-only preflight:** NEW has exact imported app image `ccpcerp:v16.50.0` with pinned original ID; neither `mariadb:11.8` nor `redis:8.6-alpine` currently present under those tags; **zero existing Docker containers and volumes** returned in the listing; ~735G free on Docker's filesystem. This is **preparation only**, not a restore readiness or end-to-end integration test. Four Nov 5 02:00 backup files were independently checksum-verified and remain in private NEW staging. Both one-purpose temporary transfer keys already retired and SSH authorizations removed. No containers/services/restoration/cutover performed.
+
+**NEXT one read-only inspection on OLD `gani@ccpcerpserver`**, to identify exact Docker database/Redis image IDs actually used by the `frappe_docker` **PRODUCTION Compose project only**, not DEV `frappe_docker_devcontainer`; no secrets, mounts or configs printed and no Docker changes:
+
+```bash
+bash <<'EOF'
+set -euo pipefail
+
+if [ "$(hostnamectl --static)" != "ccpcerpserver" ] ||
+   [ "$(id -un)" != "gani" ]; then
+  echo 'STOP: wrong server or account'; exit 1
+fi
+
+sudo -v
+echo '=== OLD PRODUCTION RUNNING CONTAINER IMAGE REFERENCES ==='
+ids="$(sudo -n docker ps -q --filter 'label=com.docker.compose.project=frappe_docker')"
+if [ -z "$ids" ]; then
+  echo 'STOP: no OLD PRODUCTION containers found'; exit 1
+fi
+
+while IFS= read -r id; do
+  [ -n "$id" ] || continue
+  sudo -n docker inspect --format     'NAME={{.Name}} SERVICE={{index .Config.Labels "com.docker.compose.service"}} IMAGE_REF={{.Config.Image}} IMAGE_ID={{.Image}} STATUS={{.State.Status}}' "$id"
+done <<< "$ids"
+
+echo '=== OLD LOCALLY TAGGED SUPPORTING IMAGE IDS ==='
+for image in mariadb:11.8 redis:8.6-alpine; do
+  if sudo -n docker image inspect "$image" >/dev/null 2>&1; then
+    sudo -n docker image inspect --format       'TAG={{index .RepoTags 0}} IMAGE_ID={{.Id}} SIZE_BYTES={{.Size}}' "$image"
+  else
+    echo "IMAGE_TAG_NOT_PRESENT $image"
+  fi
+done
+
+echo 'OLD_PRODUCTION_SUPPORT_IMAGE_INSPECTION_COMPLETE'
+EOF
+```
+
+This does not inspect container environment variables, network credentials, database rows, volume contents, or site config. If actual PROD supporting image IDs differ from local tags, investigate without pulling or exporting. A later move of these missing support images, a new isolated Compose stack, image pulls, database restore, and final cutover all require separately scoped owner approval. The Nov 5 02:00 backup freshness relative to later Nov 5 writes must still be assessed before live migration.
+
 ## NOV 5 TEMPORARY OLD TRANSFER KEY RETIRED — 2026-11-06
 
 **Owner-run previously authorized, fingerprint-checked cleanup on OLD `gani@ccpcerpserver` finished successfully**, after NEW SSH authorization was independently verified absent (`NOV05_TEMP_TRANSFER_KEY_ENTRIES=0`). The owner supplied actual output:
