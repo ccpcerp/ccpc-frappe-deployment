@@ -1,5 +1,32 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## OLD PROD NAS DIRECTORY RECENCY CHECK — 2026-11-06
+
+**Owner-provided read-only directory name inventory from OLD live `ccpcerpserver`:** `sudo find /mnt/erpnext_backups -mindepth 1 -maxdepth 1 -type d -name '20??-??-??_??-??' -printf '%f\\n' | LC_ALL=C sort -r | head -n 10` returned:
+
+```text
+2026-11-05_02-00
+2026-11-04_02-00
+2026-11-03_02-00
+2026-11-02_02-00
+2026-11-01_02-00
+2026-10-31_02-00
+2026-10-30_02-00
+2026-10-29_02-00
+2026-10-28_02-00
+2026-10-27_02-00
+```
+
+**Observation:** Ten consecutive **directory names** indicate periodic NAS publication activity through November 5, 2026. A November 6 02:00 directory is **not present among these ten newest matching directories** despite historical 02:00 daily root cron; this is an **unresolved freshness discrepancy** (may be missed job, changed naming, alternate location, schedule or error). Do not assert a Nov 6 backup failed without cron/log evidence. Directory names alone do **not** prove a complete backup or successful restore.
+
+**NEXT one read-only OLD-host check:** Inspect **file names and sizes only** for the latest shown candidate directory, without opening or copying sensitive contents:
+
+```bash
+sudo find /mnt/erpnext_backups/2026-11-05_02-00 -mindepth 1 -maxdepth 1 -type f -printf '%f\t%s bytes\n' | LC_ALL=C sort
+```
+
+Look for non-empty compressed SQL database, public file archive, private file archive and site-config backup. After this, investigate missing November 6 backup via sanitized scheduler status/log checks before authorizing a fresh production recovery set, image archive or any restore. Do not run backup script, edit cron, delete backups or change production under this read-only approval.
+
 ## LIVE LEGACY NAS MOUNT — VERIFIED 2026-11-06, BACKUP CONTENT PENDING
 
 **Owner-run read-only on OLD `gani@ccpcerpserver`:**
