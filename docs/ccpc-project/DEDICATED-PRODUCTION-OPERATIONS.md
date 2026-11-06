@@ -1,5 +1,56 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## SUPPORTING-IMAGES ARCHIVE RECEIVER TRANSFER PASSED — 2026-11-06
+
+**Owner executed the approved OLD-to-NEW encrypted supporting-images archive transfer** from `gani@ccpcerpserver` to the forced `receive-support-images` receiver on `ccpcadmin@ccpcerp-prod`, after the restricted SSH probe passed. Reported output:
+
+```text
+[sudo: authenticate] Password:
+BEGIN_APPROVED_SUPPORT_IMAGES_TRANSFER
+SUPPORT_IMAGE_ARCHIVE_SHA256_OK
+SUPPORT_IMAGES_TRANSFER_SOURCE_AND_RECEIVER_CHECKS_OK
+```
+
+**PASS — source and receiver in-band verification:** The guarded OLD-host source command verified the source archive's owner-only metadata, exact size **145522176** and SHA-256 **`e301707c5ff75fd48c4a782e0ddf0c95608062016b9ae64e136f185bd6b8ac08`**, and pinned NEW server ED25519 host identity before streaming. The NEW forced-command receiver verified the received archive against the same exact byte count and digest, then finalized it in its protected stage. Original OLD root-private archive remains `/var/tmp/ccpc-prod-support-images.HlHFN8R6/mariadb-11.8_redis-8.6-alpine.tar`. **Separate read-only independent NEW-host filesystem verification still pending**. Temporary SSH key and restricted NEW authorized-keys entry remain active until independent verification; do not delete or retransfer.
+
+**NEXT one read-only operator step on NEW `ccpcadmin@ccpcerp-prod`:**
+
+```bash
+bash <<'EOF'
+set -euo pipefail
+
+if [ "$(hostnamectl --static)" != 'ccpcerp-prod' ] ||
+   [ "$(id -un)" != 'ccpcadmin' ]; then
+  echo 'STOP: wrong destination host or account'; exit 1
+fi
+
+stage="$HOME/.ccpc-support-images-transfer-20261106"
+archive="$stage/mariadb-11.8_redis-8.6-alpine.tar"
+expected='e301707c5ff75fd48c4a782e0ddf0c95608062016b9ae64e136f185bd6b8ac08'
+
+if [ -L "$stage" ] || [ ! -d "$stage" ] ||
+   [ "$(stat -c '%U:%a' "$stage")" != 'ccpcadmin:700' ]; then
+  echo 'STOP: destination stage metadata mismatch'; exit 1
+fi
+
+if [ -L "$archive" ] || [ ! -f "$archive" ] ||
+   [ "$(stat -c '%U:%a:%s' "$archive")" != 'ccpcadmin:600:145522176' ]; then
+  echo 'STOP: destination archive metadata mismatch'; exit 1
+fi
+
+actual="$(sha256sum "$archive" | awk '{print $1}')"
+if [ "$actual" != "$expected" ]; then
+  echo 'STOP: independent destination SHA-256 mismatch'; exit 1
+fi
+
+echo 'SUPPORT_IMAGE_DESTINATION_METADATA_OK'
+echo 'SUPPORT_IMAGE_DESTINATION_SHA256_OK'
+echo 'SUPPORT_IMAGE_ARCHIVE_INDEPENDENTLY_VERIFIED'
+EOF
+```
+
+Expected exactly the three indicated success markers. No archive contents, secrets, DB records or `authorized_keys` entries are printed. Stop on any error; preserve partial/complete file for investigation. After verification, revoke exactly the dedicated `ccpc-support-images-transfer-20261106` SSH authorized key on NEW and independently count marker occurrences, then retire only that temporary OLD key pair (previously explicitly approved). Do not touch the existing `id_ed25519_ccpc_backup` key. **Not authorized:** NEW Docker import of supporting images, container startup, ERPNext restore, schema migrations, OLD PROD/DEV changes or cutover. Those require separate owner approval. Pinned source image IDs MariaDB `sha256:efb4959ef2c835cd735dbc388eb9ad6aab0c78dd64febcd51bc17481111890c4` and Redis `sha256:2cc044fc5a07c9b701f8f1255a309ae9ad7856e694ac03513bf3648c01e40763` must be checked *after any separately approved Docker load*.
+
 ## SUPPORTING-IMAGES RECEIVER SSH PROBE PASSED — 2026-11-06
 
 **Owner-run from OLD `gani@ccpcerpserver` using temporary dedicated key and independently matched NEW ED25519 SSH server fingerprint**, after the restricted NEW receiver was installed. Actual output:
