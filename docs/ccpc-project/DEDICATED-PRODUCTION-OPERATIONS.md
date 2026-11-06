@@ -1,5 +1,19 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NO .git IN LIVE IMAGE — EXPECTED BUILD PACKAGING, 2026-11-06
+
+**Observed old live `ccpcerpserver`**: operator executed `sudo docker exec frappe_docker-backend-1 bash -lc 'for app in frappe erpnext ccpcerp; do printf "%s " "$app"; git -C "/home/frappe/frappe-bench/apps/$app" rev-parse HEAD; done'`. Each returned `fatal: not a git repository`; this means that **this in-container Git lookup is unavailable**. It is **not** evidence that installed applications are missing or damaged, and no install/migration/restore should be attempted in response.
+
+**Verified GitHub source explanation (2026-11-06):** The reviewed deployment `images/custom/Containerfile` on `review/dedicated-host-readonly-inventory-2026-10-25` deliberately removes `apps/*/.git` after verifying the builder's expected commits (`find apps -mindepth 1 -path "*/.git" | xargs rm -fr`), then writes build-input OCI image labels `org.ccpc.frappe.sha`, `org.ccpc.erpnext.sha`, `org.ccpc.ccpcerp.sha`, `org.ccpc.erpnext.patch.sha256`, `org.ccpc.erpnext.overlay.sha256`. We **have not yet proven** the old running image was built from this exact reviewed Containerfile; inspect actual immutable image labels to find out. These are **build-time claims** and not a cryptographic signature or independent attestation.
+
+**New next operator step — OLD host read-only image labels only** (safe fixed keys, no environment/secrets dump):
+
+```bash
+sudo docker image inspect ccpcerp:v16.50.0 --format 'frappe={{index .Config.Labels "org.ccpc.frappe.sha"}} erpnext={{index .Config.Labels "org.ccpc.erpnext.sha"}} ccpcerp={{index .Config.Labels "org.ccpc.ccpcerp.sha"}} patch={{index .Config.Labels "org.ccpc.erpnext.patch.sha256"}} overlay={{index .Config.Labels "org.ccpc.erpnext.overlay.sha256"}}'
+```
+
+If labels are absent (e.g. `<no value>`), stop; use `bench version` or package metadata with a separate reviewed read-only step rather than guessing. Do not run `git init`, `git pull`, build, migrate, or change containers. The already verified running backend image SHA-256 remains the primary source identity.
+
 ## VERIFIED RUNNING PROD BACKEND IMAGE SHA-256 — 2026-11-06
 
 **Owner-reported from OLD live `gani@ccpcerpserver`, read-only Docker metadata only.** Commands:
