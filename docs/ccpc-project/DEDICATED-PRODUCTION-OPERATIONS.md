@@ -1,5 +1,47 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## OWNER APPROVED TEMPORARY NOV 5 BACKUP TRANSFER SSH ACCESS — 2026-11-06
+
+**Explicit owner response:** "Approved, the Nov. 05 2:00 AM is the latest there are no latest than that". This approves the previously requested **separate, dedicated, temporary SSH authentication key and restricted NEW-host public-key authorization** for encrypted transfer of only the four owner-selected November 5, 2026 02:00 OLD-PRODUCTION NAS artifacts. The source old host IP remains `192.168.50.166`, new host IP `192.168.50.186` and trusted NEW ED25519 SSH server host-key fingerprint `SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c`. Remove temporary NEW authorization and retire dedicated OLD key after independently verifying all destination files. This is **not** authorization for unbounded SSH access, for reuse of the old `id_ed25519_ccpc_backup` key, or for Docker/container creation, restoring business data, schema migration, scheduler/email/integration activation or cutover.
+
+**Freshness clarification:** Owner explicitly confirms **no backup later than 2026-11-05 02:00** is available. This statement does not itself prove no transactions, edits, uploads or asynchronous writes occurred after that timestamp. The 02:00 backup remains the selected **isolated rehearsal** source until reconciled, and no newer source is to be presumed or fabricated.
+
+**Next ONE operator step on OLD `gani@ccpcerpserver`:** Create a uniquely named, user-owned temporary ED25519 key pair; do not touch existing backup key or present its private contents.
+
+```bash
+bash <<'EOF'
+set -euo pipefail
+
+if [ "$(hostnamectl --static)" != 'ccpcerpserver' ] ||
+   [ "$(id -un)" != 'gani' ]; then
+  echo 'STOP: wrong server or account'; exit 1
+fi
+
+key="$HOME/.ssh/id_ed25519_ccpc_nov05_backup_transfer_20261106"
+if [ -e "$key" ] || [ -L "$key" ] ||
+   [ -e "$key.pub" ] || [ -L "$key.pub" ]; then
+  echo 'STOP: transfer-key path already exists; unchanged'; exit 1
+fi
+
+if [ ! -d "$HOME/.ssh" ] || [ -L "$HOME/.ssh" ]; then
+  echo 'STOP: SSH directory missing or linked'; exit 1
+fi
+
+umask 077
+ssh-keygen -q -t ed25519 -N '' -C 'ccpc-nov05-backup-transfer-20261106' -f "$key"
+chmod 600 "$key"
+chmod 644 "$key.pub"
+echo 'NOV05_TRANSFER_KEY_CREATED'
+ssh-keygen -lf "$key.pub"
+EOF
+```
+
+`set -euo pipefail` is **inside the child shell**, not in user's interactive terminal. The no-passphrase private key is sensitive, temporary, and must never be pasted, logged or committed. Print/share the **public key only** in a later bounded step. Build a source-IP-restricted `authorized_keys` forced receiver on NEW that permits only the expected four fixed backup filenames and SHA-256s, stores each in private staging and refuses overwrite. Do not create NEW authorization in this first step. Any error must STOP for review and **not** trigger another `ssh-keygen` or overwrite.
+
+**Existing source checksum baseline:** Database `8fb7a6fab1c5eade05515ad75372c9901dc9e2d8fdbc272655a3a97ab176db87`; public tar `200764d74f208c9bc7d3d89fd20b713147e96b3a5bdc4d24c051db7af14ac0e6`; private tar `60768b87cc3e585ff4179f03b23dae87d065c5e1d076b39d8a33f2e2f1285daf`; site config `b3ec5b32272476e01d6f29e6e69b5533aeb94e6b7d4dde591150018149742e1b`. Never display JSON contents as it can contain encryption/authentication secrets.
+
+**Status as of this entry:** User approved access setup and transfer. No new key or authorization has yet been executed/reported for this backup transfer; original exact app image is already safely loaded on NEW.
+
 ## OWNER APPROVED NOV 5 FOUR-ARTIFACT BACKUP TRANSFER — 2026-11-06
 
 **Explicit owner response**: "Approved, The November 5, 2026 is the latest and there are no transaction after that day" to the separate request for **protected, encrypted, four-artifact-only transfer** from OLD live `ccpcerpserver`'s Synology NAS `/mnt/erpnext_backups/2026-11-05_02-00` to NEW `ccpcerp-prod` private staging. Approval covers moving **only** the previously fixed November 5 backup and verifying four source/destination hashes. It does **not** authorize restoring any database, launching a Compose stack, starting scheduler/email/integrations, changing existing OLD PROD/DEV, modifying production data, or cutting over traffic.
