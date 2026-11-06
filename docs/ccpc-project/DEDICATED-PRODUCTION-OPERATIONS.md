@@ -1,5 +1,28 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## EXACT MARIADB AND REDIS SUPPORTING IMAGE ARCHIVE EXPORTED — 2026-11-06
+
+**Owner-executed expressly approved OLD-host export**, following preflight checks for correct OLD host `ccpcerpserver`, `gani` user, immutable local image IDs, actual running PRODUCTION database/two Redis container images, and OLD disk space. The guarded command wrote just the `mariadb:11.8` and `redis:8.6-alpine` Docker images to one new root-private archive. The owner reported:
+
+```text
+SUPPORT_EXPORT_PRIVATE_STAGE=/var/tmp/ccpc-prod-support-images.HlHFN8R6
+BEGIN_APPROVED_SUPPORT_IMAGE_EXPORT
+SUPPORT_IMAGE_ARCHIVE_PATH=/var/tmp/ccpc-prod-support-images.HlHFN8R6/mariadb-11.8_redis-8.6-alpine.tar
+SUPPORT_IMAGE_ARCHIVE_BYTES=145522176
+SUPPORT_IMAGE_ARCHIVE_SHA256=e301707c5ff75fd48c4a782e0ddf0c95608062016b9ae64e136f185bd6b8ac08
+SUPPORT_IMAGES_EXPORTED_AND_CHECKED
+```
+
+**PASS — source archive generated and validated by the guarded command:** Root-owned `0700` private staging at `/var/tmp/ccpc-prod-support-images.HlHFN8R6`; image tar expected root-owned `0600`, size **145522176 bytes**, SHA-256 **`e301707c5ff75fd48c4a782e0ddf0c95608062016b9ae64e136f185bd6b8ac08`**, archive `tar -tf` validated and Docker manifest includes both named tags. Pinned original running PRODUCTION image IDs, independently checked before this export:
+- MariaDB `mariadb:11.8`: `sha256:efb4959ef2c835cd735dbc388eb9ad6aab0c78dd64febcd51bc17481111890c4`
+- Redis `redis:8.6-alpine`: `sha256:2cc044fc5a07c9b701f8f1255a309ae9ad7856e694ac03513bf3648c01e40763`
+
+No user database records/volumes exported; this is a **Docker image archive only**. OLD running PROD and DEV containers, existing NAS backup files, NEW imported application image, and NEW securely staged four Nov 5 backups remain unchanged by this image export.
+
+**NEXT OWNER APPROVAL GATE — not yet approved:** Request permission to transfer **only this precise supporting-images archive** from OLD to NEW `ccpcerp-prod`, using encrypted SSH, a *new dedicated, short-lived, source-IP-restricted and receiver-command-limited transfer key*, and verification of exact destination archive SHA-256. Explicitly include revocation of the NEW temporary authorization and retirement of the OLD key pair after successful transfer verification in the approval scope. Do not reuse retired keys or alter `id_ed25519_ccpc_backup`. Transfer approval does **not** authorize loading images into NEW Docker, starting containers, database restore, Compose operations, secret changes, or traffic cutover.
+
+After approval, guide the operator in small verified steps: create only new OLD temporary key, read public key/fingerprint, set up forced-command NEW receiver in `0700` isolated staging with byte-count/SHA-256 validation, probe from OLD with pinned NEW SSH ED25519 fingerprint `SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c`, transfer the single verified archive, independent NEW-host checksum verification, revoke NEW authorized key and retire OLD key. The OLD source file must be preserved. Request separate approval before NEW Docker image load and ID verification. No restore/start/cutover authorized.
+
 ## OWNER APPROVED EXACT PRODUCTION MARIADB AND REDIS IMAGE EXPORT — 2026-11-06
 
 **Owner explicitly said "Approved"** to creating **one protected local Docker image archive** of the exactly verified `mariadb:11.8` and `redis:8.6-alpine` tags on the OLD `gani@ccpcerpserver` host. This authorizes **local image export only**, not copying the archive to NEW, Docker image load on NEW, container creation, database restore, changes to OLD PROD/DEV, or production cutover.
