@@ -1,5 +1,22 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## OLD TEMPORARY TRANSFER SSH KEY PAIR RETIRED — 2026-11-06
+
+**Owner-executed the previously approved guarded key retirement on OLD `gani@ccpcerpserver`**, after independently verifying the NEW host no longer contained the dedicated `ccpc-prod-image-transfer-20261106` authorized-keys entry (`TEMP_TRANSFER_KEY_ENTRIES=0`). The child-shell script validated OLD host and user identity; checked that exactly the two specifically named OLD transfer key files existed as regular, non-symlink, user-owned files; confirmed private-key mode `0600`; derived public and private fingerprints and compared each to `SHA256:DQoxNuufbGbgD1KfvlmeZOYk40DaMXgUsI3MnzDBgf8`; then unlinked only those two files. Owner supplied actual output:
+
+```text
+OLD_TEMP_TRANSFER_KEY_PAIR_RETIRED
+EXISTING_BACKUP_KEY_UNTOUCHED
+```
+
+**PASS — reported by guarded operator script:** OLD dedicated transfer private/public key pair was retired, and existing backup-specific SSH key was not a target of the deletion. Normal unlink does not prove physical secure-erasure, nor was secure-erasure authorized. NEW temporary authorization removal was separately checked to yield zero matching entries. The OLD and NEW Docker archive files remain retained; no Docker image load, Compose startup, database/file restore, or migration cutover has happened.
+
+**Transferred image archive independently verified on NEW `ccpcadmin@ccpcerp-prod`:** `/home/ccpcadmin/.ccpc-prod-image-transfer-20261106/ccpcerp-v16.50.0.tar`, **907840000 bytes**, `0600` owned by `ccpcadmin`, in `0700` staging, SHA-256 **`8a8ecc8a98c653105a75c6c77d6457d4ac00ebed7430f0bbd18b4619a2fcb009`**. The original OLD live image `ccpcerp:v16.50.0` was previously verified in all six PRODUCTION application containers with image ID **`sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8`**.
+
+**NEXT APPROVAL GATE — not yet approved:** Request owner authorization to **load only the already verified archived image into the Docker image store of the empty NEW `ccpcerp-prod` host**, then inspect/tag-identity verify that Docker reports the exact expected image ID. Loading the image changes the new host's Docker image store and filesystem and incurs CPU/I/O/storage, but does not itself create/start containers, change services, restore databases/files, or cut over traffic. Do not run `docker load`, `docker compose`, `bench migrate`, restore or touch OLD PROD/DEV without separate authorization. After owner approval, provide one bounded child-shell command on NEW host that gates hostname, `0600` archive and `0700` stage, checks SHA-256, detects any preexisting conflicting local `ccpcerp:v16.50.0` tag, uses `sudo docker load -i` only for this archive, and verifies local image ID matches pinned source. Report Docker load outcome before any further operations.
+
+**Caution on owner-selected November 5, 2026 backup:** The four backup files have format checks and recorded source SHA-256s but are still only designated for an isolated non-live rehearsal; they have not been copied or restored. Do not use the Nov 5 snapshot for final live cutover without addressing newer financial/business transactions via a separately approved consistent final backup/reconciliation or explicit signed data-loss disposition.
+
 ## TEMPORARY NEW-HOST SSH AUTHORIZATION ABSENCE CONFIRMED — 2026-11-06
 
 **Owner-run independent read-only check directly on NEW `ccpcadmin@ccpcerp-prod`:**
