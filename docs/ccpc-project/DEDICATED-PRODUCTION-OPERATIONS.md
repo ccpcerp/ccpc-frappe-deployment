@@ -1,5 +1,72 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## OLD-TO-NEW RESTRICTED SSH RECEIVER PROBE PASSED — 2026-11-06
+
+**Owner-run from OLD `gani@ccpcerpserver` after installing dedicated restricted NEW-host key:** The guarded child-shell probe using the private key `/home/gani/.ssh/id_ed25519_ccpc_prod_image_transfer_20261106`, independently matched ED25519 host key `SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c`, SSH `StrictHostKeyChecking=yes`, `IdentitiesOnly=yes` and `BatchMode=yes` returned exactly:
+
+```text
+TRANSFER_SSH_AUTH_OK
+SSH_TRANSFER_PROBE_PASS
+```
+
+**PASS — restricted transfer login probe:** NEW forced receiver accepted the authorized OLD transfer identity and returned its expected `probe` marker. This is **not** an image-transfer success or proof of destination archive integrity. OLD root-private source archive still resides at `/var/tmp/ccpc-prod-image-export.7blpZWnf/ccpcerp-v16.50.0.tar`; **907840000 bytes**, SHA-256 `8a8ecc8a98c653105a75c6c77d6457d4ac00ebed7430f0bbd18b4619a2fcb009`. Owner's earlier scope approves one image-only SSH transfer.
+
+**NEXT single guarded image-only transfer command on OLD `ccpcerpserver`:**
+
+```bash
+bash <<'EOF'
+set -euo pipefail
+umask 077
+
+if [ "$(hostnamectl --static)" != "ccpcerpserver" ]; then
+  echo 'STOP: wrong source host'; exit 1
+fi
+
+archive='/var/tmp/ccpc-prod-image-export.7blpZWnf/ccpcerp-v16.50.0.tar'
+key="$HOME/.ssh/id_ed25519_ccpc_prod_image_transfer_20261106"
+expected_host_fp='SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c'
+expected_archive_sha='8a8ecc8a98c653105a75c6c77d6457d4ac00ebed7430f0bbd18b4619a2fcb009'
+
+if [ ! -f "$key" ]; then
+  echo 'STOP: temporary transfer key missing'; exit 1
+fi
+
+sudo -v
+size="$(sudo -n stat -c '%s' "$archive")"
+sha="$(sudo -n sha256sum "$archive" | awk '{print $1}')"
+if [ "$size" != '907840000' ] || [ "$sha" != "$expected_archive_sha" ]; then
+  echo 'STOP: source archive changed; no transfer'; exit 1
+fi
+
+scanned="$(ssh-keyscan -T 5 -t ed25519 192.168.50.186 2>/dev/null)"
+host_fp="$(printf '%s\n' "$scanned" | ssh-keygen -lf - | awk '{print $2}')"
+if [ "$host_fp" != "$expected_host_fp" ]; then
+  echo 'STOP: destination host fingerprint mismatch'; exit 1
+fi
+
+kh="$(mktemp)"
+trap 'rm -f -- "$kh"' EXIT
+printf '%s\n' "$scanned" > "$kh"
+chmod 600 "$kh"
+
+echo 'BEGIN_APPROVED_IMAGE_ONLY_TRANSFER'
+if sudo -n cat -- "$archive" | ssh -T -i "$key" \
+  -o IdentitiesOnly=yes -o BatchMode=yes \
+  -o PreferredAuthentications=publickey -o PasswordAuthentication=no \
+  -o KbdInteractiveAuthentication=no -o StrictHostKeyChecking=yes \
+  -o HostKeyAlgorithms=ssh-ed25519 -o UserKnownHostsFile="$kh" \
+  -o ConnectTimeout=8 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 \
+  ccpcadmin@192.168.50.186 receive-image; then
+  echo 'IMAGE_TRANSFER_AND_RECEIVER_CHECKS_OK'
+else
+  echo 'STOP: image stream failed or receiver rejected archive; do not retry blindly'
+  exit 1
+fi
+EOF
+```
+
+This script's `set -euo pipefail` is **inside a child Bash**, not in the operator's interactive terminal. It verifies source host, root-private source file size and SHA-256, authenticates target SSH host key out-of-band, and streams the exact archive into a NEW receive-only forced command. The receiver independently checks exact 907840000-byte size and SHA-256 and prints `TRANSFER_ARCHIVE_SHA256_OK` only upon success. **Never assume successful transfer without both receiver marker and local completion marker.** A failed/partial copy is to be preserved for investigation; do not re-run automatically (destination refuses existing `.partial` or final path). No `docker load`, Compose run, DB import, secret handling, or cutover; source archive preserved. Next verify destination archive independently on NEW host before considering temporary access revocation and any separately approved image import.
+
 ## NEW-HOST TEMPORARY RECEIVER SETUP REPORTED SUCCESS — 2026-11-06
 
 **Owner-run authorized operation on NEW `ccpcadmin@ccpcerp-prod`:** The bounded `bash <<'INNER'` setup command created the dedicated `~/.ccpc-prod-image-transfer-20261106` protected receiver location/helper, and appended one restricted `authorized_keys` entry for the newly created OLD source public key. Owner reported:
