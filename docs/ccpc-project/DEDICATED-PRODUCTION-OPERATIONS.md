@@ -1,5 +1,17 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## TERMINAL SESSION EXITED DURING SSH AUTHENTICATION PREFLIGHT — 2026-11-06
+
+**Owner reported:** "The Terminal exited after runnibg the last code", immediately after running the assistant-supplied OLD-host SSH-auth test. No stdout/stderr of that test was shared, so **we do not know if the attempted SSH authentication succeeded, failed, or timed out**.
+
+**Operator safety correction:** The previous instruction placed `set -euo pipefail` and an explicit `exit 1` directly into an **interactive** shell, where a failed `ssh-keyscan`, mismatched fingerprint, or unsuccessful `ssh` can terminate that interactive shell and close the SSH terminal. This was an unsafe presentation error in the guidance, **not evidence of ERPNext/Docker service shutdown**. The script did not include image transfer or Docker modification. It may have created a temporary host-key file which, if the trap ran, was removed on exit; do not assume the exact side effects without output.
+
+**IMMEDIATE NEXT STEP (one read-only command, OLD host):** Reconnect normally to `gani@ccpcerpserver` and run **only** `hostnamectl --static`. Expected output `ccpcerpserver`. Do not repeat the earlier interactive `set -e` block. Continue only after OLD-host identity is reconfirmed.
+
+**For any later repeat of this authentication test:** Enclose all error-handling steps in a **separate child** `bash <<'EOF' ... EOF` process so errors exit only the child shell, never the operator's interactive terminal. Print an explicit verdict and preserve the trusted destination ED25519 fingerprint `SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c`; stop on mismatch. Do not auto-accept unknown host keys, lower strict checking, run unapproved transfers, reveal secrets, or configure cross-host keys without reviewed need.
+
+**Transfer state:** Previously approved secure **image-only** SSH transfer is still **not confirmed executed**. Original root-private OLD-host archive remains the planned source and has full verified creation output; nothing has been shown to prove destination bytes exist. No approval for image import/restore/cutover.
+
 ## OLD-TO-NEW SSH NETWORK FINGERPRINT MATCH — 2026-11-06
 
 **Owner-run read-only on OLD `gani@ccpcerpserver`:**
@@ -12,26 +24,7 @@ ssh-keyscan -T 5 -t ed25519 192.168.50.186 2>/dev/null | ssh-keygen -lf -
 
 **PASS**: Network-presented destination ED25519 SSH fingerprint exactly matches the fingerprint independently obtained directly from NEW `ccpcerp-prod`: `SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c`. The scan does not by itself prove OLD `gani` has authorized login access on NEW `ccpcadmin`; **no authenticated login, source export transfer or destination file creation has yet been confirmed**. SSH transfer was separately approved by owner, but other operations remain excluded.
 
-**NEXT bounded SSH authentication test on OLD host** (uses a fresh short-lived `0600` host-key pin only, no archive streaming; this is only to assess existing SSH public-key login and preserve correct host-key enforcement):
-
-```bash
-set -euo pipefail
-expected='SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c'
-scanned="$(ssh-keyscan -T 5 -t ed25519 192.168.50.186 2>/dev/null)"
-fingerprint="$(printf '%s\n' "$scanned" | ssh-keygen -lf - | awk '{print $2}')"
-if [ "$fingerprint" != "$expected" ]; then
-  echo "STOP: destination SSH fingerprint mismatch"; exit 1
-fi
-known_hosts_file="$(mktemp)"
-trap 'rm -f -- "$known_hosts_file"' EXIT
-chmod 600 "$known_hosts_file"
-printf '%s\n' "$scanned" > "$known_hosts_file"
-ssh -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$known_hosts_file" \
-  -o BatchMode=yes -o PreferredAuthentications=publickey \
-  -o ConnectTimeout=8 ccpcadmin@192.168.50.186 'hostnamectl --static'
-```
-
-Expected remote hostname `ccpcerp-prod`. If `Permission denied (publickey)`, **STOP** and plan minimal authorized cross-host key setup without weakening SSH or making archive public. `BatchMode=yes` prevents interactive password prompts. If login works, next stage is a planned root-private image archive copy and destination SHA-256 verification, using an exact single-target no-overwrite transfer with appropriate source/root privileges. Do not use `StrictHostKeyChecking=no` or write public/shareable copies. Removing this command's own random temporary known-host pin is limited housekeeping; it does not touch any existing trust settings.
+**HISTORICAL TEST INVALIDATED FOR INTERACTIVE USE (2026-11-06):** The earlier `set -euo pipefail` / `exit 1` snippet that was run directly in the user's interactive shell caused an unexpected terminal exit or coincided with it. **Do not reuse that syntax at the interactive prompt.** The operator must first reconnect to OLD `ccpcerpserver` and confirm `hostnamectl --static`, as stated in the incident section above. Any retry must run inside a bounded child `bash` process with explicit output and verified host key. No SSH success yet reported.
 
 ## DESTINATION SSH PUBLIC HOST KEY DIRECTLY VERIFIED — 2026-11-06
 
