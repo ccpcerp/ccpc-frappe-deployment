@@ -1,5 +1,42 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## OWNER APPROVED ONE OLD-HOST LOCAL IMAGE EXPORT — 2026-11-06
+
+**Explicit owner approval received** after all six PRODUCTION containers matched the image ID, via message: **"aPPROVED"**, in direct response to scoped request for **one protected local `docker save` archive of existing `ccpcerp:v16.50.0` on OLD `ccpcerpserver` only**. Approval covers local staging writes, image export and source archive checksum/size; **not** secure transfer, image import, new-host stack startup, database/site restore, PRODUCTION or DEVELOPMENT runtime changes, or cutover. Owner must execute commands through SSH (ChatGPT has no host-SSH access). **Approval recorded; execution/output not yet verified.**
+
+**Single guarded OLD-host operator step, after owner approval:**
+
+```bash
+sudo bash <<'EOF'
+set -euo pipefail
+umask 077
+
+expected='sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8'
+actual="$(docker image inspect --format '{{.Id}}' ccpcerp:v16.50.0)"
+if [ "$actual" != "$expected" ]; then
+  echo "STOP: production image ID changed; no export performed" >&2
+  exit 1
+fi
+
+stage="$(mktemp -d /var/tmp/ccpc-prod-image-export.XXXXXXXX)"
+archive="$stage/ccpcerp-v16.50.0.tar"
+echo "Exporting verified production image to protected location: $stage"
+docker image save --output "$archive.partial" ccpcerp:v16.50.0
+test -s "$archive.partial"
+mv -- "$archive.partial" "$archive"
+chmod 600 "$archive"
+
+printf 'SOURCE_IMAGE_ID=%s\n' "$actual"
+printf 'ARCHIVE_PATH=%s\n' "$archive"
+printf 'ARCHIVE_BYTES=%s\n' "$(stat -c %s "$archive")"
+sha256sum "$archive"
+EOF
+```
+
+**Expected safeguards:** `mktemp -d` unique directory is created by root with `0700` in local `/var/tmp`, `umask 077` limits file permissions, only the immutable-ID matched tag is exported, `.partial` is not promoted to final archive on failed save, final image archive is chmod `0600`, source and exported artifact sizes/hash printed for review. If any operation errors, **STOP**, preserve output and any partial archive; do not retry blindly or delete source data. `docker save` reads image layers and causes disk/CPU I/O and a local write, but should not touch running containers. The archive may embed sensitive deployment content; never attach it publicly, push to GitHub, share checksum together with secrets, or put it in the automatic NAS-retention tree.
+
+**Following gate:** Wait for operator's actual archive path, byte count and SHA-256 checksum, then validate status and prepare a separate approval for secure transfer to the isolated new host. Preserve Nov 5 four-artifact backup checksums separately and do not substitute the Nov 5 rehearsal snapshot for later live transactions without a separately approved final reconciliation/cutover plan.
+
 ## ALL SIX RUNNING LIVE PROD APP IMAGE IDS MATCH — 2026-11-06
 
 **Owner-run read-only `docker inspect` on OLD live `ccpcerpserver`:** All six running PRODUCTION app containers, `frappe_docker-frontend-1`, `frappe_docker-backend-1`, `frappe_docker-queue-short-1`, `frappe_docker-queue-long-1`, `frappe_docker-websocket-1`, and `frappe_docker-scheduler-1`, returned **exactly** `sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8`. **PASS:** a single existing `ccpcerp:v16.50.0` Docker image covers every application service, not just the backend; separate MariaDB and Redis are independent standard images, and their live data/config remain separately required.
