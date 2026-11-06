@@ -1,5 +1,20 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## SUPPORT IMAGE TRANSFER PUBLIC KEY INDEPENDENTLY CHECKED — 2026-11-06
+
+**Owner executed the guarded OLD-host public-key-only read** after temporary key creation and supplied:
+
+```text
+SUPPORT_TRANSFER_PUBLIC_KEY_VERIFIED
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDcONU7BtDoctg4uLbro/flvs3FLdOgxLCr5+G931X3z ccpc-support-images-transfer-20261106
+```
+
+**PASS — verified public key**, fingerprint `SHA256:ONJlWrCRTBIJ1anTVYJTpre2E56D4RtjsLXREEdJFqA`. Private key must remain on OLD `gani@ccpcerpserver`, never printed or committed. No supporting archive transferred yet.
+
+**NEXT: already approved NEW-host restricted SSH receiver setup**, only on `ccpcadmin@ccpcerp-prod`: ensure correct host/account; public fingerprint; existing `~/.ssh/authorized_keys` owner-only `0600`, SSH directory `0700`, no existing new staging/marker; create `/home/ccpcadmin/.ccpc-support-images-transfer-20261106` as `0700`, guarded `receive-support-images.sh` forced command executable by user, and authorize exactly the verified public key once with `from="192.168.50.166",restrict,command="/home/ccpcadmin/.ccpc-support-images-transfer-20261106/receive-support-images.sh"`. Script allows **only** `probe` (echo `SUPPORT_IMAGE_TRANSFER_SSH_AUTH_OK`) and `receive-support-images`; latter accepts exactly `145522176` bytes, SHA-256 `e301707c5ff75fd48c4a782e0ddf0c95608062016b9ae64e136f185bd6b8ac08`, deposits private `0600` `mariadb-11.8_redis-8.6-alpine.tar`, and refuses existing destination/partial files. Use an extra-byte cap while reading stdin, no-overwrite hard-link finalize, and print `SUPPORT_IMAGE_ARCHIVE_SHA256_OK` only on full success. Do not print or read database records, secrets, or user data. Success setup markers: `SUPPORT_IMAGE_RECEIVER_STAGING_READY`, `SUPPORT_IMAGE_TEMP_TRANSFER_KEY_AUTHORIZED`. **Setup does not transfer archive bytes.**
+
+Next after setup is a *read-only* SSH `probe` from OLD pinned to previously independently verified NEW ED25519 SSH host fingerprint `SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c`. Then separate guarded approved archive transfer and independent NEW hash. Revoke temporary NEW authorization and retire OLD temporary key after verified transfer. Archive source remains OLD root-private `/var/tmp/ccpc-prod-support-images.HlHFN8R6/mariadb-11.8_redis-8.6-alpine.tar`. The associated `mariadb:11.8` and `redis:8.6-alpine` Docker image IDs are pinned in the preceding section. Do not load new images on NEW, create containers, restore data or cut over; those are outside present approval.
+
 ## SUPPORT IMAGE TRANSFER TEMPORARY KEY CREATED — 2026-11-06
 
 **Owner executed approved temporary SSH key creation on OLD `gani@ccpcerpserver`.** Reported terminal output:
