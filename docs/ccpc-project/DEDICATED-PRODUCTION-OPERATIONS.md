@@ -1,5 +1,27 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## LIVE LEGACY NAS MOUNT — VERIFIED 2026-11-06, BACKUP CONTENT PENDING
+
+**Owner-run read-only on OLD `gani@ccpcerpserver`:**
+
+```bash
+findmnt --mountpoint /mnt/erpnext_backups --output TARGET,SOURCE,FSTYPE --noheadings || echo NOT_MOUNTED
+```
+
+Output: `/mnt/erpnext_backups //192.168.50.132/erpnext_backups cifs`.
+
+**PASS (narrow):** The expected Synology filesystem is actually mounted at the correct host location; it is not merely an empty local directory. This does **not** yet prove share writability, scheduled backups running, recent complete four-artifact backup, immutability, archive integrity or restore success. No backup job or Docker operation performed.
+
+The historical GitHub `recovery.md` documents one completed manual four-artifact backup from September 2, 2026, and a proposed 02:00 daily cron/30-day NAS retention; those are historical records and not proof of present scheduled operation.
+
+**NEXT one read-only operator step on OLD host:** list *names only* of the 10 newest-looking timestamp-formatted backup directories without opening files, changing retention or exposing site data:
+
+```bash
+sudo find /mnt/erpnext_backups -mindepth 1 -maxdepth 1 -type d -name '20??-??-??_??-??' -printf '%f\n' | LC_ALL=C sort -r | head -n 10
+```
+
+If none appear or dates are stale, stop to diagnose the backup schedule before any migration. If recent directories appear, inspect **exactly one selected run's** file names/sizes and verify four mandatory artifacts in a following controlled read-only step, then plan an explicitly approved fresh consistent migration backup and isolated restore. Do not delete/move/rename existing backups or run the backup script merely to test it.
+
 ## LIVE IMAGE BUILD LABELS ABSENT — EXACT-IMAGE MIGRATION PATH, 2026-11-06
 
 **Owner read-only result on old `ccpcerpserver`:** `sudo docker image inspect ccpcerp:v16.50.0 --format 'frappe={{index .Config.Labels "org.ccpc.frappe.sha"}} erpnext={{index .Config.Labels "org.ccpc.erpnext.sha"}} ccpcerp={{index .Config.Labels "org.ccpc.ccpcerp.sha"}} patch={{index .Config.Labels "org.ccpc.erpnext.patch.sha256"}} overlay={{index .Config.Labels "org.ccpc.erpnext.overlay.sha256"}}'` printed `frappe= erpnext= ccpcerp= patch= overlay=`. This specific existing image does **not** expose the queried build-input labels. Their absence is **not** an application failure and does **not** undo the verified container/image ID match.
