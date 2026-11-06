@@ -1,5 +1,51 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW-HOST TEMPORARY RECEIVER SETUP REPORTED SUCCESS — 2026-11-06
+
+**Owner-run authorized operation on NEW `ccpcadmin@ccpcerp-prod`:** The bounded `bash <<'INNER'` setup command created the dedicated `~/.ccpc-prod-image-transfer-20261106` protected receiver location/helper, and appended one restricted `authorized_keys` entry for the newly created OLD source public key. Owner reported:
+
+```text
+INNER'RECEIVER_STAGING_READY'RIZED'trict,command="/home/ccpcadmin/.ccpc-prod-image-transfer-20261106/receive-image.sh" %s\n' "$pub" >> "$auth"
+TEMP_TRANSFER_KEY_AUTHORIZED
+RECEIVER_STAGING_READY
+```
+
+**Status:** The two expected success markers appeared, indicating the setup script reached its completion. The **preceding terminal echo was visibly garbled**, so do not yet independently claim the forced-command implementation, file content, owner-only access or login authorization is verified. No image bytes have been transferred, and no `docker load`, Compose startup, DB/site restore or cutover has occurred. The receiver should allow `probe` without sending bytes, and `receive-image` only after verifying the fixed 907,840,000-byte archive and its SHA-256.
+
+**NEXT operator step — safe authenticated probe only from OLD `gani@ccpcerpserver`**, in a bounded child shell. The script re-checks the independently measured NEW ED25519 SSH host fingerprint before pinning the presented public key in a temporary `0600` known-hosts file; explicitly selects only the new transfer private key, disables interactive login prompting and requests only `probe` on the restricted key:
+
+```bash
+bash <<'EOF'
+expected='SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c'
+key="$HOME/.ssh/id_ed25519_ccpc_prod_image_transfer_20261106"
+if [ ! -f "$key" ]; then
+  echo 'STOP: temporary transfer key missing'
+else
+  scanned="$(ssh-keyscan -T 5 -t ed25519 192.168.50.186 2>/dev/null)"
+  fingerprint="$(printf '%s\n' "$scanned" | ssh-keygen -lf - 2>/dev/null | awk '{print $2}')"
+  if [ "$fingerprint" != "$expected" ]; then
+    echo 'STOP: destination SSH host fingerprint mismatch'
+  else
+    kh="$(mktemp)"
+    chmod 600 "$kh"
+    printf '%s\n' "$scanned" > "$kh"
+    if ssh -T -i "$key" -o IdentitiesOnly=yes -o BatchMode=yes \
+      -o PreferredAuthentications=publickey -o PasswordAuthentication=no \
+      -o KbdInteractiveAuthentication=no -o StrictHostKeyChecking=yes \
+      -o HostKeyAlgorithms=ssh-ed25519 -o UserKnownHostsFile="$kh" \
+      -o ConnectTimeout=8 ccpcadmin@192.168.50.186 probe; then
+      echo SSH_TRANSFER_PROBE_PASS
+    else
+      echo SSH_TRANSFER_PROBE_FAILED
+    fi
+    rm -f -- "$kh"
+  fi
+fi
+EOF
+```
+
+Expected two results: `TRANSFER_SSH_AUTH_OK` (forced command printed by NEW receiver) and `SSH_TRANSFER_PROBE_PASS` (OLD client). On anything else, **STOP and inspect** without pasting private key. Child-shell errors must **not** terminate the interactive SSH terminal. This step may create/delete only its own temporary known_hosts pin, and does not touch Docker or transmit the image. Existing backup SSH key remains untouched.
+
 ## OLD SOURCE ADDRESS AND PUBLIC KEY VERIFIED — 2026-11-06
 
 **Owner-run read-only OLD `gani@ccpcerpserver`:** `ip -4 route get 192.168.50.186` resolved `192.168.50.186 dev enp7s0 src 192.168.50.166 uid 1000`. Thus the network path OLD `192.168.50.166` → NEW `192.168.50.186` is the observed source for this transfer. The public half of the newly created temporary key was read from `/home/gani/.ssh/id_ed25519_ccpc_prod_image_transfer_20261106.pub`; its exact key text is:
