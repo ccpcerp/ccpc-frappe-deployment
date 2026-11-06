@@ -1,5 +1,60 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NOV 5 TEMPORARY SSH AUTHORIZATION INDEPENDENTLY ABSENT — 2026-11-06
+
+**Owner-run independent read-only check on NEW `ccpcadmin@ccpcerp-prod` returned:**
+
+```text
+NOV05_TEMP_TRANSFER_KEY_ENTRIES=0
+```
+
+**PASS:** The dedicated `ccpc-nov05-backup-transfer-20261106` entry is absent from the NEW `ccpcadmin` `~/.ssh/authorized_keys` file checked separately from the preceding atomic revocation. The backup receiver originally allowed only four files and a probe from OLD `192.168.50.166`; that authorization has now been retired. This result does not inventory unrelated SSH mechanisms or keys; the check is intentionally scoped. All four Nov 5 backup destination hashes matched the OLD sources, staging `0700` and file modes `0600` were verified previously. The NEW Docker image `ccpcerp:v16.50.0` is loaded with pinned image ID `sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8`. No containers or database restores have started.
+
+**NEXT single already-approved security operation:** On **OLD `gani@ccpcerpserver` only**, retire the newly created temporary November 5 backup-transfer SSH key pair after independently verifying correct host/user, exact named regular files with expected owner and mode, and matching public/private fingerprint `SHA256:f/ZQCIfeauyPQ7RpP1rQlXs4/Ej50pvxuGCTAF0wIeA`. Do not delete or modify the pre-existing backup-specific key `id_ed25519_ccpc_backup`, either archive, or any of the four backup artifacts. Child Bash confines `set -euo pipefail` to avoid terminating user's interactive terminal.
+
+```bash
+bash <<'EOF'
+set -euo pipefail
+
+if [ "$(hostnamectl --static)" != 'ccpcerpserver' ] ||
+   [ "$(id -un)" != 'gani' ]; then
+  echo 'STOP: wrong host or user'; exit 1
+fi
+
+key="$HOME/.ssh/id_ed25519_ccpc_nov05_backup_transfer_20261106"
+pub="$key.pub"
+expected='SHA256:f/ZQCIfeauyPQ7RpP1rQlXs4/Ej50pvxuGCTAF0wIeA'
+
+for file in "$key" "$pub"; do
+  if [ ! -f "$file" ] || [ -L "$file" ] ||
+     [ "$(stat -c '%U' "$file")" != 'gani' ]; then
+    echo 'STOP: missing, linked or wrong-owner temporary key'; exit 1
+  fi
+done
+
+if [ "$(stat -c '%a' "$key")" != '600' ] ||
+   [ "$(stat -c '%a' "$pub")" != '644' ]; then
+  echo 'STOP: unexpected temporary-key permissions'; exit 1
+fi
+
+public_fp="$(ssh-keygen -lf "$pub" | awk '{print $2}')"
+private_fp="$(ssh-keygen -y -P '' -f "$key" | ssh-keygen -lf - | awk '{print $2}')"
+
+if [ "$public_fp" != "$expected" ] || [ "$private_fp" != "$expected" ]; then
+  echo 'STOP: temporary-key fingerprint mismatch'; exit 1
+fi
+
+rm -- "$key" "$pub"
+
+if [ ! -e "$key" ] && [ ! -e "$pub" ]; then
+  echo 'NOV05_OLD_TEMP_TRANSFER_KEY_PAIR_RETIRED'
+  echo 'EXISTING_BACKUP_KEY_UNTOUCHED'
+fi
+EOF
+```
+
+**Expected:** `NOV05_OLD_TEMP_TRANSFER_KEY_PAIR_RETIRED` and `EXISTING_BACKUP_KEY_UNTOUCHED`. Stop on any mismatch or error; do not rerun blindly. Deletion is normal unlink, not guaranteed secure overwrite. No new approval needed for this exact retirement step because owner expressly approved the short-lived key's revocation and removal after verified transfer. Further Docker stack, MariaDB/Redis images, Compose configuration, site restoration and final cutover remain separate, explicitly gated operations. Nov 5 02:00 is the owner-confirmed most recent *backup*, not automatically the final transaction/write cutoff.
+
 ## NOV 5 TEMPORARY SSH AUTHORIZATION REMOVAL REPORTED SUCCESS — 2026-11-06
 
 **Owner executed the previously authorized exact-line SSH `authorized_keys` revocation on NEW `ccpcadmin@ccpcerp-prod`.** The owner-provided terminal paste contained garbled command echo `data = auth.read_bytes()` and `PYint(...)` fragments, followed by all three expected success markers:
