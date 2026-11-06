@@ -1,5 +1,19 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## DEDICATED HOST DISK SPACE VERIFIED — 2026-11-06
+
+**Owner-run read-only on NEW `ccpcadmin@ccpcerp-prod`:** `df -h / /var/lib/docker /home/ccpcadmin` showed each path on the **same** device `/dev/mapper/ubuntu--vg-ubuntu--lv`, filesystem size `787G`, used `7.1G`, available `740G`, utilization `1%`. **PASS — substantial free space currently available**. These three rows report one shared filesystem, **not three separate 740G reserves**. No allocation or transfer was performed.
+
+This observation alone does **not** prove final capacity for a Docker image archive and loaded layers, database and file staging, restored volumes, logs, temporary duplication, backup and rollback. Do not touch either host's existing Docker/project resources or storage permissions.
+
+**NEXT one read-only OLD-host command** to size the exact already verified `ccpcerp:v16.50.0` image before specifying safe transfer paths:
+
+```bash
+sudo docker image inspect ccpcerp:v16.50.0 --format 'source_image_bytes={{.Size}}'
+```
+
+Docker's reported image size is **not necessarily the size of a `docker save` archive**, but it provides a useful sizing baseline. Actual image export, transfer, import, restored stack and use of old production secrets remain separately approval-gated. November 5 source snapshot remains the owner-selected **rehearsal** backup, not a final-write-fenced cutover snapshot.
+
 ## NOV 5 SOURCE SHA-256 VALUES RECORDED — 2026-11-06
 
 **Owner-run read-only checksums from OLD `ccpcerpserver`:** `sha256sum` completed on the exact four files selected for the isolated November 5 migration rehearsal. These are source-file baselines (not after-transfer verification, not a restore test), and the source NAS artifacts remain unchanged.
