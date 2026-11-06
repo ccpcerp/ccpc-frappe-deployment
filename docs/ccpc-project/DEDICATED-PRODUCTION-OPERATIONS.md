@@ -1,5 +1,31 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NOV 5 BACKUP TRANSFER PUBLIC KEY VERIFIED — 2026-11-06
+
+**Owner's read-only OLD-host inspection output**:
+
+```text
+NOV05_PUBLIC_KEY_FINGERPRINT_OK
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH2RioVBTIvEhayHxbVeFNBQaUVq8iDmnDjixt9tXnL5 ccpc-nov05-backup-transfer-20261106
+```
+
+This is the **public** half of the dedicated key, with verified fingerprint `SHA256:f/ZQCIfeauyPQ7RpP1rQlXs4/Ej50pvxuGCTAF0wIeA`; OLD private key may not be printed or copied to NEW. **No NEW authorization or backup transfer has yet been completed.**
+
+**Next approved step:** On NEW `ccpcadmin@ccpcerp-prod`, create new private `0700` staging `/home/ccpcadmin/.ccpc-nov05-backup-transfer-20261106` with an executable forced-command receiver. Authorize *only* the public key above in the existing `~/.ssh/authorized_keys`, with `from="192.168.50.166",restrict,command="/home/ccpcadmin/.ccpc-nov05-backup-transfer-20261106/receive-backup.sh"`. Verify exact key fingerprint locally before install; reject existing stage or previous matching key, and preserve all other authorizations and files.
+
+The receiver must allow `probe` and precisely the four `receive:<filename>` operations, require a fresh non-existing destination and `.partial`, enforce fixed source sizes and SHA-256 and atomic no-overwrite finalization, without permitting an interactive shell, arbitrary commands, paths or restores. Pinned reference host ED25519 fingerprint for later OLD-to-NEW SSH probe is `SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c`.
+
+Expected file constraints from earlier OLD verification:
+
+| Artifact | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `20261105_020001-ccpcerp_local-database.sql.gz` | 1198839 | `8fb7a6fab1c5eade05515ad75372c9901dc9e2d8fdbc272655a3a97ab176db87` |
+| `20261105_020001-ccpcerp_local-files.tar` | 10240 | `200764d74f208c9bc7d3d89fd20b713147e96b3a5bdc4d24c051db7af14ac0e6` |
+| `20261105_020001-ccpcerp_local-private-files.tar` | 20480 | `60768b87cc3e585ff4179f03b23dae87d065c5e1d076b39d8a33f2e2f1285daf` |
+| `20261105_020001-ccpcerp_local-site_config_backup.json` | 280 | `b3ec5b32272476e01d6f29e6e69b5533aeb94e6b7d4dde591150018149742e1b` |
+
+**Guardrail:** This setup step installs restricted SSH authentication but transfers **no backup content**. Don't reveal the 280-byte site config's contents, reuse the older image-transfer key or backup-specific key, touch Docker/ERPNext/OLD PROD/DEV, start containers, restore data, or cut over. After user reports setup result, verify with read-only pinned SSH probe before streaming any files. Remove temporary authorization and retire key after four independently verified files.
+
 ## NOV 5 BACKUP TRANSFER TEMPORARY PUBLIC KEY CREATED — 2026-11-06
 
 **Owner-executed dedicated temporary OLD-host SSH key generation**, after explicit permission to create a source-IP-restricted, forced-command, receive-only backup transfer on NEW. Reported terminal output:
