@@ -1,5 +1,13 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## ALL SIX RUNNING LIVE PROD APP IMAGE IDS MATCH — 2026-11-06
+
+**Owner-run read-only `docker inspect` on OLD live `ccpcerpserver`:** All six running PRODUCTION app containers, `frappe_docker-frontend-1`, `frappe_docker-backend-1`, `frappe_docker-queue-short-1`, `frappe_docker-queue-long-1`, `frappe_docker-websocket-1`, and `frappe_docker-scheduler-1`, returned **exactly** `sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8`. **PASS:** a single existing `ccpcerp:v16.50.0` Docker image covers every application service, not just the backend; separate MariaDB and Redis are independent standard images, and their live data/config remain separately required.
+
+**Ready for the next consent gate — not yet authorized:** Ask owner for **explicit, narrowly scoped approval** to create **one protected local `docker save` image archive on OLD `ccpcerpserver` only**. Intended safe procedure, after approval: re-check the tag still resolves to the verified immutable image ID; allocate a unique root-owned `0700` scratch directory on the OLD local filesystem outside NAS/backup retention, using restrictive umask and rejecting collisions; `docker save` only `ccpcerp:v16.50.0`; calculate/archive SHA-256 and actual bytes; leave source image, all running containers, DB, site and backup files untouched; report archive path and checksum without displaying secrets. The operation has bounded local write/storage/CPU/I/O effects and is not a zero-impact read-only check, so it requires owner approval. **Do not perform archive creation, SCP/rsync transfer, image import, Docker Compose startup, restore or go-live merely on this checkpoint.**
+
+**Separation:** The selected November 5, 2026 four-artifact backup was checksum-checked/format-checked and is for **isolated non-live restoration rehearsal** only; post-snapshot transactions must be reconciled and a fresh final consistent backup or an explicit business decision required before any go-live. Never modify old production or DEVELOPMENT while preparing the dedicated server.
+
 ## OLD HOST STAGING CAPACITY VERIFIED — 2026-11-06
 
 **Owner-run read-only on OLD `ccpcerpserver`:** `df -h /var/lib/docker /home/gani` reported the same root filesystem `/dev/nvme0n1p2` for both paths: **915G total, 182G used, 687G available, 21% utilization**. These are two views of **one** filesystem, not 1,374G of free space. The NEW `ccpcerp-prod` host separately reported **740G free** on its root logical volume. Both appear to have ample headroom for the approximately 866 MiB source application image, but the actual `docker save` archive, temporary copies, loaded layers and restore footprint remain unmeasured.
