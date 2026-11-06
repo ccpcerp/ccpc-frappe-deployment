@@ -1,5 +1,23 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## ACTUAL OLD-HOST LIVE IMAGE EXPORT COMPLETED — 2026-11-06
+
+**Owner-run output from the previously authorized `docker save` on OLD live `gani@ccpcerpserver`:**
+
+```text
+Exporting verified production image to protected location: /var/tmp/ccpc-prod-image-export.7blpZWnf
+SOURCE_IMAGE_ID=sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8
+ARCHIVE_PATH=/var/tmp/ccpc-prod-image-export.7blpZWnf/ccpcerp-v16.50.0.tar
+ARCHIVE_BYTES=907840000
+8a8ecc8a98c653105a75c6c77d6457d4ac00ebed7430f0bbd18b4619a2fcb009  /var/tmp/ccpc-prod-image-export.7blpZWnf/ccpcerp-v16.50.0.tar
+```
+
+**PASS — source export checkpoint:** The guarded script completed and printed the expected source image identity, a nonempty final archive (~866 MiB) and full SHA-256 digest. The script used root's `umask 077`, a unique `mktemp -d` private directory, `.partial` staging and a final archive `chmod 600`. This is evidence of the command's reported successful completion; **do not infer destination integrity or independent on-disk permissions verification** yet. No transfer, import, Compose startup, database/site restoration, scheduler/email activation or cutover has occurred in this work.
+
+**Next separate approval gate — encrypted transfer of this archive ONLY:** Propose copying the exact protected tar through authenticated SSH to a new root/private staging location on dedicated `ccpcerp-prod` (LAN address previously recorded `192.168.50.186`), with strict host-key verification and no weak/disabled checking. Avoid exposing the protected source via world-readable temporary files, `chmod 777`, public shares, GitHub, or chat uploads. Stage only under root-owned `0700` directory with `0600` output and perform SHA-256 comparison against `8a8ecc8a98c653105a75c6c77d6457d4ac00ebed7430f0bbd18b4619a2fcb009` before accepting success. Check actual old->new or new->old SSH reachability, key availability and known-host fingerprint without weakening SSH security; do not guess successful connectivity. An authenticated encrypted stream via SSH from OLD root-readable image archive is permissible *only if separately authorized*, and no `docker load` or Docker daemon write should accompany this transfer. Avoid overwriting any pre-existing destination file, stop on checksum mismatch and retain source archive unchanged.
+
+**Current approval state:** User's prior "aPPROVED" authorized the **old-host local export only**. **It did not approve copying the archive to another machine**. The user should be asked separately for consent to a secure, image-only transfer. Independently, the Nov 5 backup is for non-live rehearsal; financial transactions after that backup remain protected on old live PRODUCTION.
+
 ## OWNER APPROVED ONE OLD-HOST LOCAL IMAGE EXPORT — 2026-11-06
 
 **Explicit owner approval received** after all six PRODUCTION containers matched the image ID, via message: **"aPPROVED"**, in direct response to scoped request for **one protected local `docker save` archive of existing `ccpcerp:v16.50.0` on OLD `ccpcerpserver` only**. Approval covers local staging writes, image export and source archive checksum/size; **not** secure transfer, image import, new-host stack startup, database/site restore, PRODUCTION or DEVELOPMENT runtime changes, or cutover. Owner must execute commands through SSH (ChatGPT has no host-SSH access). **Approval recorded; execution/output not yet verified.**
