@@ -1,5 +1,38 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## OLD-TO-NEW SSH NETWORK FINGERPRINT MATCH — 2026-11-06
+
+**Owner-run read-only on OLD `gani@ccpcerpserver`:**
+
+```text
+set -o pipefail
+ssh-keyscan -T 5 -t ed25519 192.168.50.186 2>/dev/null | ssh-keygen -lf -
+256 SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c 192.168.50.186 (ED25519)
+```
+
+**PASS**: Network-presented destination ED25519 SSH fingerprint exactly matches the fingerprint independently obtained directly from NEW `ccpcerp-prod`: `SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c`. The scan does not by itself prove OLD `gani` has authorized login access on NEW `ccpcadmin`; **no authenticated login, source export transfer or destination file creation has yet been confirmed**. SSH transfer was separately approved by owner, but other operations remain excluded.
+
+**NEXT bounded SSH authentication test on OLD host** (uses a fresh short-lived `0600` host-key pin only, no archive streaming; this is only to assess existing SSH public-key login and preserve correct host-key enforcement):
+
+```bash
+set -euo pipefail
+expected='SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c'
+scanned="$(ssh-keyscan -T 5 -t ed25519 192.168.50.186 2>/dev/null)"
+fingerprint="$(printf '%s\n' "$scanned" | ssh-keygen -lf - | awk '{print $2}')"
+if [ "$fingerprint" != "$expected" ]; then
+  echo "STOP: destination SSH fingerprint mismatch"; exit 1
+fi
+known_hosts_file="$(mktemp)"
+trap 'rm -f -- "$known_hosts_file"' EXIT
+chmod 600 "$known_hosts_file"
+printf '%s\n' "$scanned" > "$known_hosts_file"
+ssh -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$known_hosts_file" \
+  -o BatchMode=yes -o PreferredAuthentications=publickey \
+  -o ConnectTimeout=8 ccpcadmin@192.168.50.186 'hostnamectl --static'
+```
+
+Expected remote hostname `ccpcerp-prod`. If `Permission denied (publickey)`, **STOP** and plan minimal authorized cross-host key setup without weakening SSH or making archive public. `BatchMode=yes` prevents interactive password prompts. If login works, next stage is a planned root-private image archive copy and destination SHA-256 verification, using an exact single-target no-overwrite transfer with appropriate source/root privileges. Do not use `StrictHostKeyChecking=no` or write public/shareable copies. Removing this command's own random temporary known-host pin is limited housekeeping; it does not touch any existing trust settings.
+
 ## DESTINATION SSH PUBLIC HOST KEY DIRECTLY VERIFIED — 2026-11-06
 
 **Owner-run read-only directly on NEW `ccpcadmin@ccpcerp-prod`:**
