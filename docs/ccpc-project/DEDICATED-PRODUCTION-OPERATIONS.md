@@ -1,5 +1,31 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## EXACT LIVE PRODUCTION IMAGE ARCHIVE TRANSFER REPORTED SUCCESS — 2026-11-06
+
+**Owner reported completed, previously explicitly approved OLD-to-NEW restricted SSH stream**, executed from `gani@ccpcerpserver` to `ccpcadmin@ccpcerp-prod`, after authenticated receiver probe. Actual output:
+
+```text
+[sudo: authenticate] Password:
+BEGIN_APPROVED_IMAGE_ONLY_TRANSFER
+TRANSFER_ARCHIVE_SHA256_OK
+IMAGE_TRANSFER_AND_RECEIVER_CHECKS_OK
+```
+
+**PASS — restricted receiver transfer and in-band validation:** This indicates source archive re-checked for exact size and SHA-256 and the receiving forced-command script accepted the streamed bytes, checked its own expected length (`907840000`) and SHA-256 (`8a8ecc8a98c653105a75c6c77d6457d4ac00ebed7430f0bbd18b4619a2fcb009`), then finalized the archive in private staging. The source archive remains on OLD host at `/var/tmp/ccpc-prod-image-export.7blpZWnf/ccpcerp-v16.50.0.tar`. **Independent NEW-host filesystem verification is still pending.** The transfer operation did NOT include `docker load`, Compose startup, MariaDB/site backup transfer, backup restore, active traffic cutover, or unrelated DEVELOPMENT changes.
+
+**NEXT one bounded read-only operator check directly on NEW `ccpcadmin@ccpcerp-prod`:**
+
+```bash
+hostnamectl --static
+stat -c 'STAGING_MODE=%a STAGING_OWNER=%U' "$HOME/.ccpc-prod-image-transfer-20261106"
+stat -c 'ARCHIVE_BYTES=%s ARCHIVE_MODE=%a ARCHIVE_OWNER=%U' "$HOME/.ccpc-prod-image-transfer-20261106/ccpcerp-v16.50.0.tar"
+sha256sum "$HOME/.ccpc-prod-image-transfer-20261106/ccpcerp-v16.50.0.tar"
+```
+
+Expected NEW host `ccpcerp-prod`, staging mode `700`, archive `907840000` bytes, mode `600`, owner `ccpcadmin` and exact SHA-256 `8a8ecc8a98c653105a75c6c77d6457d4ac00ebed7430f0bbd18b4619a2fcb009`. If anything differs, STOP and investigate without deletion/retransfer. Retire temporary SSH `authorized_keys` permission only after independent verification and safe cleanup planning. The prior temporary access approval covered its revocation after verified transfer, **not** image import.
+
+**Next significant gate after independent verification:** A separate explicit owner approval is required before `sudo docker load` on NEW host, and before separately handling the Nov 5 four-part rehearsal backup. The Nov 5 backup remains an earlier snapshot; never cut over using it in place of unaccounted later financial transactions without a separately reviewed consistent final migration/reconciliation plan.
+
 ## OLD-TO-NEW RESTRICTED SSH RECEIVER PROBE PASSED — 2026-11-06
 
 **Owner-run from OLD `gani@ccpcerpserver` after installing dedicated restricted NEW-host key:** The guarded child-shell probe using the private key `/home/gani/.ssh/id_ed25519_ccpc_prod_image_transfer_20261106`, independently matched ED25519 host key `SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c`, SSH `StrictHostKeyChecking=yes`, `IdentitiesOnly=yes` and `BatchMode=yes` returned exactly:
