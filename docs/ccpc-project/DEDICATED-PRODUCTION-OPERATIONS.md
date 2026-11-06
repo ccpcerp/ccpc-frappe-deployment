@@ -1,5 +1,58 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## TEMPORARY NEW-HOST SSH AUTHORIZATION ABSENCE CONFIRMED — 2026-11-06
+
+**Owner-run independent read-only check directly on NEW `ccpcadmin@ccpcerp-prod`:**
+
+```text
+TEMP_TRANSFER_KEY_ENTRIES=0
+```
+
+This result was produced by an exact marker count in `~/.ssh/authorized_keys`, after the earlier guarded authorization removal. **PASS — no entry with `ccpc-prod-image-transfer-20261106` remains in the checked NEW authorized-keys file.** This is consistent with successful revocation of the one dedicated temporary key and preservation of other existing SSH account entries. Do not assume every alternative SSH authorization mechanism is absent; the check is scoped to this known temporary authorized-keys entry.
+
+**NEXT one guarded OLD-host step — retire only the temporary transfer key pair** created expressly for this operation (the user approved a temporary key and previously agreed to its retirement after verified transfer):
+
+```bash
+bash <<'EOF'
+set -euo pipefail
+
+if [ "$(hostnamectl --static)" != "ccpcerpserver" ] || [ "$(id -un)" != "gani" ]; then
+  echo 'STOP: wrong host or account'; exit 1
+fi
+
+key="$HOME/.ssh/id_ed25519_ccpc_prod_image_transfer_20261106"
+pub="$key.pub"
+expected='SHA256:DQoxNuufbGbgD1KfvlmeZOYk40DaMXgUsI3MnzDBgf8'
+
+for file in "$key" "$pub"; do
+  if [ ! -f "$file" ] || [ -L "$file" ] ||
+     [ "$(stat -c %u "$file")" != "$(id -u)" ]; then
+    echo 'STOP: missing, linked or unexpected owner for temporary key'; exit 1
+  fi
+done
+
+if [ "$(stat -c %a "$key")" != '600' ]; then
+  echo 'STOP: temporary private-key permissions unexpected'; exit 1
+fi
+
+public_fp="$(ssh-keygen -lf "$pub" | awk '{print $2}')"
+private_fp="$(ssh-keygen -y -P '' -f "$key" | ssh-keygen -lf - | awk '{print $2}')"
+if [ "$public_fp" != "$expected" ] || [ "$private_fp" != "$expected" ]; then
+  echo 'STOP: temporary key fingerprint mismatch; nothing removed'; exit 1
+fi
+
+rm -- "$key" "$pub"
+if [ ! -e "$key" ] && [ ! -e "$pub" ]; then
+  echo 'OLD_TEMP_TRANSFER_KEY_PAIR_RETIRED'
+  echo 'EXISTING_BACKUP_KEY_UNTOUCHED'
+fi
+EOF
+```
+
+**Guardrails:** This only deletes **two exactly named, validated source-side temporary transfer-key files**, not the pre-existing backup key `id_ed25519_ccpc_backup`, root-private original image tar, NEW verified archive, or any site/database backup; it changes no ERPNext or Docker runtime. `set -euo pipefail` is inside a bounded child shell, avoiding the previously observed interactive-terminal exit. `ssh-keygen -y` internally reads the private key but its contents are piped into fingerprint calculation; do not print or paste private bytes. Stop and inspect on any unexpected output rather than deleting anything else. This is a normal file unlink, **not** guaranteed secure media wiping; no secure-erasure operation is intended.
+
+**Current scope:** The independent NEW archive checksum matched the OLD archive; NEW archive path remains `/home/ccpcadmin/.ccpc-prod-image-transfer-20261106/ccpcerp-v16.50.0.tar`, SHA-256 `8a8ecc8a98c653105a75c6c77d6457d4ac00ebed7430f0bbd18b4619a2fcb009`. Original OLD source image and archive are still intact. No `docker load`, Compose startup, site database/file restore, or PROD cutover approved.
+
 ## TEMPORARY NEW-HOST SSH AUTHORIZATION REVOCATION REPORTED SUCCESS — 2026-11-06
 
 **Owner-run on NEW `ccpcadmin@ccpcerp-prod`:** Executed previously approved exact-line removal of temporary OLD-to-NEW transfer key from NEW `~/.ssh/authorized_keys`, via guarded local Python that checked owner, file types, staging permissions and size, exact one-line match, wrote remaining lines to a fresh `0600` temporary file, then atomically replaced `authorized_keys` and checked resulting file bytes.
