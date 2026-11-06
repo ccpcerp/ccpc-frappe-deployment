@@ -1,5 +1,25 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## EFFECTIVE OLD-TO-NEW SSH IDENTITIES — 2026-11-06
+
+**Owner-run read-only on OLD `gani@ccpcerpserver`:**
+
+```text
+ssh -G -o BatchMode=yes ccpcadmin@192.168.50.186 | awk '$1=="identityfile" || $1=="identitiesonly" {print}'
+identitiesonly no
+identityfile ~/.ssh/id_rsa
+identityfile ~/.ssh/id_ecdsa
+identityfile ~/.ssh/id_ecdsa_sk
+identityfile ~/.ssh/id_ed25519
+identityfile ~/.ssh/id_ed25519_sk
+```
+
+**Interpretation:** Configured/default SSH identities for this connection **do not include** the one owner-reported named backup public key `id_ed25519_ccpc_backup.pub`. `identitiesonly no` also allows identities offered by an SSH agent; this output does **not** establish which private keys exist or precisely which one was offered. The observed `Permission denied (publickey)` remains the only actual authenticated-login test result. Keep backup authentication entirely unchanged.
+
+**Recommended owner decision — separate authorization for SSH key/access-control change:** Provision a dedicated temporary ED25519 transfer key on OLD host with restrictive file permissions, install only its public half into NEW `ccpcadmin`'s `authorized_keys` with restrictive options (no agent/X11/port forwarding, no PTY, and source-IP restriction if confirmed) and remove that new authorization after verifying the already approved image-only transfer. This changes new-host SSH account authorization and should be **explicitly approved** before creating keys or editing `authorized_keys`. Any temporary private key must never be pasted, printed or committed. Use the independently observed NEW-server ED25519 host fingerprint `SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c` and keep host-key checks strict. Select file-copy direction and privileges carefully because existing exported OLD archive is root-only `0600` in root-only `0700` staging; do not weaken its permissions or copy onto a public intermediate location. A forced-command restriction or dedicated receive-only account can be considered when authoring the exact controlled transfer sequence.
+
+**Approval status:** User has approved **secure image-only transfer**, but has **not yet explicitly authorized new cross-host SSH key creation/authorization changes**. Next conversational step is to request this scoped approval. No image bytes have been sent, loaded, restored, or started; no production cutover authorized.
+
 ## EXISTING OLD-HOST SSH PUBLIC KEY INVENTORY — 2026-11-06
 
 **Owner ran read-only filenames-only key inventory** under `gani@ccpcerpserver` using `find "$HOME/.ssh" -maxdepth 1 -type f -name '*.pub' -printf '%f\\n' 2>/dev/null`. Output was exactly:
