@@ -1,5 +1,26 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## SAFE RECHECK AFTER TERMINAL EXIT — SSH AUTH REJECTED, 2026-11-06
+
+**Owner successfully reconnected to OLD `gani@ccpcerpserver`** and ran `hostnamectl --static` → `ccpcerpserver`. A subsequent SSH login test was correctly run inside a child `bash <<'EOF'` shell, preserving their interactive terminal, with host fingerprint checked against independently verified NEW-host key `SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c`, `StrictHostKeyChecking=yes`, `BatchMode=yes`, ED25519-only server algorithm and `PreferredAuthentications=publickey`.
+
+**Actual owner output:**
+
+```text
+ccpcadmin@192.168.50.186: Permission denied (publickey).
+SSH_AUTH_NOT_AVAILABLE
+```
+
+**Result:** Network and previously matched host fingerprint were sufficient to reach the expected SSH service; **authentication from OLD user `gani` to NEW user `ccpcadmin` is not currently authorized/working.** No tar file sent; original archive remains on OLD and no destination archive known. The test had no Docker, app, database or container operation. This is **not** a reason to lower host-key checking, use SSH passwords, or change services.
+
+**NEXT single read-only OLD-host step:** inventory **filenames only** for existing SSH public key files (no private keys or key contents):
+
+```bash
+find "$HOME/.ssh" -maxdepth 1 -type f -name '*.pub' -printf '%f\n' 2>/dev/null
+```
+
+If no keys are present, report no output and stop; an **explicitly authorized dedicated transfer key** can be planned with minimal permissions. If keys are present, assess whether an existing key is suitable for this one-way transfer rather than exposing private credentials or automatically adding long-lived trust. Provisioning destination `authorized_keys` changes access control and needs a clear, scoped approval; it is not implied by a failed login. Preserve the SSH fingerprint, no `StrictHostKeyChecking=no` and no public/writable archive copies. The previously approved image-only transfer is pending, not failed or completed.
+
 ## TERMINAL SESSION EXITED DURING SSH AUTHENTICATION PREFLIGHT — 2026-11-06
 
 **Owner reported:** "The Terminal exited after runnibg the last code", immediately after running the assistant-supplied OLD-host SSH-auth test. No stdout/stderr of that test was shared, so **we do not know if the attempted SSH authentication succeeded, failed, or timed out**.
