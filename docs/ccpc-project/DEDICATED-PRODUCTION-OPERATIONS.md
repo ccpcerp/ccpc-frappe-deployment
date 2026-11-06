@@ -1,5 +1,86 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## INDEPENDENT NEW-HOST IMAGE ARCHIVE INTEGRITY VERIFIED — 2026-11-06
+
+**Owner-run read-only directly on NEW `ccpcadmin@ccpcerp-prod`**, independently of the restricted SSH receiver's in-band validation:
+
+```text
+ccpcerp-prod
+STAGING_MODE=700 STAGING_OWNER=ccpcadmin
+ARCHIVE_BYTES=907840000 ARCHIVE_MODE=600 ARCHIVE_OWNER=ccpcadmin
+8a8ecc8a98c653105a75c6c77d6457d4ac00ebed7430f0bbd18b4619a2fcb009  /home/ccpcadmin/.ccpc-prod-image-transfer-20261106/ccpcerp-v16.50.0.tar
+```
+
+**PASS — independently verified destination archive:** Source and destination SHA-256 **match exactly**, size is exactly **907840000 bytes**, staging `0700`, archive `0600`, both owned by `ccpcadmin`, correct target hostname. The original OLD-host tar and running PROD remain unchanged. **No `docker load`, restored database/files, ERPNext start, traffic cutover, or DEV modification yet**.
+
+**Security next step (already owner-authorized as part of temporary-key lifecycle):** Revoke exactly the one temporary image-transfer key authorization for source `192.168.50.166` and public key fingerprint `SHA256:DQoxNuufbGbgD1KfvlmeZOYk40DaMXgUsI3MnzDBgf8` from NEW `ccpcadmin` `~/.ssh/authorized_keys`. Preserve all other authorization lines byte-for-byte; do not delete `authorized_keys`, the receiver staging directory, or its verified image tar. Do not modify existing backup key or other SSH users. Use a guarded, atomic local `authorized_keys` edit that rejects missing/multiple exact target lines, symlinks, unexpected owner/host/account; execute through a child process to avoid the previous interactive-shell exit. After confirmation, safely retire the OLD temporary key files (separate operation), preserving original OLD image archive. No new owner approval is needed for this *specifically agreed revocation after transfer verification*; a separate owner approval **is needed for `sudo docker load`**.
+
+**Next operator command on NEW host only (guarded exact-line revocation, no archive deletion):**
+
+```bash
+python3 - <<'PY'
+import os
+import socket
+import stat
+import tempfile
+from pathlib import Path
+
+if socket.gethostname() != "ccpcerp-prod" or os.getuid() == 0 or os.environ.get("USER") != "ccpcadmin":
+    print("STOP: wrong host or user; authorization unchanged")
+    raise SystemExit(0)
+
+sshdir = Path.home() / ".ssh"
+auth = sshdir / "authorized_keys"
+stage = Path.home() / ".ccpc-prod-image-transfer-20261106"
+archive = stage / "ccpcerp-v16.50.0.tar"
+expected = ('from="192.168.50.166",restrict,command="/home/ccpcadmin/.ccpc-prod-image-transfer-20261106/receive-image.sh" '
+            'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJYzObYx7p4c4wOs2zXaikEYu6RCZijmuvsOndUf+mXO '
+            'ccpc-prod-image-transfer-20261106').encode("ascii")
+try:
+    sd = os.lstat(sshdir)
+    af = os.lstat(auth)
+    st = os.lstat(stage)
+    ar = os.lstat(archive)
+except OSError as e:
+    print(f"STOP: required file missing: {e}; authorization unchanged")
+    raise SystemExit(0)
+if not (stat.S_ISDIR(sd.st_mode) and stat.S_ISREG(af.st_mode) and
+        stat.S_ISDIR(st.st_mode) and stat.S_ISREG(ar.st_mode) and
+        all(s.st_uid == os.getuid() for s in (sd, af, st, ar)) and
+        stat.S_IMODE(st.st_mode) == 0o700 and
+        stat.S_IMODE(ar.st_mode) == 0o600 and ar.st_size == 907840000):
+    print("STOP: owner, type, permissions or archive size unexpected; authorization unchanged")
+    raise SystemExit(0)
+lines = auth.read_bytes().splitlines(keepends=True)
+matches = [line for line in lines if line.rstrip(b"\r\n") == expected]
+if len(matches) != 1:
+    print(f"STOP: expected exactly one temporary authorization, found {len(matches)}; unchanged")
+    raise SystemExit(0)
+remaining = b"".join(line for line in lines if line.rstrip(b"\r\n") != expected)
+tmp = None
+try:
+    fd, tmp = tempfile.mkstemp(prefix=".ccpc-authorized-keys-revoke-", dir=sshdir)
+    with os.fdopen(fd, "wb") as out:
+        out.write(remaining)
+        out.flush()
+        os.fsync(out.fileno())
+    os.chmod(tmp, 0o600)
+    os.replace(tmp, auth)
+    tmp = None
+finally:
+    if tmp is not None and os.path.exists(tmp):
+        os.unlink(tmp)
+if auth.read_bytes() != remaining:
+    print("STOP: post-write content mismatch; investigate")
+else:
+    print("TEMP_TRANSFER_SSH_AUTH_REVOKED")
+    print("OTHER_AUTHORIZED_KEYS_PRESERVED")
+    print("VERIFIED_IMAGE_ARCHIVE_RETAINED")
+PY
+```
+
+**Stop on anything other than the three success markers; do not rerun or edit manually on error.** The independent SHA-256 evidence is already recorded; this script checks archive file presence, size and private permissions but does not recalculate the archive's checksum. If it finds an unexpected `authorized_keys` entry, it makes **no changes**.
+
 ## EXACT LIVE PRODUCTION IMAGE ARCHIVE TRANSFER REPORTED SUCCESS — 2026-11-06
 
 **Owner reported completed, previously explicitly approved OLD-to-NEW restricted SSH stream**, executed from `gani@ccpcerpserver` to `ccpcadmin@ccpcerp-prod`, after authenticated receiver probe. Actual output:
