@@ -1,5 +1,24 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NOV 5 SOURCE SHA-256 VALUES RECORDED — 2026-11-06
+
+**Owner-run read-only checksums from OLD `ccpcerpserver`:** `sha256sum` completed on the exact four files selected for the isolated November 5 migration rehearsal. These are source-file baselines (not after-transfer verification, not a restore test), and the source NAS artifacts remain unchanged.
+
+```text
+8fb7a6fab1c5eade05515ad75372c9901dc9e2d8fdbc272655a3a97ab176db87  20261105_020001-ccpcerp_local-database.sql.gz
+200764d74f208c9bc7d3d89fd20b713147e96b3a5bdc4d24c051db7af14ac0e6  20261105_020001-ccpcerp_local-files.tar
+60768b87cc3e585ff4179f03b23dae87d065c5e1d076b39d8a33f2e2f1285daf  20261105_020001-ccpcerp_local-private-files.tar
+b3ec5b32272476e01d6f29e6e69b5533aeb94e6b7d4dde591150018149742e1b  20261105_020001-ccpcerp_local-site_config_backup.json
+```
+
+**Next migration preflight (read-only NEW host):** Confirm free capacity on intended new-host root/Docker/home filesystems before any image or backup staging:
+
+```bash
+df -h / /var/lib/docker /home/ccpcadmin
+```
+
+Do not assume enough capacity for the exact Docker image archive, loaded layers, database restoration and rollback until full image size and planned transfer staging are assessed. All actual file transfers, `docker save/load`, credentials provisioning, Compose deployment, database/file restoration, and live cutover remain separate explicit execution approvals. The November 5 backup is **rehearsal data only**; future business writes are preserved on old PRODUCTION and need a final reconciled migration plan.
+
 ## FOUR FORMAT CHECKS PASS — OWNER-SELECTED NOV 5 SNAPSHOT, 2026-11-06
 
 **Owner-run exact Nov 5 file-format verification on OLD `ccpcerpserver`:** The previously supplied read-only script tested the compressed database with `gzip -t`, both public/private TAR archives with `tar -tf >/dev/null`, and the site-configuration file with `python3 -m json.tool >/dev/null`. Owner reported four success markers, in order:
