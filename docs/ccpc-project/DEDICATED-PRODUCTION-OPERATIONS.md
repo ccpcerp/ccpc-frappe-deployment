@@ -1,5 +1,25 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## VERIFIED NEW-HOST DOCKER IMAGE LOAD — 2026-11-06
+
+**Owner-run approved operation on NEW `ccpcadmin@ccpcerp-prod`:** The guarded import script checked the correct NEW host and account, private staging/archive metadata and SHA-256, required an unused destination image tag, then ran `sudo docker image load --input "$archive"`. Actual operator output:
+
+```text
+[sudo] password for ccpcadmin:
+BEGIN_APPROVED_NEW_HOST_DOCKER_IMAGE_LOAD
+Loaded image: ccpcerp:v16.50.0
+NEW_IMAGE_ID=sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8
+NEW_IMAGE_ID_MATCH_OK
+```
+
+There was a visibly garbled shell paste echo (`EOFo 'NEW_IMAGE_ID_MATCH_OK'`) before the command output, but the expected `docker load` result and SHA check completed. **PASS: `ccpcerp:v16.50.0` is loaded into NEW Docker with exactly the same image ID as the six running OLD PROD application containers**, `sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8`.
+
+**Scope achieved:** NEW Docker image-store import and post-import image-ID verification only. The original archive remains preserved NEW at `/home/ccpcadmin/.ccpc-prod-image-transfer-20261106/ccpcerp-v16.50.0.tar`, with independently matched SHA-256 `8a8ecc8a98c653105a75c6c77d6457d4ac00ebed7430f0bbd18b4619a2fcb009`; OLD exported archive and live image preserved as well. The one-purpose SSH transfer key was revoked on NEW, independently confirmed `TEMP_TRANSFER_KEY_ENTRIES=0`, and temporary OLD key pair retired with owner-reported success. Existing backup key not touched.
+
+**NOT done / not authorized:** No new-host Compose stack, container creation/start, ERPNext site/database restore, secret provisioning, schema migration, scheduler/email/integration activation, DNS/cutover, or modifications to OLD PRODUCTION and DEVELOPMENT. The separate `mariadb:11.8` and `redis:8.6-alpine` images, service configuration, volumes, and database/site data have **not** yet been migrated.
+
+**NEXT OWNER APPROVAL GATE:** Ask separately whether owner approves a protected, encrypted **four-artifact-only** transfer of the specifically selected **November 5, 2026 02:00** OLD live-PRODUCTION NAS backup `/mnt/erpnext_backups/2026-11-05_02-00` to isolated private staging on NEW `ccpcerp-prod`. The source checksums were captured and passed DB gzip, public/private tar, and JSON syntax checks. After any separately authorized transfer, verify four exact destination SHA-256 values before attempting an isolated non-live restoration rehearsal. The Nov 5 data is **historical rehearsal only**: cannot replace more recent live transactions at final cutover without a separate consistent final backup and reconciliation or explicit signed risk acceptance. Transfer approval would not authorize the restore, container startup, or use of production secrets. Plan a distinct short-lived secure transfer path; do not reuse retired SSH credentials or alter the existing scheduled backup key.
+
 ## OWNER APPROVED NEW-HOST EXACT IMAGE LOAD — 2026-11-06
 
 **Explicit owner response: "aPPROVED"** to the separately scoped operation of loading the already transferred and independently SHA-256-verified `ccpcerp:v16.50.0` archive into Docker's image store on the NEW `ccpcerp-prod` host, then inspecting the loaded image ID. This allows a NEW-host Docker image-store write only. **It does not authorize** starting any containers/services, pulling or building newer app code, copying/restoring MariaDB or site files, switching DNS/users, editing OLD PRODUCTION/DEVELOPMENT, or any database migration. **Execution and loaded result still pending**.
