@@ -1,5 +1,50 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## SUPPORT IMAGE ARCHIVE ENCRYPTED TRANSFER APPROVED — 2026-11-06
+
+**Owner explicitly replied "Approved"** to the separately scoped transfer of the single previously verified 145,522,176-byte `mariadb:11.8` + `redis:8.6-alpine` archive from OLD `gani@ccpcerpserver` (source IP `192.168.50.166`) to private staging on NEW `ccpcadmin@ccpcerp-prod` (IP `192.168.50.186`). This explicitly includes setup of one **new, dedicated, short-lived, source-IP-limited, forced-command SSH transfer key**, then **revoking the NEW authorization and retiring OLD key** following successful destination verification. This does not authorize loading the support images into NEW Docker, creating containers, starting ERPNext, restoring MariaDB data, modifying OLD PROD/DEV, or cutting over.
+
+**Verified source archive unchanged as of most recent export output:** `/var/tmp/ccpc-prod-support-images.HlHFN8R6/mariadb-11.8_redis-8.6-alpine.tar`; byte size **145522176**; SHA-256 **`e301707c5ff75fd48c4a782e0ddf0c95608062016b9ae64e136f185bd6b8ac08`**. Root-owned 0700 parent, 0600 tar. Proven original running PROD image IDs: MariaDB `sha256:efb4959ef2c835cd735dbc388eb9ad6aab0c78dd64febcd51bc17481111890c4`; Redis `sha256:2cc044fc5a07c9b701f8f1255a309ae9ad7856e694ac03513bf3648c01e40763`.
+
+**NEXT single step on OLD `gani@ccpcerpserver`:** Generate only a NEW temporary, user-owned ED25519 public/private key pair (no SSH connection or file transfer during this step); do not touch `id_ed25519_ccpc_backup` or any retired transfer keys. The operator must not paste/print the private key.
+
+```bash
+bash <<'EOF'
+set -euo pipefail
+umask 077
+
+if [ "$(hostnamectl --static)" != "ccpcerpserver" ] ||
+   [ "$(id -un)" != "gani" ]; then
+  echo 'STOP: wrong OLD server or account'; exit 1
+fi
+
+sshdir="$HOME/.ssh"
+key="$sshdir/id_ed25519_ccpc_support_images_transfer_20261106"
+
+if [ ! -d "$sshdir" ] || [ -L "$sshdir" ] ||
+   [ "$(stat -c '%U:%a' "$sshdir")" != 'gani:700' ]; then
+  echo 'STOP: SSH directory ownership or permissions unexpected'; exit 1
+fi
+
+if [ -e "$key" ] || [ -L "$key" ] ||
+   [ -e "$key.pub" ] || [ -L "$key.pub" ]; then
+  echo 'STOP: dedicated temporary key path already exists; unchanged'; exit 1
+fi
+
+ssh-keygen -q -t ed25519 -N ''   -C 'ccpc-support-images-transfer-20261106'   -f "$key"
+
+chmod 600 "$key"
+chmod 644 "$key.pub"
+
+echo 'SUPPORT_TRANSFER_TEMP_KEY_CREATED'
+ssh-keygen -lf "$key.pub"
+EOF
+```
+
+Expected marker `SUPPORT_TRANSFER_TEMP_KEY_CREATED` plus the **new** ED25519 public-key fingerprint. Child-shell `set -euo pipefail` will not close the operator's current shell. If any STOP/error, do not blindly rerun; verify. After owner supplies the marker and fingerprint, retrieve **only public** key text, create a NEW private `0700` staging and restricted `authorized_keys` receiver that accepts only an explicit `probe` and this one archive, with exact size and SHA-256 validation and no overwrite. NEW SSH server ED25519 fingerprint previously independently verified: `SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c`. After read-only probe and transfer, independently hash the NEW archive before cleanup. Preserve all existing SSH authorized lines, NEW app image, historical backup files, Docker runtimes and OLD backup system.
+
+**Current status:** Transfer and key creation are **approved but not yet executed** for the supporting-images archive. All three image IDs are known, with only the app image loaded on NEW and four owner-selected Nov 5 backup artifacts privately staged; NEW database and Redis images absent at last inspection.
+
 ## EXACT MARIADB AND REDIS SUPPORTING IMAGE ARCHIVE EXPORTED — 2026-11-06
 
 **Owner-executed expressly approved OLD-host export**, following preflight checks for correct OLD host `ccpcerpserver`, `gani` user, immutable local image IDs, actual running PRODUCTION database/two Redis container images, and OLD disk space. The guarded command wrote just the `mariadb:11.8` and `redis:8.6-alpine` Docker images to one new root-private archive. The owner reported:
