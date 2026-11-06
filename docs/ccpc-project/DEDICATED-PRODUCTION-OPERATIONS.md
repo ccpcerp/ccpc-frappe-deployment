@@ -1,5 +1,31 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## OLD PRODUCTION SUPPORTING IMAGE IDS VERIFIED — 2026-11-06
+
+**Owner-run read-only Docker inspection on OLD `gani@ccpcerpserver`**, scoped to running containers with Compose project label `frappe_docker`, returned nine active PRODUCTION containers, and exact supporting image IDs:
+
+```text
+NAME=/frappe_docker-frontend-1 SERVICE=frontend IMAGE_REF=ccpcerp:v16.50.0 IMAGE_ID=sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8 STATUS=running
+NAME=/frappe_docker-queue-short-1 SERVICE=queue-short IMAGE_REF=ccpcerp:v16.50.0 IMAGE_ID=sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8 STATUS=running
+NAME=/frappe_docker-backend-1 SERVICE=backend IMAGE_REF=ccpcerp:v16.50.0 IMAGE_ID=sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8 STATUS=running
+NAME=/frappe_docker-queue-long-1 SERVICE=queue-long IMAGE_REF=ccpcerp:v16.50.0 IMAGE_ID=sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8 STATUS=running
+NAME=/frappe_docker-websocket-1 SERVICE=websocket IMAGE_REF=ccpcerp:v16.50.0 IMAGE_ID=sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8 STATUS=running
+NAME=/frappe_docker-scheduler-1 SERVICE=scheduler IMAGE_REF=ccpcerp:v16.50.0 IMAGE_ID=sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8 STATUS=running
+NAME=/frappe_docker-redis-queue-1 SERVICE=redis-queue IMAGE_REF=redis:8.6-alpine IMAGE_ID=sha256:2cc044fc5a07c9b701f8f1255a309ae9ad7856e694ac03513bf3648c01e40763 STATUS=running
+NAME=/frappe_docker-redis-cache-1 SERVICE=redis-cache IMAGE_REF=redis:8.6-alpine IMAGE_ID=sha256:2cc044fc5a07c9b701f8f1255a309ae9ad7856e694ac03513bf3648c01e40763 STATUS=running
+NAME=/frappe_docker-db-1 SERVICE=db IMAGE_REF=mariadb:11.8 IMAGE_ID=sha256:efb4959ef2c835cd735dbc388eb9ad6aab0c78dd64febcd51bc17481111890c4 STATUS=running
+=== OLD LOCALLY TAGGED SUPPORTING IMAGE IDS ===
+TAG=mariadb:11.8 IMAGE_ID=sha256:efb4959ef2c835cd735dbc388eb9ad6aab0c78dd64febcd51bc17481111890c4 SIZE_BYTES=106208155
+TAG=redis:8.6-alpine IMAGE_ID=sha256:2cc044fc5a07c9b701f8f1255a309ae9ad7856e694ac03513bf3648c01e40763 SIZE_BYTES=34498212
+OLD_PRODUCTION_SUPPORT_IMAGE_INSPECTION_COMPLETE
+```
+
+**PASS:** All nine running PROD containers were identified through exact Compose project label; the six Frappe app containers use the original app image, two Redis containers use exact same Redis ID, and database container uses exact MariaDB ID. Tagged supporting images **match their live container image IDs**. No DEVELOPMENT containers were targeted, no secrets or database records read, no service modifications. NEW already has exact app image loaded but lacked the MariaDB and Redis tags at previous read-only preflight, with ~735GB free and zero existing containers/volumes.
+
+**Recommendation, not yet authorized:** Preserve reproducibility and avoid mutable remote image tags by exporting these two exact locally tagged supporting images via `sudo docker image save` into **one new root-private local archive on OLD**, then independently verify archive byte count and SHA-256. This read-only Docker operation writes a new temporary tar file to OLD local staging (space needed), leaves running containers intact and does not export databases or volume data. Do **not** export yet: owner authorization must be obtained separately. Subsequently, with further approval, encrypted-copy the archive to NEW private staging, independently check checksum, load tags into NEW Docker and compare both new image IDs to the pinned ones. Keep old backup images and records preserved; do not trigger `docker compose`, `docker pull`, `bench migrate`, restores, scheduler/integration startups, or cutover without separate approvals.
+
+**Important:** No MariaDB data/ERPNext site restoration has occurred on NEW. Latest approved Nov 5 02:00 backup remains verified, with later November 5 business and asynchronous writes not independently reconciled. Live cutover requires separate backup-cutoff verification.
+
 ## NEW HOST READ-ONLY DOCKER PREFLIGHT VERIFIED — 2026-11-06
 
 **Owner-run on dedicated NEW `ccpcadmin@ccpcerp-prod`** checked existing Docker image tags, running/stopped containers, Docker volumes, and filesystem space without any image pulls or Docker mutation. Full reported output:
