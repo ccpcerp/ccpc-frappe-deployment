@@ -1,5 +1,29 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NOV 5 BACKUP RECEIVER SSH PROBE VERIFIED — 2026-11-06
+
+**Owner-run probe-only command on OLD `gani@ccpcerpserver`, with dedicated temporary key, trusted NEW ED25519 host fingerprint and restricted receiver** returned:
+
+```text
+NOV05_TRANSFER_SSH_AUTH_OK
+NOV05_TRANSFER_SSH_PROBE_PASS
+```
+
+**PASS:** Restricted NEW receiver accepted the temporary key from OLD and allowed only its `probe` action. No backup bytes have been sent. Temporary key: `/home/gani/.ssh/id_ed25519_ccpc_nov05_backup_transfer_20261106` public fingerprint `SHA256:f/ZQCIfeauyPQ7RpP1rQlXs4/Ej50pvxuGCTAF0wIeA`. NEW host IP `192.168.50.186`, trusted ED25519 SSH server fingerprint `SHA256:0Cn2sMC+vLfyALVnN0wj+I7YQVz5QKY0OKk7Q42rl/c`. OLD IP `192.168.50.166`, existing NAS mount `//192.168.50.132/erpnext_backups` (CIFS) at `/mnt/erpnext_backups`.
+
+**NEXT OWNER-APPROVED STEP — encrypted four-file-only transfer, not yet executed:** Execute one bounded Bash child-shell command on OLD `ccpcerpserver`. Require expected source host/account; original CIFS NAS mount; exactly four correct files in `/mnt/erpnext_backups/2026-11-05_02-00`, each regular/non-symlink, readable, exact size and SHA-256. Confirm dedicated SSH key mode and public-key fingerprint, revalidate destination ED25519 SSH host fingerprint, pin a temporary user-owned `0600` known_hosts file with strict host checking. For each file, stream bytes via `cat "$file" | ssh -T ... ccpcadmin@192.168.50.186 "receive:$filename"`, using `pipefail`, `IdentitiesOnly=yes`, `BatchMode=yes`, no password or keyboard-interactive auth, and validate receiver's exact line `NOV05_BACKUP_SHA256_OK $filename` before advancing. On any failure STOP; do **not** retry blindly since the NEW receiver intentionally rejects `.partial` or an already finalized file. NO automatic deletion, modification, restoration or reauthorization. Preserve the four original NAS backup files and OLD running PROD+DEV. The receiver creates only protected finalized copies in NEW `~/.ccpc-nov05-backup-transfer-20261106`.
+
+**Exact approved source baseline:**
+
+| Artifact | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `20261105_020001-ccpcerp_local-database.sql.gz` | 1198839 | `8fb7a6fab1c5eade05515ad75372c9901dc9e2d8fdbc272655a3a97ab176db87` |
+| `20261105_020001-ccpcerp_local-files.tar` | 10240 | `200764d74f208c9bc7d3d89fd20b713147e96b3a5bdc4d24c051db7af14ac0e6` |
+| `20261105_020001-ccpcerp_local-private-files.tar` | 20480 | `60768b87cc3e585ff4179f03b23dae87d065c5e1d076b39d8a33f2e2f1285daf` |
+| `20261105_020001-ccpcerp_local-site_config_backup.json` | 280 | `b3ec5b32272476e01d6f29e6e69b5533aeb94e6b7d4dde591150018149742e1b` |
+
+**Caution:** The site config may contain database credentials and encryption material: do not print its contents, only fixed file names and hashes. Even if all four receiver validations succeed, perform **independent NEW-host SHA-256 verification** before retiring temporary access. Transfer approval does not authorize restore, service startup, scheduler/mail/integration activation or final cutover. The owner describes Nov 5 02:00 as latest backup; determine whether later Nov 5 writes occurred separately before treating it as final live source.
+
 ## NOV 5 NEW-HOST RESTRICTED BACKUP RECEIVER SETUP REPORTED — 2026-11-06
 
 **Owner-run approved setup on NEW `ccpcadmin@ccpcerp-prod`**, adding a dedicated temporary source-IP-restricted public key entry with forced command and creating private staging/receiver for exactly the four previously verified November 5, 2026 02:00 backup files. Owner's pasted terminal output showed **garbled paste echo** intermixed with command text but finished with the two expected markers:
