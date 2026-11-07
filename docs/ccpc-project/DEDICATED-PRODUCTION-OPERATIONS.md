@@ -1,5 +1,28 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 5 PRE-RESTORE INTEGRITY VERIFIED — 2026-11-07
+
+**PASS — operator-run Stage 5 read-only pre-restore validation on NEW `ccpcadmin@ccpcerp-prod`.** User pasted:
+
+```text
+REHEARSAL_THREE_CONTAINERS_VERIFIED
+REHEARSAL_DATABASE_HEALTHY
+REHEARSAL_REDIS_CACHE_TMPFS_VERIFIED
+REHEARSAL_REDIS_PING_OK=redis-cache
+REHEARSAL_REDIS_PING_OK=redis-queue
+BACKUP_HASH_VERIFIED=20261105_020001-ccpcerp_local-database.sql.gz
+BACKUP_HASH_VERIFIED=20261105_020001-ccpcerp_local-files.tar
+BACKUP_HASH_VERIFIED=20261105_020001-ccpcerp_local-private-files.tar
+BACKUP_HASH_VERIFIED=20261105_020001-ccpcerp_local-site_config_backup.json
+BACKUP_SITE_CONFIG_JSON_VALID
+REHEARSAL_BACKUP_ARCHIVES_VALID
+REHEARSAL_PRE_RESTORE_INTEGRITY_CHECK_PASSED
+```
+
+**Validated scope:** Three NEW rehearsal containers' GitHub/OLD-matched immutable image IDs, project/service labels, single `ccpc_restore_rehearsal_20261107_default` network, no host port mappings, no privileged/restart mode, MariaDB healthy state, exact intended DB/Redis queue volume mounts and Redis cache `HostConfig.Tmpfs=/data`. Network `Internal=true`, three attached containers; exactly four named rehearsal Docker volumes. The user-run `redis-cli ping` returned PONG for each Redis instance. All four historical 2026-11-05 02:00 backup files in NEW `/home/ccpcadmin/.ccpc-nov05-backup-transfer-20261106` again matched exact recorded names, sizes and SHA-256 with `ccpcadmin:0600` file permissions and `ccpcadmin:0700` directory. `gzip -t` for the SQL archive, `tar -tf` for both file archives, and JSON parse of the small credential-containing site_config backup passed without printing content. No database SQL import, site file restore, Frappe process, mail, queue, schedulers, integrations or cutover in this step.
+
+**Next safe concrete operation under existing NEW-only isolated-rehearsal approval:** Read-only inspect backup *structure* (SQL dump header markers/type and public/private archive member path shape), reporting only sanitized indicators and counts, no actual table contents or site_config JSON values. Confirm database dump is a Frappe-compatible plain SQL archive versus needing a `bench restore` special handler, check whether it contains `CREATE DATABASE` / `USE` / unsafe privileged or global statements, whether backup tar members contain expected Frappe `public/files` and `private/files` relative paths, and whether `site_config` contains essential key *names only*. Do not pipe full SQL output or archive paths containing sensitive names into chat. Then implement the narrowest safe NEW-only restore without exposing new or old credentials and without starting any app services; note a private restore requires preserving encryption_key and DB-name/user mapping. If SQL format/header deviates from expectations, stop for careful restore planning rather than using broad DB imports. Runtime outbound isolation has not been tested by network attribute alone, so do not start ERPNext, scheduler, queue workers, frontend, email or integrations. Final cutover still requires new consistent data snapshot and separate approval.
+
 ## NEW REHEARSAL STAGE 4 DIAGNOSTIC RESOLVED: REDIS CACHE TMPFS PRESENT — 2026-11-07
 
 **PASS — owner-run read-only diagnostic after Stage 4 verification STOP; no rerun, restart or cleanup.** On NEW `ccpcadmin@ccpcerp-prod` the user reported these filtered Docker observations:
