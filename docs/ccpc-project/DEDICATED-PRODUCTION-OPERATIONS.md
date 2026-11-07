@@ -1,5 +1,25 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## SUPPORTING-IMAGES TEMPORARY SSH KEY RETIRED ON OLD — 2026-11-07
+
+**Owner executed the previously approved guarded deletion of exactly the dedicated support-image transfer SSH private/public key pair on OLD `gani@ccpcerpserver`**. The owner pasted:
+
+```text
+SUPPORT_IMAGE_OLD_TEMP_SSH_KEY_PAIR_RETIRED
+SUPPORT_IMAGE_OTHER_SSH_KEYS_UNTOUCHED
+```
+
+**PASS — temporary supporting-image transfer credential lifecycle complete.** Previous independent NEW-host inspection returned `SUPPORT_IMAGE_TEMP_SSH_KEY_ENTRIES=0` for `ccpc-support-images-transfer-20261106`; the OLD temporary pair `/home/gani/.ssh/id_ed25519_ccpc_support_images_transfer_20261106` and `.pub` was validated against expected fingerprint `SHA256:ONJlWrCRTBIJ1anTVYJTpre2E56D4RtjsLXREEdJFqA` and the guard script reported deletion. The existing scheduled backup key `~/.ssh/id_ed25519_ccpc_backup` and unrelated SSH keys were not targeted.
+
+**Current NEW pre-restore assets:**
+- Original exact PRODUCTION application Docker image `ccpcerp:v16.50.0` already imported on NEW, immutable image ID `sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8`.
+- Four November 5 2026 02:00 selected backup files from OLD NAS independently checked and stored privately at `/home/ccpcadmin/.ccpc-nov05-backup-transfer-20261106/`. These are **rehearsal inputs**, not yet proven final cutover backup; user has not explicitly confirmed Nov 5 post-02:00 application writes.
+- Exact MariaDB/Redis images tar privately staged and independently validated at `/home/ccpcadmin/.ccpc-support-images-transfer-20261106/mariadb-11.8_redis-8.6-alpine.tar`, **145522176 bytes**, SHA-256 `e301707c5ff75fd48c4a782e0ddf0c95608062016b9ae64e136f185bd6b8ac08`.
+- The corresponding source archive at `/var/tmp/ccpc-prod-support-images.HlHFN8R6/mariadb-11.8_redis-8.6-alpine.tar` is retained on OLD; original ERPNext image archive and old PROD/DEV remain preserved.
+- Supporting-image tags `mariadb:11.8` and `redis:8.6-alpine` **not loaded on NEW**, as of last verified NEW preflight; no NEW ERPNext containers, volumes, database restoration, networking cutover, or service start has been authorized.
+
+**NEXT OWNER APPROVAL GATE — REQUEST, NOT YET AUTHORIZED:** On NEW `ccpcadmin@ccpcerp-prod` only, run `docker image load -i /home/ccpcadmin/.ccpc-support-images-transfer-20261106/mariadb-11.8_redis-8.6-alpine.tar` after independently rechecking staging ownership/modes and exact SHA-256. Then inspect the imported image IDs and ensure MariaDB `mariadb:11.8` is exactly `sha256:efb4959ef2c835cd735dbc388eb9ad6aab0c78dd64febcd51bc17481111890c4` and Redis `redis:8.6-alpine` exactly `sha256:2cc044fc5a07c9b701f8f1255a309ae9ad7856e694ac03513bf3648c01e40763`. Check any existing image tag ID before import to avoid overwriting unexpected NEW tags. The request excludes container creation/startup, Compose changes, mounting backup files, DB restore, migrations, production updates, network changes, and traffic cutover. Obtain **explicit separate user approval** before performing any Docker load. Do not authorize or imply database restoration or final migration completion.
+
 ## SUPPORTING-IMAGE TRANSFER SSH AUTHORIZATION INDEPENDENTLY ABSENT — 2026-11-07
 
 **Owner-run read-only independent verification on NEW `ccpcadmin@ccpcerp-prod`** after guarded removal of the single temporary supporting-image transfer public key from `~/.ssh/authorized_keys` returned:
