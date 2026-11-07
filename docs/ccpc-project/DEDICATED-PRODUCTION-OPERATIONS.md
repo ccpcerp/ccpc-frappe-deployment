@@ -1,5 +1,28 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17O HOST LISTENER + UFW CLASSIFICATION PASS — 2026-11-07
+
+**Owner-run read-only NEW `ccpcadmin@ccpcerp-prod` output:**
+
+```text
+STAGE17O_NEW_HOST_VERIFIED
+HOST_LISTENERS_IPV4_SSH_PORT=1
+HOST_LISTENERS_IPV6_SSH_PORT=1
+HOST_LISTENERS_IPV4_OTHER_PORT=0
+HOST_LISTENERS_IPV6_OTHER_PORT=0
+HOST_LISTENERS_UNKNOWN_WILDCARD=0
+UFW_ACTIVE=True
+UFW_DEFAULT_INCOMING_DENY=True
+UFW_LAN_RESTRICTED_SSH_RULES=1
+UFW_OTHER_INBOUND_ALLOW_RULES=0
+STAGE17O_READ_ONLY_CLASSIFICATION_COMPLETE
+HOST_GATEWAY_REACHABILITY_NOT_DIRECTLY_TESTED
+```
+
+**Verified interpretation:** The bounded diagnostic reports one TCP/22 wildcard listener for each IPv4/IPv6 family, zero wildcard listeners on other ports, UFW active with default incoming DENY, and a sole displayed SSH allow from the dedicated LAN `192.168.50.0/24`; no other shown inbound allow rule. This is an *SSH-port* classification, not an independent process identity proof, and does not verify every possible nft/iptables INPUT bypass or actual bridge-to-host gateway reachability. Prior 17N had zero listeners specifically bound to the rehearsal bridge. The earlier Stage 17M one-use UDP test showed no default route and rejected socket toward nonlocal `192.0.2.1:9`; it did not test host gateway access. On the evidence seen, no unexpected host listening service or UFW rule warrants expanding static network inventory. The owner did not report any writes or changes to NEW host, OLD PRODUCTION or DEVELOPMENT.
+
+**Engineering continuation — separate authorization required:** Prefer a **single bounded, no-web/no-worker/no-scheduler, one-shot Frappe site/DB initialization diagnostic** on NEW rehearsal only, using pinned live legacy app image `ccpcerp:v16.50.0` (immutable image ID `sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8`), restored Nov 5 isolated rehearsal DB, existing exact-source-IP-restricted SELECT-only `ccpc_ro_probe_20261107` diagnostic identity, and controlled scratch site config. Before execution review image's actual entrypoint/permissions, synthetic scratch wiring, source-IP reservation, app initialization's possible DB/cache/file side effects, secure credential injection with no stdout/log exposure, client-image mounts, and pre/post unchanged DB/site/service checks. Use one bounded `docker run --rm --pull never`, read-only filesystem, tmpfs only where necessary, no privileged/capabilities, no published ports, disabled Frappe jobs, scheduler, web, mail, integration and external egress; fail closed on any mismatch and no automatic reruns. **SELECT-only DB privilege blocks writes but cannot guarantee that Frappe's code never attempts them**; distinguish an expected readonly failure from schema/auth incompatibility. No user/Company/GL data displayed, no full business queries; no app service startup or migrations. Owner approval for 17M does **not** authorize this 17P app-connected attempt. The next decision is a **single explicit authorization** for that narrow guarded diagnostic, not another general host-firewall inspection.
+
 ## NEW REHEARSAL STAGE 17N READ-ONLY HOST LISTENER INVENTORY PASS — 2026-11-07
 
 **Owner-run NEW-only read-only scope/listener check reported:**
