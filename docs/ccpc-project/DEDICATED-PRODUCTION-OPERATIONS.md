@@ -47,8 +47,9 @@ if [ "$pub_fp" != "$expected_fp" ] ||
   echo 'STOP: temporary key identity mismatch'; exit 1
 fi
 
-if [ "$(ssh-keygen -y -f "$key" | awk '{print $1,$2}')" !=
-     "$(awk '{print $1,$2}' "$pub")" ]; then
+private_public="$(ssh-keygen -y -f "$key" | awk '{print $1,$2}')"
+recorded_public="$(awk '{print $1,$2}' "$pub")"
+if [ "$private_public" != "$recorded_public" ]; then
   echo 'STOP: temporary private/public key mismatch'; exit 1
 fi
 
