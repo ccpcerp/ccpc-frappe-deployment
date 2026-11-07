@@ -1,5 +1,22 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 7 ARCHIVE SITE ROOT CONFIRMED — 2026-11-07
+
+**PASS — operator-run read-only tar site-root check on NEW `ccpcadmin@ccpcerp-prod`:**
+
+```text
+PUBLIC_ARCHIVE_SITE_ROOT_VERIFIED
+PRIVATE_ARCHIVE_SITE_ROOT_VERIFIED
+BOTH_ARCHIVES_MATCH_CCPERP_SITE
+REHEARSAL_ARCHIVE_ROOT_PREFLIGHT_PASSED
+```
+
+The site-root diagnostic confirmed exact path-component equality to the selected rehearsal site `ccpcerp.local` for both checksum-pinned 2026-11-05 02:00 tar archives. Expected archive content structure is `ccpcerp.local/public/files/` (one directory only) and `ccpcerp.local/private/files/` (one directory, one direct private file). No absolute or traversal paths, symlinks or file writes; no database restore yet. The earlier Stage 7 `STOP: archive extraction layout needs review` was a too-narrow root allowance and is resolved. The archive source remains immutable; no need to move or re-transfer backups.
+
+**NEW-only next Stage 8 within already approved phased isolated rehearsal:** Start isolated **database-only** import, leaving Frappe, frontend, configurator, WebSocket, workers and scheduler stopped. Because no Frappe site exists yet in the NEW `sites` volume, official `bench --site ccpcerp.local restore` is **not directly ready**; Frappe documentation describes Bench restore for an existing site with file archives (https://docs.frappe.io/framework/user/en/bench/reference/restore) and `bench new-site` bootstrap creates a database/user and initial framework tables (https://docs.frappe.io/framework/user/en/bench/reference/new-site). To avoid running an app bootstrap or supplying DB passwords as process CLI flags while only MariaDB/Redis exist, prefer a tightly guarded **single direct MariaDB import into a new EMPTY database** in the isolated NEW DB container; later build the Frappe site config with a **new, separate random app-DB credential** and the historical `encryption_key`, restore verified attachments safely, then validate site contents without starting employees/mail/queues/schedulers. This controlled import is **not a `bench restore` test** and must be documented as such, with schema/apps compatibility verification pending.
+
+**Stage 8 command design constraints:** recheck NEW hostname/user/local Docker socket, exactly three vetted running rehearsal service containers and no published ports, isolated network and named volume inventory, MariaDB health, empty non-system database list, SQL + backup JSON SHA-256 and 0600/0700 protections, valid backup site `db_name` regex. Run root MariaDB through **container-local Unix socket** using `MYSQL_ROOT_PASSWORD` only inside the already-running isolated container and `MYSQL_PWD` there, never host argv/logs/chat. Issue `CREATE DATABASE` only for the valid destination backup DB name; stream **pinned** `database.sql.gz` directly into that one DB via `docker exec -i`. No host SQL file, shell password expansion, unfiltered table data, or external connections. Do not create users/grants, site files, app services or trigger migrations yet. Fail closed and preserve partial DB state for inspection on any failure: **never rerun blindly, drop/truncate or delete**. Report only markers and table count, not DB name. Once DB import succeeds, next stage prepares app DB user and Frappe config with the preserved encryption key. Final live cutover requires separate approval and fresh consistent backup; Nov 5 is rehearsal-only.
+
 ## NEW REHEARSAL STAGE 7 TAR ARCHIVE LAYOUT DIAGNOSED — 2026-11-07
 
 **PASS — operator-run read-only sanitized tar diagnostic on NEW `ccpcadmin@ccpcerp-prod`.** The owner pasted:
