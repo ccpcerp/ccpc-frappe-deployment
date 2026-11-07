@@ -1,5 +1,29 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 16 BENCH VIRTUALENV PACKAGE DISCOVERY PASS — 2026-11-07
+
+**PASS — operator-run corrected Bench Python *discovery-only* test on NEW `ccpcadmin@ccpcerp-prod`.** Owner reported:
+
+```text
+REHEARSAL_BENCH_PYTHON_ISOLATION_VERIFIED
+BENCH_VENV_ACTIVE=True
+FRAPPE_SOURCE_EXISTS=True
+FRAPPE_DISCOVERABLE=True
+FRAPPE_ORIGIN_MATCHES_IMAGE=True
+ERPNEXT_SOURCE_EXISTS=True
+ERPNEXT_DISCOVERABLE=True
+ERPNEXT_ORIGIN_MATCHES_IMAGE=True
+CCPCERP_SOURCE_EXISTS=True
+CCPCERP_DISCOVERABLE=True
+CCPCERP_ORIGIN_MATCHES_IMAGE=True
+REHEARSAL_BENCH_PYTHON_DISCOVERY_COMPLETE
+REHEARSAL_BENCH_PYTHON_INSPECTION_FINISHED
+```
+
+The pinned image `ccpcerp:v16.50.0` Bench venv interpreter `/home/frappe/frappe-bench/env/bin/python` is active and resolves all three app packages to their source directories. This strongly explains why Stage 16's first offline import attempt using the system `python3` failed to discover modules. **Discovery does not import the modules or prove application runtime readiness.** The corrected probe was a temporary no-network, read-only-rootfs, UID1000 no-capabilities container with no mounted restored site; the preflight confirmed NEW-only three Docker services and four rehearsal volumes, no DB query or app start.
+
+**Next owner-approved nonlive Stage 16 recovery:** Use the *explicit Bench venv interpreter* in a single no-network, read-only-rootfs, UID1000, no-capabilities temporary container. Import `frappe`, `frappe.app`, `frappe.hooks`, `erpnext`, `erpnext.hooks`, `ccpcerp` and `ccpcerp.hooks`; check that each imported module originated under the expected immutable image `apps/<app>/<app>` tree. Before import verify only safe flags on the restored config if sites are mounted, or omit site mount entirely to reduce exposure since Python imports do not require restored DB. Only emit allowlisted success markers or sanitized exception *type* and failing module name. Do not output traceback, secret data or private filenames; do not run `frappe.init`, Bench, DB queries, HTTP, workers, scheduler, migrations, backups, email, integrations or any live app service. No OLD PROD or DEV modification. Do not interpret a module import failure as permission to reinstall. Stage 8-15 historical restoration checkpoints remain intact.
+
 ## NEW REHEARSAL STAGE 16 PYTHON PATH DIAGNOSIS: DEFAULT INTERPRETER NOT BENCH ENV — 2026-11-07
 
 **PASS — read-only offline path diagnosis completed on NEW `ccpcadmin@ccpcerp-prod`; Stage 16 import test is still UNVERIFIED.** Owner-supplied output:
