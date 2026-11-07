@@ -1,5 +1,33 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17Q SELECT-ONLY BUSINESS AGGREGATES COMPLETE; TRANSACTION SET EMPTY — 2026-11-07
+
+**PASS for execution/scope, transaction integrity **NOT TESTED** because applicable ledger/document sets are empty.** Owner reported the following exact sanitized output from the single NEW-only authorized check:
+
+```text
+STAGE17Q_PRECHECK_VERIFIED
+STAGE17Q_POSTCHECK_VERIFIED
+STAGE17Q_SCHEMA_ALLOWLIST_VERIFIED
+STAGE17Q_COMPANY_COUNT=4
+STAGE17Q_GL_ENTRY_COUNT=0
+STAGE17Q_STOCK_LEDGER_ENTRY_COUNT=0
+STAGE17Q_STANDARD_DOCUMENT_TOTAL=0
+STAGE17Q_INVALID_COMPANY_LINKS=0
+STAGE17Q_GL_STANDARD_VOUCHER_MISSING=0
+STAGE17Q_SLE_STANDARD_VOUCHER_MISSING=0
+STAGE17Q_GL_DEBIT_CREDIT_BALANCED_WITHIN_001=True
+STAGE17Q_READONLY_AGGREGATES_COMPLETE
+STAGE17Q_DATA_CHECK=PASS_LIMITED_SCOPE
+STAGE17Q_RESULT=SELECT_ONLY_AGGREGATE_DIAGNOSTIC_COMPLETE
+STAGE17Q_ONE_USE_APPROVAL_CONSUMED
+```
+
+**Interpretation:** Strict NEW rehearsal pre/post scope verified three persistent DB/Redis services, four volumes, internal bridge, fixed helper IP availability and immutability; the one-shot restricted app-image Python client authenticated using the existing SELECT-only schema account and ran allowlisted aggregate reads only, no business rows/amounts shown. Exactly **four Companies** exist in the 2026-11-05 historical rehearsal snapshot, but **zero** `tabGL Entry`, **zero** `tabStock Ledger Entry`, and **zero** rows aggregated across seven standard Sales/Purchase Invoice, Payment Entry, Journal Entry, Stock Entry, Delivery Note, Purchase Receipt tables. The zero invalid Company/voucher links are **vacuous** with no transactions. GL debit/credit `True` is **0 equals 0**, not evidence of meaningful accounting/stock integrity. `PASS_LIMITED_SCOPE` only means the selected checks found no inconsistencies in those empty sets; do not label the financial/inventory business data validated, and do not assume a current live PROD copy also has zero transactions. SQL metadata and application DB connectivity have passed separate previous milestones.
+
+**Owner's next-stage delegation:** Following this result owner explicitly said, `You can approved it yourself up to production run to speed up our progress`. Interpret as standing approval to **continue routine safe, nondestructive, isolated NEW rehearsal planning/inspections and bounded tests without repetitive yes/no gates**, with GitHub checkpoints and one safe host operator step at a time. This does not give ChatGPT physical server access or waive the requirement to review significant changes; no autonomous background changes. **PRODUCTION deployment, write-bearing live migration/restoration, service traffic cutover, destructive cleanup, DATABASE migrations/restarts on live services, old PROD modifications, or shared-infrastructure-impacting operations require distinct explicit plan/scope and owner approval.** Do not self-approve the final go-live or move untested DEV code into PROD.
+
+**Fastest next steps:** Determine whether zero GL/SLE/standard transactions is expected by comparing **sanitized counts** to the current OLD live PROD database using guarded **read-only** access, or clearly confirm setup-only status if the old host cannot be safely queried. Do not leak host DB secrets or raw business data; avoid production schema writes, Docker exec app startup, or invasive backup operations. Then progress to a reversible isolated full restored-site Frappe operational smoke, with preserved rehearsal snapshot and disabled scheduler/jobs/email/integrations, no outside access and no live traffic. Before actual cutover, capture and reconcile a new **current consistent** production backup, validate restore and rollback, and obtain explicit owner approval.
+
 ## NEW REHEARSAL STAGE 17Q BUSINESS-DATA AGGREGATE DIAGNOSTIC APPROVED — EXECUTION PENDING (2026-11-07)
 
 **Explicit owner authorization:** After successful Stage17P-2 one-use Frappe initialization and SELECT-only metadata query, owner replied **`Approved`** for **one** bounded, NEW-only historical rehearsal business-data diagnostic. **Not executed yet.** Scope: use existing pinned `ccpcerp:v16.50.0` image (`sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8`) to run **one ephemeral** no-mount/nonroot/no-port/read-only-rootfs/no-capabilities container on existing internal rehearsal bridge at unused `172.18.0.250`, with only protected `DB_READONLY_HOST`, `DB_READONLY_PASSWORD`, `DB_READONLY_SCHEMA`, `DB_READONLY_USER` owner-file values passed via stdin into an in-container Python/PyMySQL client (not Docker args/env). No Frappe web/process/worker/scheduler, Redis/cache use, ERPNext hooks, email/integrations or actual site config mount. SQL is restricted to server-reported identity, information_schema table/column metadata, and fixed aggregation-only `SELECT` from Company, General Ledger, Stock Ledger and common invoice/payment/journal/stock voucher tables in the restored November 5 rehearsal DB, using transaction READ ONLY; no row-level data, names, amounts, business records or secrets emitted. Report sanitized counts/boolean linkage checks and whether GL total debits equal credits within a clearly stated rounding tolerance, without interpreting nonzero counts as proof of corruption. Validate pre/post exact three persistent DB/Redis containers/network/four volumes/immutable image and protected diagnostic credential owner/mode. One authorized execution, bounded timeout, no auto-retry on partial failure.
