@@ -1,5 +1,31 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW ISOLATED REHEARSAL FOUR DOCKER VOLUMES CREATED AND VERIFIED — 2026-11-07
+
+**PASS — owner-run Stage 2 on NEW `ccpcadmin@ccpcerp-prod`, after explicit overall phased rehearsal approval.** Reported success markers:
+
+```text
+REHEARSAL_SUBNET_ROUTING_CHECK_PASSED
+REHEARSAL_VOLUME_PREFLIGHT_OK
+REHEARSAL_VOLUME_VERIFIED=sites
+REHEARSAL_VOLUME_VERIFIED=db-data
+REHEARSAL_VOLUME_VERIFIED=logs
+REHEARSAL_VOLUME_VERIFIED=redis-queue-data
+NEW_REHEARSAL_FOUR_VOLUMES_CREATED_AND_VERIFIED
+```
+
+The guarded command checked host/account, Docker local default socket context, existing six-file scratch rehearsal YAML SHA-256, expected isolated Docker bridge network labels and `Internal=true`, exact network subnet `172.18.0.0/16`, zero attached containers, and zero previously existing volumes/containers. A Python check examined IPv4 host interfaces and route table for overlaps against the rehearsal network, excluding its own bridge. Then Docker created four **NEW-only** named local volumes with Compose project/volume and rehearsal-scope labels:
+- `ccpc_restore_rehearsal_20261107_sites`
+- `ccpc_restore_rehearsal_20261107_db-data`
+- `ccpc_restore_rehearsal_20261107_logs`
+- `ccpc_restore_rehearsal_20261107_redis-queue-data`
+
+The script verified all four volume driver/project/volume/scope labels and reported no new containers. The operator's paste began with garbled echoed script fragments but all expected success markers appeared. This is **operator-reported evidence**, not direct ChatGPT access to the host. **Stage 2 status: volume creation and basic routing guard passed**. Volume content was not independently inspected; the volumes are newly created by the guarded script and intended to be empty. Do not claim Docker runtime egress restriction, database initialization, app health, or actual recovery has been tested.
+
+**Next approved guarded stage:** Before DB/Redis startup, generate a NEW nonproduction-only strong random DB password under `/home/ccpcadmin/.ccpc-rehearsal-secrets-20261107` (owner/mode `ccpcadmin:700`) with exactly one `DB_PASSWORD=<random>` line in `0600` private file. Avoid real OLD/NEW PRODUCTION database credentials, production `.env`, shell history, STDOUT, ChatGPT messages, Git, and weak synthetic `CCPC_SYNTHETIC_TEST_ONLY` value. Guard that path does not already exist and do not overwrite existing secrets. After output verifies password file path metadata and that there are still zero containers, inspect a dedicated project six-file Compose model and service allowlist with the real file **without dumping the rendered JSON/secret** before starting only `db`, `redis-cache`, `redis-queue`. Keep network internal, no published ports, restart policies disabled, no scheduler/queue workers/frontend/websocket; note even backend must remain stopped at this stage. Confirm authorized project/volume names and labels first. Stop and review after every mutation.
+
+**OLD PRODUCTION / DEVELOPMENT untouched; no database or files restored; no cutover authorized.** November 5 02:00 four-file backup remains an immutable, independently checked rehearsal source, not current final cutover snapshot.
+
 ## NEW ISOLATED REHEARSAL DOCKER NETWORK CREATED AND VERIFIED — 2026-11-07
 
 **PASS — owner-run NEW-server-only Stage 1, after explicit approval.** On `ccpcadmin@ccpcerp-prod`, the guarded operation verified correct host and account, local default Docker context, expected immutable image IDs, absence of Docker containers/volumes and preexisting project network, and SHA-256 of six-file rehearsal scratch override before creating exactly one new Docker bridge network. Operator output:
