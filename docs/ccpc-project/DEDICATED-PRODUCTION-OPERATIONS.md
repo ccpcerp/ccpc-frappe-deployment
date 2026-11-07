@@ -1,5 +1,37 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17J READ-ONLY DOCKER FILTER-CHAIN TRAVERSAL REPORTED — 2026-11-07
+
+**Owner-provided Stage 17J output, read-only on NEW rehearsal scope** (no Docker/firewall mutation reported):
+
+```text
+STAGE17J_DOCKER_ISOLATION_VERIFIED
+HOST_FORWARD_POLICY=DROP
+CHAIN_FORWARD_RULES=8
+FORWARD_RULE_01=TARGET:DOCKER-USER,IN:ANY,OUT:ANY,OTHER_MATCH:False
+FORWARD_RULE_02=TARGET:DOCKER-FORWARD,IN:ANY,OUT:ANY,OTHER_MATCH:False
+FORWARD_RULE_03..08=TARGET:OTHER
+CHAIN_DOCKER-USER_RULES=0
+CHAIN_DOCKER-FORWARD_RULES=5
+DOCKER-FORWARD_RULE_01=TARGET:DOCKER-CT,IN:ANY,OUT:ANY,OTHER_MATCH:False
+DOCKER-FORWARD_RULE_02=TARGET:DOCKER-INTERNAL,IN:ANY,OUT:ANY,OTHER_MATCH:False
+DOCKER-FORWARD_RULE_03=TARGET:DOCKER-BRIDGE,IN:ANY,OUT:ANY,OTHER_MATCH:False
+DOCKER-FORWARD_RULE_04=TARGET:ACCEPT,IN:OTHER,OUT:ANY,OTHER_MATCH:False
+DOCKER-FORWARD_RULE_05=TARGET:ACCEPT,IN:BRIDGE,OUT:BRIDGE,OTHER_MATCH:False
+CHAIN_DOCKER-INTERNAL_RULES=2
+DOCKER-INTERNAL_RULE_01=TARGET:DROP,IN:ANY,OUT:BRIDGE,OTHER_MATCH:True
+DOCKER-INTERNAL_RULE_02=TARGET:DROP,IN:BRIDGE,OUT:ANY,OTHER_MATCH:True
+CHAIN_DOCKER-BRIDGE_RULES=1
+DOCKER-BRIDGE_RULE_01=TARGET:DOCKER,IN:ANY,OUT:OTHER,OTHER_MATCH:False
+CHAIN_DOCKER-CT_RULES=1
+DOCKER-CT_RULE_01=TARGET:ACCEPT,IN:ANY,OUT:OTHER,OTHER_MATCH:True
+STAGE17J_READ_ONLY_CHAIN_TRAVERSAL_COMPLETE
+```
+
+**Interpretation / limits:** The host FORWARD policy is DROP; first top-level jumps reach the empty DOCKER-USER chain and then Docker forwarding. DOCKER-FORWARD checks DOCKER-CT and DOCKER-INTERNAL before its broad ACCEPT rules. The dedicated internal chain includes two DROP rules referencing the isolated rehearsal bridge. This is **consistent with** intended bridge isolation, but the sanitized flags `OTHER` and `OTHER_MATCH:True` do not tell us whether interface predicates are *negated*, whether DOCKER-CT ACCEPT is limited to established/related flows, or whether other nftables/hook/host paths exist. The `STAGE17J_DOCKER_ISOLATION_VERIFIED` marker indicates script scope/preflight passed, **not** independently proven absence of outbound egress. No active egress test, DB-coupled Frappe startup or live migration was evidenced.
+
+**Next bounded Stage 17K:** On **NEW** `ccpcadmin@ccpcerp-prod` only, perform a strict-scope **read-only, sanitized** check of *match semantics* for `DOCKER-INTERNAL` and `DOCKER-CT`: whether the rehearsal bridge `-i`/`-o` conditions are negated, exact conntrack state categories (without interface/IP names), and whether any earlier unexpected broad ACCEPT/jump can bypass the intended drops. Cross-check current Docker internal bridge, exact three isolated service endpoints, and four rehearsal volumes before interpretation. Stop on changed scope or unrecognized rule shapes. Do not print raw firewall rules, interface addresses, site configs or credentials. Still no new containers, external probes, Frappe/Bench, DB modifications, firewall edits, service restarts, OLD PRODUCTION or DEVELOPMENT operations. Even a passing static check is not a substitute for separately authorized bounded negative-egress verification before running an app-capable process.
+
 ## NEW REHEARSAL STAGE 17I FIREWALL RULE DIRECTIONS PASS; CHAIN TRAVERSAL PENDING — 2026-11-07
 
 **PASS — owner-run Stage 17I strict NEW-only isolated Docker scope and read-only firewall rule-direction inspection completed.** Exact output:
