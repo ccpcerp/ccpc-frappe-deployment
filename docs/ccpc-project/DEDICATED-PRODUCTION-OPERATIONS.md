@@ -1,5 +1,96 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## OWNER APPROVED NEW DOCKER LOAD OF EXACT SUPPORTING IMAGES — 2026-11-07
+
+**Owner explicitly replied "aPPROVED"** to a separately scoped NEW-host-only Docker load of the already transferred and independently verified two-image archive. Approval covers only importing `mariadb:11.8` and `redis:8.6-alpine` into NEW `ccpcadmin@ccpcerp-prod` Docker image storage and comparing their resulting immutable IDs to those of OLD running PRODUCTION. It does **not** authorize containers/volumes creation, service start, Compose changes, DB restore, migrations, network/traffic cutover, OLD PROD/DEV changes or any backup cleanup.
+
+**Source/archive:** NEW protected stage `/home/ccpcadmin/.ccpc-support-images-transfer-20261106` (`ccpcadmin:700`); `mariadb-11.8_redis-8.6-alpine.tar` (`ccpcadmin:600`, **145522176** bytes, SHA-256 `e301707c5ff75fd48c4a782e0ddf0c95608062016b9ae64e136f185bd6b8ac08`). The previously approved transfer SSH key was revoked and retired on both servers, verified by OLD key retirement and NEW authorization count zero. Existing `ccpcerp:v16.50.0` already loaded with ID `sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8`. NEW database and Redis tags absent as of last NEW preflight.
+
+**Exact expected NEW imported image IDs:**
+- `mariadb:11.8`: `sha256:efb4959ef2c835cd735dbc388eb9ad6aab0c78dd64febcd51bc17481111890c4`.
+- `redis:8.6-alpine`: `sha256:2cc044fc5a07c9b701f8f1255a309ae9ad7856e694ac03513bf3648c01e40763`.
+
+**ONE owner-run bounded command on NEW** checks identity, archive metadata/hash, manifest tags, existing app image ID, absent target tags, absent containers/volumes; loads only exact tar, then inspects imported IDs. Stop on failures, do not retry blindly or remove files. `set -euo pipefail` confined to child Bash.
+
+```bash
+bash <<'EOF'
+set -euo pipefail
+
+if [ "$(hostnamectl --static)" != 'ccpcerp-prod' ] ||
+   [ "$(id -un)" != 'ccpcadmin' ]; then
+  echo 'STOP: wrong NEW host or account'
+  exit 1
+fi
+
+stage="$HOME/.ccpc-support-images-transfer-20261106"
+archive="$stage/mariadb-11.8_redis-8.6-alpine.tar"
+expected_sha='e301707c5ff75fd48c4a782e0ddf0c95608062016b9ae64e136f185bd6b8ac08'
+app_expected='sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8'
+db_expected='sha256:efb4959ef2c835cd735dbc388eb9ad6aab0c78dd64febcd51bc17481111890c4'
+redis_expected='sha256:2cc044fc5a07c9b701f8f1255a309ae9ad7856e694ac03513bf3648c01e40763'
+
+if [ -L "$stage" ] || [ ! -d "$stage" ] ||
+   [ "$(stat -c '%U:%a' "$stage")" != 'ccpcadmin:700' ] ||
+   [ -L "$archive" ] || [ ! -f "$archive" ] ||
+   [ "$(stat -c '%U:%a:%s' "$archive")" != 'ccpcadmin:600:145522176' ]; then
+  echo 'STOP: archive type, owner, mode or size mismatch'
+  exit 1
+fi
+
+if [ "$(sha256sum "$archive" | awk '{print $1}')" != "$expected_sha" ]; then
+  echo 'STOP: archive checksum mismatch'
+  exit 1
+fi
+
+if ! tar -xOf "$archive" manifest.json |
+  python3 -c 'import json,sys; m=json.load(sys.stdin); tags=sorted(t for item in m for t in item.get("RepoTags",[])); sys.exit(0 if tags==["mariadb:11.8","redis:8.6-alpine"] else 1)'; then
+  echo 'STOP: source archive contains unexpected image tags'
+  exit 1
+fi
+
+sudo -v
+
+if [ "$(sudo -n docker image inspect --format '{{.Id}}' ccpcerp:v16.50.0)" != "$app_expected" ]; then
+  echo 'STOP: existing ERPNext application image ID mismatch'
+  exit 1
+fi
+
+for tag in mariadb:11.8 redis:8.6-alpine; do
+  if sudo -n docker image inspect "$tag" >/dev/null 2>&1; then
+    echo "STOP: target image tag already exists: $tag"
+    exit 1
+  fi
+done
+
+if [ -n "$(sudo -n docker ps -aq)" ] ||
+   [ -n "$(sudo -n docker volume ls -q)" ]; then
+  echo 'STOP: unexpected existing NEW Docker containers or volumes'
+  exit 1
+fi
+
+echo 'SUPPORT_IMAGES_ARCHIVE_AND_DOCKER_PREFLIGHT_OK'
+echo 'BEGIN_APPROVED_NEW_SUPPORT_IMAGES_DOCKER_LOAD'
+sudo -n docker image load --input "$archive"
+
+db_actual="$(sudo -n docker image inspect --format '{{.Id}}' mariadb:11.8)"
+redis_actual="$(sudo -n docker image inspect --format '{{.Id}}' redis:8.6-alpine)"
+app_actual="$(sudo -n docker image inspect --format '{{.Id}}' ccpcerp:v16.50.0)"
+
+if [ "$db_actual" != "$db_expected" ] ||
+   [ "$redis_actual" != "$redis_expected" ] ||
+   [ "$app_actual" != "$app_expected" ]; then
+  echo 'STOP: imported Docker image IDs or existing app image mismatch'
+  printf 'DB_ID=%s\nREDIS_ID=%s\nAPP_ID=%s\n' "$db_actual" "$redis_actual" "$app_actual"
+  exit 1
+fi
+
+printf 'MARIADB_IMAGE_ID=%s\nREDIS_IMAGE_ID=%s\n' "$db_actual" "$redis_actual"
+echo 'NEW_SUPPORT_IMAGES_IMPORTED_AND_IDS_VERIFIED'
+EOF
+```
+
+**Expected success markers:** `SUPPORT_IMAGES_ARCHIVE_AND_DOCKER_PREFLIGHT_OK`, `BEGIN_APPROVED_NEW_SUPPORT_IMAGES_DOCKER_LOAD`, `NEW_SUPPORT_IMAGES_IMPORTED_AND_IDS_VERIFIED`, plus exact two image IDs. If wrong host/ownership/hash/tags/conflicting images/containers/volumes, STOP without load. If a load fails or imported image ID differs, preserve status for inspection; do not automatically repeat. After output verify in GitHub; next step is NEW read-only image/container/volume check, then assess separate rehearsal planning approval. **No containers or database restore authorized by this action.**
+
 ## SUPPORTING-IMAGES TEMPORARY SSH KEY RETIRED ON OLD — 2026-11-07
 
 **Owner executed the previously approved guarded deletion of exactly the dedicated support-image transfer SSH private/public key pair on OLD `gani@ccpcerpserver`**. The owner pasted:
