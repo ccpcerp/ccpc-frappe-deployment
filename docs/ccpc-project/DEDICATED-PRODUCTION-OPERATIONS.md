@@ -1,5 +1,23 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 16 MISSING FILE CATEGORY OTHER, _open — 2026-11-07
+
+**PASS — diagnosis script completed, but application import remains STOPPED.** Owner-run NEW-only result:
+
+```text
+REHEARSAL_STAGE16_PATH_DIAGNOSTIC_ISOLATION_OK
+FRAPPE_APP_EXCEPTION=FileNotFoundError
+FRAPPE_APP_MISSING_PATH_CATEGORY=OTHER
+FRAPPE_APP_FAILURE_SOURCE_CATEGORY=PYTHON_LIBRARY
+FRAPPE_APP_FAILURE_FUNCTION=_open
+REHEARSAL_STAGE16_MISSING_FILE_DIAGNOSTIC_COMPLETE
+REHEARSAL_STAGE16_PATH_INSPECTION_FINISHED
+```
+
+`FileNotFoundError` reproduces during `frappe.app` import in Bench venv with rootfs read-only, `--network none`, UID1000, no capabilities and **no restored site/secret/DB mounts**. Previous classifier returned `OTHER`, outside bench `sites`, `logs`, `assets`, `apps`, `env` and `/tmp`; bottom traceback frame was a generic Python library `_open`. It **does not establish which file or parent directory is missing**: could be another bench-relative path or a user-home/system path. No app/DB changes, no persistent service and no release.
+
+**Next safer diagnostic:** Under identical NEW-only, exact-image, local Docker and environment guards, run **one** more no-network/no-mount/readonly ephemeral Bench Python helper importing `frappe.app` with real `/dev/null` output redirection; classify `exc.filename` without exposing literal path, file contents or private names. Report whether raw path is absolute or relative; bucket resolved path into `BENCH_ROOT_OTHER`, `FRAPPE_HOME_OTHER`, `ETC`, `VAR`, `RUN`, `DEV`, `USR`, `OPT`, `PROC`, `SYS`, `TEMPORARY`, `OTHER`, plus separate known bench sites/logs/assets/apps/env categories. Report whether parent exists and identify the last Frappe-origin frame as sanitized module:function (or NONE), plus last two frame categories; no raw traceback/exception text. Probe remains metadata-only with no explicit file creation or bench commands. If path is a missing image/bench runtime config or logging target, consider **scratch tmpfs only** in a later approved helper; do not mutate restored sites, DB or original backups. Avoid adding arbitrary bind mounts to conceal a code incompatibility. No OLD PRODUCTION/DEV changes or cutover.
+
 ## NEW REHEARSAL STAGE 16 FULL OFFLINE IMPORT STOPS AT frappe.app FILE NOT FOUND — 2026-11-07
 
 **PARTIAL/STOP — owner-run complete Stage 16 offline module smoke attempted on NEW `ccpcadmin@ccpcerp-prod`; Frappe root package PASSED, next module FAILED.** User output:
