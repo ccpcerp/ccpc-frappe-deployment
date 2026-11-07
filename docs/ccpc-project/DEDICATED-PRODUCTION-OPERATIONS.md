@@ -1,5 +1,25 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW SUPPORTING DOCKER IMAGES IMPORTED AND IDS VERIFIED — 2026-11-07
+
+**PASS — owner-run execution completed** on NEW `ccpcadmin@ccpcerp-prod`. The operator pasted the guarded command's preflight and completion markers:
+
+```text
+SUPPORT_IMAGES_ARCHIVE_AND_DOCKER_PREFLIGHT_OK
+BEGIN_APPROVED_NEW_SUPPORT_IMAGES_DOCKER_LOAD
+Loaded image: mariadb:11.8
+Loaded image: redis:8.6-alpine
+MARIADB_IMAGE_ID=sha256:efb4959ef2c835cd735dbc388eb9ad6aab0c78dd64febcd51bc17481111890c4
+REDIS_IMAGE_ID=sha256:2cc044fc5a07c9b701f8f1255a309ae9ad7856e694ac03513bf3648c01e40763
+NEW_SUPPORT_IMAGES_IMPORTED_AND_IDS_VERIFIED
+```
+
+**Interpretation:** Script-reported exact source SHA-256, expected two manifest tags, owner/mode/size, NEW host/user, original application image ID `sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8`, absent conflicting tags, and no preexisting Docker containers or volumes passed the preflight. The two newly imported immutable Docker image IDs exactly match the pinned originals from OLD PRODUCTION. The opening terminal paste echo was partially garbled; the clean execution output includes all expected completion markers. **Do not rerun image load** now that target tags exist.
+
+**Boundary:** This establishes the successful owner-reported Docker image import, not an independent post-import Docker inventory; no NEW container or volume creation, Compose execution, database/file restoration, Frappe migration, traffic cutover, or change to OLD PRODUCTION/DEVELOPMENT was approved or reported. Preserve staging archives and verified November 5 backup files. Existing application, database, and Redis image tags are available for later separately approved rehearsal.
+
+**Next safe step:** On NEW only, conduct an owner-run **read-only** post-import Docker inventory: inspect all three tagged image IDs and confirm there are still no containers or Docker volumes. Review output and document results before requesting any distinct rehearsal/container/restore authorization. The November 5 02:00 backup remains a *rehearsal input*, not an established final cutover backup; preserve OLD PRODUCTION until separately authorized cutover and validation.
+
 ## OWNER APPROVED NEW DOCKER LOAD OF EXACT SUPPORTING IMAGES — 2026-11-07
 
 **Owner explicitly replied "aPPROVED"** to a separately scoped NEW-host-only Docker load of the already transferred and independently verified two-image archive. Approval covers only importing `mariadb:11.8` and `redis:8.6-alpine` into NEW `ccpcadmin@ccpcerp-prod` Docker image storage and comparing their resulting immutable IDs to those of OLD running PRODUCTION. It does **not** authorize containers/volumes creation, service start, Compose changes, DB restore, migrations, network/traffic cutover, OLD PROD/DEV changes or any backup cleanup.
