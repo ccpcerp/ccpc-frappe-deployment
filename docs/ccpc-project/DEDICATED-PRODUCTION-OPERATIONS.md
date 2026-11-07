@@ -1,5 +1,28 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17P-2 SELECT-ONLY FRAPPE/MARIADB DIAGNOSTIC SUCCESS — 2026-11-07
+
+**PASS — single authorized operator-run diagnostic on NEW `ccpcadmin@ccpcerp-prod`.** Exact sanitized result:
+
+```text
+STAGE17P_PRECHECK_VERIFIED
+STAGE17P_POSTCHECK_VERIFIED
+STAGE17P_FRAPPE_INIT_OK
+STAGE17P_FRAPPE_READONLY_CONNECT_OK
+STAGE17P_FRAPPE_DB_METADATA_SELECT_OK
+STAGE17P_ONE_SHOT_READONLY_SUCCESS
+STAGE17P_RESULT=SELECT_ONLY_SITE_CONNECTION_VERIFIED
+STAGE17P_SINGLE_USE_APPROVAL_CONSUMED
+```
+
+**Scope/evidence:** The exact legacy PRODUCTION application image `ccpcerp:v16.50.0` at immutable ID `sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8` ran as **one ephemeral, nonprivileged, read-only-rootfs, no-capabilities/no-new-privileges container** with only the NEW rehearsal internal bridge (`ccpc_restore_rehearsal_20261107_default`) and fixed source IP `172.18.0.250`; no host/site/db/log volumes, no published ports or production service containers were started by this probe. Guarded preflight verified three existing pinned MariaDB/Redis service containers, named volumes and scope; postcheck passed. The diagnostic received `DB_READONLY_*` secret values via stdin from the restricted protected file, built a disposable **synthetic** site config on tmpfs with scheduler/maintenance/email off, and did **not** mount or read the real restored site config or full-write app credentials. Frappe `init`, `connect`, and two database `SELECT` metadata checks completed. The database connection identified the exact schema-restricted `ccpc_ro_probe_20261107@172.18.0.250` account, and information_schema returned **741 BASE TABLE + six SEQUENCE** as expected for the separately restored Nov 5 historical SQL. Stream output/traces were suppressed by the probe; user reported only approved success markers.
+
+**What PASSED:** Functional Python/Frappe initialization and real MariaDB authentication/query against the isolated restored data layer with an IP-limited SELECT-only account. Importantly this is *beyond* offline app imports (Stage16) and DB-only client login (Stage17F). **One-run authorization consumed: do not rerun it or escalate DB credentials.**
+
+**What did NOT pass / was not attempted:** Frappe initialization using the actual restored `ccpcerp.local` site configuration, full app workflows/HTTP, Stock Ledger/GL and Company reconciliation, permissions, Redis/cache end-to-end behavior, integrations, attached-file resolution, background jobs, migrations, actual accounting data row checks, persistent PRODUCTION startup, new-host production DNS/cutover, rollback or current as-of-cutover source consistency. Using historical Nov 5 snapshot cannot establish preservation of later live transactions; the OLD live PRODUCTION remains authoritative. Pre/post checks confirmed container/network/volume scope, not byte-for-byte proof of DB contents or all file data; no changes were intended or reported.
+
+**Next fastest safe step / separate authorization boundary:** Stop repeating network/firewall/client-credential probes. Prepare **one deliberately bounded NEW-only rehearsal business-data acceptance** using existing SELECT-only DB credential and image to read **sanitized aggregates** (e.g. schema/Company/Stock Ledger/GL/document counts and references), with a strict query allowlist, zero user/business rows in output, no Frappe services/migrations/workers, no integrations/emails, pre/post scope validation, and a safe historical baseline for comparison. That test would be a NEW database-connected operation requiring explicit new authorization because Stage17P approval is consumed. Then address full restored-site behavior under isolated safeguards and separately review an approved **current consistent** OLD production cutover backup, protected actual data reconciliation, rollback and final authorization; do not promote Nov 5 rehearsal data as current live production. No OLD PRODUCTION/DEV host action is authorized by this milestone.
+
 ## NEW REHEARSAL STAGE 17P-1 GUARDED SECRET/SITE/IMAGE PREFLIGHT PASS — 2026-11-07
 
 **Owner-run NEW-only read-only preflight markers:**
