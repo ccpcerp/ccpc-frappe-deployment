@@ -1,5 +1,26 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW FIVE-FILE COMPOSE SCRATCH SOURCE VERIFIED ON HOST — 2026-11-07
+
+**PASS — owner-run local source assembly on NEW `ccpcadmin@ccpcerp-prod`** following the source-only, GitHub-blob-pinned procedure in the preceding checkpoint. Terminal report:
+
+```text
+SOURCE_FILE_VERIFIED compose.yaml
+SOURCE_FILE_VERIFIED overrides/compose.mariadb.yaml
+SOURCE_FILE_VERIFIED overrides/compose.redis.yaml
+SOURCE_FILE_VERIFIED overrides/compose.lan-production.yaml
+SOURCE_FILE_VERIFIED overrides/compose.dedicated-pre-tls.yaml
+PINNED_FIVE_FILE_SOURCE_READY
+```
+
+The opening terminal echo was garbled, but all five per-file `git hash-object` matches and terminal success marker printed. Guarded script checked NEW host/user, prior checkout `/home/ccpcadmin/ccpc-pr29-review` exact commit `bd92ade7ac859b9f6b21b157bdc1629e93f4540c` and clean status, source YAML hashes, private scratch parent ownership/mode and nonexistent output before creating `/home/ccpcadmin/.ccpc-compose-review-c12d46f/source-only` and copying four unchanged files and writing fifth. This is **script-reported** exact source matching, not independent SSH access by ChatGPT.
+
+**Five resulting GitHub blob pins:** `compose.yaml` `752b86e1ba4c1977a2636b1916f6015771f4c28c`, `compose.mariadb.yaml` `94e177c38707a40bdd2715287565c80e41c4f3d3`, `compose.redis.yaml` `64bc05ac2e955719822718e5118a62d0c9771e24`, `compose.lan-production.yaml` `3e65debe8d007b73d23f46f880cc53a182a19829`, `compose.dedicated-pre-tls.yaml` `14fd89a3c2371104f464964137483de9f4a35861`. All correspond to GitHub review commit `c12d46f7363c93742f7e9fb88b2e14a67dbd9a7e`.
+
+**Next operation within owner's preparation-only approval:** On NEW, run **non-deploying** `docker compose ... config --quiet` for exactly these five YAML files in original order, selected project `ccpc_prod_erpnext`, and synthetic non-secret `DB_PASSWORD`, explicit `CUSTOM_IMAGE=ccpcerp` / `CUSTOM_TAG=v16.50.0` from a sanitized environment; re-verify five file hashes and server identity first. Do not create an actual `.env`, load any real secret, contact GitHub/NAS, use `compose up/run/start/pull`, or request Docker engine mutation. If quiet render succeeds, next separately inspect sanitized effective service/port/volume metadata without printing interpolated real credentials.
+
+**Rehearsal boundaries unchanged:** No real Compose runtime/render has yet been observed, no service/container/network/volume has been started, and no site/db/attachment restore has been done. The November 5 02:00 backup is an archived rehearsal source only. Do not enable schedulers, workers, outbound mail/integrations, or do OLD PRODUCTION/DEVELOPMENT/cutover changes without separate approval.
+
 ## FIVE-FILE COMPOSE SOURCE CAN BE ASSEMBLED LOCALLY WITHOUT ZIP OR SSH — 2026-11-07
 
 **User prefers no manual ZIP transfer and asked about NAS backup.** Clarification: the four November 5 database/site backup artifacts are already checksum-verified on NEW; the requested five-file Compose source set is a separate GitHub code artifact, not the NAS backup. Neither backup retransfer nor any NEW permanent GitHub SSH credentials are necessary for this source-only step.
