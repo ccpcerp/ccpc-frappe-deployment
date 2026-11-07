@@ -1,5 +1,29 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 16 ALL OFFLINE APPLICATION IMPORTS PASS — 2026-11-07
+
+**PASS — Stage 16 offline image Python compatibility smoke completed by owner on NEW `ccpcadmin@ccpcerp-prod`.** Exact sanitized markers:
+
+```text
+REHEARSAL_STAGE16_STREAM_ISOLATION_VERIFIED
+REHEARSAL_STREAM_LOGGING_ENABLED
+REHEARSAL_MODULE_FRAPPE_IMPORT_OK
+REHEARSAL_MODULE_FRAPPE_APP_IMPORT_OK
+REHEARSAL_MODULE_FRAPPE_HOOKS_IMPORT_OK
+REHEARSAL_MODULE_ERPNEXT_IMPORT_OK
+REHEARSAL_MODULE_ERPNEXT_HOOKS_IMPORT_OK
+REHEARSAL_MODULE_CCPCERP_IMPORT_OK
+REHEARSAL_MODULE_CCPCERP_HOOKS_IMPORT_OK
+REHEARSAL_STAGE16_ALL_IMPORTS_PASSED
+REHEARSAL_STAGE16_COMPLETE_NO_APP_SERVICES_STARTED
+```
+
+**Meaning and boundary:** All seven application modules imported successfully using the explicit Bench virtualenv `/home/frappe/frappe-bench/env/bin/python` from the exact pinned local image `ccpcerp:v16.50.0`; import origins were checked to resolve under the corresponding app's immutable image directory. Environment-only `FRAPPE_STREAM_LOGGING=1` selected stream handlers, resolving the artificial `FileNotFoundError` from `frappe.utils.logger.create_handler` when file logging was attempted in a no-mount readonly filesystem. Also a real `/dev/null` stream was used, resolving earlier artificial `io.UnsupportedOperation` from `io.StringIO` lacking `fileno()`. The preflight passed NEW-only three running DB/Redis services, internal bridge and four rehearsal volumes. The transient helper used `--network none --read-only --user 1000:1000 --cap-drop ALL --security-opt no-new-privileges`, no mounted site/DB/logs volumes, no site credentials, no DB connectivity. No persistent app services started, no imports of restored site config, no `frappe.init`, Bench, migrations, transactional writes, web, workers, scheduler, email, integrations, DEV, OLD PRODUCTION, or cutover.
+
+**Verified November 5 historical rehearsal milestones through Stage 16:** SQL schema structure 741 BASE TABLE + six SEQUENCE objects; registered frappe, erpnext, ccpcerp; three image/DB version declarations match; 774 patch declarations = 774 distinct successful log entries with zero missing/skipped; offline image package import pass. **Do not infer** successful credentialed site/DB Frappe initialization, user authentication, GL/stock integrity, or production-readiness. No need to reimport the SQL archive, reinstall apps, or `bench migrate` on this evidence.
+
+**Next safe Stage 17 planning:** Start with *read-only safety preflight* on NEW: inspect protected isolated Docker network and container scopes plus database app-account privilege/host grants, and determine if a separate dedicated SELECT-only user can be provisioned for later app runtime probing. A DB-connected Frappe process may attempt writes at initialization or shutdown; using site DB credentials with data modification privileges is **not safe** merely because an operation is described as read-only. Also verify the process cannot reach arbitrary outside hosts: `internal=true` Docker bridge is not sufficient evidence of egress fencing for all namespaces. Keep networkless helpers for offline checks, and do not start a site runtime process until a bounded and verified network/DB-access plan and optional snapshot/recovery boundary are agreed. Zero production deployment approval; OLD PROD/DEV unchanged.
+
 ## NEW REHEARSAL STAGE 16 FILE ERROR IS FRAPPE FILE LOGGER; STREAM-ONLY ENV FIX — 2026-11-07
 
 **PASS — owner-run diagnostic, no restored-data writes.** Owner output:
