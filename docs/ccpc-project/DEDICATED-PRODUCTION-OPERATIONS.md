@@ -1,5 +1,26 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17T REAL SITE UID1000 FILE ACCESS PASS — 2026-11-07
+
+**PASS — owner-run NEW-only read-only host/dedicated-volume permission diagnostic reported:**
+
+```text
+STAGE17T_NEW_HOST_VERIFIED
+SITE_ROOT_UID1000_ACCESSIBLE=True
+SITE_DIRECTORY_UID1000_ACCESSIBLE=True
+SITE_CONFIG_UID1000_ACCESSIBLE=True
+COMMON_CONFIG_UID1000_ACCESSIBLE=True
+APPS_FILE_UID1000_ACCESSIBLE=True
+STAGE17T_SITE_FILE_PERMISSIONS_PASS
+STAGE17T_READ_ONLY_DIAGNOSTIC_COMPLETE
+```
+
+The diagnostic was run on NEW `ccpcadmin@ccpcerp-prod`, checked the local default Docker socket and expected isolated 3-container network, obtained the exact named `sites` volume location under the verified Docker data root and inspected the mode/user/group bits on each **real** restored file/parent. Frappe UID1000's read/search access was found for all five paths; no file contents, secrets, business rows or permission changes were output. This narrows the previous Stage17S `frappe.init` STOP: simple UNIX owner/group/mode access to these paths is **not** the likely explanation. However it is a static permission check; cannot confirm actual container mount propagation, SELinux/AppArmor issues or the exact suppressed exception.
+
+**Stage17S root cause remains unresolved, likely network-mode incompatibility:** Upstream Frappe v16 `frappe.init(is_request=True)` can resolve installed apps via a database connection and/or Redis; Stage17S was `--network none` and used original site's existing full-write credentials. Do not rerun that command with network attached and original credentials. Separate Stage17P already confirmed Frappe `init` and SELECT-only DB connect with a synthetic config over the isolated bridge.
+
+**Next efficient, bounded Stage17U on NEW ONLY (routine safe non-destructive pre-production test under owner's standing delegation):** A single ephemeral pinned app-image `docker run --rm --pull never` on the **existing internal** rehearsal network at unused `172.18.0.250`. Strict host/user/default Docker context and exact 3 pinned DB/Redis services + 4 rehearsal volumes pre/post; UID1000, read-only rootfs, cap-drop, no ports, no mounts/no original restored site secret inside container. Host read only the real site configuration (verify off switches and required encryption-key presence, never output secrets), derive a *whitelisted subset* of site flags and `db_name`, replace `db_user` and `db_password` exclusively with protected SELECT-only `DB_READONLY_*` values, suppress Redis (point to unreachable loopback), serialize child scratch config **via stdin only**, keep scratch inside tmpfs, and run `frappe.init` / `frappe.connect(set_admin_as_user=False)`, one simple `frappe.db.sql` SELECT, then optionally a targeted read-only `frappe.get_meta("Company",cached=False)` + sanitized Company row count if cache does not force network. Suppress stdout/stderr, print only pass/stop phase markers, no raw Company names/rows/credentials/DB strings. Use SELECT-only account, no full-write original site password inside helper, no scheduler/mail/workers/bench migrate, no production change. Observe that the **real site itself still has not been initialized with its own site config**, so this establishes adapted real-site metadata compatibility only. Existing full-write real site configuration and Nov5 DB remain untouched, separate final cutover gate persists.
+
 ## NEW REHEARSAL STAGE 17S REAL RESTORED SITE OFFLINE INIT STOP — 2026-11-07
 
 **STOP, not a PASS — owner-run bounded offline NEW `ccpcadmin@ccpcerp-prod` app-image diagnostic reported:**
