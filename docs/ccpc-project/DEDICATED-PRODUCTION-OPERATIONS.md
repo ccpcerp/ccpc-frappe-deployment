@@ -1,5 +1,26 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17L SUBNET-NEGATION AND CONNTRACK CHECK PASS — 2026-11-07
+
+**PASS — owner-run NEW-only static firewall check (no writes, no container startup):** The exact reported sanitized results were:
+
+```text
+STAGE17L_REHEARSAL_SCOPE_VERIFIED
+INBOUND_SOURCE_SUBNET_MATCH=True
+INBOUND_SOURCE_NEGATED=True
+OUTBOUND_DEST_SUBNET_MATCH=True
+OUTBOUND_DEST_NEGATED=True
+CONNTRACK_ESTABLISHED_RELATED_ONLY=True
+STAGE17L_READ_ONLY_CHECK_COMPLETE
+DYNAMIC_EGRESS_ISOLATION_NOT_YET_PROVEN
+```
+
+The script's early NEW hostname/operator/default local-Docker endpoint, exact 3 running pinned DB/Redis-only rehearsal containers, no published ports/restarts, internal non-attachable IPv4 bridge, 4 named volumes, host `FORWARD DROP`, `DOCKER-FORWARD` ordering and `DOCKER-INTERNAL` two DROP-rule structure guards all passed. The inbound-to-bridge DROP rule applies to **source addresses outside the exact rehearsal subnet**, and the outbound-from-bridge DROP rule applies to **destination addresses outside the exact rehearsal subnet**. The preceding `DOCKER-CT` ACCEPT was confirmed limited by conntrack to `ESTABLISHED,RELATED` (not generic NEW traffic). Together with stages 17H–17K, this provides coherent **static evidence** that ordinary *new forwarded IPv4 flows* from the isolated rehearsal bridge to external destinations should be blocked while same-bridge traffic is allowed.
+
+**Safety/limits:** This is **not** a packet-level negative-egress test and does not exclude host gateway/INPUT/OUTPUT paths, native nftables hooks, host networking, privilege escalation, or side effects of an app-capable process. Previous 17K STOP was caused by an over-specific script assertion, resolved by the additional subnet predicate check; do not 'fix' Docker rules. The user has **not** authorized a new outbound test container, active external probes, Frappe/Bench startup, mail/worker/scheduler, DB writes or production cutover by merely sharing Stage 17L output. OLD live PROD and DEV remain preserved.
+
+**Next decisive action:** Design **one** separately approved, tightly bounded NEW-only dynamic **negative-egress** probe, after fresh exact Docker/network/host scope and destination-safety review; use an ephemeral no-mount/no-secret, unprivileged, read-only, capability-dropped probe with no published ports, no DNS/service calls or business traffic, preselected safe destination(s), no automatic retries, and cleanup/re-count validation. Avoid testing random/public addresses and avoid treating a timeout alone as proof of filtering. If even this cannot safely prove host-path isolation, protect the eventual app-runtime test by stronger namespace/network restrictions. Only after explicit approval and verification should a DB-connected Frappe diagnostic be planned; do not launch application/web/jobs or migrate now.
+
 ## NEW REHEARSAL STAGE 17K SANITIZED FIREWALL RULE DIAGNOSTIC PASS — 2026-11-07
 
 **PASS for bounded diagnostic, not yet egress isolation:** Owner ran the corrected read-only Stage 17K diagnostic on NEW `ccpcadmin@ccpcerp-prod` and reported:
