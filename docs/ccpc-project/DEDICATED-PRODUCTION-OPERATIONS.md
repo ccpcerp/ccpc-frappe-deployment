@@ -1,5 +1,19 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17D NETWORK CHECK STOP; SUSPECT DOCKER SHORT-VS-FULL IDS — 2026-11-07
+
+**STOP — owner-run read-only fixed-IP preflight, no DB changes.** Owner reported:
+
+```text
+STOP: network isolation mismatch
+```
+
+Owner also clarified local LAN uses `192.168.50.xxx`, which is **not the same namespace as** the previously verified isolated NEW-only Docker bridge `172.18.0.0/16`. Do not replace the planned diagnostic helper IPv4 with a LAN IP, bind ports, or attach to a LAN/macvlan merely to work around a failed check. The Stage 17D script did not create any user/password/container, touch DB/site/volumes, or reserve an IP. The owner approval for creating a bounded SELECT-only diagnostic account remains valid but **not executed**. The proposed `172.18.0.250` is still an unverified/unreserved candidate.
+
+**Strong test-harness cause, pending confirmation:** Stage 17D required `set(net['Containers']) == set(ids)`; `ids` was obtained with `docker ps -aq` (quiet output is normally **shortened container IDs**), whereas `docker network inspect ... Containers` uses full container IDs. An otherwise correct network therefore triggers `network isolation mismatch`. Previous Stage 17C checked the isolated project label, three endpoints and four volumes without the new ID-set comparison and passed. Docker CLI official docs `https://docs.docker.com/reference/cli/docker/container/ls` explain `--no-trunc`. This is **likely a false-positive guard**, not proof network changed.
+
+**Next safe step:** Run a NEW-host/user/local-Docker read-only targeted diagnosis comparing `docker ps -aq` short IDs, `docker ps --no-trunc -aq` full IDs, `docker inspect` `Id`, and `docker network inspect` endpoint IDs **without displaying IDs**; verify network `Internal`, driver, exact project scope label, attached count, true image/container identities, no published ports, expected subnet/gateway, four named volumes and whether `172.18.0.250` is currently unallocated. Never call `CREATE USER` or `GRANT` until the guard is corrected and fresh preflight passes. If real isolation discrepancies exist, STOP and investigate; don't manually change Docker network or existing services. No OLD PROD/DEV, app runtime, migrations, email/integrations or cutover.
+
 ## OWNER APPROVAL: STAGE 17 SELECT-ONLY DIAGNOSTIC DB ACCOUNT — 2026-11-07
 
 **Explicit owner approval recorded in active conversation:** After Stage 17C verified `ccpc_ro_probe_20261107` does not exist, the owner replied **“Approved”** to the narrowly scoped proposal: *create and verify a new SELECT-only diagnostic DB account in the isolated NEW rehearsal database*. This is **not** authorization for Frappe runtime, database migration, PROD/DEV access, cutting over, running workers, exposing ports, email, integrations, or altering the existing application account/site config. None of those actions have been performed by this approval, and as of this note **the new account has not yet been created**.
