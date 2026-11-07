@@ -1,5 +1,27 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17P-1 GUARDED SECRET/SITE/IMAGE PREFLIGHT PASS — 2026-11-07
+
+**Owner-run NEW-only read-only preflight markers:**
+
+```text
+STAGE17P_NEW_REHEARSAL_SCOPE_VERIFIED
+STAGE17P_APP_IMAGE_PIN_VERIFIED
+STAGE17P_FIXED_DIAGNOSTIC_IP_AVAILABLE
+STAGE17P_PROTECTED_SECRET_FILE_VERIFIED
+STAGE17P_SECRET_FIELD_NAMES=DB_READONLY_HOST,DB_READONLY_PASSWORD,DB_READONLY_SCHEMA,DB_READONLY_USER
+STAGE17P_RESTORED_SITE_CONFIG_VERIFIED
+STAGE17P_SCHEDULER_EMAIL_MAINTENANCE_FLAGS_VERIFIED
+STAGE17P_APP_NAMES_VERIFIED
+STAGE17P_PREFLIGHT_COMPLETE_NO_FRAPPE_STARTED
+```
+
+**Meaning:** Existing NEW isolated rehearsal network with 3 pinned DB/Redis containers and 4 volume names, exact PRODUCTION app image ID, available fixed source IP `172.18.0.250`, protected diagnostic secret owner/mode and four **field names only**, restored site's DB host/type, maintenance/scheduler/email safety flags and apps.txt `frappe`, `erpnext`, `ccpcerp` passed. **No credential values, business records, SQL, app process or persistent service were output/executed.**
+
+**Implementation design checked against Frappe v16 source (not a guarantee of exact immutable image fork):** Frappe v16's `frappe.init(site, sites_path=..., is_request=True)` reads site configuration; `frappe.connect(set_admin_as_user=False)` uses `db_name`, `db_user`, `db_password` from that config; module/cache initialization may occur before SQL. To prevent full-write site credentials being loaded, never mount the restored sites volume in the probe. Instead, the one-shot **preapproved** app-image helper receives `DB_READONLY_*` secret values via **stdin only** from the protected NEW host file and creates a synthetic site configuration + apps.txt entirely on container tmpfs. Use nonroot 1000:1000, `--read-only`, no mounts, `--cap-drop ALL`, no new privileges, single existing internal Docker network/fixed IP, no published ports, `--pull never` immutable image, no web/worker/queue/scheduler/email/Bench commands. Configure Redis to loopback unused port to prevent contacting the existing queue/cache, and permit a single Frappe init/DB SELECT metadata query (current user + database identity and schema object counts) with automatic stdout/stderr suppression and sanitized phase/status markers; avoid printing source names/secrets. The exact SELECT-only account cannot mutate restored financial tables; Frappe may still try an unsupported write during initialization and must then fail without privilege escalation. One execution only, pre/post scope checks; no reruns without a new decision. No OLD PROD/DEV, migrations, restore or cutover.
+
+**Current status:** Stage 17P-1 completed; one-off `docker run` Stage 17P-2 **not yet reported executed**.
+
 ## NEW REHEARSAL STAGE 17P ONE-OFF READ-ONLY FRAPPE DB DIAGNOSTIC OWNER-APPROVED — EXECUTION PENDING (2026-11-07)
 
 **Owner explicit authorization:** After Stage 17O read-only host listener/UFW classification passed, the owner replied `aPPROVED` to preparing and executing **one** bounded Frappe site/database diagnostic on the **NEW** `ccpcadmin@ccpcerp-prod` rehearsal only. The earlier Stage17M authorization has been consumed. This is **not proof of execution** nor permission for live app deployment, ERPNext service startup, any OLD PROD/DEV change, database writes/migrations, privileged full app credentials, network/firewall edits, backup/restore, or final cutover.
