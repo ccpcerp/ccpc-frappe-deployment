@@ -1,5 +1,21 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17A EXISTING APP DB ACCOUNT HAS WRITE PRIVILEGES — 2026-11-07
+
+**PASS — owner-run Stage 17A NEW-only SQL read-only app-account schema privilege check.** Operator reported:
+
+```text
+REHEARSAL_STAGE17A_ISOLATION_VERIFIED
+APP_SCHEMA_GRANT_ROWS=1
+APP_SCHEMA_SELECT_GRANT=True
+APP_SCHEMA_WRITE_GRANT=True
+REHEARSAL_STAGE17A_READ_ONLY_PRIVILEGE_CHECK_COMPLETE
+```
+
+The strict NEW-host/local-Docker three-container database/Redis and network/volume preflight passed. Root SQL session was used **only for SELECT** from `mysql.db` to summarize direct schema grants for the restored application's schema account; exact database account and schema name were loaded from SHA-pinned November 5 backup config and **not printed**. One schema grant row existed; SELECT privilege and one or more DML/DDL write privileges were present. This is normal for ERPNext but **disqualifies that app account for a no-write Frappe runtime smoke**. Existing site password was neither revealed nor changed, no DB account was added, and no Frappe app started.
+
+**Caveat:** `mysql.db` alone does not prove the account has no global grants, role inheritance, table-specific privileges, routine privileges or proxy grants. `APP_SCHEMA_WRITE_GRANT=True` also does not enumerate which writes it has; do not infer a minimal write set from it. The next bounded Stage 17B is a read-only privilege-scope inventory: inspect the MariaDB grant metadata `mysql.global_priv`, `mysql.db`, `mysql.tables_priv`, `mysql.columns_priv`, `mysql.procs_priv`, `mysql.roles_mapping` and `mysql.proxies_priv` as available; verify app-account host patterns, schema grant count and whether any global access or inherited role privileges may exist, and print only sanitized counts/boolean markers. No raw JSON grants, password hashes, DB/schema names, user/host strings, secrets, or business records in terminal output; no GRANT/CREATE/ALTER. Then plan a separately generated restricted SELECT-only diagnostic identity with exact schema, host restrictions and no global grants, **only after separate approval/backup/reversibility review**, and design independent egress fencing before any Frappe process uses the restored DB. No OLD PRODUCTION/DEV or live deployment.
+
 ## NEW REHEARSAL STAGE 16 ALL OFFLINE APPLICATION IMPORTS PASS — 2026-11-07
 
 **PASS — Stage 16 offline image Python compatibility smoke completed by owner on NEW `ccpcadmin@ccpcerp-prod`.** Exact sanitized markers:
