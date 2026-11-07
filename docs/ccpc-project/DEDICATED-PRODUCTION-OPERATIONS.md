@@ -1,5 +1,29 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 13 DATABASE INSTALLED-APP REGISTRY VERIFIED — 2026-11-07
+
+**PASS — owner-run Stage 13 read-only Frappe installed-app metadata verification on NEW `ccpcadmin@ccpcerp-prod`.** Owner provided:
+
+```text
+REHEARSAL_STAGE13_ISOLATION_VERIFIED
+REHEARSAL_DATABASE_STRUCTURE_UNCHANGED
+REHEARSAL_DEFAULT_VALUES_SCHEMA_VERIFIED
+RESTORED_GLOBAL_INSTALLED_APPS_ROWS=1
+RESTORED_GLOBAL_INSTALLED_APPS_COUNT=3
+RESTORED_APP_FRAPPE_PRESENT=True
+RESTORED_APP_ERPNEXT_PRESENT=True
+RESTORED_APP_CCPCERP_PRESENT=True
+RESTORED_INSTALLED_APPLICATIONS_SINGLE_DOCTYPE=True
+RESTORED_CHILD_APPLICATION_RECORDS=3
+RESTORED_CHILD_APPS_SUBSET_OF_GLOBAL=True
+REHEARSAL_THREE_REQUIRED_DATABASE_APPS_CONFIRMED
+REHEARSAL_STAGE13_READ_ONLY_APP_METADATA_COMPLETE
+```
+
+**Conclusion:** Restored historical November 5 SQL database has the global `__global/installed_apps` JSON in `tabDefaultValue`, containing **exactly** `frappe`, `erpnext`, `ccpcerp`, all valid identifiers with no duplicate. `Installed Applications` is a **Single** DocType, and the child metadata table `tabInstalled Application` contains three application records whose names are contained in the global list. This resolves Stage 12's `tabInstalled Applications` missing-physical-table observation as an incorrect physical-table assumption, **not a missing app installation**. DB remains exactly 741 BASE TABLE and six SEQUENCE objects; identity, isolation, NEW only, verified. No ERPNext startup, bench, SQL write, migrations, scheduled jobs, mail or external access during Stage 13.
+
+**Next guarded NEW-only read-only Stage 14 option:** Compare the three installed-app version values (where present) in `tabInstalled Application` and stored migration patch state against version declarations in the already-pinned image, using a no-network readonly-sites one-shot container only for app file inspection and read-only SQL in existing MariaDB. The image's code declarations may differ from installed-app metadata if patch state is behind, or the version field may be absent/empty; report safely without automatically installing apps or applying patches. Print only app names/versions or booleans and patch counts, **never** secrets, business data, private filenames or DB credentials. Avoid booting Frappe or trusting a general 'internal' network as sufficient to block external egress. Work only in NEW rehearsal; no OLD PRODUCTION, DEV or cutover.
+
 ## NEW REHEARSAL STAGE 12 OFFLINE IMAGE/SITE SAFETY PASS; APP METADATA FALLBACK REQUIRED — 2026-11-07
 
 **PASS on the offline site/image safety and database object invariants; installed-app registry in restored DATABASE still pending verification.** Owner-run Stage 12 read-only diagnostic on NEW `ccpcadmin@ccpcerp-prod` returned:
