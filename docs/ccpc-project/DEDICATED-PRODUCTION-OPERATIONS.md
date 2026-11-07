@@ -1,5 +1,22 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW ISOLATED REHEARSAL DOCKER NETWORK CREATED AND VERIFIED — 2026-11-07
+
+**PASS — owner-run NEW-server-only Stage 1, after explicit approval.** On `ccpcadmin@ccpcerp-prod`, the guarded operation verified correct host and account, local default Docker context, expected immutable image IDs, absence of Docker containers/volumes and preexisting project network, and SHA-256 of six-file rehearsal scratch override before creating exactly one new Docker bridge network. Operator output:
+
+```text
+REHEARSAL_NETWORK_PREFLIGHT_OK
+REHEARSAL_NETWORK_NAME=ccpc_restore_rehearsal_20261107_default
+REHEARSAL_NETWORK_INTERNAL_VERIFIED
+REHEARSAL_NETWORK_ZERO_CONTAINERS
+REHEARSAL_NETWORK_SUBNET=172.18.0.0/16
+NEW_REHEARSAL_NETWORK_CREATED_AND_VERIFIED
+```
+
+**Observed state:** Unique NEW rehearsal network `ccpc_restore_rehearsal_20261107_default`, bridge, `Internal=true`, `Attachable=false`, `EnableIPv6=false`, correct Compose project/network labels, zero attached containers, Docker IPAM subnet `172.18.0.0/16`. The terminal success markers are operator-reported and verified against the stated guarded command; ChatGPT did not access Docker remotely. The network is a deliberate NEW Docker host mutation authorized for this phased non-live rehearsal. No new volumes, DB/Redis/ERPNext containers, real credentials, database/file restore, or OLD PRODUCTION/DEVELOPMENT changes were requested or reported by this step.
+
+**Remaining risk before connecting services or restoring business records:** `Internal=true` is a Docker network attribute, not proof of traffic filtering or absence of host routing/LAN overlap. Verify NEW host routes and interface subnets against `172.18.0.0/16`, confirm only expected network labels/driver/IPAM and no newly attached containers, and verify Docker volume/containers still absent. If conflict or mutation is discovered, stop without deleting/recreating the approved network blindly. Later start must use explicit service allowlist and real locally generated credentials, not synthetic parser password. A November 5 02:00 backup restore remains a *rehearsal*, never a final cutover dataset.
+
 ## OWNER APPROVED PHASED ISOLATED NEW-HOST RESTORATION REHEARSAL — 2026-11-07
 
 **Owner explicitly replied "Approved"** to the immediately preceding bounded question: a phased, NEW-server-only, isolated NON-LIVE restoration rehearsal with guarded stage-by-stage verification. Approval includes (i) creating and inspecting NEW-only internal Docker network, staged volumes and DB/Redis containers, (ii) restoring the four previously independently verified November 5, 2026 02:00 historical OLD PRODUCTION backup artifacts into that isolated environment, and (iii) validating preserved records, permissions, accounting, schema and attachments with no active schedulers, queue workers, email, external integrations or employee access. Do NOT conflate approval with permission for final production cutover, OLD PRODUCTION/DEVELOPMENT changes, activating external connections, migrating to unmerged custom app code, destructive cleanup, or any network/DNS changes outside NEW.
