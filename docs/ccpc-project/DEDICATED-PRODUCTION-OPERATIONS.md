@@ -1,5 +1,21 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## SUPPORTING-IMAGES ARCHIVE INDEPENDENTLY VERIFIED ON NEW — 2026-11-07
+
+**Owner-run independent local read-only verification on NEW `ccpcadmin@ccpcerp-prod`**, following the encrypted OLD-to-NEW transfer of the root-private supporting-image archive, returned:
+
+```text
+SUPPORT_IMAGE_DESTINATION_METADATA_OK
+SUPPORT_IMAGE_DESTINATION_SHA256_OK
+SUPPORT_IMAGE_ARCHIVE_INDEPENDENTLY_VERIFIED
+```
+
+**PASS:** NEW archive `/home/ccpcadmin/.ccpc-support-images-transfer-20261106/mariadb-11.8_redis-8.6-alpine.tar` has expected private `0700` staging and `0600` file modes, owner `ccpcadmin`, exact **145522176** bytes, and independent SHA-256 match **`e301707c5ff75fd48c4a782e0ddf0c95608062016b9ae64e136f185bd6b8ac08`**. The OLD archive remains preserved, as do all four previously independently verified November 5 database/site backup files and exact ERPNext app image. **MariaDB and Redis supporting images are NOT YET loaded into NEW Docker**. No new containers, database restore, or cutover have occurred.
+
+**NEXT previously expressly approved security step on NEW only:** Remove exactly the one temporary support-image public key line from the NEW `ccpcadmin` account's `~/.ssh/authorized_keys`, preserving all other lines and verified archive intact. Temporary key marker `ccpc-support-images-transfer-20261106`, public key text `ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDcONU7BtDoctg4uLbro/flvs3FLdOgxLCr5+G931X3z ccpc-support-images-transfer-20261106`, OLD source restriction `from="192.168.50.166",restrict`, forced command path `/home/ccpcadmin/.ccpc-support-images-transfer-20261106/receive-support-images.sh`. Guard host/user, existing file types/owner/modes, archive presence, exact one authorization; use atomic temp file replacement and no deletion of archive or staging. Stop and investigate on any unexpected state, do not rerun blindly. Following successful marker, independently confirm marker count zero, then retire the exact OLD temporary support-transfer SSH key pair after matching fingerprint `SHA256:ONJlWrCRTBIJ1anTVYJTpre2E56D4RtjsLXREEdJFqA`.
+
+**Verified original supporting-image IDs** for eventual separately approved NEW Docker import: MariaDB `sha256:efb4959ef2c835cd735dbc388eb9ad6aab0c78dd64febcd51bc17481111890c4`; Redis `sha256:2cc044fc5a07c9b701f8f1255a309ae9ad7856e694ac03513bf3648c01e40763`. **Do not load** without separate authorization. New containers/restore/cutover still outside scope.
+
 ## SUPPORTING-IMAGES ARCHIVE RECEIVER TRANSFER PASSED — 2026-11-06
 
 **Owner executed the approved OLD-to-NEW encrypted supporting-images archive transfer** from `gani@ccpcerpserver` to the forced `receive-support-images` receiver on `ccpcadmin@ccpcerp-prod`, after the restricted SSH probe passed. Reported output:
