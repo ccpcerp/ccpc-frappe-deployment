@@ -1,5 +1,25 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 16 FILE ERROR IS FRAPPE FILE LOGGER; STREAM-ONLY ENV FIX — 2026-11-07
+
+**PASS — owner-run diagnostic, no restored-data writes.** Owner output:
+
+```text
+REHEARSAL_FILE_SCOPE_ISOLATION_VERIFIED
+MISSING_PATH_SCOPE=FRAPPE_HOME_OTHER
+MISSING_PATH_WAS_ABSOLUTE=True
+MISSING_PATH_PARENT_EXISTS=False
+LAST_FRAPPE_MODULE=frappe.utils.logger
+LAST_FRAPPE_FUNCTION=create_handler
+LAST_TRACEBACK_FRAME_CATEGORY=PYTHON_LIBRARY
+REHEARSAL_MISSING_FILE_SCOPE_DIAG_COMPLETE
+REHEARSAL_STAGE16_FILE_SCOPE_INSPECTION_FINISHED
+```
+
+The explicit Bench Python venv import of `frappe` succeeds. The `frappe.app` import fails with `FileNotFoundError` because `frappe.utils.logger.create_handler()` attempted to open a path under `/home/frappe` outside Bench and the parent directory is absent in the one-shot, read-only-rootfs, no-mount import environment. The output prints **category only**, not raw missing filename; this does not indicate corrupt app code or database. Check of upstream version-pinned Frappe source `frappe/frappe` at tag `v16.50.0`, file `frappe/utils/logger.py`, git blob SHA `66bac78656febd7ed022a0b63dce2ee064dd2594`: `create_handler(..., stream_only=False)` uses `RotatingFileHandler(os.path.join("..","logs",f"{module}.log"))` unless `stream_only` is truthy; `stream_logging = os.environ.get("FRAPPE_STREAM_LOGGING")`; `get_logger(...,stream_only=stream_logging)` allows the environment-only stream route. This directly explains why an image-only test with a readonly rootfs and no writable logs path can fail.
+
+**Next bounded NEW-only Stage 16 recovery:** Run one-off Bench venv imports for `frappe`, `frappe.app`, `frappe.hooks`, `erpnext`, `erpnext.hooks`, `ccpcerp`, `ccpcerp.hooks` in exactly pinned image, using **`FRAPPE_STREAM_LOGGING=1`** and real file-descriptor stdout/stderr redirected to `/dev/null` during imports. Guard NEW host/user, default local Docker, 3 expected running isolated DB/Redis containers, 4 volumes, and image ID. `--network none --read-only --user 1000:1000 --cap-drop ALL --security-opt no-new-privileges --rm`; **do not mount any site/logs/DB volume, create directories, or modify restored configuration**. Only allow sanitized per-module PASS markers and module/type on failure; check origins within pinned immutable image app directories. If more filesystem dependencies are discovered, STOP and inspect instead of adding arbitrary mounts. No `bench migrate`, `frappe.init`, `frappe.connect`, service start, mail, workers, OLD PROD, DEV, or cutover. Even a complete import PASS is not DB-connected Frappe integration or accounting/inventory verification.
+
 ## NEW REHEARSAL STAGE 16 MISSING FILE CATEGORY OTHER, _open — 2026-11-07
 
 **PASS — diagnosis script completed, but application import remains STOPPED.** Owner-run NEW-only result:
