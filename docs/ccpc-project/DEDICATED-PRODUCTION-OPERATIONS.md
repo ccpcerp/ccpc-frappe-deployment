@@ -1,5 +1,21 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 8 SQL IMPORT FINISHED; TABLE COUNT VERIFICATION STOP — 2026-11-07
+
+**PARTIAL PASS / STOP — operator-run NEW-only controlled MariaDB import, authorized by the owner-approved isolated rehearsal.** The owner pasted:
+
+```text
+REHEARSAL_TARGET_EMPTY_REVERIFIED
+REHEARSAL_SQL_IMPORT_PREFLIGHT_PASSED
+REHEARSAL_DATABASE_SCHEMA_CREATED
+REHEARSAL_SQL_IMPORT_PROCESS_COMPLETE
+STOP: unexpected imported table count; preserve database
+```
+
+**What is known:** Before the import, the NEW rehearsal MariaDB database server contained no non-system schema, the exact source SQL `20261105_020001-ccpcerp_local-database.sql.gz` and config hashes matched recorded originals, and the three MariaDB/Redis containers had vetted project/service labels and isolated network. The guarded script created exactly one new DB schema with the validated local backup site `db_name`, streamed compressed SQL to `mariadb` in the isolated DB container via its local Unix socket using the rehearsal root secret only in container environment, and the MariaDB client exited `0`. A post-import query then found the number of `information_schema.tables` entries **not equal** to the script's hardcoded expectation 741, stopping before checking the three required `tabDocType`, `tabUser`, `tabSingles` tables. The exact actual table count was not printed by this stage. 741 was taken from counting `CREATE TABLE`-prefixed lines in the SQL archive; this can overcount duplicate table declarations or differ from actual BASE TABLE plus VIEW catalog and is not independently proof of failed import. **Do not declare Stage 8 verified, attempt another import, drop the database, or alter data before diagnosis.** No site files, app user/permissions, public/private attachments, Frappe service, frontend, workers, scheduler or integrations were created/started by this step; OLD PRODUCTION and DEVELOPMENT untouched.
+
+**Next operator-run read-only gate:** Verify current three NEW isolated rehearsal containers and healthy DB, backup SQL SHA-256 and site `db_name` without printing it; query `information_schema.tables` for exact actual count, BASE TABLE and VIEW totals, and the presence of critical Frappe tables. Independently parse source `CREATE TABLE` statements to count distinct table names, compare sets with actual catalog names locally, **print only counts and sanitized markers, never full table names or rows/credentials**. If the actual catalog matches the distinct backup table name set and essential Frappe tables exist, Stage 8 can be reclassified as a **false-positive expected-count check**; otherwise inspect differences further without destructive reruns. Maintain NEW-only isolated rehearsal and no app startup, restoration of attachments, schema migration or production cutover until verified.
+
 ## NEW REHEARSAL STAGE 7 ARCHIVE SITE ROOT CONFIRMED — 2026-11-07
 
 **PASS — operator-run read-only tar site-root check on NEW `ccpcadmin@ccpcerp-prod`:**
