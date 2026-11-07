@@ -1,5 +1,26 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 11 PUBLIC/PRIVATE ARCHIVES RESTORED AND VERIFIED — 2026-11-07
+
+**PASS — owner-run, corrected Stage 11 on NEW `ccpcadmin@ccpcerp-prod` under previously approved isolated historical restoration rehearsal.** Output reported:
+
+```text
+REHEARSAL_PUBLIC_ARCHIVE_VERIFIED
+REHEARSAL_PRIVATE_ARCHIVE_VERIFIED
+REHEARSAL_STAGE11_CORRECTED_PREFLIGHT_PASSED
+REHEARSAL_SITE_TREE_PREFLIGHT_VERIFIED
+REHEARSAL_PUBLIC_FILES_DIRECTORY_RESTORED
+REHEARSAL_PRIVATE_FILE_RESTORED_AND_VERIFIED
+REHEARSAL_ORIGINAL_SITE_CONFIG_UNCHANGED
+REHEARSAL_NOV05_FILE_ARCHIVES_RESTORED_NO_APP_STARTED
+```
+
+**Verified restoration milestone:** Both untouched 2026-11-05 02:00 public and private archive inputs passed their pinned SHA-256 checks and exact `./ccpcerp.local/public/files`, `./ccpcerp.local/private/files` directory spelling checks. The source private archive's one direct file was validated with strict single-component filename, type, length, and checksum validation. A one-time, no-network, read-only-rootfs, UID/GID1000 non-capability helper mounted **only** the NEW rehearsal `sites` named volume and required the exact Stage 10 baseline site tree, proper Frappe UID/GID file modes, safety flags (maintenance, scheduler pause/disable, mute emails) and internal Docker DB/Redis addresses. The helper created `ccpcerp.local/public/files/` empty and `ccpcerp.local/private/files/` with exactly one private file using `O_EXCL|O_NOFOLLOW`, verified restored file digest, confirmed root and attachment directory tree and that site configuration, common config and `apps.txt` SHA-256 fingerprints were unchanged. The invoking script reverified only the three persistent isolated MariaDB/Redis containers, four named volumes and internal network with three attached containers after the one-shot helper exited. **No original backup changed, no SQL reimport, no permanent application/frontend/worker/scheduler container started and no OLD PRODUCTION/DEVELOPMENT operations.**
+
+**Current complete historical data-layer rehearsal state:** SQL restored exactly 741 source BASE TABLE and six MariaDB SEQUENCE objects; essential DocType/User/Singles records inspected; independent application DB user verified; NEW-only site config retains historical `encryption_key`, independent app database secret, internal DB/Redis and off switches; public/private Nov 5 attachments restored and verified. This **does not yet confirm Frappe app code compatibility, DB migrations, decrypted secrets, data integrity/financial reconciliations or live production readiness**. Do not claim ERPNext application can be used before testing, and do not interpret the Nov 5 backup as a final cutoff snapshot.
+
+**Recommended next bounded NEW-only read-only Stage 12:** Independently inspect app identities/metadata **from the pinned image** via an ephemeral `--network none --read-only --user 1000:1000 --cap-drop ALL --mount ...readonly` helper and compare with installed-app metadata stored in the restored database via *read-only SQL* on existing DB container; no SQL migration, `bench` execution, configurator, backend, workers, HTTP, mail or external integrations. Confirm existing guarded Docker scope, actual `sites/apps.txt`, original `site_config.json` safety flags without leaking password/key, app directories required frappe, erpnext, ccpcerp and image ID, and installed-app metadata/table availability. On mismatch STOP and inspect; no deletion or reimport. Only later consider a tightly constrained read-only Frappe site CLI verification on the isolated Docker bridge after independently reviewing outbound-egress/side-effect risks. Live cutover, current consistent backup, production rollback and approval remain separate steps.
+
 ## NEW REHEARSAL STAGE 11 SOURCE TAR LEADING DOT-SLASH CONFIRMED — 2026-11-07
 
 **PASS — operator-run read-only RAW tar spelling diagnostic on NEW `ccpcadmin@ccpcerp-prod`.** Owner reported:
