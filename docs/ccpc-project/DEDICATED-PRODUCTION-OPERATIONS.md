@@ -1,5 +1,30 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17E SELECT-ONLY DIAGNOSTIC ACCOUNT CREATED AND VERIFIED — 2026-11-07
+
+**PASS — explicitly owner-approved NEW-only account creation executed by owner on `ccpcadmin@ccpcerp-prod`.** Exact sanitized output:
+
+```text
+REHEARSAL_STAGE17E_ISOLATION_VERIFIED
+DIAGNOSTIC_FIXED_IP_REVERIFIED_UNUSED
+DIAGNOSTIC_ACCOUNT_IDENTITY_REVERIFIED_AVAILABLE
+READONLY_SECRET_DIRECTORY_READY
+READONLY_SECRET_FILE_CREATED_NO_SECRET_DISPLAYED
+READONLY_DB_USER_CREATED
+READONLY_DB_SELECT_GRANT_APPLIED
+READONLY_DB_SCOPE_VERIFIED
+READONLY_DB_NO_EXTRA_GRANTS_VERIFIED
+REHEARSAL_STAGE17E_READONLY_ACCOUNT_CREATED
+```
+
+**Actions actually completed:** Strict NEW-only `ccpc_restore_rehearsal_20261107` Docker identity checks verified three expected pinned DB/Redis running services, internal network and four volumes; historical Nov 5 site backup config SHA verified. Stage 17D had separately verified a former false-positive caused by shortened vs full Docker container IDs; updated corrected network check passed on NEW before any DB write (`DOCKER_SHORT_IDS_TRUNCATED=True`, `NETWORK_MATCHES_SHORT_IDS=False`, `NETWORK_MATCHES_FULL_IDS=True`, `REHEARSAL_INTERNAL_NETWORK_VERIFIED`, expected Docker subnet and currently unused `172.18.0.250`). This is a Docker-internal IP, **not** the host's office `192.168.50.x` LAN.
+
+Within exact approved scope, owner executed `CREATE USER 'ccpc_ro_probe_20261107'@'172.18.0.250' IDENTIFIED BY <fresh random>` and `GRANT SELECT ON <restored Nov 5 schema>.*` only, after rechecking that all candidate identity/grant metadata was absent. Fresh credential securely stored in owner-only `/home/ccpcadmin/.ccpc-rehearsal-secrets-20261107/readonly-db-probe.env` mode 0600 (directory 0700). No credential text, user business rows or raw secret material was printed or committed. The owner-run postcheck reported one exact account entry, one exact schema/host grant with SELECT, zero listed write grants and no individual table/column/routine/role/proxy grants. Existing application account and site config untouched; no site/DB restore, migration, Frappe service, email/integrations, PROD/DEV cutover or other write.
+
+**Boundary:** Account creation and MariaDB metadata scope verified, but **a login from 172.18.0.250 has not been tested**; IP is not permanently reserved. The current grant audit checks SQL schema privileges but does not independently test client authentication, TCP source match, Frappe initialisation, or the possibility of unintended external egress from an app-capable container. Owner approval covers creating and verifying only this diagnostic account. Do not run Frappe/runtime/Bench, scheduler, web, jobs, mail, or integrations.
+
+**Next bounded step:** A one-shot short-lived client-only container sourced from exact pinned MariaDB image ID, `--rm --pull never --network ccpc_restore_rehearsal_20261107_default --ip 172.18.0.250 --read-only --user 1000:1000 --cap-drop ALL --security-opt no-new-privileges`, explicit `--entrypoint /bin/sh`, no secrets/site/DB/logs volume mounts and no published ports. Pass new credential only via host Python stdin pipe to container shell and set `MYSQL_PWD` internally (no password in Docker options/argv/image/inspect/output), execute only `mariadb` **TCP SELECT** against DB service, assert `CURRENT_USER()` matches exact `user@ip`, and count the expected 741 BASE TABLE and six SEQUENCE objects. Before invocation recheck host identity, Docker local endpoint, pinned images, three persistent service identities, exact four volumes, internal bridge, three endpoints/full IDs, fixed candidate IP unused and fresh secret owner/mode/known fields; after invocation confirm only three persistent containers/endpoints remain. On any mismatch STOP and preserve state, no reruns if partial. No intentional DML test or application process. After that, separately design and verify outbound fence before any DB-coupled Frappe runtime tests.
+
 ## NEW REHEARSAL STAGE 17D NETWORK CHECK STOP; SUSPECT DOCKER SHORT-VS-FULL IDS — 2026-11-07
 
 **STOP — owner-run read-only fixed-IP preflight, no DB changes.** Owner reported:
