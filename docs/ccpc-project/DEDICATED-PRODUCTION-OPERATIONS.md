@@ -1,5 +1,21 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 16 FULL OFFLINE IMPORT STOPS AT frappe.app FILE NOT FOUND — 2026-11-07
+
+**PARTIAL/STOP — owner-run complete Stage 16 offline module smoke attempted on NEW `ccpcadmin@ccpcerp-prod`; Frappe root package PASSED, next module FAILED.** User output:
+
+```text
+REHEARSAL_STAGE16_FULL_IMPORT_ISOLATION_VERIFIED
+REHEARSAL_STAGE16_BENCH_VENV_VERIFIED
+REHEARSAL_MODULE_FRAPPE_IMPORT_OK
+STOP: offline helper import failed: frappe.app | FileNotFoundError
+STOP: offline import verification incomplete; preserve state
+```
+
+The pinned Docker image, three running DB/Redis containers, isolated network and four volumes were guarded; a disposable rootfs read-only, `--network none`, UID:GID1000, capability-free Bench venv Python helper imported `frappe` and checked image package origin. It then raised `FileNotFoundError` importing `frappe.app`. **No restored `sites`, secrets, DB, or Redis volumes were mounted or accessed by this test**, and no persistent application service or migration started. ERPNext/CCPC imports remain **UNTESTED**, not failed. This result does not establish application incompatibility or a damaged database.
+
+**Possible origin:** `frappe.app` imports many modules with import-time initialization, which may assume bench `logs` or `sites` runtime directories/configuration. With image-only mountless helper and read-only container filesystem, these files may be unavailable. This remains hypothesis; first identify the sanitized missing-file **category** by catching `FileNotFoundError.filename` and classifying it as expected known bench logs/sites/assets/image paths vs other (no raw path or private filename), combined with a safe traceback module/function category. Do not print any raw exception message, traceback, DB identities, secret config or file content. Keep the same strict isolated one-shot helper, explicit Bench Python, `/dev/null` output suppression (supports fileno), *no mounted restored data*. Inspect before considering any read-only mount of `sites` or writable scratch `logs`; do not create/move any files in existing volumes, reimport DB, start Frappe app, or run migrations. OLD PRODUCTION and DEVELOPMENT untouched. Next checkpoint should record exact diagnosed missing path and only then propose corrected offline import smoke.
+
 ## NEW REHEARSAL STAGE 16 FRAPPE IMPORT PASSES WITH REAL FD OUTPUT STREAM — 2026-11-07
 
 **PASS — NEW-only owner-run Frappe single-module import diagnostic after previous `io.UnsupportedOperation` in Stage 16.** Operator output:
