@@ -1,5 +1,19 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 16 OFFLINE PYTHON IMPORT TEST INCOMPLETE — 2026-11-07
+
+**STOP, no installation or migration authorized.** Operator ran Stage 16 NEW-only offline application import test on `ccpcadmin@ccpcerp-prod` and pasted:
+
+```text
+REHEARSAL_STAGE16_ISOLATION_VERIFIED
+REHEARSAL_OFFLINE_SITE_CONFIGURATION_VERIFIED
+STOP: offline import test incomplete; preserve rehearsal state
+```
+
+The 3-container/4-volume/internal-network/pinned image checks and site safe-off switches passed. No `REHEARSAL_MODULE_*_IMPORT_OK` markers appeared and the final success marker was absent. The helper ran with `--network none --read-only --user 1000:1000 --cap-drop ALL --mount ...readonly` and no DB/Redis connectivity or persistent app service. Host wrapper discarded stderr and only forwarded allowlisted marker lines and `STOP: offline helper ...` stdout. Because none appeared, **actual failure reason is NOT KNOWN**: possible Python interpreter/site-packages mismatch, import exception, module origin/path check, error on stderr, or helper startup problem. Do not assert code incompatibility or that app would fail when started normally.
+
+**Next safest NEW-only read-only diagnostic:** Without importing Frappe or executing app code, check the same pinned image under the same no-network/read-only/UID1000 envelope and restored sites volume mounted read-only. Report sanitized Python interpreter location as category, runtime version, cwd and app path presence, `sys.path` app-code parent membership, `importlib.util.find_spec('frappe'|'erpnext'|'ccpcerp')` module discoverability and whether each resolved package origin is inside its pinned image app directory. Optionally inspect `env/bin/python` presence and executable metadata. Do not expose absolute paths, secrets, private file names, exception text, or run `bench`, `frappe.init`, `frappe.connect`, workers, migrations, web, mail, or code-changing operations. Depending on results, make a separate tiny, safely sanitized import exception-type-only probe, not a blind Stage 16 rerun. Preserve SQL stage 8, new DB account stage 9, configs/attachments stages 10-11 and installed app/versions/patches stages 12-15. No OLD PRODUCTION, DEV, employee-facing services or live cutover.
+
 ## NEW REHEARSAL STAGE 15 ALL 774 PINNED PATCH DECLARATIONS SUCCESSFULLY LOGGED — 2026-11-07
 
 **PASS — owner-run NEW-only Stage 15 read-only comparison of image patch declarations with restored DB `tabPatch Log`.** Output supplied:
