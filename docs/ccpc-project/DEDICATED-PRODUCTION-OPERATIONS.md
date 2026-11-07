@@ -1,5 +1,25 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17I FIREWALL RULE DIRECTIONS PASS; CHAIN TRAVERSAL PENDING — 2026-11-07
+
+**PASS — owner-run Stage 17I strict NEW-only isolated Docker scope and read-only firewall rule-direction inspection completed.** Exact output:
+
+```text
+STAGE17I_DOCKER_ISOLATION_VERIFIED
+HOST_FORWARD_POLICY=DROP
+FORWARD_RULE_COUNT=8
+FORWARD_TARGET_ORDER=DOCKER-USER,DOCKER-FORWARD,OTHER,OTHER,OTHER,OTHER,OTHER,OTHER
+BRIDGE_RULE_01=CHAIN:DOCKER-FORWARD,IN:BRIDGE,OUT:BRIDGE,TARGET:ACCEPT,STATE_MATCH:False
+BRIDGE_RULE_02=CHAIN:DOCKER-INTERNAL,IN:ANY,OUT:BRIDGE,TARGET:DROP,STATE_MATCH:False
+BRIDGE_RULE_03=CHAIN:DOCKER-INTERNAL,IN:BRIDGE,OUT:ANY,TARGET:DROP,STATE_MATCH:False
+NFT_BRIDGE_RULE_COUNT=3
+STAGE17I_READ_ONLY_RULE_DIRECTION_COMPLETE
+```
+
+**Interpretation:** The three bridge-referencing filter rules are (1) same-rehearsal-bridge traffic ACCEPT in `DOCKER-FORWARD`, and (2)/(3) inbound to and outbound from the isolated rehearsal bridge DROP in `DOCKER-INTERNAL`; host FORWARD policy DROP. Eight top-level FORWARD chain rules jump first to `DOCKER-USER`, then `DOCKER-FORWARD`, followed by six targets the allowlist classified as OTHER (not automatically ACCEPT). IPv6 disabled; earlier 17H no matching bridge NAT/MASQUERADE. These are **consistent with isolation but not full proof**: ordering and targets *inside* `DOCKER-USER` and `DOCKER-FORWARD` could alter whether `DOCKER-INTERNAL` DROP rules are reached, and native nftables, OUTPUT/INPUT, host network namespaces and side-effect paths still require separate review.
+
+**Next bounded Stage 17J:** Read-only inspect first-stage chains and jumps `FORWARD`, `DOCKER-USER`, `DOCKER-FORWARD`, `DOCKER-INTERNAL`, any referenced `DOCKER-BRIDGE`/`DOCKER-CT` rules. Report sanitized ordered targets, incoming/outgoing relation to rehearsal bridge, existence of broad ACCEPT, rule match predicates and state matches; do not print raw firewall rules, source/dest/IP strings, host interface names or unrelated infrastructure identifiers. Guard exact NEW host/user/local Docker endpoint and strict three pinned DB/Redis service identities, network full endpoint IDs and four rehearsal volumes. Static traversal alone does not authorize app network egress or outbound events. No new container, firewall edits, DB modifications, Frappe startup or PROD/DEV action.
+
 ## NEW REHEARSAL STAGE 17H FIREWALL RULE COUNT INSPECTION PASS — 2026-11-07
 
 **PASS — owner-run NEW-only, read-only Docker bridge + firewall count inspection.** Operator-reported sanitized result:
