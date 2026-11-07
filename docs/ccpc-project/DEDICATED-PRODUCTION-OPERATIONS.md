@@ -1,5 +1,47 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 4 DIAGNOSTIC RESOLVED: REDIS CACHE TMPFS PRESENT — 2026-11-07
+
+**PASS — owner-run read-only diagnostic after Stage 4 verification STOP; no rerun, restart or cleanup.** On NEW `ccpcadmin@ccpcerp-prod` the user reported these filtered Docker observations:
+
+```text
+SERVICE=db
+  STATUS=running
+  HEALTH=healthy
+  RESTART=no
+  PUBLISHED_PORTS=False
+  NETWORKS=ccpc_restore_rehearsal_20261107_default
+  MOUNT=volume|/var/lib/mysql|ccpc_restore_rehearsal_20261107_db-data
+  TMPFS_PATHS=none
+SERVICE=redis-cache
+  STATUS=running
+  HEALTH=not-reported
+  RESTART=no
+  PUBLISHED_PORTS=False
+  NETWORKS=ccpc_restore_rehearsal_20261107_default
+  TMPFS_PATHS=/data
+SERVICE=redis-queue
+  STATUS=running
+  HEALTH=not-reported
+  RESTART=no
+  PUBLISHED_PORTS=False
+  NETWORKS=ccpc_restore_rehearsal_20261107_default
+  MOUNT=volume|/data|ccpc_restore_rehearsal_20261107_redis-queue-data
+  TMPFS_PATHS=none
+=== DOCKER VOLUME NAMES ===
+ccpc_restore_rehearsal_20261107_db-data
+ccpc_restore_rehearsal_20261107_logs
+ccpc_restore_rehearsal_20261107_redis-queue-data
+ccpc_restore_rehearsal_20261107_sites
+=== REHEARSAL NETWORK ===
+INTERNAL=true ATTACHED=3
+REHEARSAL_READ_ONLY_DIAGNOSTIC_COMPLETE
+```
+
+**Root cause of apparent Stage 4 STOP:** `redis-cache` uses the intended Docker `HostConfig.Tmpfs` mapping at `/data`, while Docker's high-level `Mounts` array is empty for this mount. The original validator required `Mounts` to contain `("tmpfs", "", "/data")`, a false assumption. The diagnostic shows **no unintended anonymous Redis cache volume**, and only the four expected named rehearsal volumes. The three intended container services report running; MariaDB health status `healthy`; both Redis services have no Docker healthcheck reported. All three show no published ports, no automatic restart, and only the dedicated internal network. There are three network attachments. **Stage 4 startup and these observable isolation checks are thus PASS with a verifier-only correction; no container restart or change needed.**
+
+**Remaining independent checks before any Nov 5 business-data restore:** Read-only verify three actual container IDs against pinned image IDs, exact project/service labels and actual mounts (recognize Redis cache's `HostConfig.Tmpfs` instead of `Mounts`), check Redis `PING`/MariaDB health without printing passwords, and independently rehash the four historical Nov 5 backups inside private NEW staging. External egress and host-to-container access are **not yet independently validated** by the `internal=true` attribute; avoid app/frontend/queue/scheduler activation, outbound email or third-party integrations until separately fail-closed. No business backup restore or production cutover reported. Retain all prior resources.
+
 ## NEW REHEARSAL STAGE 4 THREE CONTAINERS STARTED; REDIS-CACHE MOUNT CHECK STOP — 2026-11-07
 
 **PARTIAL SUCCESS / STOP — operator-run approved Stage 4 on NEW `ccpcadmin@ccpcerp-prod`.** Owner pasted:
