@@ -1,5 +1,22 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17S REAL RESTORED SITE OFFLINE INIT STOP — 2026-11-07
+
+**STOP, not a PASS — owner-run bounded offline NEW `ccpcadmin@ccpcerp-prod` app-image diagnostic reported:**
+
+```text
+STAGE17S_NEW_REHEARSAL_PRECHECK_VERIFIED
+STAGE17S_POSTCHECK_VERIFIED
+STAGE17S_RUNTIME_STOP_INIT
+STAGE17S_RESULT=STOP_NO_AUTOMATIC_RETRY
+```
+
+Stage17S used the pinned `ccpcerp:v16.50.0` image, `--network none`, root filesystem read-only, `sites` volume mounted **readonly** at its real bench path, nonroot/capability-dropped, with stream logging and bounded lifetime. The operator pre/post verified three persistent DB/Redis rehearsal service containers, four volumes, isolated network and SHA256 of real site's `site_config.json`, common config and `apps.txt` unchanged; no persistent services/migrations/DB activity intentionally triggered. The child reported a caught error at `frappe.init(site="ccpcerp.local", sites_path=..., is_request=True)`; exception type and call site were **suppressed**, so this result cannot establish corruption, credential failure, permission problem or application incompatibility. No stage17S rerun should occur unchanged.
+
+**Source-level hypothesis (not proven image-trace):** Inspection of upstream Frappe `version-16` `frappe/__init__.py` shows that `init` calls `setup_module_map(include_all_apps=False)` for `is_request=True`; `setup_module_map` can call `get_installed_apps(_ensure_on_bench=True)`, and `get_installed_apps` calls `connect()` if no db connection is present. It also may access Redis cache. With `--network none`, this is a plausible normal STOP on internal DB/Redis access even when site files are valid. However the actual immutable custom image implementation/its exact exception has **not** been independently traced. Do not enable network while loading original site config/full-write DB password for diagnosis, and do not create privileged write access.
+
+**NEXT efficient, safe targeted diagnostic:** Either (1) NEW-only no-container, read-only site-directory UID1000 access/permission and `apps.txt`/config consistency assessment plus an independent **static source audit of the pinned image** for `setup_module_map` and installed-app DB connection paths; or (2) a separately scoped **instrumented, networkless, read-only** helper that prints only exception class/module and a whitelist of Frappe init phase tags, suppressing raw exception messages/tracebacks because they may contain site path/business/secret information. This is a **new root-cause diagnostic**, not a blind retry of Stage17S. With evidence in hand, plan **SELECT-only scratch site config** from protected credentials with retained non-secret restored flags and optionally restored encryption key, on the existing isolated NEW bridge with no original `sites` volume mounted; test actual Frappe DocType/Company metadata in a single transaction after controlling side effects and rollback. Preserve all original site files/DB and OLD PROD/DEV; no production changes/cutover.
+
 ## OLD LIVE PROD STAGE 17R READ-ONLY AGGREGATE COMPARISON MATCHES NEW NOV5 REHEARSAL — 2026-11-07
 
 **PASS — owner-run OLD `gani@ccpcerpserver` read-only summary, no PROD changes reported:**
