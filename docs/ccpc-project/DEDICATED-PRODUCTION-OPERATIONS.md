@@ -1,5 +1,26 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 10 READ-ONLY VOLUME STATE CONFIRMED EMPTY, OWNER FRAPPE — 2026-11-07
+
+**PASS — owner-run READ-ONLY diagnosis after the Stage 10 ephemeral helper STOP.** Owner pasted:
+
+```text
+REHEARSAL_DOCKER_SCOPE_VERIFIED
+SITES_VOLUME_ROOT=DIRECTORY|UID=1000|GID=1000|MODE=0755
+SITES_ROOT_ENTRY_COUNT=0
+SITES_UNEXPECTED_ROOT_ENTRY_COUNT=0
+APPS_TXT=ABSENT
+COMMON_SITE_CONFIG=ABSENT
+SITE_DIRECTORY=ABSENT
+REHEARSAL_SITE_VOLUME_READ_ONLY_DIAGNOSTIC_COMPLETE
+```
+
+The guarded inspection confirmed NEW `ccpcadmin@ccpcerp-prod`, default local Docker context, only the three existing rehearsal DB/Redis containers, internal three-attachment bridge and four named scoped volumes. It compared the named `ccpc_restore_rehearsal_20261107_sites` volume mountpoint to the actual Docker data-root's `volumes/<name>/_data`, rejected symlink/path mismatch, then inspected only lstat metadata and directory entry counts. The sites root is now **owned by 1000:1000 (Frappe account)** but still `0755`; **there are no files or subdirectories**. Therefore the helper stopped after ownership was changed but before creating `ccpcerp.local`, `apps.txt` or either JSON config. The strongest explanation is that the root helper, limited to `CAP_CHOWN`, could chown a root-owned volume to UID 1000 but could not subsequently `chmod` a directory it no longer owned without `CAP_FOWNER`; we did not capture its stderr so this remains a supported causal inference, not direct error trace.
+
+**Next safe NEW-only bounded operation (existing phased rehearsal approval):** Recover without deleting/recreating/restarting anything by using a new one-shot `ccpcerp:v16.50.0` helper **as `1000:1000`**, not root; no Linux capabilities; `--network none`, `--read-only`, `--security-opt no-new-privileges`, exact `volume-nocopy` named rehearsal sites mount, `--rm`, pinned immutable image ID. First verify the volume is STILL exactly empty, owner `1000:1000`, mode `0755`, local Docker context, expected container/volume/network inventory; verify checksum-pinned `site_config_backup.json` and separate private `site-db.env` file, no secret output. The helper can then `chmod` the already-owned root to `0750`, create the site directory `ccpcerp.local` and two JSON config files plus `apps.txt` **as the Frappe user**, read back files and validate UID/GID/modes `site_config.json 0600`, common/apps `0640`. Preserve the historical `encryption_key`, but use only newly generated app DB password from `site-db.env`; force `disable_scheduler=1`, `pause_scheduler=1`, `maintenance_mode=1`, `mute_emails=1`, `developer_mode=0` and strictly internal DB/Redis hosts. Do not invoke any Frappe service, bench migrate, files tar extraction, HTTP/email, queue workers or frontend, and do not edit PRODUCTION/DEV. On partial creation failure, do not rerun, delete or overwrite—inspect volume metadata and contents again.
+
+**Still not completed:** site config, attachment extraction, application validation, ERPNext accounting and inventory acceptance, any final cutover snapshot or production deployment. Stage 8 restored 741 BASE TABLE + 6 SEQUENCE, Stage 9 app DB account passed login; these remain preserved, not rerun.
+
 ## NEW REHEARSAL STAGE 10 SITE-VOLUME CONFIG HELPER PARTIAL FAILURE — 2026-11-07
 
 **PARTIAL / STOP — owner-run Stage 10 attempted to prepare the NEW isolated rehearsal `sites` volume.** Operator output:
