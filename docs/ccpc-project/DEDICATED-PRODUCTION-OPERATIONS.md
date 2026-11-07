@@ -1,5 +1,28 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW SIX-FILE REHEARSAL-ONLY COMPOSE OVERRIDE VALIDATED — 2026-11-07
+
+**PASS — owner-run on NEW `ccpcadmin@ccpcerp-prod` during preparation-only approval.** The operator generated a new rehearsal-only scratch override at `/home/ccpcadmin/.ccpc-compose-review-c12d46f/source-only/compose.rehearsal-only.yaml`, preserving the original five pinned GitHub Compose files and the two original checkout worktrees. Prior to creation, the guarded command verified NEW host/user, private scratch location, absence of an existing override or checkout `.env`, and the five original Git blob hashes. The override is a private 0600 scratch YAML, **not** reviewed release code and not installed as a live deployment.
+
+The operator pasted:
+
+```text
+REHEARSAL_INTERNAL_NETWORK_CONFIG_OK
+REHEARSAL_NO_PUBLISHED_PORTS_OK
+REHEARSAL_BACKGROUND_PROFILES_INACTIVE_BY_DEFAULT
+REHEARSAL_RESTART_POLICIES_DISABLED
+REHEARSAL_SYNTHETIC_CONFIG_VALIDATED
+REHEARSAL_OVERRIDE_SHA256:
+65832a8be0f57e24c1134549136638e82833957ae785675fd9f2b543f92672e8  /home/ccpcadmin/.ccpc-compose-review-c12d46f/source-only/compose.rehearsal-only.yaml
+REHEARSAL_PREPARATION_ONLY_COMPLETE
+```
+
+**Test scope:** The exact first five pinned YAMLs were layered with this sixth scratch override, rendered via real NEW Docker Compose CLI `config --format json`, and checked in-memory by Python using `env -i` and a **synthetic** `DB_PASSWORD`; no interpolated full model or production credential was displayed. Verified project name `ccpc_prod_erpnext`, declared internal default network, no published ports, restart policy `no` for every service, and `frontend`, `websocket`, `scheduler`, `queue-short`, `queue-long` assigned `ccpc-rehearsal-disabled` profile. The core service definitions `configurator`, `backend`, `db`, `redis-cache`, `redis-queue` were not assigned such profiles. The operator's terminal input echo was partially garbled, but all end-of-script expected markers and an exact SHA-256 line were printed.
+
+**What this does not prove:** Compose parser acceptance and profiles do *not* establish runtime isolation, actual service activation order, absence of egress/DNS to external destinations, site schedulers/events disabled in persisted data, lack of email/integration side effects, restored data correctness, or persistent on-host server state. Profiles are opt-in but can be overridden; default `docker compose up` could start core backend and Redis/DB services even with other services profiled. Do **not** run `up`, `run`, `start`, network create, volume create, DB/file restore, `bench migrate`, scheduling, network cutover or cleanup under preparation-only authorization.
+
+**Next distinct authorization gate (not yet granted):** A phased **NEW-host-only, isolated non-live rehearsal** with preserved OLD PRODUCTION/DEVELOPMENT and no traffic cutover. Before giving any mutating command, prepare and review exact guarded Compose/project/volume selection, vetted real Docker image IDs, secret source and non-printing handling, no host-port publication, internal-network enforcement, explicit *service allowlist* excluding frontend/websocket/scheduler/queue workers, no unintended public routing, reversible new-only resource names/rollback strategy and staged stop-on-failure proof. The four independently transferred 2026-11-05 02:00 production backup artifacts are historical rehearsal inputs, not authoritative final cutover snapshot; a real restore of them requires explicit scoped approval and must be free of outgoing email/external integration effects. Do not silently use `CCPC_SYNTHETIC_TEST_ONLY` as actual database password. Later separate cutover always requires a new, consistent reconciled backup and its own approval. Nothing was started or restored in this checkpoint.
+
 ## NEW SANITIZED DEDICATED COMPOSE LAYOUT VERIFIED — 2026-11-07
 
 **PASS — owner-run source-pinned sanitized render on NEW `ccpcadmin@ccpcerp-prod`**, during explicitly approved preparation-only scope; three pre-existing GitHub-verified Docker image tags and zero existing containers/volumes as last checked. Operator output:
