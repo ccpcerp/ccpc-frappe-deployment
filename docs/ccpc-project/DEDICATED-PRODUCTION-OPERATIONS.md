@@ -1,5 +1,31 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 15 ALL 774 PINNED PATCH DECLARATIONS SUCCESSFULLY LOGGED — 2026-11-07
+
+**PASS — owner-run NEW-only Stage 15 read-only comparison of image patch declarations with restored DB `tabPatch Log`.** Output supplied:
+
+```text
+REHEARSAL_STAGE15_ISOLATION_VERIFIED
+REHEARSAL_PATCH_LOG_ROWS=774
+REHEARSAL_PATCH_LOG_SUCCESSFUL_DISTINCT=774
+REHEARSAL_PATCH_LOG_SKIPPED_DISTINCT=0
+REHEARSAL_FRAPPE_PATCH_DECLARATIONS=267
+REHEARSAL_FRAPPE_PATCHES_WITHOUT_SUCCESS_LOG=0
+REHEARSAL_ERPNEXT_PATCH_DECLARATIONS=504
+REHEARSAL_ERPNEXT_PATCHES_WITHOUT_SUCCESS_LOG=0
+REHEARSAL_CCPCERP_PATCH_DECLARATIONS=3
+REHEARSAL_CCPCERP_PATCHES_WITHOUT_SUCCESS_LOG=0
+REHEARSAL_TOTAL_DISTINCT_PATCH_DECLARATIONS=774
+REHEARSAL_DECLARED_PATCHES_ALL_SUCCESSFULLY_LOGGED
+REHEARSAL_STAGE15_READ_ONLY_PATCH_AUDIT_COMPLETE
+```
+
+**Validated meaning:** All 267 distinct Frappe, 504 ERPNext, and 3 CCPC custom application patch declarations from the pinned `ccpcerp:v16.50.0` image have a corresponding **successful** (skipped=0) Patch Log record in the restored November 5 SQL database. 774 total log records are distinct, with zero skipped, and all 774 declared patch strings matched. This corroborates the Stage 14 `MATCH` of all three app version declarations to `tabInstalled Application` records. Stage 15 did not run any patches, import code, execute bench commands, start application services, or write to the DB/volume. Three isolated DB/Redis containers, private bridge and labeled volumes remained the only persistent environment as reported by the operator. Do **not** migrate/install/reimport or reset the restored database on this evidence.
+
+**Important boundary:** This is **patch registry completeness**, not actual execution replay, model-schema diff, decoded credentials test, GL/stock ledger audit, permissions test, employee-facing app operation or final cutover readiness. A migration can have other work outside patch log, so no `bench migrate` without a separately reviewed plan. Also, an internal Docker bridge by itself is not a demonstrated outbound network fence for arbitrary Frappe process execution; scheduler/email off switches are additional but not sufficient standalone safeguards.
+
+**Next bounded Stage 16 without live app processes:** perform a no-network, no-write, UID1000 helper `--read-only --cap-drop ALL` import/compatibility smoke on the exact pinned image, with only the already restored `sites` named volume **read-only**, no DB or Redis network access. Validate that Frappe/ERPNext/CCPC Python application package imports and static hook loading do not fail in the current image; no `frappe.init`, `bench`, `frappe.connect`, jobs, web server, migrate, or event firing. Treat any import error as a diagnostic without modifying image/site/DB. Independently inspect Docker egress and side-effect constraints before any later live DB-coupled Frappe runtime test; use a dedicated read-only database account and restrictive runtime if that test is approved, rather than letting full-privileged site DB credentials mutate the restored copy. Keep OLD PRODUCTION, DEVELOPMENT and live services untouched. This historic backup is rehearsal only.
+
 ## NEW REHEARSAL STAGE 14 PINNED APP VERSIONS MATCH RESTORED DB — 2026-11-07
 
 **PASS — owner-run read-only Stage 14 version checks on NEW `ccpcadmin@ccpcerp-prod`.** Owner reported:
