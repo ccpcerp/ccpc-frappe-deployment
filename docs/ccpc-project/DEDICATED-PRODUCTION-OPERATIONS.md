@@ -1,5 +1,21 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW FIVE-FILE SYNTHETIC DOCKER COMPOSE CONFIG PARSER PASSED — 2026-11-07
+
+**PASS — owner-run on NEW `ccpcadmin@ccpcerp-prod`** after script reverified the exact GitHub blob hashes of all five scratch `source-only` YAML files, correct host/account, and private directory ownership/modes. Owner pasted:
+
+```text
+PINNED_SOURCE_REVERIFIED
+BEGIN_SYNTHETIC_COMPOSE_CONFIG_CHECK
+PINNED_COMPOSE_SYNTHETIC_CONFIG_OK
+```
+
+**Bounded test:** `env -i` with test-only `DB_PASSWORD=CCPC_SYNTHETIC_TEST_ONLY`, explicit `CUSTOM_IMAGE=ccpcerp`, `CUSTOM_TAG=v16.50.0`, `PULL_POLICY=never`, default legacy-lan publish inputs overridden by the last dedicated-pre-TLS YAML, and explicit `--project-name ccpc_prod_erpnext`; ran only `docker compose -f compose.yaml -f overrides/compose.mariadb.yaml -f overrides/compose.redis.yaml -f overrides/compose.lan-production.yaml -f overrides/compose.dedicated-pre-tls.yaml config --quiet` in protected scratch `/home/ccpcadmin/.ccpc-compose-review-c12d46f/source-only`. Exit success was confirmed by final script marker. Terminal input echo had harmless garbling, but the actual three success markers printed. No actual credential file was created, and no real production credentials used.
+
+**Meaning:** Real Docker Compose parser accepted the pinned YAML layering with synthetic values. This does **not yet** verify service names, published ports, engine network isolation, volumes, scheduler disablement, runtime startup, host deployment wrapper, database restore or newer custom app release. The original `ccpcerp:v16.50.0` image remains separate from newer draft custom app PR #33. Current NEW Docker has no containers or volumes as of previous independent operator inventory; no mutation was performed by the parser command.
+
+**Next preparation-only check:** Produce a **sanitized** effective Compose model inspection by piping `docker compose ... config --format json` directly to a Python parser running under a wiped environment with synthetic `DB_PASSWORD`; print only allowlisted service names, image tags, frontend host binding, named volumes, network declarations and queue/scheduler presence, **never the full JSON or all environment variables**. Guard source file hashes again and reject unexpected services, binding, host network, bind mounts, external networks, privileged services, docker socket or unknown mounts. On discrepancy, STOP and review without starting services. `scheduler` and queue workers remain defined and must be separately excluded/disabled and externally isolated before any rehearsal startup. Need a separate owner approval for any Compose runtime resources, restore or cutover.
+
 ## NEW FIVE-FILE COMPOSE SCRATCH SOURCE VERIFIED ON HOST — 2026-11-07
 
 **PASS — owner-run local source assembly on NEW `ccpcadmin@ccpcerp-prod`** following the source-only, GitHub-blob-pinned procedure in the preceding checkpoint. Terminal report:
