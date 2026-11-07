@@ -1,5 +1,20 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## PINNED FIVE-FILE COMPOSE SOURCE BUNDLE PREPARED OFF-HOST — 2026-11-07
+
+**Confirmed read-only NEW host diagnostic:** Operator pasted `SCRATCH_DIRECTORY=ccpcadmin:700`, `SCRATCH_REPO_PATH_ABSENT`, `PINNED_COMMIT_NOT_LOCAL_IN=ccpc-frappe-deployment`, `PINNED_COMMIT_NOT_LOCAL_IN=ccpc-pr29-review`, `LOCAL_SOURCE_AVAILABILITY_CHECK_COMPLETE`. Neither existing NEW checkout has the pinned `c12d46f` commit, and the failed GitHub SSH clone left only the isolated private scratch parent. Do not modify or reset either historical checkout.
+
+**Credential-free alternative prepared in the active ChatGPT conversation:** A source-only ZIP named `ccpc-compose-source-c12d46f-five-files.zip` was constructed from five *GitHub connector-fetched* Compose YAML files at exact deployment review commit `c12d46f7363c93742f7e9fb88b2e14a67dbd9a7e`. Each source byte sequence was locally checked against its GitHub Git-blob SHA:
+- `compose.yaml`: `752b86e1ba4c1977a2636b1916f6015771f4c28c`
+- `overrides/compose.mariadb.yaml`: `94e177c38707a40bdd2715287565c80e41c4f3d3`
+- `overrides/compose.redis.yaml`: `64bc05ac2e955719822718e5118a62d0c9771e24`
+- `overrides/compose.lan-production.yaml`: `3e65debe8d007b73d23f46f880cc53a182a19829`
+- `overrides/compose.dedicated-pre-tls.yaml`: `14fd89a3c2371104f464964137483de9f4a35861`
+
+Bundle also contains non-secret `SOURCE-MANIFEST.json` and `README.txt`; archive SHA-256: `55e7dd0a8777192ff3fa5e5af5254ce307b695d670f9dd4e9334bbb4e03fac45`; size `4238` bytes. ZIP entries were read back and SHA256-verified. **Source bundle is NOT a full Git checkout or deployable release; no runtime/source validation on NEW has occurred.** This ChatGPT artifact is transient and must not be presented as already installed on NEW or as GitHub authoritative source itself; exact GitHub commit and file hashes are authoritative.
+
+**Next operator step, PREPARATION ONLY:** Download the small ZIP from the current chat and transfer it over the operator's already authorized secure administration/SFTP connection into the existing private NEW directory `/home/ccpcadmin/.ccpc-compose-review-c12d46f` (no root, no NEW GitHub SSH credential). Verify archive SHA and intended path on NEW before extraction; guard against archive traversal, symlinks or unexpected paths. This introduces only scratch YAML files and metadata; no `.env`, real passwords, container, volume, network or restore. Follow with a **separately reviewed synthetic-credential, no-deploying `docker compose config --quiet`** check using the exact five file layering, and sanitized port/mount inspection. Do not confuse this raw Compose parser test with the still-unvalidated dedicated wrapper guards, nor treat `config --quiet` as permission for `up`.
+
 ## NEW ISOLATED SCRATCH CLONE BLOCKED BY GITHUB SSH AUTH — 2026-11-07
 
 **Owner-reported result:** The approved preparation-only attempt to shallow-clone pinned review branch `review/dedicated-host-readonly-inventory-2026-10-25` on NEW `ccpcadmin@ccpcerp-prod` ended with:
