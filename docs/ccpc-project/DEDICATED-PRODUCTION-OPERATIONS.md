@@ -1,5 +1,29 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW SANITIZED DEDICATED COMPOSE LAYOUT VERIFIED — 2026-11-07
+
+**PASS — owner-run source-pinned sanitized render on NEW `ccpcadmin@ccpcerp-prod`**, during explicitly approved preparation-only scope; three pre-existing GitHub-verified Docker image tags and zero existing containers/volumes as last checked. Operator output:
+
+```text
+BEGIN_SANITIZED_COMPOSE_LAYOUT_CHECK
+COMPOSE_PROJECT_OK
+EXPECTED_TEN_SERVICES_AND_IMAGES_OK
+FRONTEND_LOOPBACK_127.0.0.1_8080_OK
+NO_OTHER_PUBLISHED_PORTS
+DECLARED_VOLUMES_AND_MOUNTS_OK
+NO_EXTERNAL_NETWORKS_OR_VOLUMES
+SCHEDULER_AND_WORKERS_PRESENT_NOT_DISABLED
+SANITIZED_COMPOSE_LAYOUT_CHECK_PASSED
+```
+
+The operator command rechecked all five source YAML Git blob hashes against pinned source at `c12d46f7363c93742f7e9fb88b2e14a67dbd9a7e`, then passed a synthetic `DB_PASSWORD`, explicit local image tags and `PULL_POLICY=never` through a sanitized `env -i docker compose ... config --format json | python3` pipeline. The Python parser did not print the complete Compose JSON or any environment-variable values. Source-only checks established the candidate project name `ccpc_prod_erpnext`, ten expected service definitions and expected tags, only one loopback frontend published port, pinned named volume/mount sets, no additional declared external Docker networks/volumes, and absence of privileged/network_mode/PID/devices/extra_hosts values. Opening terminal input echo had paste artifacts; the meaningful success markers all printed.
+
+**Risk:** This is strictly a static *effective model* inspection, **not** verification of actual runtime network egress isolation. The services `scheduler`, `queue-short`, and `queue-long` are still present **and not disabled**; default Compose network is not declared `internal: true` in the pinned five-file model. Published loopback frontend does not prevent outbound traffic. Existing production image/site backup are not yet restored, and no new containers, volumes, networks, actual credentials, real data, or cutover were created by this test. Original OLD PRODUCTION/DEVELOPMENT are untouched.
+
+**Next engineering step within already approved *preparation-only* scope:** Prepare a distinct private, **rehearsal-only scratch override**, layered *sixth*, never overwriting any of the five pinned GitHub files or checkouts. It must: (1) put the scratch default bridge network in `internal: true` state; (2) leave `frontend` not scheduled and replace its ports with `!override []`; (3) place `scheduler`, `queue-short`, and `queue-long` behind non-default Compose profiles; (4) avoid real secrets and network/backup operations, and (5) enforce fail-closed, no-deployment real parser checks on the resulting synthetic configuration before any separate write-capable rehearsal approval. Explicitly disallow `--profile`, `COMPOSE_PROFILES`, host networking, all port publication, and any additional external network. Since Compose profiles are opt-in and can be explicitly enabled, profiles alone are **not** a security boundary; the operator must later run a narrowly scoped allowlist of service names. A network declared `internal: true` is intended to isolate containers externally, but actual engine behavior/host routing must be independently checked before production-data restore.
+
+**Approval gate unchanged:** Creating or starting any Docker networks, containers, volumes, restore, migrations, enabling jobs/email/integrations, applying real secrets, updating OLD PRODUCTION/DEV or cutover still requires explicit separate owner authorization. The four Nov 5 02:00 transferred files are rehearsal inputs, not verified final cutover backup.
+
 ## NEW FIVE-FILE SYNTHETIC DOCKER COMPOSE CONFIG PARSER PASSED — 2026-11-07
 
 **PASS — owner-run on NEW `ccpcadmin@ccpcerp-prod`** after script reverified the exact GitHub blob hashes of all five scratch `source-only` YAML files, correct host/account, and private directory ownership/modes. Owner pasted:
