@@ -1,5 +1,20 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## OWNER APPROVED RESTORE-REHEARSAL PREPARATION AND SOURCE REVIEW — 2026-11-07
+
+**Owner said "Approved Continue" after the explicitly limited proposal of preparation/validation only**, following the verified NEW image inventory; this does not approve Docker container/volume creation, Compose `up`, service starts, database/file restore, migrations, credential provisioning, production cutover or changes to OLD PRODUCTION/DEVELOPMENT.
+
+**Fresh GitHub review (2026-11-07) — verified immutable tips:**
+- Dedicated Compose candidate `review/dedicated-host-readonly-inventory-2026-10-25` @ `c12d46f7363c93742f7e9fb88b2e14a67dbd9a7e`; **review-only**, not merged or deployed.
+- App PR #33 `review/billing-authorization-correction-2026-11-03` @ `1bde04bf6d51d2c1b3197ef41696e8b6df7b0ecc` still **OPEN / DRAFT**, not production accepted.
+- Source code in candidate's `scripts/config.sh` still pins `CCPC_REF=release-2026-09-16` and `CCPC_SHA=cfcc19394a6646548f2b7050db040c8cf5ebafde`; `apps.json` still uses `release-2026-09-16`. This is **not** the newer business-feature candidate; do not silently change the existing original `ccpcerp:v16.50.0` Docker image to draft code.
+- Five review Compose files (order): `compose.yaml`, `overrides/compose.mariadb.yaml`, `overrides/compose.redis.yaml`, `overrides/compose.lan-production.yaml`, `overrides/compose.dedicated-pre-tls.yaml`. Last uses YAML `!override` to set loopback-only `127.0.0.1:8080:8080/tcp` and requires `DB_PASSWORD`; source lists both `scheduler` and queue workers with potentially active behavior. **Do not run full stack for rehearsal without isolation.**
+- Candidate's `scripts/modules/docker.sh` enforces dedicated env file ownership/modes, refuses ambient Compose selectors, requires default local Docker socket, and pins candidate Compose project `ccpc_prod_erpnext`. These are **source-only guard findings**; real Docker Compose parser/runtime behavior has not been validated.
+
+**Next operator step within approved preparation only:** create an isolated user-private **scratch clone** on NEW `ccpcadmin@ccpcerp-prod` from the pinned GitHub review branch, with strict SSH host-key checking and exact HEAD assertion. The scratch clone must be separate from the two prior NEW checkouts and never execute deployment scripts, alter existing Git worktrees, print secrets, or start Docker containers. Git clone creates only a new lab directory; inspect exact output before a subsequent synthetic, no-services-started `docker compose config --quiet` check. If source authentication or commit check fails, STOP; do not weaken SSH validation. No real production credentials used. This is the fastest source-to-real-Compose-parser path without touching existing NEW production checkouts.
+
+**Data boundary:** The independently copied November 5 02:00 four-artifact source remains rehearsal data, not final cutover. Full restore acceptance still pending; reconcile any later writes before live cutover. Preserve OLD source and NEW archives.
+
 ## NEW DOCKER POST-IMPORT READ-ONLY INVENTORY VERIFIED — 2026-11-07
 
 **PASS — owner-run read-only verification on NEW `ccpcadmin@ccpcerp-prod`** after the guarded supporting-image import. Exact reported output:
