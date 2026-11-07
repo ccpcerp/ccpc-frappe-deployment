@@ -1,5 +1,22 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 16 BENCH IMPORT UnsupportedOperation UNDER StringIO REDIRECTION — 2026-11-07
+
+**STOP — operator-run corrected Stage 16 Python import using Bench venv, NEW `ccpcadmin@ccpcerp-prod`.** Output:
+
+```text
+REHEARSAL_STAGE16_CORRECTED_ISOLATION_VERIFIED
+REHEARSAL_BENCH_VENV_ACTIVE
+STOP: offline helper import failed: frappe | UnsupportedOperation
+STOP: corrected offline import incomplete; preserve state
+```
+
+**What is confirmed:** Guarded NEW-local Docker scope, pinned custom Frappe image and isolated three-container/four-volume rehearsal passed. The actual Bench venv launched. `importlib.import_module('frappe')` returned `io.UnsupportedOperation` *inside the helper's output suppression context*; no module-import PASS markers followed, and no ERPNext or CCPC import was tested. This was no-network, read-only-rootfs, UID1000, no capabilities, zero site/DB/Redis volume mounts, no restored credentials, no BENCH or persistent app services. Existing SQL/site/attachments all retained.
+
+**Strong test-harness hypothesis, not proven yet:** The helper used `contextlib.redirect_stdout(io.StringIO())` and `redirect_stderr(io.StringIO())`; a library performing `sys.stdout.fileno()` or `sys.stderr.fileno()` raises `io.UnsupportedOperation` because `StringIO` has no OS file descriptor. There is currently no sanitized traceback to locate the exact Frappe import operation. **Do not claim application code is incompatible** or regenerate/migrate any restored artifacts.
+
+**Next safe diagnostic:** Keep the same NEW host, local Docker, pinned image, three-container internal network, expected four volumes preflight. Run a new *one-shot* no-network read-only-rootfs UID1000 no-capabilities helper with explicit Bench Python, **no mounts at all**, and use a real writable `/dev/null` stream for redirected stdout/stderr (supports `fileno()`), checking this locally in the ephemeral helper before importing. The caller must capture stdout/stderr and print only allowlisted test markers or sanitized module and exception type; no raw Frappe output or tracebacks; no site secrets available to helper. Validate imported origins under each image app package, report per-module success. If import still fails, stop at first failure with sanitized type for a separate traceback-origin diagnosis; do not rerun the old StringIO command or enable database-coupled Frappe CLI automatically. No OLD PRODUCTION, DEV or live cutover.
+
 ## NEW REHEARSAL STAGE 16 BENCH VIRTUALENV PACKAGE DISCOVERY PASS — 2026-11-07
 
 **PASS — operator-run corrected Bench Python *discovery-only* test on NEW `ccpcadmin@ccpcerp-prod`.** Owner reported:
