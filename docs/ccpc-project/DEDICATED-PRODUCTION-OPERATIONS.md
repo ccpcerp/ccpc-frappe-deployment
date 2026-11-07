@@ -1,5 +1,18 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## FIVE-FILE COMPOSE SOURCE CAN BE ASSEMBLED LOCALLY WITHOUT ZIP OR SSH — 2026-11-07
+
+**User prefers no manual ZIP transfer and asked about NAS backup.** Clarification: the four November 5 database/site backup artifacts are already checksum-verified on NEW; the requested five-file Compose source set is a separate GitHub code artifact, not the NAS backup. Neither backup retransfer nor any NEW permanent GitHub SSH credentials are necessary for this source-only step.
+
+**Verified GitHub blob equality:** NEW has clean (as of prior operator inspection) historical deployment checkout `/home/ccpcadmin/ccpc-pr29-review` at `security/dedicated-prod-external-env-2026-10-23` commit `bd92ade7ac859b9f6b21b157bdc1629e93f4540c`. Current reviewed candidate branch `review/dedicated-host-readonly-inventory-2026-10-25` HEAD is `c12d46f7363c93742f7e9fb88b2e14a67dbd9a7e`. GitHub `fetch_file` proved **exact blob equality** for four Compose files across those two commits:
+- `compose.yaml`: `752b86e1ba4c1977a2636b1916f6015771f4c28c`
+- `overrides/compose.mariadb.yaml`: `94e177c38707a40bdd2715287565c80e41c4f3d3`
+- `overrides/compose.redis.yaml`: `64bc05ac2e955719822718e5118a62d0c9771e24`
+- `overrides/compose.lan-production.yaml`: `3e65debe8d007b73d23f46f880cc53a182a19829`
+The fifth file differs: `overrides/compose.dedicated-pre-tls.yaml` on pinned review has Git blob `14fd89a3c2371104f464964137483de9f4a35861`, whereas older on-host branch has `9b69b0c7a1d64191a51da5126ddc82498202446f`.
+
+**Faster safe source-only procedure proposed (not yet run):** On NEW guard hostname/user, protect existing `/home/ccpcadmin/.ccpc-compose-review-c12d46f` 0700 parent and existing checkout, check actual local old HEAD is `bd92ade...` and clean, `git hash-object` all four existing YAML files against their recorded reviewed blob IDs, copy exactly those four into a new private scratch subdirectory `source-only`, and create the sole differing pinned fifth YAML from directly reviewed source literal. Verify all five resulting `git hash-object` values exactly. No GitHub server authentication, ZIP, file transfer, NAS mount, secrets, containers, volumes, database restore, or production service start required. **It produces only the five pinned Compose YAML files, not a full reviewed Git checkout or validated deploy wrapper.** Stop on unexpected existing scratch content or any hash mismatch; do not overwrite user files or reset source worktrees. Then separately validate `docker compose config --quiet` using synthetic credentials and no service startup.
+
 ## PINNED FIVE-FILE COMPOSE SOURCE BUNDLE PREPARED OFF-HOST — 2026-11-07
 
 **Confirmed read-only NEW host diagnostic:** Operator pasted `SCRATCH_DIRECTORY=ccpcadmin:700`, `SCRATCH_REPO_PATH_ABSENT`, `PINNED_COMMIT_NOT_LOCAL_IN=ccpc-frappe-deployment`, `PINNED_COMMIT_NOT_LOCAL_IN=ccpc-pr29-review`, `LOCAL_SOURCE_AVAILABILITY_CHECK_COMPLETE`. Neither existing NEW checkout has the pinned `c12d46f` commit, and the failed GitHub SSH clone left only the isolated private scratch parent. Do not modify or reset either historical checkout.
