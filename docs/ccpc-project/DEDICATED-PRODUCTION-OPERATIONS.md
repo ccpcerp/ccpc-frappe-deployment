@@ -1,5 +1,26 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 12 OFFLINE IMAGE/SITE SAFETY PASS; APP METADATA FALLBACK REQUIRED — 2026-11-07
+
+**PASS on the offline site/image safety and database object invariants; installed-app registry in restored DATABASE still pending verification.** Owner-run Stage 12 read-only diagnostic on NEW `ccpcadmin@ccpcerp-prod` returned:
+
+```text
+REHEARSAL_STAGE12_ISOLATION_VERIFIED
+REHEARSAL_SITE_FILE_TREE_VERIFIED
+REHEARSAL_SITE_KEY_AND_APP_DB_SECRET_MATCH_SOURCES
+REHEARSAL_OFFLINE_SITE_SAFETY_FLAGS_VERIFIED
+REHEARSAL_IMAGE_CODE_AND_SITE_APP_REGISTRY_MATCH
+REHEARSAL_DATABASE_741_TABLES_6_SEQUENCES_UNCHANGED
+REHEARSAL_DB_INSTALLED_APPS_METADATA_TABLE_ABSENT
+REHEARSAL_STAGE12_READ_ONLY_COMPATIBILITY_DIAGNOSTIC_COMPLETE
+```
+
+**Verified meaning:** The NEW-only isolated three-container MariaDB+Redis set, internal bridge, four volumes and pinned `ccpcerp:v16.50.0` were checked. The ephemeral helper used no networking, a readonly `sites` volume, UID:GID1000 and no Linux capabilities; site and restored file tree/permissions passed. The **site config historical `encryption_key` digest** matched the protected 2026-11-05 backup, and its `db_password` matched the independently protected Stage 9 app secret. Both common and site settings used internal DB/Redis hosts, `maintenance_mode=1`, `disable_scheduler=1`, `pause_scheduler=1`, `mute_emails=1`, `developer_mode=0`. The image's installed directory and sites/apps.txt set match (including frappe, erpnext, ccpcerp). MariaDB still reports 741 BASE TABLE and six SEQUENCE objects. This is a **read-only structural/configuration PASS, not proof Frappe app or GL/stock behavior**.
+
+**Important metadata interpretation:** The check looked specifically for a physical SQL table named `tabInstalled Applications` and found none. That does **not** by itself mean the apps are uninstalled. Frappe’s installed-app registration is maintained in a *global default* `installed_apps` (backed by `tabDefaultValue`), and the `Installed Applications` DocType is Single, with optional child rows in `tabInstalled Application` to track version metadata; `bench list-apps` can use global-default fallback. See upstream Frappe source and docs: https://github.com/frappe/frappe/blob/develop/frappe/installer.py ; https://github.com/frappe/frappe/blob/develop/frappe/apps.py ; https://docs.frappe.io/framework/user/en/bench/reference/list-apps . These upstream links are supporting reference, **not independently verified to match the exact pinned image code**. **Do not treat absent `tabInstalled Applications` SQL table as an app-compatibility failure** or create a table manually.
+
+**Next bounded read-only Stage 13:** Check NEW Docker/local isolation and restored 741+6 object catalog; read the protected backup `db_name` without printing it. Query `tabDefaultValue` for `defkey='installed_apps'` (global parent `__global`) and parse stored JSON **in memory**. Print only entry counts and booleans for `frappe`, `erpnext`, `ccpcerp`; compare with a valid `tabInstalled Application` child-table app set if it exists, and inspect the Single DocType presence/issingle flag. Avoid printing raw `defvalue`, user/business rows, passwords, encryption keys, install-version data or app filenames. Do not mutate DB/site, run bench, start persistent backend/worker/scheduler/frontend, contact OLD PROD/DEV, or perform production cutover. If installed-app metadata incomplete, STOP for diagnosis rather than installing or migrating apps automatically.
+
 ## NEW REHEARSAL STAGE 11 PUBLIC/PRIVATE ARCHIVES RESTORED AND VERIFIED — 2026-11-07
 
 **PASS — owner-run, corrected Stage 11 on NEW `ccpcadmin@ccpcerp-prod` under previously approved isolated historical restoration rehearsal.** Output reported:
