@@ -1,5 +1,40 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 11 SOURCE TAR LEADING DOT-SLASH CONFIRMED — 2026-11-07
+
+**PASS — operator-run read-only RAW tar spelling diagnostic on NEW `ccpcadmin@ccpcerp-prod`.** Owner reported:
+
+```text
+PUBLIC_MEMBER_1_TYPE=DIR
+PUBLIC_MEMBER_1_COMPONENTS_VALID=True
+PUBLIC_MEMBER_1_RAW_CANONICAL=False
+PUBLIC_MEMBER_1_LEADING_DOT_SLASH=True
+PUBLIC_MEMBER_1_TRAILING_DOT=False
+PUBLIC_MEMBER_1_DOUBLE_SLASH=False
+PUBLIC_MEMBER_1_TRAILING_SLASH=False
+PUBLIC_ARCHIVE_SAFE_COMPONENTS_VERIFIED
+PRIVATE_MEMBER_1_TYPE=DIR
+PRIVATE_MEMBER_1_COMPONENTS_VALID=True
+PRIVATE_MEMBER_1_RAW_CANONICAL=False
+PRIVATE_MEMBER_1_LEADING_DOT_SLASH=True
+PRIVATE_MEMBER_1_TRAILING_DOT=False
+PRIVATE_MEMBER_1_DOUBLE_SLASH=False
+PRIVATE_MEMBER_1_TRAILING_SLASH=False
+PRIVATE_MEMBER_2_TYPE=FILE
+PRIVATE_MEMBER_2_COMPONENTS_VALID=True
+PRIVATE_MEMBER_2_RAW_CANONICAL=False
+PRIVATE_MEMBER_2_LEADING_DOT_SLASH=True
+PRIVATE_MEMBER_2_TRAILING_DOT=False
+PRIVATE_MEMBER_2_DOUBLE_SLASH=False
+PRIVATE_MEMBER_2_TRAILING_SLASH=False
+PRIVATE_ARCHIVE_SAFE_COMPONENTS_VERIFIED
+REHEARSAL_TAR_SPELLING_DIAGNOSTIC_COMPLETE
+```
+
+**Root cause conclusively identified:** The public and private tar archives use the tar convention of prefixing each member path with a *leading* `./`, e.g. `./ccpcerp.local/public/files` and `./ccpcerp.local/private/files`, and one private direct file under `./ccpcerp.local/private/files/`. These are semantically valid components and were independently verified against original SHA-256, with no traversal, backslash, double slash, trailing dot or trailing slash. Stage 11's first preflight erroneously compared raw entry string to `ccpcerp.local/public/files` without the `./`, causing a **false-positive safety STOP before the helper ran or any files were written**. The prior Stage 10 site configuration remains intact; Stage 8 structural SQL and Stage 9 DB account also intact. **No need to reimport/restore database or regenerate credentials**.
+
+**Recovery action within existing owner-approved NEW-only nonlive rehearsal:** Run a **corrected, strict** Stage 11 archive restore preflight that accepts exactly `./ccpcerp.local/public/files` as one directory and `./ccpcerp.local/private/files` as one directory plus exactly one direct regular private file `./ccpcerp.local/private/files/<sanitized single component>`. Recheck original backup SHA-256 and 0700/0600 file owner/modes; reject unsupported tar member type, link, device, unsafe names and overwrite. Recheck all NEW Docker container/image/network/volume labels, internal bridge, pinned exact custom Frappe image; start **only** a one-shot helper `--network none --read-only --user 1000:1000 --cap-drop ALL --security-opt no-new-privileges --rm` with only rehearsal `sites` volume mounted. Require exactly the Stage 10 expected file tree `apps.txt`, `common_site_config.json`, `ccpcerp.local/site_config.json` and safety flags, verify file content fingerprints before/after and restore only empty public/private files directory trees plus one private file using exclusive, nofollow creation. Pass private payload via helper stdin (no host filenames, secrets or binary data in terminal). If partial failure, leave data intact and inspect; no blind rerun/deletion. No backend, configurator, frontend, WebSocket, workers, scheduler, mail, integrations, DEV/OLD PROD changes or cutover; backups remain historical Nov 5 rehearsal data, not final live cutoff.
+
 ## NEW REHEARSAL STAGE 11 TAR RAW DIRECTORY SPELLING STOP — 2026-11-07
 
 **STOP before any writes — owner-run first attempt at Stage 11 archive restoration, NEW `ccpcadmin@ccpcerp-prod`.** Operator pasted:
