@@ -1,5 +1,13 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17K STRICT FIREWALL MATCH CHECK STOPPED — 2026-11-07
+
+**STOP — owner-run read-only NEW-host verification:** The Stage 17K Python/iptables diagnostic reached the internal-chain rule assertion and printed exactly `STOP: internal bridge negation mismatch` before returning to `ccpcadmin@ccpcerp-prod`. The script's earlier host identity, local Docker context, rehearsal internal bridge, exactly three pinned running DB/Redis containers with no ports, four volume names, FORWARD DROP and first-chain ordering guards had passed or else it would have stopped earlier. No Docker, firewall, database or service writes are in that script.
+
+**Interpretation:** This is a mismatch between the script's **hardcoded expected match pattern** and the actual parsed `DOCKER-INTERNAL` rules, **not** evidence proving an outbound path or a firewall breach. Prior Stage 17J sanitized `OTHER_MATCH:True` did not disclose interface negation form or other non-interface predicates, so the check was deliberately inconclusive. Do not rerun Stage 17K unchanged and do not change firewall rules to make an assertion pass.
+
+**Next single safe action:** Run a NEW-only, read-only diagnostic that rechecks the same exact Docker rehearsal scope and prints **only sanitized classifications** for `DOCKER-INTERNAL` match flags: presence of `-i` and `-o`, whether each matches the exact derived bridge, whether `!` applies, DROP target and safe names of any additional predicate flags. Never print raw rule text, interfaces/IPs, other host firewall infrastructure or secrets. Distinguish a script expectation error from a real rule-ordering or match problem before contemplating a separately approved negative-egress test. No Frappe process, new containers, external probes, firewall edits, DB changes, OLD PROD/DEV or cutover.
+
 ## NEW REHEARSAL STAGE 17J READ-ONLY DOCKER FILTER-CHAIN TRAVERSAL REPORTED — 2026-11-07
 
 **Owner-provided Stage 17J output, read-only on NEW rehearsal scope** (no Docker/firewall mutation reported):
