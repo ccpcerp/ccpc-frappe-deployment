@@ -1,5 +1,31 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17B DB APP ACCOUNT PRIVILEGE SCOPE PASS — 2026-11-07
+
+**PASS — owner-run NEW-only Stage 17B read-only DB privilege-scope audit on `ccpcadmin@ccpcerp-prod`.** Owner reported:
+
+```text
+REHEARSAL_STAGE17B_ISOLATION_VERIFIED
+APP_GLOBAL_ACCOUNT_ROWS=1
+APP_OTHER_HOST_ACCOUNT_ROWS=0
+APP_NONZERO_GLOBAL_PRIVILEGE_ROWS=0
+APP_SCHEMA_GRANT_ROWS=1
+APP_OTHER_SCHEMA_GRANT_ROWS=0
+APP_SCHEMA_SELECT_GRANT=True
+APP_SCHEMA_WRITE_GRANT=True
+APP_TABLE_GRANT_ROWS=0
+APP_COLUMN_GRANT_ROWS=0
+APP_ROUTINE_GRANT_ROWS=0
+APP_ROLE_GRANT_ROWS=0
+APP_PROXY_GRANT_ROWS=0
+REHEARSAL_APP_ACCOUNT_DIRECT_SCOPE_EXPECTED
+REHEARSAL_STAGE17B_READ_ONLY_SCOPE_AUDIT_COMPLETE
+```
+
+**Meaning:** The existing Stage 9 application's MariaDB account is present as one host-`%` account, with zero nonzero global privilege masks, one grant confined to the restored application schema, SELECT and write privileges at schema level, zero individual table/column/routine grants and no role/proxy mappings in the inspected metadata. Strict three-container NEW-only Docker/isolated bridge/four-volume preflight passed. Inspected `mysql.global_priv`, `mysql.db`, `mysql.tables_priv`, `mysql.columns_priv`, `mysql.procs_priv`, `mysql.roles_mapping`, `mysql.proxies_priv` with SQL SELECT only; no passwords or DB names displayed, no grants altered, no applications started. This corroborates earlier Stage 17A and Stage 9's least-scoped normal ERPNext application identity, but **not a read-only identity**. MySQL/MariaDB `% ` grants may allow connections from any reachable source; network fencing must still be independently evaluated.
+
+**Next Stage 17C safest preparation:** New-only *read-only* preflight of candidate unique dedicated diagnostic account identifier, existing MariaDB account/global/schema/routine/role/proxy naming conflicts (report counts/booleans, never names or secrets), image/DB/volume scope and network exposure/host-published ports. Plan single-schema `SELECT` only, isolated credential, source-host restriction, no `GRANT OPTION` or role inheritance. For any later DB account creation, require separate explicit owner authorization and a recorded recovery/rollback plan. Do not modify the existing account, the historical restored site config or DB records. Before Frappe runtime connection, independently prove network egress restrictions; Docker's `Internal` flag alone is insufficient to claim complete isolation, and consider whether a strictly read-only database account permits Frappe initialization (some startup code can try writes and must fail cleanly). No development/old production/live service changes or cutover.
+
 ## NEW REHEARSAL STAGE 17A EXISTING APP DB ACCOUNT HAS WRITE PRIVILEGES — 2026-11-07
 
 **PASS — owner-run Stage 17A NEW-only SQL read-only app-account schema privilege check.** Operator reported:
