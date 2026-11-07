@@ -1,5 +1,31 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 8 ALL 741 SOURCE TABLES MATCH IMPORTED BASE TABLES — 2026-11-07
+
+**PASS for base-table identity; supplementary database object classification PENDING.** Owner-run Stage 8 read-only diagnostic on NEW `ccpcadmin@ccpcerp-prod` reported:
+
+```text
+REHEARSAL_CONTAINERS_AND_NETWORK_REVERIFIED
+RESTORED_DATABASE_OBJECTS=747
+RESTORED_BASE_TABLES=741
+RESTORED_VIEWS=0
+BACKUP_CREATE_TABLE_STATEMENTS=741
+BACKUP_DISTINCT_TABLE_NAMES=741
+BACKUP_DUPLICATE_TABLE_DECLARATIONS=0
+BACKUP_UNPARSED_CREATE_TABLE_LINES=0
+TABLES_MISSING_FROM_RESTORE=0
+TABLES_NOT_IN_BACKUP_DECLARATIONS=0
+REQUIRED_FRAPPE_TABLES_PRESENT=True
+BACKUP_AND_RESTORED_TABLE_NAMES_MATCH
+REHEARSAL_READ_ONLY_IMPORT_DIAGNOSTIC_COMPLETE
+```
+
+**What this resolves:** The original Stage 8 hard stop was due to comparing the total `information_schema.tables` object count (747) against the source's **base-table** declaration count (741). In the new diagnostic, exactly all 741 distinct source `CREATE TABLE` identifiers match the exact 741 NEW `BASE TABLE` identifiers, with no missing or extra base tables, no source duplicates or unparsed declarations, and the `tabDocType`, `tabUser`, `tabSingles` structures present. No views were reported; the additional **six** table-catalog objects were **not yet classified** by the script and are not evidence of failed import. They might be MariaDB sequences but this must be checked from `information_schema.tables.table_type`, not assumed. The SQL client exited successfully in the first import and **must not be rerun**. We can treat base table import as structurally matching, not full Frappe/ERPNext functional validation or complete recovery.
+
+**Next read-only single action:** On NEW only, guard hostname, account, local Docker context, exactly three pinned running rehearsal containers with internal network/no host-published ports, MariaDB healthy, and both checksum-pinned SQL/config input files. Using container-local MariaDB socket without exposing credentials, query `information_schema.tables` grouped by `table_type`, confirm 741 BASE TABLE and the six other entries' types, and query *counts only* for `tabDocType`, `tabUser`, `tabSingles` and optionally `tabCompany` (do not print records). For cross-check, count `CREATE SEQUENCE` source lines in gzip SQL archive if relevant and compare to catalog `SEQUENCE` count. Print only sanitized markers and counts. No DB writes, no import retry, no application services, file extraction, migration, email, integration, employees or cutover. Once verified, next authorized phased stage can prepare a new application database account/privileges and site configuration retaining historical encryption_key (but not historical DB password), then restore two pinned file archives safely. These steps have not occurred.
+
+**Authoritative workflow:** GitHub-first; NEW-only isolated historical Nov 5 02:00 rehearsal after owner approval. OLD PRODUCTION and DEVELOPMENT unchanged; final production release/cutover requires separate approval.
+
 ## NEW REHEARSAL STAGE 8 SQL IMPORT FINISHED; TABLE COUNT VERIFICATION STOP — 2026-11-07
 
 **PARTIAL PASS / STOP — operator-run NEW-only controlled MariaDB import, authorized by the owner-approved isolated rehearsal.** The owner pasted:
