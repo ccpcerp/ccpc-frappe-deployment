@@ -1,5 +1,24 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL DATABASE SECRET CREATED PRIVATELY — 2026-11-07
+
+**PASS — owner-run Stage 3 after explicit phased rehearsal approval.** Owner pasted these markers from the guarded NEW-host script:
+
+```text
+REHEARSAL_DOCKER_RESOURCES_REVERIFIED
+REHEARSAL_PRIVATE_DIRECTORY_700_OK
+REHEARSAL_CREDENTIAL_FILE_600_OK
+REHEARSAL_STRONG_RANDOM_PASSWORD_CREATED
+REHEARSAL_CREDENTIAL_READY_NO_SECRET_DISPLAYED
+NEW_REHEARSAL_CREDENTIAL_PREPARED
+```
+
+**State:** On NEW `ccpcadmin@ccpcerp-prod`, Docker network `ccpc_restore_rehearsal_20261107_default` remained an isolated bridge with zero attached containers; named local volume inventory consisted only of four labeled rehearsal resources `sites`, `db-data`, `logs`, `redis-queue-data`. The guarded script created a new `/home/ccpcadmin/.ccpc-rehearsal-secrets-20261107/` directory owned by `ccpcadmin` mode `0700`, and `db.env` owned by `ccpcadmin` mode `0600` (created with `O_CREAT|O_EXCL|O_NOFOLLOW`). File contains exactly `DB_PASSWORD=<random 64-character lowercase hexadecimal secret>` plus newline, produced via Python `secrets.token_hex(32)`; the actual secret was **never printed or provided to ChatGPT**. No production or old database password reused, and synthetic `CCPC_SYNTHETIC_TEST_ONLY` is not used. Neither database nor Redis services have been started, and no business data restored.
+
+**Next approved Stage 4, operator-run only, not yet performed:** Revalidate correct NEW host account, default local Docker socket, existing isolated network/zero containers/four labels and names, five GitHub-pinned Compose source blobs, sixth scratch-only override SHA-256 `65832a8be0f57e24c1134549136638e82833957ae785675fd9f2b543f92672e8`, exact trusted imported image IDs, and private env file owner/mode plus a nonprinting format check. Use `sudo -n env -i` with `--env-file /home/ccpcadmin/.ccpc-rehearsal-secrets-20261107/db.env` and project `ccpc_restore_rehearsal_20261107` to render the exact six-file effective Compose model and check in a JSON-to-Python pipe that it includes no published ports, only the declared internal default network and four labeled named volumes, disabled restart policies, and appropriate inactive profiles. No complete config/secret output. Only then run exactly `docker compose up -d --no-deps --no-build --pull never --no-recreate db redis-cache redis-queue` against the rehearsal project. **Do not start configurator, backend, frontend, websocket, scheduler, or queue workers at this stage.** After the operation inspect all NEW containers, their project/service labels, image IDs, single isolated network, no host ports, and health/running state; stop after output. Never invoke `docker compose up` without explicit service allowlist. On partial failure leave resources intact, inspect before any rerun or cleanup. Stage 4 uses real NEW rehearsal secret but **no production backup data**. Do not print credentials or unfiltered `docker inspect`/Compose JSON.
+
+**Approval and continuity:** Owner's 2026-11-07 explicit `Approved` encompasses phased isolated NEW-only rehearsal including Stage 4. OLD PRODUCTION/DEVELOPMENT remains untouched. A future restore of immutable Nov 5 02:00 snapshots is rehearsal only and requires isolation validation after DB/Redis start. Go-live, cutover, enabling workers/email/integrations or accessing old production remain excluded.
+
 ## NEW ISOLATED REHEARSAL FOUR DOCKER VOLUMES CREATED AND VERIFIED — 2026-11-07
 
 **PASS — owner-run Stage 2 on NEW `ccpcadmin@ccpcerp-prod`, after explicit overall phased rehearsal approval.** Reported success markers:
