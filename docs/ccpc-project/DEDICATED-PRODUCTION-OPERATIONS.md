@@ -1,5 +1,26 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17F SELECT-ONLY TCP LOGIN VERIFIED — 2026-11-07
+
+**PASS — owner-run NEW `ccpcadmin@ccpcerp-prod` bounded one-off MariaDB diagnostic client authentication and SELECT metadata query, with temporary client removed.** Exact operator output:
+
+```text
+REHEARSAL_STAGE17F_ISOLATION_VERIFIED
+REHEARSAL_READONLY_CREDENTIAL_VERIFIED
+REHEARSAL_READONLY_TCP_LOGIN_VERIFIED
+REHEARSAL_READONLY_EXACT_HOST_GRANT_VERIFIED
+REHEARSAL_READONLY_SCHEMA_SELECT_VERIFIED
+REHEARSAL_RESTORED_DATABASE_STRUCTURE_VERIFIED
+REHEARSAL_STAGE17F_CLIENT_REMOVED
+REHEARSAL_STAGE17F_SELECT_ONLY_LOGIN_COMPLETE
+```
+
+**Meaning:** Preflight verified local NEW Docker daemon, isolated three persistent rehearsal DB/Redis containers and four named volumes, pinned image IDs, internal bridge, exact IPAM scope and temporarily available `172.18.0.250`. The protected new mode 0600 diagnostic credential file `/home/ccpcadmin/.ccpc-rehearsal-secrets-20261107/readonly-db-probe.env` passed identity/ownership/mode checks; values were not printed. From a one-shot `--rm --pull never --network ccpc_restore_rehearsal_20261107_default --ip 172.18.0.250 --read-only --user 1000:1000 --cap-drop ALL --security-opt no-new-privileges` MariaDB *client-only* container with no mounted DB/site/secret volume, a password sent via stdin allowed TCP authentication to service `db`. `CURRENT_USER()` matched the exact account `ccpc_ro_probe_20261107@172.18.0.250`, and a SELECT-only information_schema query returned exactly **741 BASE TABLE** and **6 SEQUENCE** objects. The ephemeral client was removed and persistent service/network/volume counts were rechecked unchanged. **This tests successful allowed reads; it did not issue a forbidden DML/DDL statement**. The separately verified Stage 17E grants and metadata scope demonstrate the SELECT-only restriction. No app, scheduler, web, worker, migrations, emails, integrations, original production, DEV, or cutover actions.
+
+**Stage 17 status:** 17A read-only inspected existing app account (schema write permissions), 17B audited scope/no global roles, 17C confirmed new identity available, 17D corrected an ID truncation false-positive and confirmed Docker fixed IP, 17E explicitly approved and created account with exactly one schema SELECT grant/no detected other privileges, 17F authenticated via actual IP-limited TCP and verified restored schema structure. Keep the existing full-privilege app account and restored site configuration unchanged; preserve the separate diagnostic secret as protected, and do not move it into site config or expose it in logs/GitHub.
+
+**Next safe boundary:** Do not infer Docker `Internal=true` provides independently proven outbound connectivity isolation for an **app-capable** Frappe process, and do not infer Frappe can initialize with a read-only account without trying any writes. First perform **read-only network/routing and enforcement inventory** on the NEW host: review exact dedicated network properties and relevant routing/firewall/nftables/iptables/forward policies, Docker host gateway and whether the ephemeral client namespace might reach destinations beyond DB; avoid printing host secrets/remote IP inventories or modifying firewall. Then design a bounded app runtime with read-only credentials, no internet/other network egress, site mount read-only or synthetic scratch config, no workers/web/queues/mail or scheduled jobs, and snapshot/rollback guard. Approval to create the DB user was **not** approval to run a DB-connected Frappe process. No PROD deployment approval.
+
 ## NEW REHEARSAL STAGE 17E SELECT-ONLY DIAGNOSTIC ACCOUNT CREATED AND VERIFIED — 2026-11-07
 
 **PASS — explicitly owner-approved NEW-only account creation executed by owner on `ccpcadmin@ccpcerp-prod`.** Exact sanitized output:
