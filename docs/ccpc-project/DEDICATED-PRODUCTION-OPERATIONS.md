@@ -1,5 +1,25 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## OLD LIVE PROD STAGE 17R READ-ONLY AGGREGATE COMPARISON MATCHES NEW NOV5 REHEARSAL — 2026-11-07
+
+**PASS — owner-run OLD `gani@ccpcerpserver` read-only summary, no PROD changes reported:**
+
+```text
+STAGE17R_OLD_PROD_SCOPE_VERIFIED
+SOURCE_COMPANIES=4
+SOURCE_GL_ENTRIES=0
+SOURCE_STOCK_LEDGER_ENTRIES=0
+SOURCE_STANDARD_DOCUMENT_TOTAL=0
+SOURCE_READONLY_COUNTS_COMPLETE
+STAGE17R_LIVE_SOURCE_READONLY_CHECK_COMPLETE
+```
+
+**Interpretation against Stage17Q (NEW):** Four Companies in both OLD live PRODUCTION and restored November 5 snapshot; both report **0 GL entries**, **0 Stock Ledger entries**, and **0 total rows in the same seven standard transaction document tables**. The OLD-only preflight verified OLD host/operator/local Docker context, exact pinned `frappe_docker-backend-1` and `frappe_docker-db-1` project/service/image/running identity. One `docker exec -i` in the *already-running* OLD backend read only the live site's current DB connection config, opened a MariaDB `REPEATABLE READ` `START TRANSACTION READ ONLY` using existing full-write app account, queried only aggregate counts with per-query time limit and then rolled back. No site/data mutation, restart, migration, new container, application runtime startup, DEV or cutover was part of that command. **This confirms the empty transaction tables are presently common to OLD and NEW**, not necessarily an omitted Nov5 backup of those categories. It does **not** establish all other source tables, app settings, attachments or Company details are identical; nor prove future live transactions won't occur before cutover. The GL balanced flag from 17Q is vacuous (0=0), so financial transaction integrity cannot yet be tested on real GL/SLE rows.
+
+**Owner standing delegation remains**: continue safe, nondestructive NEW-only rehearsal tests without repetitive individual approvals; still require explicit operator authorization for live deployment/traffic switch, destructive cleanup, DB migrations, live-data writes/restarts, changes on OLD PROD or changes that may impact shared infrastructure.
+
+**Next fastest meaningful NEW-only action:** Prepare *real restored-site* application acceptance without using the full-write historical DB credentials: check site artifacts from the already restored `sites` volume with sanitized static metadata and verify a safe scratch overlay that preserves the original encryption key and app identities but substitutes the IP-limited SELECT-only DB identity. Avoid restarting/launching services, modifying original site volumes or running migration. Subsequent limited app-level actual DocType/Company read can then be tested with the pinned legacy image under no-web/no-jobs/no-mail/no-integrations controls; reporting only booleans/counts and respecting that a write attempt under SELECT-only must fail. Actual full HTTP/user login/stock/GL tests, current source backup+reconciliation, production rollback readiness and final separate cutover authorization remain future gates. Stop endless network/client-only preflight loops.
+
 ## NEW REHEARSAL STAGE 17Q SELECT-ONLY BUSINESS AGGREGATES COMPLETE; TRANSACTION SET EMPTY — 2026-11-07
 
 **PASS for execution/scope, transaction integrity **NOT TESTED** because applicable ledger/document sets are empty.** Owner reported the following exact sanitized output from the single NEW-only authorized check:
