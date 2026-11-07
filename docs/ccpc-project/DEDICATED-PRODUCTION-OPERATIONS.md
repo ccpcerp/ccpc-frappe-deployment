@@ -1,5 +1,22 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17N READ-ONLY HOST LISTENER INVENTORY PASS — 2026-11-07
+
+**Owner-run NEW-only read-only scope/listener check reported:**
+
+```text
+STAGE17N_NEW_REHEARSAL_SCOPE_VERIFIED
+HOST_LISTENERS_IPV4_WILDCARD=1
+HOST_LISTENERS_BRIDGE_ADDRESS=0
+HOST_LISTENERS_IPV6_WILDCARD=1
+STAGE17N_READ_ONLY_INVENTORY_COMPLETE
+HOST_GATEWAY_REACHABILITY_NOT_YET_PROVEN
+```
+
+**Interpretation:** Fresh verification of exact NEW local Docker context, internal IPv4 rehearsal bridge with correct project, three persistent pinned DB/Redis containers, and four named rehearsal volumes passed. Host socket inventory found **one IPv4 wildcard socket**, **one IPv6 wildcard socket**, and **zero sockets bound specifically to the rehearsal bridge's gateway address**. The wildcard listener counts may represent the same dual-stack service or distinct services; no ports/process identities were printed. Importantly, a wildcard listener can accept traffic via the bridge as well as other interfaces if firewall INPUT rules allow, so zero bridge-specific binds **does not prove host gateway inaccessibility**. The IPv6 wildcard is on the HOST and does not negate earlier `EnableIPv6=False` for the rehearsal bridge. No host-gateway connection or Frappe runtime test occurred. Do not claim host gateway blocked, or re-run the consumed Stage 17M authorization.
+
+**Next efficient safe step:** One bounded **read-only** identification of whether wildcard host listener(s) are only restricted management SSH or other services, together with UFW IPv4/IPv6 incoming policy and presence of any Docker-bridge input allow. Emit only sanitized category/count/status; never dump live interface names, host addresses, raw firewall rules or process command lines. If only existing SSH is listening and host firewall applies LAN-only ingress, proceed to risk review and request explicitly scoped bounded non-web/non-worker Frappe diagnostic rather than repeating general network inventory. No new container/probe or host/service/Docker/DB changes authorized by this step.
+
 ## NEW REHEARSAL STAGE 17M SINGLE NEGATIVE-EGRESS PROBE COMPLETED — 2026-11-07
 
 **PASS for the one authorized test only — owner-run NEW `ccpcadmin@ccpcerp-prod` with exact restricted rehearsal guards:**
