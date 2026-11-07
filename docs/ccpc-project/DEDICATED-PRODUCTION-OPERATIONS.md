@@ -1,5 +1,20 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW DOCKER POST-IMPORT READ-ONLY INVENTORY VERIFIED — 2026-11-07
+
+**PASS — owner-run read-only verification on NEW `ccpcadmin@ccpcerp-prod`** after the guarded supporting-image import. Exact reported output:
+
+```text
+[ccpcerp:v16.50.0] sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8
+[mariadb:11.8] sha256:efb4959ef2c835cd735dbc388eb9ad6aab0c78dd64febcd51bc17481111890c4
+[redis:8.6-alpine] sha256:2cc044fc5a07c9b701f8f1255a309ae9ad7856e694ac03513bf3648c01e40763
+NEW_DOCKER_IMAGES_PRESENT_NO_CONTAINERS_OR_VOLUMES
+```
+
+The guarded script verified NEW hostname and `ccpcadmin` account, inspected all three Docker tags and immutable image IDs, then confirmed `docker ps -aq` and `docker volume ls -q` were empty. **All three tags match the pinned exact OLD PRODUCTION image IDs; no Docker containers or volumes exist on NEW at the time of this check.** This is an operator-reported read-only observation, not live remote access by ChatGPT. No Docker image re-import required. Source archive, app image, supporting images, and November 5 transferred four-part backup are preserved.
+
+**Checkpoint / next gate:** Image preparation and verification complete. Next prepare a deliberately isolated, no-external-effects NEW-host restoration *rehearsal plan*, with read-only inspection of existing Compose/config/backup inputs and review of rollback, hostname/ports, network, secrets, background schedulers, email/integrations, database volumes, schema, and four backup artifacts. The 2026-11-05 02:00 backup is a rehearsal input and **not a verified current cutover point**; reconcile writes after that cutoff before any live switch. **No new container/volume/network creation, Compose up, site/database/file restore, scheduler activation, migration, DNS/routing change, or OLD PRODUCTION/DEVELOPMENT action is authorized** by this inventory or prior image-import approval. Seek a separately bounded approval for write-capable rehearsal after the review.
+
 ## NEW SUPPORTING DOCKER IMAGES IMPORTED AND IDS VERIFIED — 2026-11-07
 
 **PASS — owner-run execution completed** on NEW `ccpcadmin@ccpcerp-prod`. The operator pasted the guarded command's preflight and completion markers:
