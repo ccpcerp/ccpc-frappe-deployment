@@ -1,5 +1,71 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## SUPPORTING-IMAGE TRANSFER SSH AUTHORIZATION INDEPENDENTLY ABSENT — 2026-11-07
+
+**Owner-run read-only independent verification on NEW `ccpcadmin@ccpcerp-prod`** after guarded removal of the single temporary supporting-image transfer public key from `~/.ssh/authorized_keys` returned:
+
+```text
+SUPPORT_IMAGE_TEMP_SSH_KEY_ENTRIES=0
+```
+
+**PASS:** The marker `ccpc-support-images-transfer-20261106` has **zero** remaining entries in the NEW `ccpcadmin` authorized-keys file. This verifies the specific temporary authorization was removed; it is not a separate active-authentication test. Existing SSH authorizations were preserved by previous guarded atomic removal. NEW archive remains independently verified at `/home/ccpcadmin/.ccpc-support-images-transfer-20261106/mariadb-11.8_redis-8.6-alpine.tar`, exact size **145522176** and SHA-256 **`e301707c5ff75fd48c4a782e0ddf0c95608062016b9ae64e136f185bd6b8ac08`**. Keep archive/staging/receiver intact pending separately approved future action. OLD source archive remains `/var/tmp/ccpc-prod-support-images.HlHFN8R6/mariadb-11.8_redis-8.6-alpine.tar`.
+
+**NEXT previously owner-approved cleanup on OLD `gani@ccpcerpserver`:** retire **only** the dedicated temporary support-image SSH key pair `/home/gani/.ssh/id_ed25519_ccpc_support_images_transfer_20261106` and `.pub`, after guarded verification of host/user, no symlinks, owner/modes, expected public key fingerprint `SHA256:ONJlWrCRTBIJ1anTVYJTpre2E56D4RtjsLXREEdJFqA`, and private/public key pair consistency. Do not touch scheduled backup key `~/.ssh/id_ed25519_ccpc_backup`, any previous transfer keys, production data, or source/NEW archives.
+
+```bash
+bash <<'EOF'
+set -euo pipefail
+
+if [ "$(hostnamectl --static)" != 'ccpcerpserver' ] ||
+   [ "$(id -un)" != 'gani' ]; then
+  echo 'STOP: wrong OLD host or user'; exit 1
+fi
+
+key="$HOME/.ssh/id_ed25519_ccpc_support_images_transfer_20261106"
+pub="$key.pub"
+expected_fp='SHA256:ONJlWrCRTBIJ1anTVYJTpre2E56D4RtjsLXREEdJFqA'
+expected_comment='ccpc-support-images-transfer-20261106'
+
+for file in "$key" "$pub"; do
+  if [ ! -f "$file" ] || [ -L "$file" ] ||
+     [ "$(stat -c '%U' "$file")" != 'gani' ]; then
+    echo "STOP: missing or unexpected temporary key file: $file"; exit 1
+  fi
+done
+
+if [ "$(stat -c '%a' "$key")" != '600' ] ||
+   [ "$(stat -c '%a' "$pub")" != '644' ]; then
+  echo 'STOP: unexpected temporary key permissions'; exit 1
+fi
+
+pub_fp="$(ssh-keygen -lf "$pub" | awk '{print $2}')"
+private_fp="$(ssh-keygen -lf "$key" | awk '{print $2}')"
+pub_comment="$(awk '{print $3}' "$pub")"
+if [ "$pub_fp" != "$expected_fp" ] ||
+   [ "$private_fp" != "$expected_fp" ] ||
+   [ "$pub_comment" != "$expected_comment" ]; then
+  echo 'STOP: temporary key identity mismatch'; exit 1
+fi
+
+if [ "$(ssh-keygen -y -f "$key" | awk '{print $1,$2}')" !=
+     "$(awk '{print $1,$2}' "$pub")" ]; then
+  echo 'STOP: temporary private/public key mismatch'; exit 1
+fi
+
+rm -- "$key" "$pub"
+
+if [ -e "$key" ] || [ -L "$key" ] ||
+   [ -e "$pub" ] || [ -L "$pub" ]; then
+  echo 'STOP: temporary key file still present'; exit 1
+fi
+
+echo 'SUPPORT_IMAGE_OLD_TEMP_SSH_KEY_PAIR_RETIRED'
+echo 'SUPPORT_IMAGE_OTHER_SSH_KEYS_UNTOUCHED'
+EOF
+```
+
+Expected exact two success markers. This command affects **only** those two temporary OLD files, with no sudo, no Docker commands, no SSH connection, no source/NEW archive deletion, no PRODUCTION/DEVELOPMENT changes. On any STOP/error, do not blindly rerun. After output confirms cleanup, record final SSH retirement and request separate explicit approval before loading exact MariaDB/Redis images into NEW Docker. Preserve all existing backup files and verify loaded image IDs, if later approved, against pinned OLD MariaDB `sha256:efb4959ef2c835cd735dbc388eb9ad6aab0c78dd64febcd51bc17481111890c4`, Redis `sha256:2cc044fc5a07c9b701f8f1255a309ae9ad7856e694ac03513bf3648c01e40763`. **No Docker image load authorized yet.**
+
 ## SUPPORTING-IMAGE TRANSFER TEMPORARY SSH REVOCATION REPORTED — 2026-11-07
 
 **Owner executed the previously approved guarded exact-line revocation on NEW `ccpcadmin@ccpcerp-prod`** after independent verification of the transferred MariaDB/Redis image archive. Terminal-paste echo was visibly garbled before all three success markers:
