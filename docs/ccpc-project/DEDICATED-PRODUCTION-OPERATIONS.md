@@ -1,5 +1,22 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 7 DB TARGET VERIFIED; ARCHIVE LAYOUT GATE STOP — 2026-11-07
+
+**PARTIAL PASS / STOP — operator-run read-only Stage 7 on NEW `ccpcadmin@ccpcerp-prod`.** Owner pasted:
+
+```text
+REHEARSAL_TARGET_DATABASE_RUNNING
+REHEARSAL_DATABASE_TARGET_EMPTY
+BACKUP_DB_IDENTITY_FORMAT_VALID
+BACKUP_ENCRYPTION_KEY_AVAILABLE
+SQL_ELEVATED_DIRECTIVE_LINES=0
+STOP: archive extraction layout needs review
+```
+
+**Meaning:** Guarded operator command found MariaDB healthy and target SQL catalog empty of non-system databases, valid portable backup site `db_name` identifier and available historical `encryption_key` (neither value printed), and zero *line-start* elevated SQL directives matching the limited precheck. It then rejected a public or private tar member path outside the initial narrow Frappe archive layout allowlist (which accepted only a root-level `files` tree or `public/files` / `private/files`). This could be a harmless parent directory member, different relative tar root, or genuinely nonstandard archive contents. Existing Stage 6 evidence already found one public directory and one private directory plus one private file, with no absolute/traversal paths, no link/other member types, and archive SHA-256 matches. **Cannot infer the precise archive layout without a further safe diagnostic.** The command stopped before any database DDL/import or archive extraction; NO business data was restored. NEW DB/Redis containers remain the last verified operational set; do not restart or rerun earlier writes.
+
+**Next safe preparation step:** Read-only, SHA-256-pinned inspection of the two original tar archives on NEW. Print only the member's entry type, relative path component **classifications** (`files`, `public`, `private`, `.` or a fixed `<redacted>` placeholder), component depth, and archive member totals, not actual private file basenames, site config fields, records, or binary data. Recheck archive owner/mode and reject symlinks, hardlinks, absolute paths and `..` traversal. Diagnose the allowlist mismatch before selecting extraction path or a trusted Frappe `bench restore` route. This inspection does NOT approve relaxing path checks generally, and must not allow writing outside isolated NEW rehearsal site. No PRODUCTION/DEVELOPMENT changes or cutover.
+
 ## NEW REHEARSAL STAGE 6 NOVEMBER 5 BACKUP STRUCTURE VERIFIED — 2026-11-07
 
 **PASS — owner-run read-only Stage 6 backup structure inspection on NEW `ccpcadmin@ccpcerp-prod`.** Owner pasted:
