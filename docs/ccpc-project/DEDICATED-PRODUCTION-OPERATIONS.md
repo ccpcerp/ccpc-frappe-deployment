@@ -1,5 +1,33 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 16 PYTHON PATH DIAGNOSIS: DEFAULT INTERPRETER NOT BENCH ENV — 2026-11-07
+
+**PASS — read-only offline path diagnosis completed on NEW `ccpcadmin@ccpcerp-prod`; Stage 16 import test is still UNVERIFIED.** Owner-supplied output:
+
+```text
+REHEARSAL_IMPORT_DIAGNOSTIC_ISOLATION_VERIFIED
+PYTHON_USES_BENCH_ENV=False
+BENCH_ENV_PYTHON_EXISTS=True
+FRAPPE_SOURCE_PACKAGE_EXISTS=True
+FRAPPE_APP_PATH_ON_SYS_PATH=False
+FRAPPE_MODULE_DISCOVERABLE=False
+FRAPPE_MODULE_ORIGIN_MATCHES_IMAGE=False
+ERPNEXT_SOURCE_PACKAGE_EXISTS=True
+ERPNEXT_APP_PATH_ON_SYS_PATH=False
+ERPNEXT_MODULE_DISCOVERABLE=False
+ERPNEXT_MODULE_ORIGIN_MATCHES_IMAGE=False
+CCPCERP_SOURCE_PACKAGE_EXISTS=True
+CCPCERP_APP_PATH_ON_SYS_PATH=False
+CCPCERP_MODULE_DISCOVERABLE=False
+CCPCERP_MODULE_ORIGIN_MATCHES_IMAGE=False
+REHEARSAL_PYTHON_PATH_DIAGNOSTIC_COMPLETE
+REHEARSAL_IMPORT_PATH_INSPECTION_FINISHED
+```
+
+The pinned image contains all three source packages and its `/home/frappe/frappe-bench/env/bin/python` exists. The **system `python3` used by Stage 16 and this diagnostic is not the Bench virtualenv interpreter**, and none of the three app package parents are in that interpreter's `sys.path`, so none was discoverable by `find_spec`. This **explains the apparent Stage 16 failure far more parsimoniously than bad app code**; the venv's own package discoverability is still unverified and must be checked. This was only a Python path check, no application imports, DB/site modifications or service starts.
+
+**Next NEW-only bounded step:** Guard NEW host/user, default local Docker target, pinned image digest, exactly three expected running pinned MariaDB+Redis containers on internal bridge with no exposed ports, four rehearsal-labeled volumes. Run `/home/frappe/frappe-bench/env/bin/python` explicitly inside a one-shot `--network none --read-only --user 1000:1000 --cap-drop ALL --security-opt no-new-privileges --rm` pinned image helper **with no volume mounts whatsoever**, and use `importlib.util.find_spec` to check top-level `frappe`, `erpnext`, `ccpcerp` discoverability and origin constrained to the image's expected app directory; report sanitized booleans only. `sys.prefix` should point to the bench virtualenv; don't rely on `sys.executable` resolving symlink to determine venv use. Do **not** run application imports yet; if packages can be discovered, design a corrected offline Stage 16 import smoke with the Bench interpreter and same isolation. If not, stop and inspect packaging. No `bench`, migrations, restored DB writes or connectivity, app services, PROD/DEV changes, or cutover.
+
 ## NEW REHEARSAL STAGE 16 OFFLINE PYTHON IMPORT TEST INCOMPLETE — 2026-11-07
 
 **STOP, no installation or migration authorized.** Operator ran Stage 16 NEW-only offline application import test on `ccpcadmin@ccpcerp-prod` and pasted:
