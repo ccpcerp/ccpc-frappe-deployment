@@ -1,5 +1,22 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 16 FRAPPE IMPORT PASSES WITH REAL FD OUTPUT STREAM — 2026-11-07
+
+**PASS — NEW-only owner-run Frappe single-module import diagnostic after previous `io.UnsupportedOperation` in Stage 16.** Operator output:
+
+```text
+REHEARSAL_STAGE16_NULLSTREAM_ISOLATION_VERIFIED
+REHEARSAL_BENCH_INTERPRETER_CONFIRMED
+REHEARSAL_REAL_OUTPUT_FD_VERIFIED
+REHEARSAL_FRAPPE_IMPORT_WITH_REAL_STREAMS_OK
+REHEARSAL_STAGE16_FRAPPE_IMPORT_DIAGNOSTIC_COMPLETE
+REHEARSAL_STAGE16_FRAPPE_DIAGNOSTIC_FINISHED
+```
+
+The guarded local Docker target, exact pinned `ccpcerp:v16.50.0` image ID, three healthy/isolated persistent MariaDB+Redis containers, internal bridge and four volumes passed. A one-shot helper used explicit `/home/frappe/frappe-bench/env/bin/python`, `--network none --read-only --user 1000:1000 --cap-drop ALL --security-opt no-new-privileges` with no site/DB/Redis volume mounts and no restored secrets or network access. Output redirection changed from `io.StringIO()` to an opened `/dev/null` with a working `fileno()`; `importlib.import_module('frappe')` then succeeded and module origin was verified inside immutable image `apps/frappe/frappe`. This strongly confirms the prior `UnsupportedOperation` was an artificial output-stream compatibility issue, **not an observed Frappe code import failure**. No persistent application services, Bench, DB reads/writes, migrations, scheduler, frontend, mail, integrations or OLD PROD/DEV modifications.
+
+**What remains open:** The Stage 16 *full* offline import smoke is not yet done: `frappe.app`, `frappe.hooks`, `erpnext`, `erpnext.hooks`, `ccpcerp` and `ccpcerp.hooks` still need tested. Use identical no-network, no-mount helper with explicit Bench venv and real file descriptor output redirection; print only allowlisted successful module markers or a sanitized failure name and exception class. No `frappe.init`, `frappe.connect`, DB-backed runtime, installs, migrations or services. Preserve historical Nov 5 restored rehearsal and all earlier checkpoints. If all module imports pass, Stage 16 static Python compatibility can be marked PASS, **not** final production readiness. Later DB-coupled Frappe validation needs independently verified egress/side-effect fencing and read-only DB credentials.
+
 ## NEW REHEARSAL STAGE 16 BENCH IMPORT UnsupportedOperation UNDER StringIO REDIRECTION — 2026-11-07
 
 **STOP — operator-run corrected Stage 16 Python import using Bench venv, NEW `ccpcadmin@ccpcerp-prod`.** Output:
