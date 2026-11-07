@@ -1,5 +1,26 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 8 SQL IMPORT FULL OBJECT CLASSIFICATION VERIFIED — 2026-11-07
+
+**PASS — owner-run read-only Stage 8 post-import classification on NEW `ccpcadmin@ccpcerp-prod`.** Reported:
+
+```text
+REHEARSAL_ISOLATION_REVERIFIED
+RESTORED_OBJECT_TYPE=BASE TABLE|741
+RESTORED_OBJECT_TYPE=SEQUENCE|6
+RESTORED_TOTAL_OBJECTS=747
+BACKUP_CREATE_SEQUENCE_LINES=6
+RESTORED_TABDOCTYPE_ROWS=814
+RESTORED_TABUSER_ROWS=7
+RESTORED_TABSINGLES_ROWS=1000
+REHEARSAL_SIX_SEQUENCES_MATCH_BACKUP
+REHEARSAL_DATABASE_OBJECT_DIAGNOSTIC_COMPLETE
+```
+
+**Confirmed outcome:** November 5 02:00 historical backup's 741 distinct `CREATE TABLE` statements yielded **exactly the corresponding 741 BASE TABLE objects**, with no missing or extra base tables (previous checkpoint), plus **exactly six MariaDB SEQUENCE objects**, matching six `CREATE SEQUENCE` source directives; hence the earlier hardcoded `information_schema.tables == 741` assertion was a false-positive because this catalog counts 747 objects including six sequences. Essential Frappe table record counts: `tabDocType=814`, `tabUser=7`, `tabSingles=1000`. Three NEW isolated MariaDB/Redis containers, no published host ports, network internal, preserved four volumes verified on NEW during the command. SQL imported **once**, MariaDB client returned success. DO NOT repeat the import, drop schema or restart services. This is a **structurally validated SQL restoration**; not yet tested app login, GL/stock/accounting integrity, encryption decryption, migrations or live operations.
+
+**Next NEW-only owner-approved phased rehearsal step:** Generate an independent random *application* database password (`0600` under preexisting `0700` rehearsal-secret directory), then create only one `<backed_up_db_name>@%` MariaDB account with privileges scoped to the already restored single target schema (no global grants), avoiding historical `db_password`. Preserve the historical `encryption_key` only for later site config. Verify existing DB target and no conflicting DB account before writing. Use container-local MariaDB root auth from existing `MYSQL_ROOT_PASSWORD` environment, no root/app secrets in host argv, shell command line, output, Git or chat, and no `DROP`, `ALTER` of backup records or `GRANT ALL ON *.*`. On any partial failure preserve file/account and inspect without blind reruns. No Frappe/container startup, file archive extraction, mail, scheduler, background queue worker, integrations, DNS/cutover or OLD PRODUCTION/DEV changes. Historical backup remains only a rehearsal source.
+
 ## NEW REHEARSAL STAGE 8 ALL 741 SOURCE TABLES MATCH IMPORTED BASE TABLES — 2026-11-07
 
 **PASS for base-table identity; supplementary database object classification PENDING.** Owner-run Stage 8 read-only diagnostic on NEW `ccpcadmin@ccpcerp-prod` reported:
