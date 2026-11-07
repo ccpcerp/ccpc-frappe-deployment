@@ -1,5 +1,26 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17G READ-ONLY NETWORK AND FIREWALL TOOL INVENTORY PASS — 2026-11-07
+
+**PASS — owner-run isolated NEW-only network/firewall inventory, with no changes.** Operator output:
+
+```text
+STAGE17G_DOCKER_SCOPE_VERIFIED
+NETWORK_INTERNAL=True
+NETWORK_ATTACHABLE=False
+NETWORK_IPV6_ENABLED=False
+NETWORK_GATEWAY_MODE=default
+NETWORK_BRIDGE_OPTION_PRESENT=False
+HOST_IPV4_FORWARDING_ENABLED=True
+IPTABLES_FIREWALL_INSPECTION=READABLE
+NFT_FIREWALL_INSPECTION=READABLE
+STAGE17G_READ_ONLY_NETWORK_INVENTORY_COMPLETE
+```
+
+**Interpretation:** The owner-run NEW-only local Docker scope verification still found exactly the three isolated rehearsal containers on an internal non-attachable IPv4-only bridge, with no published ports. No explicit bridge-name option or gateway-mode option was configured; Docker uses its defaults. The host's IPv4 forwarding is on, and iptables and nftables inspection commands are readable by sudo. **IPv4 forwarding alone neither proves a breach nor proves the Docker bridge can reach outside**, and the presence of firewall tooling says nothing about whether its rules deny egress. Do not claim internet isolation has been verified by Stage 17G; the last proven app-related operation remains Stage 16 *offline imports*, and the only DB-coupled client test is Stage 17F SELECT-only MariaDB client.
+
+**Next safe Stage 17H:** Under same owner and local-Docker guards, run read-only enumeration of the actual isolated bridge interface derived from the current Docker network ID, compare assigned IP/gateway and endpoint IP addresses to the expected IPv4-only `172.18.0.0/16`, check that no new containers/volumes are present, and inspect `iptables-save -t filter`, `iptables-save -t nat`, and `nft -j list ruleset` without printing the raw firewall or route configuration. Report only sanitized total bridge-referencing rules, bridge-target ACCEPT/DROP/REJECT counts, FORWARD default policy and nft bridge-reference counts. Need further direction-of-flow and dynamic egress validation under safe, explicitly scoped controls before asserting outbound isolation; counts alone are not proof. No policy, routing or container changes, no TCP traffic to arbitrary destinations, no Frappe service, no DB writes/migrations, no OLD PROD/DEV or cutover.
+
 ## NEW REHEARSAL STAGE 17F SELECT-ONLY TCP LOGIN VERIFIED — 2026-11-07
 
 **PASS — owner-run NEW `ccpcadmin@ccpcerp-prod` bounded one-off MariaDB diagnostic client authentication and SELECT metadata query, with temporary client removed.** Exact operator output:
