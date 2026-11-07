@@ -1,5 +1,26 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17M SINGLE NEGATIVE-EGRESS PROBE COMPLETED — 2026-11-07
+
+**PASS for the one authorized test only — owner-run NEW `ccpcadmin@ccpcerp-prod` with exact restricted rehearsal guards:**
+
+```text
+STAGE17M_PRECHECK_VERIFIED
+STAGE17M_POSTCHECK_VERIFIED
+PROBE_DEFAULT_ROUTE=ABSENT
+PROBE_SOCKET=REJECTED
+OUTBOUND_DROP_COUNTER_INCREASED=False
+STAGE17M_RESULT=NO_DEFAULT_ROUTE_TO_TEST_TARGET
+STAGE17M_SINGLE_PROBE_COMPLETE
+HOST_GATEWAY_AND_APP_EGRESS_STILL_REQUIRE_SEPARATE_REVIEW
+```
+
+One `docker run --rm --pull never` from pinned `mariadb:11.8` image, using a nonprivileged read-only no-capability no-new-privilege no-mount/no-secret client on existing NEW-only internal Docker rehearsal network, attempted a single UDP send of a nonsecret marker to documentation-only `192.0.2.1:9` (numeric; no DNS). The temporary client reported **no default IPv4 route** and **socket send rejected**. No increment in the network's outbound DROP counter is **expected/compatible** when the kernel rejects a send before it traverses FORWARD. The script reported passing precheck and postcheck: exact original three pinned DB/Redis service containers and endpoints, four named volumes, unchanged network ID and firewall policy checks. No app/DB/legacy-production or DEVELOPMENT writes were part of the command. This test does **not** prove a packet was dropped by firewall because the socket was rejected locally. The one-run approval is now consumed; **do not repeat** without new scope/authorization.
+
+**Interpretation:** Concrete one-destination negative test supports that ordinary new routed IPv4 egress toward a nonlocal address from the isolated rehearsal client was unavailable. Prior 17L static `DOCKER-INTERNAL` negated-subnet DROP rules add a separate safety layer. Neither shows comprehensive host-gateway isolation, non-routed host access, IPv6 in other namespaces, nft hook scope, or actual application side effects. No DB-connected Frappe startup, scheduler, worker, web, email, migrations, live cutover or production operation was authorized or executed.
+
+**Next fastest safe continuation:** A brief **read-only, no-new-container** inventory of NEW isolated network gateway and host-local listening/socket/INPUT rules *using sanitized metadata*, to assess host-gateway and Docker host services. Then design the **single bounded read-only-Frappe diagnostic** using existing SELECT-only account and isolated scratch/config with no workers/web/scheduler/jobs/emails, no external access and protected data; obtain **separate explicit approval** before starting a Frappe-capable process. No additional external probes or firewall edits to make this test pass. Retain existing rehearsal resources and OLD PROD/DEV unchanged.
+
 ## NEW REHEARSAL STAGE 17M ONE-OFF NEGATIVE-EGRESS PROBE APPROVED — EXECUTION NOT YET REPORTED (2026-11-07)
 
 **Approval only, not an executed test:** Following Stage 17L static guard success, owner explicitly replied **`aPPROVED`** to the proposed one-time **NEW `ccpcadmin@ccpcerp-prod` isolated-rehearsal negative-egress probe**. Scope is **one** temporary, unprivileged `docker run --rm` client-only container on existing `ccpc_restore_rehearsal_20261107_default`, *no business-data or credential mounts*, no published ports, no DB or Frappe/Bench use, and one outbound IPv4 UDP send attempt carrying a fixed nonsecret marker to IANA RFC5737 documentation-only TEST-NET-1 address `192.0.2.1` port 9 (no DNS and no real service expected). Use the already verified MariaDB image by immutable ID with entrypoint replaced by Bash, capability drop, read-only rootfs, no new privileges, fixed unused rehearsal bridge client IP, tight resource limits, and `--pull never`. No other destinations, retries or services permitted. Auto-remove and post-check original three services/network/four persistent volumes; on partial failure STOP, inspect, do not silently rerun or aggressively clean existing containers.
