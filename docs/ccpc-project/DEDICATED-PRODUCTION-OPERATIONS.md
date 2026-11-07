@@ -1,5 +1,20 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW ISOLATED SCRATCH CLONE BLOCKED BY GITHUB SSH AUTH — 2026-11-07
+
+**Owner-reported result:** The approved preparation-only attempt to shallow-clone pinned review branch `review/dedicated-host-readonly-inventory-2026-10-25` on NEW `ccpcadmin@ccpcerp-prod` ended with:
+
+```text
+git@github.com: Permission denied (publickey).
+fatal: Could not read from remote repository.
+Please make sure you have the correct access rights
+and the repository exists.
+```
+
+**Status:** GitHub SSH authentication **BLOCKED**. The GitHub connector independently confirms review branch exists and HEAD is `c12d46f7363c93742f7e9fb88b2e14a67dbd9a7e`. The attempted command created private scratch parent `/home/ccpcadmin/.ccpc-compose-review-c12d46f` with `0700` before invoking `git clone`; its precise remaining directory contents are **not verified**. There is **no verified successful clone**, Compose config render, new server credential, Docker operation, container, volume, DB restoration, or cutover. The source checkout and original production remain protected. Avoid rerunning the same clone, deleting scratch blindly, loosening SSH checking, or restoring previously revoked temporary SSH keys.
+
+**Next safe owner-run read-only diagnostic on NEW:** Confirm the private scratch directory status and whether exact `c12d46f...` commit object is already present in one of the two earlier clean NEW host Git checkouts (`/home/ccpcadmin/ccpc-frappe-deployment` and `/home/ccpcadmin/ccpc-pr29-review`). No printing SSH private keys, `.env`, git remote URLs or sensitive data. If pinned object is present, plan a distinct scratch worktree without modifying those checkouts; if absent, use a verified connector-sourced offline transfer artifact or an explicitly scoped temporary access method (not a permanent host secret) for read-only Compose validation. **Do not restore or start services** under preparation-only approval.
+
 ## OWNER APPROVED RESTORE-REHEARSAL PREPARATION AND SOURCE REVIEW — 2026-11-07
 
 **Owner said "Approved Continue" after the explicitly limited proposal of preparation/validation only**, following the verified NEW image inventory; this does not approve Docker container/volume creation, Compose `up`, service starts, database/file restore, migrations, credential provisioning, production cutover or changes to OLD PRODUCTION/DEVELOPMENT.
