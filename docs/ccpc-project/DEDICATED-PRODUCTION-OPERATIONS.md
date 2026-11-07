@@ -1,5 +1,27 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17U ADAPTED RESTORED-SITE CONFIG + FRAPPE COMPANY ORM PASS — 2026-11-07
+
+**PASS — owner-run NEW-only isolated one-off app-level read from restored Nov5 rehearsal database; exact sanitized markers:**
+
+```text
+STAGE17U_PRECHECK_VERIFIED
+STAGE17U_POSTCHECK_VERIFIED
+STAGE17U_ADAPTED_SITE_INIT_OK
+STAGE17U_COMPANY_SQL_READ_OK
+STAGE17U_COMPANY_DOCTYPE_META_OK
+STAGE17U_COMPANY_ORM_READ_OK
+STAGE17U_ADAPTED_SITE_SELECT_ONLY_SUCCESS
+STAGE17U_RESULT=ADAPTED_SITE_ORM_PASS
+STAGE17U_ONE_USE_TEST_COMPLETE
+```
+
+**Evidence:** Guarded NEW `ccpcadmin@ccpcerp-prod` preflight asserted pinned `ccpcerp:v16.50.0` immutable app ID, exact 3 DB/Redis running pinned service containers, four named rehearsal volumes, isolated non-attachable internal bridge `ccpc_restore_rehearsal_20261107_default` and available helper IP `172.18.0.250`. Host inspected only the **real restored site config** SHA256/fingerprint and safe scheduler/mail/maintenance flags and ensured the protected `DB_READONLY_*` diagnostic identity matched the restored schema; the actual old full-write site DB password and `encryption_key` were **not sent to the networked container**. One disposable nonroot, no-capabilities, no-new-privileges, read-only-rootfs `docker run --rm --pull never` helper joined only the internal bridge at source IP `172.18.0.250`, with no published port, site/DB/log volume mounts, web/worker/scheduler/email/integration startup or Bench migration. It wrote a synthetic throwaway site config on tmpfs preserving only real site's allowlisted safety flags and **substituting SELECT-only DB credentials**, and disabled remote Redis use by loopback. Frappe `init`, the Company `SELECT COUNT(*)` (four companies), Company `frappe.get_meta('Company',cached=False)` and a `frappe.get_all('Company', fields=['name'])` ORM read all passed. Child suppressed raw records/logs; only sanitized markers printed. Postcheck verified the original three persistent services/network/four volumes and the three real site config/app-file fingerprints unchanged. **One-use Stage17U test complete**; do not rerun as routine.
+
+**Limitations:** This is a substantial **real application/DocType/ORM compatibility milestone** against an adapted site configuration and historical schema, **not an initialization of the original restored site with its full runtime config**. Does not verify actual web access/login, installed application custom DocType behavior and intercompany, emails, workers, Redis integration, file/attachment retrieval, financial/inventory posting, business authorization, schema migrations, fresh production dataset or a cutover. The Stage17S `--network none` original-site init STOP has not been explicitly diagnosed, though successful `init` with DB connectivity supports networking as the cause rather than file permission. Avoid enabling real site full-write credentials in an unconstrained app process.
+
+**Next most productive work:** Stop repeated environment/network/DB account smoke checks. Review authoritative `ccpcerp` application review branch and current deployment acceptance/release docs to choose a narrow set of representative **custom CCPC ERPNext workflow** read-only integration checks, and design one **isolated, reversible, production-like full-site app rehearsal** using safe restored source/side-effect fences (scheduler/worker/mail/queue/external integrations OFF, no public service ports, staged credentials, careful rollback). Compare against currently live OLD source and plan a fresh consistent backup before final cutover. Original PRODUCTION must not be modified or automatically switched without separate concrete plan and approval.
+
 ## NEW REHEARSAL STAGE 17T REAL SITE UID1000 FILE ACCESS PASS — 2026-11-07
 
 **PASS — owner-run NEW-only read-only host/dedicated-volume permission diagnostic reported:**
