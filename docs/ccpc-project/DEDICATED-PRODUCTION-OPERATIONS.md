@@ -1,5 +1,15 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## OWNER APPROVAL: STAGE 17 SELECT-ONLY DIAGNOSTIC DB ACCOUNT — 2026-11-07
+
+**Explicit owner approval recorded in active conversation:** After Stage 17C verified `ccpc_ro_probe_20261107` does not exist, the owner replied **“Approved”** to the narrowly scoped proposal: *create and verify a new SELECT-only diagnostic DB account in the isolated NEW rehearsal database*. This is **not** authorization for Frappe runtime, database migration, PROD/DEV access, cutting over, running workers, exposing ports, email, integrations, or altering the existing application account/site config. None of those actions have been performed by this approval, and as of this note **the new account has not yet been created**.
+
+**Proposed exact grant:** `GRANT SELECT ON <restored-schema>.* TO 'ccpc_ro_probe_20261107'@'<exact-static-client-IPv4>'` after `CREATE USER ... IDENTIFIED BY <fresh random>`. No wildcard '%' host grant, no global/other-schema privilege, DML/DDL, GRANT OPTION, roles, or proxy. Store the new credential in a separate mode 0600 regular file within `/home/ccpcadmin/.ccpc-rehearsal-secrets-20261107/` (mode 0700), using exclusive creation, no passwords in argv/logs/GitHub. The old Nov 5 encryption key, historical artifacts, existing Stage 9 DB credential, app site config and SQL rows must remain unmodified. On partial failure STOP and inspect; never overwrite/recreate blindly.
+
+**Safe phased implementation:** First run a read-only IPAM preflight to confirm exact NEW-only Docker endpoint, pinned DB/Redis service IDs, three containers, four labeled volumes, internal bridge CIDR/gateway/endpoint assignments, and a proposed fixed unique diagnostic IPv4 such as `172.18.0.250`. This IP is a **candidate future helper address**, not already an attached/verified container IP. A later CREATE USER step must recheck all guards and collisions immediately before the write. The fixed source address can only be used later by a distinct one-shot helper with explicit `--ip` and separate review. Any app-capable container needs independent outbound/side-effect restriction review; `Internal=true` alone is not proof of egress safety.
+
+**After account creation:** Verify only exact per-schema SELECT privileges and a no-global, no-role, no-write grant scope before any client use; treat DB-account creation and a subsequent DB-coupled app test as separate milestones. A future cleanup should remove *only* the new diagnostic user after separate safety review, without touching the old site app account or database.
+
 ## NEW REHEARSAL STAGE 17C READ-ONLY DIAGNOSTIC DB IDENTITY AVAILABLE — 2026-11-07
 
 **PASS — owner-run isolated NEW-only, read-only Stage 17C account-name and schema preflight.** Output reported:
