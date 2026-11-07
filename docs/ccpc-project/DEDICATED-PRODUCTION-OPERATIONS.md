@@ -1,5 +1,21 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17K SANITIZED FIREWALL RULE DIAGNOSTIC PASS — 2026-11-07
+
+**PASS for bounded diagnostic, not yet egress isolation:** Owner ran the corrected read-only Stage 17K diagnostic on NEW `ccpcadmin@ccpcerp-prod` and reported:
+
+```text
+STAGE17K_REHEARSAL_SCOPE_VERIFIED
+INTERNAL_RULE_01:IN=ABSENT,OUT=BRIDGE_POSITIVE,TARGET=DROP,EXTRA_FLAGS=-s
+INTERNAL_RULE_02:IN=BRIDGE_POSITIVE,OUT=ABSENT,TARGET=DROP,EXTRA_FLAGS=-d
+STAGE17K_SANITIZED_DIAGNOSTIC_COMPLETE
+OUTBOUND_ISOLATION_NOT_YET_PROVEN
+```
+
+**Interpretation:** Exact NEW rehearsal scope checks passed, and DOCKER-INTERNAL contains two DROP rules: one matching traffic outgoing **to** the isolated bridge with a source address (`-s`) predicate, and the other matching traffic incoming **from** the isolated bridge with a destination address (`-d`) predicate. The earlier 17K assertion incorrectly expected *negated interface* selectors; the actual rules use positive bridge selectors plus address predicates. The diagnostic did not reveal the source/destination address networks or whether those `-s`/`-d` predicates themselves were negated. This explains the previous STOP as an overly specific guard rather than proof of a breach. No firewall/container/DB/service changes; OLD PROD and DEV untouched.
+
+**Next bounded Stage 17L:** On NEW-only guarded read-only inspection, compare the `-s` and `-d` network predicates to the exact rehearsal Docker IPAM subnet, determine whether each is negated (including either `! -s` or `-s !` syntax), and confirm the DOCKER-CT rule is limited to established/related flow rather than a broad bypass. Print only boolean match classifications and safe status markers; never raw host firewall text, host interface names, addresses, secrets or business records. Stop on unknown predicate/changed scope. This is a static firewall check only; **dynamic egress/host namespace limits remain unproven**, and no app/Bench startup, Docker changes, external probe, site migration, OLD PROD/DEV operation or cutover is authorized.
+
 ## NEW REHEARSAL STAGE 17K STRICT FIREWALL MATCH CHECK STOPPED — 2026-11-07
 
 **STOP — owner-run read-only NEW-host verification:** The Stage 17K Python/iptables diagnostic reached the internal-chain rule assertion and printed exactly `STOP: internal bridge negation mismatch` before returning to `ccpcadmin@ccpcerp-prod`. The script's earlier host identity, local Docker context, rehearsal internal bridge, exactly three pinned running DB/Redis containers with no ports, four volume names, FORWARD DROP and first-chain ordering guards had passed or else it would have stopped earlier. No Docker, firewall, database or service writes are in that script.
