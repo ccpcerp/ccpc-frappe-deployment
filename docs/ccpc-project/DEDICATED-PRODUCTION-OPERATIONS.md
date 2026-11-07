@@ -1,5 +1,27 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17C READ-ONLY DIAGNOSTIC DB IDENTITY AVAILABLE — 2026-11-07
+
+**PASS — owner-run isolated NEW-only, read-only Stage 17C account-name and schema preflight.** Output reported:
+
+```text
+REHEARSAL_STAGE17C_ISOLATION_VERIFIED
+REHEARSAL_DATABASE_STRUCTURE_UNCHANGED
+DIAGNOSTIC_CANDIDATE_ACCOUNT_ROWS=0
+DIAGNOSTIC_CANDIDATE_SCHEMA_ROWS=0
+DIAGNOSTIC_CANDIDATE_TABLE_ROWS=0
+DIAGNOSTIC_CANDIDATE_COLUMN_ROWS=0
+DIAGNOSTIC_CANDIDATE_ROUTINE_ROWS=0
+DIAGNOSTIC_CANDIDATE_ROLE_ROWS=0
+DIAGNOSTIC_CANDIDATE_PROXY_ROWS=0
+REHEARSAL_DIAGNOSTIC_ACCOUNT_IDENTITY_AVAILABLE
+REHEARSAL_STAGE17C_READ_ONLY_PREFLIGHT_COMPLETE
+```
+
+**Interpretation:** Exact existing NEW rehearsal MariaDB/Redis three-container scope, internal bridge, four volumes and historical backup config SHA/ownership passed guards. Restored Nov 5 database still contains 741 BASE TABLE and six SEQUENCE objects. Candidate `ccpc_ro_probe_20261107` has **zero** existing rows in MariaDB global account, schema, table, column, routine, role and proxy metadata. The proposed diagnostic username is **available**, not yet created or privileged. No password was generated or stored; no CREATE USER/GRANT/ALTER, app/site config, migration or persistent Frappe service was touched.
+
+**Next safe boundary:** Before creating this identity, specify the target single schema and fixed source-IP or appropriately restricted host part; identify the isolated temporary diagnostic client container networking and an independently evaluated egress/side-effect fence; choose a new independent random credential with owner-only 0600 file in the protected rehearsal secrets directory; only `SELECT` on the specific restored schema, no DML/DDL, GRANT OPTION, global or role privileges. Require explicit owner authorization for CREATE USER and GRANT. Verify conflict-free identity immediately before any write. Validate new grants and test using a deliberately write-denied SQL statement only in a tightly bounded safe proof (not against business rows); protect historical site config, original Stage 9 app credentials, and Nov 5 restore. Later DB-connected Frappe test may still not run if startup needs writes; never bypass restriction. Since Docker `internal=true` and absence of published ports do not by themselves prove no outbound reachability or side-effects, **do not run any DB-connected Frappe runtime process until independent containment review**. No OLD PRODUCTION, DEVELOPMENT, live app, outbound mail/integration, or cutover.
+
 ## NEW REHEARSAL STAGE 17B DB APP ACCOUNT PRIVILEGE SCOPE PASS — 2026-11-07
 
 **PASS — owner-run NEW-only Stage 17B read-only DB privilege-scope audit on `ccpcadmin@ccpcerp-prod`.** Owner reported:
