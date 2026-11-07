@@ -1,5 +1,44 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 6 NOVEMBER 5 BACKUP STRUCTURE VERIFIED — 2026-11-07
+
+**PASS — owner-run read-only Stage 6 backup structure inspection on NEW `ccpcadmin@ccpcerp-prod`.** Owner pasted:
+
+```text
+SQL_GZIP_READ_OK
+SQL_MYSQL_STYLE_HEADER=True
+SQL_CREATE_TABLE_COUNT=741
+SQL_INSERT_INTO_COUNT=165
+SQL_CREATE_DATABASE_COUNT=0
+SQL_USE_DATABASE_COUNT=0
+SQL_CREATE_USER_COUNT=0
+SQL_GRANT_COUNT=0
+SQL_SET_GLOBAL_COUNT=0
+PUBLIC_ARCHIVE_MEMBERS=1
+PUBLIC_ARCHIVE_FILES=0
+PUBLIC_ARCHIVE_DIRECTORIES=1
+PUBLIC_ARCHIVE_OTHER=0
+PUBLIC_ARCHIVE_UNSAFE_PATHS=0
+PRIVATE_ARCHIVE_MEMBERS=2
+PRIVATE_ARCHIVE_FILES=1
+PRIVATE_ARCHIVE_DIRECTORIES=1
+PRIVATE_ARCHIVE_OTHER=0
+PRIVATE_ARCHIVE_UNSAFE_PATHS=0
+SITE_CONFIG_HAS_DB_NAME=True
+SITE_CONFIG_HAS_DB_PASSWORD=True
+SITE_CONFIG_HAS_ENCRYPTION_KEY=True
+SITE_CONFIG_HAS_DB_HOST=False
+SITE_CONFIG_HAS_DB_PORT=False
+SITE_CONFIG_HAS_BACKUP_ENCRYPTION_KEY=False
+BACKUP_STRUCTURE_INSPECTION_COMPLETE
+```
+
+**Interpretation:** The 2026-11-05 02:00 `database.sql.gz` can be streamed as a plain MariaDB/MySQL SQL dump, with 741 apparent CREATE TABLE and 165 INSERT INTO line starts. The inspector found no line-start `CREATE DATABASE`, `USE`, `CREATE USER`, `GRANT`, `SET GLOBAL` statements, but this is **not proof that all SQL directives are benign**; SQL comments, multi-statement lines, file-reads or triggers need separate review before a raw manual SQL import. Public tar contains a single directory (no public attachments); private tar contains one file plus a directory, and no absolute/parent-traversal archive paths were observed by the inspector. Site config includes essential site database name, historical password, and encryption key; no reported backup encryption key. The private file might be operationally important despite its small size. Archive member path shapes and old DB identity values were deliberately not printed.
+
+**Restore design and safety:** Use the official Frappe `bench --site <site> restore <sql.gz> --with-public-files <tar> --with-private-files <tar>` mechanism where feasible; Frappe reference documents `--db-root-username`, `--db-root-password`, `--db-name`, `--admin-password` options (https://docs.frappe.io/framework/user/en/bench/reference/restore). **Do not blindly supply a root password on process argv or paste it into chat**. Protect OLD `encryption_key` within NEW rehearsal site while replacing historical DB credentials with new rehearsal-only credentials; no OLD PRODUCTION database user/password reuse, no mail/queue/scheduler/frontend activation, no live DNS or ports. Prep must check the SQL dump/header and MariaDB target emptiness and site configuration mapping before selecting `bench restore` or controlled SQL import. Initial Docker network `Internal=true` and no published ports do not independently prove host-access or all outbound restrictions; avoid starting Frappe processes with restored production data until independently verified. Historic Nov 5 input remains rehearsal-only, not a final cutover snapshot.
+
+**Next step under owner-approved staged isolated rehearsal:** A bounded *read-only* pre-restore target/mapping check, without displaying any DB names, old passwords, encryption key, private attachment filenames or data rows. Verify backup site `db_name` is a valid portable SQL identifier and `encryption_key` nonempty; inspect SQL for additional potentially privileged/out-of-scope directives and references to explicit cross-schema names; inspect tar root layout without exposing private member names; confirm target MariaDB has no non-system database (via socket/local-root access without displaying the root credential), and only the three vetted rehearsal services are running. Review results before creating database/site or running restore. No schema import or backup file changes in this step.
+
 ## NEW REHEARSAL STAGE 5 PRE-RESTORE INTEGRITY VERIFIED — 2026-11-07
 
 **PASS — operator-run Stage 5 read-only pre-restore validation on NEW `ccpcadmin@ccpcerp-prod`.** User pasted:
