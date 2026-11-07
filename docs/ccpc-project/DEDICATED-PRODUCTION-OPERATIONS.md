@@ -1,5 +1,23 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 10 NONROOT SITE CONFIG RECOVERY VERIFIED — 2026-11-07
+
+**PASS — operator-run Stage 10 recovery on NEW `ccpcadmin@ccpcerp-prod` after verified empty, UID1000/GID1000-owned sites volume.** User pasted:
+
+```text
+REHEARSAL_EMPTY_FRAPPE_OWNED_VOLUME_VERIFIED
+REHEARSAL_SITE_RECOVERY_PREFLIGHT_PASSED
+REHEARSAL_NONROOT_HELPER_VERIFIED
+REHEARSAL_SITE_CONFIG_FILE_VERIFIED
+REHEARSAL_COMMON_CONFIG_AND_APPS_VERIFIED
+REHEARSAL_SITE_OWNERSHIP_AND_MODES_VERIFIED
+NEW_REHEARSAL_SITE_CONFIG_PREPARED_NO_APP_STARTED
+```
+
+**Verified state:** Guarded script again confirmed NEW host `ccpcerp-prod`, account `ccpcadmin`, local default Docker socket, exact pinned `ccpcerp:v16.50.0` image, only existing three running isolated MariaDB/Redis containers, internal network and exactly four rehearsal-labeled volumes. The sites named volume was exactly empty and owned by Frappe UID:GID `1000:1000`, mode `0755`. A one-time temporary helper ran with `--network none --read-only --user 1000:1000 --cap-drop ALL --security-opt no-new-privileges --rm`, mounted **only** `ccpc_restore_rehearsal_20261107_sites` with `volume-nocopy`, and prepared `ccpcerp.local/site_config.json`, `common_site_config.json`, and `apps.txt` as the Frappe user. It checked the new app-db password from private `site-db.env` differs from historical DB password and private root DB secret. It retained the original source-backup `encryption_key`, did **not** use historical DB password, and set `db_user=db_name`, `db_host=db`, `db_port=3306`, `db_type=mariadb`, `maintenance_mode=1`, `disable_scheduler=1`, `pause_scheduler=1`, `mute_emails=1`, `developer_mode=0`. Common Redis endpoints are isolated Docker service names. `apps.txt` was generated from actual local image app directories, checking frappe/erpnext/ccpcerp. Files' exact content, mode, UID/GID were verified **inside the helper without printing secrets**: site `site_config.json` mode 0600, common/apps 0640, owned by Frappe; site and sites dir 0750. Final invariant checks confirmed only three persistent containers, four named volumes and internal network three attachments. Recovery succeeded without deleting or rebuilding prior DB/Redis resources or rerunning any SQL import. **No ERPNext application service was launched; no file tar extracted yet.** The terminal showed a standard sudo password prompt for `ccpcadmin`; no password was pasted into chat.
+
+**Next NEW-only stage within scoped owner approval:** Restore the two checksum-pinned historical Nov 5 file archive contents into the existing NEW-only sites volume with a tightly guarded `--network none` ephemeral helper as UID1000/GID1000. The public archive has exactly the sole directory `ccpcerp.local/public/files` and zero file entries; the private archive contains exactly `ccpcerp.local/private/files` plus one file beneath. Verify archive SHA-256 and member type/path shape before writes. No symlinks, hardlinks, absolute/traversal paths, links, device members, existing-file overwrite or use of `tar.extractall`; create only the expected `public/files`, `private/files` directories and one private file with `O_EXCL|O_NOFOLLOW` and Frappe UID 1000 permissions, preferably streaming data via Docker stdin to avoid bind-mounting private backup directories. Preserve already-created site config untouched; verify read-back file digest and unchanged site-config metadata (without exposing file contents). No app frontend/backend/configurator, schedulers, queue workers, integrations, employee access, backups from other dates, DNS or live cutover. Restore the historical backup only as a rehearsal. On failure preserve partial site volume and stop before rerunning.
+
 ## NEW REHEARSAL STAGE 10 READ-ONLY VOLUME STATE CONFIRMED EMPTY, OWNER FRAPPE — 2026-11-07
 
 **PASS — owner-run READ-ONLY diagnosis after the Stage 10 ephemeral helper STOP.** Owner pasted:
