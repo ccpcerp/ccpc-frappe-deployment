@@ -1,5 +1,33 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## SUPPORTING-IMAGE TRANSFER TEMPORARY SSH REVOCATION REPORTED — 2026-11-07
+
+**Owner executed the previously approved guarded exact-line revocation on NEW `ccpcadmin@ccpcerp-prod`** after independent verification of the transferred MariaDB/Redis image archive. Terminal-paste echo was visibly garbled before all three success markers:
+
+```text
+SUPPORT_IMAGE_TEMP_SSH_AUTH_REVOKED
+OTHER_AUTHORIZED_KEYS_PRESERVED
+VERIFIED_SUPPORT_IMAGE_ARCHIVE_RETAINED
+```
+
+**Status:** Script-reported removal of precisely one `ccpc-support-images-transfer-20261106` temporary public-key authorization from NEW `~/.ssh/authorized_keys` with atomic replacement, byte-for-byte preservation of all other lines, and retention of verified root-origin archive (NEW `/home/ccpcadmin/.ccpc-support-images-transfer-20261106/mariadb-11.8_redis-8.6-alpine.tar`, 145522176 bytes, SHA-256 `e301707c5ff75fd48c4a782e0ddf0c95608062016b9ae64e136f185bd6b8ac08`). Because of garbled echo and to independently verify removal, a **separate read-only marker count** is required before retiring the OLD temporary private key. No supporting images have yet been loaded into NEW Docker, no containers started or DB restore/cutover authorized.
+
+**NEXT read-only operator step on NEW `ccpcadmin@ccpcerp-prod`:**
+
+```bash
+if [ "$(hostnamectl --static)" != 'ccpcerp-prod' ] ||
+   [ "$(id -un)" != 'ccpcadmin' ]; then
+  echo 'STOP: wrong server or user'
+elif [ ! -f "$HOME/.ssh/authorized_keys" ]; then
+  echo 'STOP: authorized_keys missing'
+else
+  count="$(grep -Fc 'ccpc-support-images-transfer-20261106' "$HOME/.ssh/authorized_keys" || true)"
+  printf 'SUPPORT_IMAGE_TEMP_SSH_KEY_ENTRIES=%s\n' "$count"
+fi
+```
+
+**Expected:** `SUPPORT_IMAGE_TEMP_SSH_KEY_ENTRIES=0`. If STOP or nonzero, investigate only; do not delete OLD private key or touch the backup key. If zero, then specifically authorized OLD temporary key retirement follows with fingerprint check `SHA256:ONJlWrCRTBIJ1anTVYJTpre2E56D4RtjsLXREEdJFqA`. Preserve all archives, existing credentials, running OLD PROD+DEV and NEW imported application image. A subsequent NEW Docker load of MariaDB/Redis images requires **separate explicit owner approval**.
+
 ## SUPPORTING-IMAGES ARCHIVE INDEPENDENTLY VERIFIED ON NEW — 2026-11-07
 
 **Owner-run independent local read-only verification on NEW `ccpcadmin@ccpcerp-prod`**, following the encrypted OLD-to-NEW transfer of the root-private supporting-image archive, returned:
