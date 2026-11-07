@@ -1,5 +1,25 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17H FIREWALL RULE COUNT INSPECTION PASS — 2026-11-07
+
+**PASS — owner-run NEW-only, read-only Docker bridge + firewall count inspection.** Operator-reported sanitized result:
+
+```text
+STAGE17H_DOCKER_AND_BRIDGE_VERIFIED
+HOST_FORWARD_POLICY=DROP
+IPTABLES_BRIDGE_FILTER_RULES=3
+IPTABLES_BRIDGE_ACCEPT_RULES=1
+IPTABLES_BRIDGE_DROP_REJECT_RULES=2
+IPTABLES_BRIDGE_NAT_RULES=0
+IPTABLES_BRIDGE_MASQUERADE_RULES=0
+NFT_BRIDGE_REFERENCING_RULES=3
+STAGE17H_READ_ONLY_FIREWALL_INSPECTION_COMPLETE
+```
+
+**Meaning:** Prior strict NEW-local Docker 3-container/4-volume/internal IPv4-only bridge and pinned DB/Redis checks passed. Bridge interface exists and has the Docker network IPAM gateway; host iptables FORWARD chain default policy is DROP. On bridge-referencing iptables filter rules, three entries: one ACCEPT and two DROP/REJECT; no bridge-referencing iptables NAT or MASQUERADE; nft reports three bridge-referencing rules. No firewall modification or app/DB connection occurred. This is **positive evidence consistent with network isolation but NOT proof** of outbound blocking: a broader preceeding ACCEPT/jump chain, return-path semantics, rules in other tables, nft hooks, or host-forward routing could matter. Only after examining rule ordering and direction plus independently controlled validation can a restricted Frappe runtime be considered. Stage 17F SELECT-only login remains verified; read-only diagnostic account is preserved; no Frappe startup authorized.
+
+**Next bounded Stage 17I:** Under strict owner/host/local-Docker preflight and network full-ID checks, inspect `iptables-save -t filter` and `nft -j list ruleset` **read-only**, derive bridge from exact current Docker network ID, and summarize **only** rule order/chain category/direction (`-i` vs `-o` and negation), target category (ACCEPT/DROP/REJECT/RETURN/jump), and connection-state presence for bridge-referencing filter rules. Also report FORWARD chain target order (sanitized) to assess possible earlier bypass; never emit raw rules, source/dest IPs, unrelated host firewall details, interface names, secrets or business records. This remains an interpretation aid, not proof of no egress, and must STOP if firewall output is unrecognized or unexpectedly changed. No operational firewall changes, new containers, active external probes, Frappe/Bench runtime, DB write, PROD/DEV interaction, or deployment.
+
 ## NEW REHEARSAL STAGE 17G READ-ONLY NETWORK AND FIREWALL TOOL INVENTORY PASS — 2026-11-07
 
 **PASS — owner-run isolated NEW-only network/firewall inventory, with no changes.** Operator output:
