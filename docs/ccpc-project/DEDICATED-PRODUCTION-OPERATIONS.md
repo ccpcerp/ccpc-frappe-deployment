@@ -1,5 +1,23 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 14 PINNED APP VERSIONS MATCH RESTORED DB — 2026-11-07
+
+**PASS — owner-run read-only Stage 14 version checks on NEW `ccpcadmin@ccpcerp-prod`.** Owner reported:
+
+```text
+REHEARSAL_STAGE14_ISOLATION_VERIFIED
+REHEARSAL_THREE_APP_VERSION_RECORDS_VERIFIED
+REHEARSAL_RECORDED_PATCH_LOG_ROWS=774
+REHEARSAL_CCPCERP_VERSION_COMPARISON=MATCH
+REHEARSAL_ERPNEXT_VERSION_COMPARISON=MATCH
+REHEARSAL_FRAPPE_VERSION_COMPARISON=MATCH
+REHEARSAL_STAGE14_READ_ONLY_VERSION_CHECK_COMPLETE
+```
+
+**Meaning:** The NEW-only isolated rehearsal DB/Redis network, pinned image, named volumes and restored schema survived preflight; the `tabInstalled Application` records for all three required apps were complete. Each restored DB `app_version` (or `version`) agreed with static `__version__` (or supported `pyproject.toml` declaration) from the pinned local `ccpcerp:v16.50.0` image for frappe, erpnext and ccpcerp; `tabPatch Log` contains **774** existing records. This was a metadata-only SQL read plus offline AST/static file inspection in a no-network readonly helper, not `bench` execution or app bootstrap. **Version equality is not proof that all required patches/migrations ran** and patch log row count is not validation of individual patch status, schema compatibility or ledger correctness. Do not run `bench migrate` or start any backend, scheduler, queue workers, frontend, websocket or mail/integrations yet. No OLD PRODUCTION/DEV changes or cutover.
+
+**Next fastest safe NEW-only guard:** Read-only audit of actual `patches.txt` declarations in the pinned image against restored `tabPatch Log.patch` records (without displaying raw patch names or business data), in combination with verifying that the current custom app and framework app packages are present in the site app registry. Treat missing historical/conditional patch declarations as **review candidates, not permission to run migration**; source declarations can change and logged patches can be older than current files. Preserve 741 BASE TABLE + six SEQUENCE inventory and current archive/site fingerprints. After static patch review, proceed toward a **bounded actual Frappe runtime read-only test** only with independently verified egress/side-effect fencing, no mail/queue/scheduler, and a separate read-only SQL account so a CLI cannot accidentally mutate restored database. The user-approved historical Nov 5 rehearsal is not a live cutover or release approval.
+
 ## NEW REHEARSAL STAGE 13 DATABASE INSTALLED-APP REGISTRY VERIFIED — 2026-11-07
 
 **PASS — owner-run Stage 13 read-only Frappe installed-app metadata verification on NEW `ccpcadmin@ccpcerp-prod`.** Owner provided:
