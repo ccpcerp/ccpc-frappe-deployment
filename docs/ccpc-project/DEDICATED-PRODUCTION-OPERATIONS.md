@@ -1,5 +1,26 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 4 THREE CONTAINERS STARTED; REDIS-CACHE MOUNT CHECK STOP — 2026-11-07
+
+**PARTIAL SUCCESS / STOP — operator-run approved Stage 4 on NEW `ccpcadmin@ccpcerp-prod`.** Owner pasted:
+
+```text
+PRIVATE_REHEARSAL_SECRET_REVERIFIED
+REHEARSAL_STAGE4_DOCKER_PREFLIGHT_OK
+REHEARSAL_REAL_SECRET_CONFIG_CHECK_PASSED
+REHEARSAL_EXPLICIT_THREE_SERVICE_ALLOWLIST_READY
+STARTING_REHEARSAL_DATABASE_AND_REDIS_ONLY
+[+] up 3/3
+Container ccpc_restore_rehearsal_20261107-redis-queue-1 Started
+Container ccpc_restore_rehearsal_20261107-db-1 Started
+Container ccpc_restore_rehearsal_20261107-redis-cache-1 Started
+STOP: unexpected container mount: redis-cache
+```
+
+The script reached `docker compose up -d --no-deps --no-build --pull never --no-recreate db redis-cache redis-queue` and Docker reported all three container starts. The script's subsequent in-memory filtered `docker inspect` validator stopped on `redis-cache` because its `Mounts` set differed from the hardcoded expectation `{("tmpfs", "", "/data")}`. **Do not equate this mismatch with failed Redis runtime, nor treat "up 3/3" as complete isolation verification.** The final `REHEARSAL_DB_AND_REDIS_STARTED_NO_BUSINESS_DATA` marker was NOT reached. Because the shell exited at this point, the later network attachment count and named-volume inventory checks did not execute. Actual current container health, Redis cache mount representation, and any anonymous volumes remain **unverified**. The safe general hypothesis is different representation of Redis `/data` tmpfs in `HostConfig.Tmpfs` vs `Mounts` or an image-declared anonymous volume, but no live Docker inspection has confirmed either yet. No business-data restore was invoked by this command.
+
+**No rerun, cleanup or restart before diagnosis.** Next operator step is strictly **read-only**: reverify NEW hostname/user and local Docker context, list three current container IDs/statuses, inspect `Config.Labels` only for project/service, `State.Status` and DB health status, `Image` ID match, published host ports/restart policy, network names, `Mounts` type/volume-name/destination, `HostConfig.Tmpfs` key names, named/anonymous Docker volume inventory and isolated network internal/attachment count; output only these filtered fields, never complete `docker inspect` JSON or `Config.Env`, DB secret or site backup. Determine whether cache uses actual tmpfs or has an unexpected anonymous persistent volume. If isolation mismatch is material, stop before backup restore and plan explicit fix; do not delete volumes or overwrite production. Any changes are limited to the previously approved isolated NEW rehearsal; no OLD PRODUCTION/DEV, live cutover, worker/scheduler, frontend or data restore yet.
+
 ## NEW REHEARSAL DATABASE SECRET CREATED PRIVATELY — 2026-11-07
 
 **PASS — owner-run Stage 3 after explicit phased rehearsal approval.** Owner pasted these markers from the guarded NEW-host script:
