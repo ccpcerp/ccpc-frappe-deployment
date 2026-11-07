@@ -1,5 +1,24 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 7 TAR ARCHIVE LAYOUT DIAGNOSED — 2026-11-07
+
+**PASS — operator-run read-only sanitized tar diagnostic on NEW `ccpcadmin@ccpcerp-prod`.** The owner pasted:
+
+```text
+PUBLIC_ARCHIVE_SHA256_OK
+PUBLIC_MEMBER_1=DIR|DEPTH=3|SHAPE=<redacted-directory>/public/files
+PUBLIC_MEMBER_TOTAL=1
+PRIVATE_ARCHIVE_SHA256_OK
+PRIVATE_MEMBER_1=DIR|DEPTH=3|SHAPE=<redacted-directory>/private/files
+PRIVATE_MEMBER_2=FILE|DEPTH=4|SHAPE=<redacted-directory>/private/files/<redacted-file>
+PRIVATE_MEMBER_TOTAL=2
+REHEARSAL_ARCHIVE_PATH_DIAGNOSTIC_COMPLETE
+```
+
+**Conclusion:** Both Nov 5 checksum-pinned file archives have a **single additional leading directory** relative to the overly narrow Stage 7 allowlist. The public archive contains just `<root>/public/files` directory (zero public files), while the private archive contains `<root>/private/files` directory and exactly one file beneath it. No symlink, hardlink, archive traversal/absolute path or other tar member type was detected by the guarded code. The root folder name was deliberately redacted and **has not yet been verified equal to** the site intended for NEW rehearsal. This layout is consistent with Frappe Cloud's documented backup tar structure, which puts the site name above `public/files` (https://docs.frappe.io/cloud/sites/migrate-an-existing-site). **No extraction, DB restore or app service startup occurred**.
+
+**Next operator-run read-only gate:** Check whether the exact first path component in *both* checksum-verified original tar files equals expected site directory `ccpcerp.local` (known reviewed deployment site name), assert root equality across archives and exact member shapes/types/counts with no symlinks or traversal; print only booleans/markers, not private basenames or archive root on mismatch. Do not broaden extraction allowlist merely to accept unknown roots. If this passes, plan guarded Frappe-compatible attachment restore in the isolated `sites` volume, preserving the backup `encryption_key` without old database passwords, and selecting a safe database import method in a separate staged step. Current rehearsal DB/Redis are running on NEW isolated bridge only, no employee access, workers, scheduler or frontend; OLD PRODUCTION/DEVELOPMENT untouched. Snapshot remains 2026-11-05 02:00 rehearsal data only, not a reconciled cutover backup.
+
 ## NEW REHEARSAL STAGE 7 DB TARGET VERIFIED; ARCHIVE LAYOUT GATE STOP — 2026-11-07
 
 **PARTIAL PASS / STOP — operator-run read-only Stage 7 on NEW `ccpcadmin@ccpcerp-prod`.** Owner pasted:
