@@ -1,5 +1,22 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 9 APPLICATION DB CREDENTIAL AND SCOPED USER VERIFIED — 2026-11-07
+
+**PASS — owner-run Stage 9 NEW-only isolated application database user and secret.** Owner pasted:
+
+```text
+REHEARSAL_DATABASE_ISOLATION_REVERIFIED
+REHEARSAL_APP_USER_PREFLIGHT_PASSED
+REHEARSAL_NEW_APP_PASSWORD_STORED_PRIVATELY
+REHEARSAL_APP_DATABASE_ACCOUNT_CREATED
+REHEARSAL_APP_DATABASE_LOGIN_VERIFIED
+REHEARSAL_APP_DATABASE_USER_READY
+```
+
+The guarded NEW-host script confirmed MariaDB/Redis three-container identity, single internal rehearsal bridge, exactly four scoped volumes, MariaDB healthy and the restored DB catalog unchanged at 741 BASE TABLE plus 6 SEQUENCE. It verified site-config backup SHA/permissions without revealing the historical `encryption_key` or old DB password. NEW-only `/home/ccpcadmin/.ccpc-rehearsal-secrets-20261107/site-db.env` (regular, owner ccpcadmin, 0600) contains a newly generated independent 64-hex password as `APP_DB_PASSWORD=<secret>`. The owner-run script checked there was no preexisting MariaDB user with the backup's `db_name`, then created exactly `'<db_name>'@'%'` and granted privileges scoped to `<db_name>.*`, not server/global scope. Its TCP login test to the newly created schema authenticated using the new password and counted 741 base tables. No credentials were printed or committed to GitHub. **Stage 9 complete**; DO NOT rerun.
+
+**Next owner-approved isolated rehearsal Stage 10 proposal:** Prepare NEW Docker named `sites` volume with `ccpcerp.local/site_config.json`, `common_site_config.json` and `apps.txt` in a one-shot non-networked, nonprivileged helper container based on already-verified `ccpcerp:v16.50.0` image. The helper may need transient filesystem ownership changes inside the exclusive `sites` volume but no other volumes, DB writes or production paths. Verify empty target volume, exact image, local Docker context and three existing container labels/mounts; use `--network none`, `--read-only`, `--cap-drop ALL` except `CHOWN`, `--security-opt no-new-privileges`, `--pull never`, `volume-nocopy`, and `--rm`. Build site config in memory from checksum-pinned backup's `db_name` and historical `encryption_key` and new `site-db.env` credential, **do not** reuse original `db_password` or any external connection settings. Explicitly set `db_host=db`, `db_port=3306`, `db_type=mariadb`, `disable_scheduler=1`, `pause_scheduler=1`, `maintenance_mode=1`, `mute_emails=1`. Common config should use Redis network-local names, set off switches and no external endpoints; generate `apps.txt` from exact locally installed app directories (check frappe/erpnext/ccpcerp present). Verify ownership and restrictive permissions and exact read-back without printing secrets. Do not run configurator, backend, scheduler, workers, frontend, websocket, bench migrate or any restore command in this stage. On any partial error preserve volume contents, do not rerun without inventory. Later validate/restore the 2 pinned tar archives into this site under controlled extraction and inspect app compatibility before any app execution. Still no OLD PROD/DEV changes, final cutover or employee access.
+
 ## NEW REHEARSAL STAGE 8 SQL IMPORT FULL OBJECT CLASSIFICATION VERIFIED — 2026-11-07
 
 **PASS — owner-run read-only Stage 8 post-import classification on NEW `ccpcadmin@ccpcerp-prod`.** Reported:
