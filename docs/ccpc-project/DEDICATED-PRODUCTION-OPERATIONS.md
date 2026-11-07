@@ -1,5 +1,18 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 11 TAR RAW DIRECTORY SPELLING STOP — 2026-11-07
+
+**STOP before any writes — owner-run first attempt at Stage 11 archive restoration, NEW `ccpcadmin@ccpcerp-prod`.** Operator pasted:
+
+```text
+[sudo] password for ccpcadmin:
+STOP: unexpected archive directory layout
+```
+
+This exception originated in the **host Python tar preflight**, before it printed `REHEARSAL_PUBLIC_ARCHIVE_HASH_AND_LAYOUT_VERIFIED` and **before launching the ephemeral Docker extraction helper**. Thus the command did **not** create `public/files` or `private/files`, did not restore the one private file, and did not mutate the completed site configuration/SQL database. The source tar was checksum checked before the exception. The test `member.name.rstrip("/") == "ccpcerp.local/public/files"` (or private variant) is **stricter** than the preceding successful Stage 7 safe `PurePosixPath(member.name).parts[:3] == ("ccpcerp.local", "public", "files")`. Tar member spellings that are semantically equivalent but not byte-for-byte identical, such as `./ccpcerp.local/public/files`, `ccpcerp.local/public/files/.`, or repeated slashes can satisfy the normalized parts test yet fail the exact string check. **The specific spelling is an unverified hypothesis pending inspection**, not yet determined. Do not rerun the failing Stage 11 script or relax type/path checks indiscriminately.
+
+**Next safe read-only operator check:** Validate NEW hostname/user, `0700` backup directory and `0600` archive files, pinned SHA-256 of Nov 5 public/private archive; inspect the *exact original string spelling* of each tar member **without printing private names**, and compare normalized `PurePosixPath.parts` against the approved exact 3-part directory roots and 4-part direct private file path. Output booleans only: normalized root matches, exact raw root matches, optional leading dot slash, optional trailing dot, repeated slash, path component count, member file/dir type and count. Reject absolute/traversal/backslash/link/device members, and do not extract any files, start any containers or print secrets. If normalized shapes match the already-verified original member checks and no unsafe spelling, plan corrected Stage 11 that safely uses component-level validation, preserves original config, protects against overwrites and path traversal, and runs one no-network UID1000 helper only. The owner previously authorized NEW-only staged rehearsal; do not touch OLD PRODUCTION, DEVELOPMENT, live traffic or final cutover.
+
 ## NEW REHEARSAL STAGE 10 NONROOT SITE CONFIG RECOVERY VERIFIED — 2026-11-07
 
 **PASS — operator-run Stage 10 recovery on NEW `ccpcadmin@ccpcerp-prod` after verified empty, UID1000/GID1000-owned sites volume.** User pasted:
