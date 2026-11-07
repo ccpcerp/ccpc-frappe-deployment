@@ -1,5 +1,19 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 10 SITE-VOLUME CONFIG HELPER PARTIAL FAILURE — 2026-11-07
+
+**PARTIAL / STOP — owner-run Stage 10 attempted to prepare the NEW isolated rehearsal `sites` volume.** Operator output:
+
+```text
+REHEARSAL_SITE_PREPARATION_PREFLIGHT_OK
+REHEARSAL_EMPTY_SITE_VOLUME_VERIFIED
+STOP: site volume preparation incomplete; preserve contents and do not rerun
+```
+
+**Observed scope:** The extensive NEW-only preflight passed, and the temporary `ccpcerp:v16.50.0` helper, using `--network none --read-only --cap-drop ALL --cap-add CHOWN --security-opt no-new-privileges --rm`, verified that the rehearsal-only Docker named `sites` volume contained no files at helper entry. **None of the later markers** `REHEARSAL_SITE_CONFIG_FILE_VERIFIED`, `REHEARSAL_COMMON_CONFIG_AND_APPS_VERIFIED`, `REHEARSAL_SITE_FILE_MODES_AND_OWNERS_VERIFIED`, or `NEW_REHEARSAL_SITE_CONFIG_PREPARED_NO_APP_STARTED` appeared. The helper's stderr was discarded, so no exact failure reason was printed. The root-running helper used `os.chown(sites, frappe_uid, frappe_gid)` **then** `os.chmod(sites, 0750)` and attempted `os.mkdir(sites/ccpcerp.local)` after dropping all capabilities other than `CHOWN`. With neither `CAP_FOWNER` nor `CAP_DAC_OVERRIDE`, root may lack permission to chmod/mkdir the now-frappe-owned volume root: strong **hypothesis only**, not a confirmed trace. Some volume ownership/mode mutation may already have occurred and an unknown subset of site files may exist. The script deliberately fails closed and must **not** be rerun or followed by restore/extraction yet.
+
+**Next safest step:** Read-only local Docker inventory and direct host-side inspect using `sudo -n stat`/Python `lstat` on the **exact Docker-confirmed mountpoint of `ccpc_restore_rehearsal_20261107_sites`**. First reverify expected NEW hostname/user and local Docker socket, exactly three existing rehearsal containers, internal network, expected four volumes and no foreign volumes. Before walking, confirm volume label project/volume/scope and the resolved mountpoint is actually beneath Docker's verified data root and matches a named volume `_data` path (not symlink); then report only ownership uid/gid, permission modes, file/dir/other counts, and presence/owner/mode of exactly allowed relative paths (`apps.txt`, `common_site_config.json`, `ccpcerp.local`, `ccpcerp.local/site_config.json`) without reading any secret JSON values. Do not start helper containers or perform writes for this diagnostic. On a nonstandard Docker root or unexpected structures, stop instead of guessing. Once partial state is known, repair with narrowly scoped operations, no deleting or overwriting existing private site files blindly. Leave SQL-restored database and Stage 9 app user intact; no backend/configurator/worker/scheduler/frontend or connections to OLD PROD/DEV, no cutover.
+
 ## NEW REHEARSAL STAGE 9 APPLICATION DB CREDENTIAL AND SCOPED USER VERIFIED — 2026-11-07
 
 **PASS — owner-run Stage 9 NEW-only isolated application database user and secret.** Owner pasted:
