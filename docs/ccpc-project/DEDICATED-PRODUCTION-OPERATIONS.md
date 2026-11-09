@@ -1,5 +1,25 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17V-F CLONE SITE-CONFIG PASS — 2026-11-09
+
+**PASS — owner-reported execution on NEW `ccpcadmin@ccpcerp-prod` after SHA256 verification of one-use `stage17v_f.py`:**
+
+```text
+STAGE17V_F_PRECHECK_VERIFIED
+STAGE17V_F_CLONE_EMPTY_SITES_VOLUME_VERIFIED
+STAGE17V_F_NEW_CLONE_APP_SECRET_AND_HISTORICAL_KEY_VERIFIED
+STAGE17V_F_CLONE_SITE_CONFIG_CREATED
+STAGE17V_F_CLONE_COMMON_CONFIG_AND_APPS_CREATED
+STAGE17V_F_SITE_UID1000_PERMISSIONS_AND_READBACK_VERIFIED
+STAGE17V_F_BASELINE_PRESERVED
+STAGE17V_F_NO_APPLICATION_OR_FILE_ARCHIVE_RESTORE_STARTED
+STAGE17V_F_SITE_CONFIG_PREPARED
+```
+
+Clone `ccpc_full_acceptance_20261107_sites` now contains `ccpcerp.local/site_config.json`, `common_site_config.json`, `apps.txt`. Stage17V-F owner-run guards verified independently restored Nov5 741+6 DB and four Company records, NEW-only clone application password distinct from historical/clone-root credentials, and original historical encryption key retained without printing. Site tree permissions and config read-back verified for UID1000; internal DB/Redis aliases, maintenance=1, scheduler disabled/paused, mail muted, developer off. **Original protected baseline preserved.** No file archive restoration, Frappe backend/frontend/worker/scheduler startup, SQL import, migrations, OLD PROD/DEV or go-live actions reported. Evidence is sanitized operator output; GitHub has no live server read. **Do not rerun F** because the sites tree is no longer empty.
+
+**Next owner-approved Stage17V-G:** Restore only historical Nov5 `./ccpcerp.local/public/files` (empty directory) and `./ccpcerp.local/private/files` (one direct file) from SHA-pinned, previously inspected tar archives into already initialized **clone-only** `sites` volume. Guard unique clone volume mapping, exact existing site-config tree, source hash+layout/type without printing private filename, reject traversal/symlinks/overwrites, use exclusive nofollow creation, verify digest and unchanged config/old baseline, stop without retry or cleanup on partial failure. **No app startup, worker/scheduler, email, integrations, migrations, external network or old host changes.** Then separate app/functional acceptance; Nov5 remains historical, final fresh backup/rollback and separately approved go-live required.
+
 ## NEW REHEARSAL STAGE 17V-F CLONE SITE CONFIG SCRIPT PREPARED — 2026-11-09
 
 **PREPARED / NOT EXECUTED on NEW:** One-use Python script `stage17v_f.py` created locally, **19,356 UTF-8 bytes**, syntax checked with `py_compile`, **SHA-256 `d6480be3174071c0b0f898980eabdc28913c2a49025124e7daa0ba7097351bb4`**. Offered as a conversation file transfer; the executable artifact is **not committed to GitHub**. Operator is to transfer with existing private-key SCP to NEW `192.168.50.186`, then independently hash-check on NEW before execution. Do not run on hash mismatch or automatically retry any partially written site volume.
