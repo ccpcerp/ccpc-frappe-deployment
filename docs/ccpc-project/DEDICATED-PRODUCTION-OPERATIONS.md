@@ -1,5 +1,9 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17V-H2B HELPER ABSENCE VERIFIED — 2026-11-09
+
+Owner reported zero lines from read-only `sudo docker ps -a --filter "name=ccpc_stage17v_h2b_probe_20261109" --format 'NAME={{.Names}} STATUS={{.Status}} IMAGE={{.Image}}'` on NEW. Thus the named disposable helper was not listed by Docker at the time of inspection. This does **not** establish full post-run six-service/volume/network/checkpoint invariants and it does **not** explain the custom-DocType phase STOP. Next operator action is one read-only NEW-only complete container inventory: `sudo docker ps -a --format 'NAME={{.Names}} STATUS={{.Status}} IMAGE={{.Image}}'`, followed by a separately scoped row-free SELECT-only custom DocType image/schema comparison. No H2B rerun, cleanup, restart, DB writes/migrations, baseline/OLD PROD/DEV change, or cutover; H1B checkpoint stays protected, off-host restore validation remains pending.
+
 ## NEW REHEARSAL STAGE 17V-H2B CUSTOM DOCTYPE STOP — 2026-11-09
 
 **OWNER-REPORTED CONTROLLED STOP, NOT PASS.** Following previously SHA-verified one-use H2B, received exact markers: `STAGE17V_H2B_PRECHECK_VERIFIED`, `STAGE17V_H2B_RECOVERY_SITE_AND_RO_PERMISSIONS_VERIFIED`, `STAGE17V_H2B_ORIGINAL_BASELINE_AND_CHECKPOINT_PRESERVED`, `STOP:STAGE17V_H2B_CHILD_CUSTOM_DOCTYPES`, `STOP:STAGE17V_H2B_APP_READ_PROBE_NOT_ALL_PASSED`, `STAGE17V_H2B_REVIEW_EPHEMERAL_HELPER_STATE_NO_BLIND_RETRY`. This is failure at custom DocType probe, not evidence of clone corruption, nor full application acceptance. H2B helper container state and complete postflight preservation are **unverified**; do not infer these from earlier precheck markers. GitHub review checkpoint `f665cf3` includes source definitions for Work Request, Withdrawal Slip, Intercompany Material Billing Batch, but presence and compatibility within pinned runtime image or historical Nov5 clone are unproven.
