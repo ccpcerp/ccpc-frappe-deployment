@@ -325,9 +325,10 @@ cmd=[
  'sudo','docker','run','-i','--rm','--pull=never',
  '--name','ccpc_option_a_a2_oneoff_site_writer_20261109',
  '--network','none','--read-only','--user','0:0',
- '--cap-drop','ALL','--security-opt','no-new-privileges',
+ '--cap-drop','ALL','--cap-add','CHOWN','--security-opt','no-new-privileges',
  '--pids-limit','64','--memory','256m',
  '--tmpfs','/tmp:rw,nosuid,nodev,size=16m',
+ '--tmpfs','/home/frappe/frappe-bench/logs:rw,nosuid,nodev,size=8m',
  '--mount','type=volume,source='+PROJECT+'_sites,target=/home/frappe/frappe-bench/sites,volume-nocopy',
  '--entrypoint','/home/frappe/frappe-bench/env/bin/python',
  APP_IMAGE,'-c',writer
