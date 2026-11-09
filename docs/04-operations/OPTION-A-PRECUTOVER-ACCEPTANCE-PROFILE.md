@@ -1,5 +1,13 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 10 — Direct raw download 404; verified A3 file delivered as chat attachment
+
+Owner's Windows PowerShell `Invoke-WebRequest` to the pinned direct `raw.githubusercontent.com/ccpcerp/ccpc-frappe-deployment/646c384.../scripts/option_a_a3_start_internal_app.py` returned `404: Not Found` and **did not** reach SCP. Connected GitHub `get_repo` confirms the repository has `visibility=private`; unauthenticated raw download is therefore not a reliable delivery path. Never advise unauthenticated `Invoke-WebRequest` against this source again.
+
+The exact pinned A3 source was fetched using the authorized connected GitHub file action, Git blob `443ef2e98e3570d478c2ebda43f662fe565fa860`, and materialized as a downloadable ChatGPT conversation file `ccpc_a3_from_chatgpt_646c384d.py`. The generated file was independently verified in the artifact container: **11,646 bytes, SHA256 `de207481685b0ae4b950edd7af0f5001fe1fa7e9b43df8d2c4aed614bb025504`, `python3 -m py_compile` PASS.** It is byte-identical to the reviewed pinned GitHub source. The file is offered to owner as an attachment; do not assume already downloaded or transferred.
+
+**Next operator action:** Click the chat attachment link and download `ccpc_a3_from_chatgpt_646c384d.py` into Windows Downloads; use guarded PowerShell file-exists+hash+size checks before strict-host-checking SCP to *new distinct* NEW candidate path `/home/ccpcadmin/ccpc_a3_from_chatgpt_646c384d.py` using the existing SSH key. Stop on any error and do not print PASS manually after STOP. Only after an actual SCP PASS, perform separate read-only remote hash/size and Python compile check. **Never run the previous misleadingly named A3 path, never rerun A2 or any ownership fix, do not start app until remote verification.** OLD PROD/DEV, two rehearsal environments, candidate DB+site+logs and nine running support containers unchanged as far as these failed download attempts are concerned.
+
 ## November 10 — Repeated A3 hash failure: exact A2 byte copy under A3 name
 
 Operator ran independent NEW Ubuntu `sha256sum`, `wc -c`, `stat` on `/home/ccpcadmin/option_a_a3_start_internal_app.py` after the second failed hash check:
