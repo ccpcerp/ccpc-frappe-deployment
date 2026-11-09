@@ -48,7 +48,28 @@ df -h /var/lib/docker
 
 Operator first verified the exact reviewed sixth overlay downloaded to Windows using `Get-FileHash`, then transferred it via existing production SSH key to `/home/ccpcadmin/.ccpc-compose-review-c12d46f/source-only/compose.option-a-precutover.yaml` on NEW. The NEW Ubuntu `sha256sum` returned `bc283e1a48a314c0321f48f8636d30142f49edc2560ef24663efbe39408b5114`, which matches previously reviewed GitHub blob `38152038ea0de6d56b3b38ce9572785f95463d3a`. **File transfer and checksum PASS only; no six-file actual Compose parser, app service startup, database operation, migration, backup/restore, TLS, OLD PROD/DEV or cutover is evidenced.** Next perform *one* sanitized synthetic six-file `docker compose config --format json` parser/guard (no service startup) from the existing private source-only directory. Never print the JSON environment containing the synthetic password. Then separately review whether guarded NEW-only runtime startup is authorized; do not use a generic deployment script.
 
-## Current deliberately omitted scope
+## Current deliberately omitted scope## Stage A1 — CORRECTED SIX-FILE COMPOSE VALIDATION PASS — 2026-11-09
+
+**OWNER-REPORTED NEW-ONLY REAL COMPOSE CONFIG PASS:** The operator reran only the corrected *synthetic*, no-start validator on `ccpcerp-prod`; no Compose `up`, app/DB start, secret use or other mutation. Exact sanitized markers:
+
+```text
+A1_TEN_SERVICES=PASS
+A1_ACCEPTANCE_ONLY=PASS
+A1_NO_DEFAULT_SERVICES=PASS
+A1_PROFILE_SEPARATION=PASS
+A1_NO_PUBLISHED_PORTS=PASS
+A1_NO_RESTART_OR_PULL=PASS
+A1_INTERNAL_NETWORK=PASS
+A1_NAMED_VOLUMES=PASS
+A1_NO_PRIVILEGED_OR_BIND_MOUNTS=PASS
+OPTION_A_CORRECTED_VALIDATION_PASS
+```
+
+The previous synthetic STOP was caused by the *validator's assumptions about Compose inactive-profile filtering*, not evidence the sixth file was invalid. The default-profile model selects no services; enabling `ccpc-acceptance` in a **config-only** render reveals exactly six allowed app+DB/Redis services; `--profile "*"` **config-only** shows ten total definitions. The latter is NEVER an approved runtime `up` profile. The validated sixth file remains pinned to owner-confirmed NEW-side SHA256 `bc283e1a48a314c0321f48f8636d30142f49edc2560ef24663efbe39408b5114`, GitHub review [draft PR #32](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/32). This establishes only the synthetic effective Compose model; actual Docker network egress, site initialization, DB permissions, login/session, services, TLS, fresh-data restore and rollback are **not yet tested**.
+
+**Immediate next decision is scoped Stage A2 NEW-only operational authorization, not another parser/preflight:** propose isolated **new `ccpc_prod_erpnext` candidate** separate from all six historical support containers and eight protected named volumes, with reviewed immutable image digests, separate protected credentials, independent historical **copy** of Nov5 archives, no workers/scheduler/configurator, mail/webhooks muted, `internal:true` networking, zero public ports and access only through a strictly reviewed local SSH test tunnel. A write-capable restored candidate/app login would create container/volume/database/session state, so require explicit owner approval of exact recoverable procedure **before** running it. Preserve OLD PROD/DEV and both existing NEW rehearsal environments. On successful authentic login plus read-only sample acceptance, advance to fresh current four-part backup, independently verified restore/rollback, LAN HTTPS and separately approved final write-freeze/cutover. A live system must never use the historical Nov5 data in place of a fresh current final capture.
+
+
 
 - Do not make the newer draft finance/billing/Withdrawal Slip branches blockers for this **like-for-like migration**. Their production integration, reports, schemas, migrations, authorization and approvals are a **separate future release**, not hidden work added to the frozen historical image.
 - Do not rerun successful Stage17U, 17V-H1B, H2A, H2B or H2C steps. H2B failure is explained at the expected-feature level; its precise first exception is unverified and historical Work Request ORM still needs a bounded production-like acceptance.
