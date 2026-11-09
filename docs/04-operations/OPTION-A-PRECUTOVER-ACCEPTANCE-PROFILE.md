@@ -1,5 +1,21 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 10 — A3 transfer file identified as A2 content (NOT EXECUTED)
+
+Owner's read-only NEW-host diagnostic for the file **named** `/home/ccpcadmin/option_a_a3_start_internal_app.py`:
+
+```text
+A3_LOCAL_FILE_BYTES=17124
+A3_LOCAL_SHA256=9799bb8d34e012dddd55f57bac60959ccdf16e7b30de4c09aeeb6b14eea902d9
+A3_CRLF_COUNT=0
+A3_NORMALIZED_SHA256=9799bb8d34e012dddd55f57bac60959ccdf16e7b30de4c09aeeb6b14eea902d9
+A3_READ_ONLY_DIAGNOSTIC_COMPLETE
+```
+
+This is an exact size+SHA256 match for the **already consumed A2** file `option_a_a2_complete_partial_site.py` (17,124 bytes), not A3. The A3 source remains independently verified at pinned GitHub commit `646c384db1e0c884200c652fea85734930e8a414` / blob `443ef2e98e3570d478c2ebda43f662fe565fa860`, 11,646 bytes, expected SHA256 `de207481685b0ae4b950edd7af0f5001fe1fa7e9b43df8d2c4aed614bb025504`. No CRLF issue. The prior `sha256sum --check && python3 -m py_compile && python3` chain stopped before Python execution; neither old A2 nor new A3 ran in that command. Do **not** run the wrongly named content or any A2 command.
+
+**Next step:** download the *correct pinned A3* GitHub raw file to Windows Downloads; SHA256 verify **before** SCP. Overwrite only the wrongly named A3 destination file on NEW using the established strict-host-checked SCP and SSH key, then independent NEW SHA+byte+syntax verification with no execution. Preserve the actual A2 file, restored volumes, DB, 9 support containers, rehearsals, OLD PROD/DEV. The exact point at which the wrong content received an A3 filename is unknown, and must not be guessed. Resume one-use A3 app startup only after exact A3 hash/compile PASS and review.
+
 ## November 10 — A3 candidate startup checksum STOP (no execution)
 
 Owner ran on NEW Ubuntu: `sha256sum --check` for the A3 one-use script, followed by `&& python3 -m py_compile ... && python3 ...`. Actual output:
