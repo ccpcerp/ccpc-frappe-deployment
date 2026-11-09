@@ -32,6 +32,18 @@ sudo docker network ls --format 'NETWORK={{.Name}}' | sort
 df -h /var/lib/docker
 ```
 
+## Stage A1 — NEW candidate namespace and capacity PASS; bounded pre-cutover review prepared (2026-11-09)
+
+**Owner-reported read-only NEW inventory:**
+- Exactly six containers (`ccpc_restore_rehearsal_20261107` and `ccpc_full_acceptance_20261107`, 3 DB/Redis each), eight expected project volumes, two distinct rehearsal project Docker networks plus Docker default bridge/host/none.
+- **No** `ccpc_prod_erpnext` container, named volume or network present in the complete inventory reported at inspection; this is a non-collision observation, not authorization to deploy/create.
+- `df -h /var/lib/docker`: root filesystem 787G, used 13G, **734G available**, 2% used. Avoid treating free disk capacity as proof that backup/restore has been validated.
+- Earlier owner checks: Docker Compose 5.6.1; TCP 80/443/8080 had no listeners.
+
+**GitHub-first engineering completed without host changes:** Created review-only branch `review/option-a-existing-release-precutover-2026-11-09` from exact original deployment review SHA `c12d46f7363c93742f7e9fb88b2e14a67dbd9a7e` and opened [DRAFT PR #32](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/32) to that review base (head `a57d8328f0a7e2f05d3378a10967101d1f4fe183`). This adds a sixth **pre-cutover acceptance-only** override `overrides/compose.option-a-precutover.yaml` and guarded operator document `docs/04-operations/OPTION-A-PRECUTOVER-ACCEPTANCE-PROFILE.md`. Overlay Git blob `38152038ea0de6d56b3b38ce9572785f95463d3a`, 2055 bytes, SHA-256 `bc283e1a48a314c0321f48f8636d30142f49edc2560ef24663efbe39408b5114`. Source-level PyYAML parse plus assertion verified 10 services, six acceptance-profile services, four separately excluded background/configurator services, disabled restarts/pulls, no frontend published port, declared internal default network. **Not yet validated by actual NEW Docker Compose six-file parser; not deployed.** Built direct matching downloadable file for owner transfer to private scratch, not into protected checkout.
+
+**Next one NEW-only non-deploy action:** operator independently transfers the exact sixth YAML to NEW using previously established secure file-transfer workflow, checks its SHA256 against above and confirms private destination distinct from both earlier Git checkouts and original rehearsal overrides. Then one `docker compose ... config --quiet` with synthetic credential and a sanitized effective-model check; **no `up`, `run`, `start` or new persistent resource**. The preexisting five-file Compose parser/sanitized layout already passed on NEW November 7; do not rerun those unnecessarily. Releasing actual write-capable NEW app/start requires subsequent explicit scoped approval. OLD PRODUCTION/DEV, both NEW rehearsal databases/volumes and original H1B backup remain protected.
+
 ## Current deliberately omitted scope
 
 - Do not make the newer draft finance/billing/Withdrawal Slip branches blockers for this **like-for-like migration**. Their production integration, reports, schemas, migrations, authorization and approvals are a **separate future release**, not hidden work added to the frozen historical image.
