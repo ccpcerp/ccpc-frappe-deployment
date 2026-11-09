@@ -1,5 +1,18 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 10 — A3 candidate startup checksum STOP (no execution)
+
+Owner ran on NEW Ubuntu: `sha256sum --check` for the A3 one-use script, followed by `&& python3 -m py_compile ... && python3 ...`. Actual output:
+
+```text
+option_a_a3_start_internal_app.py: FAILED
+sha256sum: WARNING: 1 computed checksum did NOT match
+```
+
+**STOP / NO EXECUTION:** The shell short-circuited at the checksum failure; `py_compile` and A3 script were **not run by that command**. Therefore zero A3 app containers were started by that attempt. Do **not** bypass the hash, run the script directly, rerun the previous A2 restorations or A3 volume-owner fixes. Current candidate volume state remains as before this attempt *as far as this invocation is concerned*. GitHub source at pinned commit `646c384db1e0c884200c652fea85734930e8a414` remains blob `443ef2e98e3570d478c2ebda43f662fe565fa860`, length 11,646 bytes; reviewed expected SHA-256 `de207481685b0ae4b950edd7af0f5001fe1fa7e9b43df8d2c4aed614bb025504`. File transfer integrity on NEW is **unverified** and the cause is **not yet known**.
+
+**Next single action:** On NEW run a strictly read-only diagnostic that prints only local SHA-256, exact byte count, whether the file contains CRLF line endings and whether its first line begins with the pinned expected Python shebang. No Python file execution or text/credential printing. Depending on result, compare with Windows Downloads hash; replace only this new A3 transfer file (not DB/volumes) by strict-host-key SCP after verifying source hash. Resuming A3 startup is a separate follow-up after a checksum MATCH. All nine DB/Redis support containers, six rehearsal services, OLD PROD/DEV, Nov05 candidate data and site volumes must remain protected.
+
 ## November 9 — A3 logs root correction PASSED; isolated app start reviewed, NOT RUN
 
 Owner's exact NEW-host output:
