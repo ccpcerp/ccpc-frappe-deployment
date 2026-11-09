@@ -84,6 +84,24 @@ Next NEW-only write under existing owner Stage A2 authorization: GitHub [draft P
 
 Then start only internal backend/websocket/frontend and test Frappe login, Work Request, attached files and representative accounting/inventory reads. Employee access and externally reachable HTTPS still separately gated; get owner final cutover approval after reconciled post-Nov5 writes and recoverable rollback. The newer draft financial features are not blockers for the original frozen release migration.
 
+## Stage A2 site/files writer STOP after schema account creation — read-only inspection required (owner-reported, 2026-11-09)
+
+Operator on NEW ran exact SHA-checked `option_a_a2_site_and_files.py` (GitHub blob `40cc4206cfd30a7d93ee17f98e882c1bd6bb153e`, SHA256 `e5ae5b3a7fb3ed671079b9806100059450ec902b7fc243b4d32181e965c1d9dc`) and obtained:
+
+```text
+option_a_a2_site_and_files.py: OK
+A2_SITE_PREFLIGHT_DB_NETWORK_BACKUP_AND_ARCHIVES_PASS
+A2_SITE_NEW_PRIVATE_APP_DB_SECRET_CREATED
+A2_SITE_SCHEMA_SCOPED_APP_ACCOUNT_CREATED_PASS
+STOP:A2_SITE_PARTIAL_SITE_OR_ATTACHMENT_RESTORE_RETAIN_STATE
+```
+
+**Confirmed:** isolated new candidate `ccpc_prod_erpnext` Nov05 restored SQL remains present; A2 new private app DB credential was created; schema-scoped candidate app account was created/grants checked. **Not confirmed:** whether the ephemeral no-network site-volume writer was unable to start, failed before any writes, partially wrote site configuration/attachment, or wrote everything but failed the wrapper's exact success-stdout check. The script deliberately suppressed helper stderr and converted all such cases to the same STOP. It uses `docker run --rm`, `--read-only` rootfs, `--network none`, `--cap-drop ALL --cap-add CHOWN`, one candidate sites volume only; any executed code was intended to write **only** that new volume. This STOP is not evidence the historical SQL or OLD PROD/DEV is damaged.
+
+**DO NOT RERUN** the one-use script: `site-db.env` and MariaDB user already exist, and candidate sites volume may contain partial data. Preserve the entire new candidate, its secrets, all six protected rehearsal support containers/volumes, and approved Nov05 source archives. Avoid `down`, `rm`, `chown`, `chmod`, database user recreation, schema drops, container restarts or alternative ad-hoc writers.
+
+**Next single NEW-only read-only diagnostic:** inspect exact candidate sites Docker volume metadata (project owner/stage and mountpoint), count/expected-type presence of `common_site_config.json`, `apps.txt`, `ccpcerp.local/site_config.json`, `public/files`, `private/files` and expected count of private attachments, plus ephemeral helper container name absence/presence, without printing content, credential, encryption key or private filename. This determines whether a bounded **continuation/repair** of missing candidate-only site files is needed versus a runtime Docker error. Only after observed sanitized results may one review and authorize an exact correction with no existing data overwrite. No additional generic checks or backups.
+
 ## Current deliberately omitted scope## Stage A1 — CORRECTED SIX-FILE COMPOSE VALIDATION PASS — 2026-11-09
 
 **OWNER-REPORTED NEW-ONLY REAL COMPOSE CONFIG PASS:** The operator reran only the corrected *synthetic*, no-start validator on `ccpcerp-prod`; no Compose `up`, app/DB start, secret use or other mutation. Exact sanitized markers:
