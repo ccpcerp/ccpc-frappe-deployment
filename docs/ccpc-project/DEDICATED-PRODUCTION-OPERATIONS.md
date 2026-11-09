@@ -1,5 +1,27 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17V-H1A ENGINE CLASSIFICATION PASS; H1B CORRECTED CHECKPOINT PREPARED — 2026-11-09
+
+**H1A PASS — owner-run READ-ONLY NEW-only SQL metadata diagnostic:**
+
+```text
+STAGE17V_H1A_READ_ONLY_PREFLIGHT_PASS
+BASE_ENGINE_INNODB=738
+BASE_ENGINE_MYISAM=3
+NON_INNODB_BASE_TABLES=3
+NON_INNODB_STANDARD_SEARCH_INDEX=0
+NON_INNODB_OTHER_TABLES=3
+STAGE17V_H1A_READ_ONLY_DIAGNOSTIC_COMPLETE
+```
+
+Exactly 741 base tables: **738 InnoDB, three MyISAM**, with zero non-InnoDB `tabSearch Index` tables. The existing H1 safety STOP was expected for three MyISAM tables and occurred before its first host checkpoint write. This does not indicate a damaged restore and **does not warrant ALTER TABLE, engine conversion, schema migration, SQL reimport, or deletion**. H1A was SELECT-only and performed no DB writes. Do not rerun original H1.
+
+**H1B one-use revised checkpoint prepared / NOT executed:** Reviewed local artifact `stage17v_h1b_checkpoint.py`, **24,706 UTF-8 bytes**, Python compilation and static review passed; **SHA256 `76cfab138cb4c4ce359271e183b397f1dcf0665c102978acf40df4d6621c0488`**. Executable file is provided as a conversation attachment, not committed to GitHub; this entry records its hash/constraints. Transmit via existing Windows private-key SSH to NEW `ccpcadmin@192.168.50.186`; independently verify SHA on NEW before separately running. Never rerun failed `stage17v_h1_checkpoint.py` or overwrite any partially created H1/H1B directory. H1B rejects an occupied old H1 directory and uses a distinct root-only `/home/ccpcadmin/.ccpc-full-acceptance-checkpoint-20261109-h1b/` (0700, private 0600 archives).
+
+**Correction and consistency:** H1B retains original six pinned clone/baseline containers, 8 volumes, two isolated internal bridges, clone DB/schema/file/config/credentials/side-effect-off guards and read-only source backup hash. It checks exactly **738 InnoDB and 3 MyISAM** tables and no other base-table engines. Original `mariadb-dump --single-transaction --skip-lock-tables` is replaced by `mariadb-dump --skip-single-transaction --lock-all-tables --quick`. Per official MariaDB `mariadb-dump` documentation, `--lock-all-tables` acquires a global read lock (`FLUSH TABLES WITH READ LOCK`) for the entire dump, preventing concurrent modifications of MyISAM and InnoDB while dumping; `--single-transaction` is not guaranteed consistent for MyISAM. Reference: https://mariadb.com/docs/server/clients-and-utilities/backup-restore-and-import-clients/mariadb-dump . Before any output files, H1B checks the container has `timeout` and the dump lock option. A child process timeout (125s + 5s kill grace) bounds the global lock duration; the host Docker exec has a longer 160s timeout. No app server/workers/scheduler/mail/integration/HTTP processes or SQL DML/DDL are requested. The global read lock temporarily blocks writes **inside the clone DB** while snapshot is taken; it should not reach OLD PROD/DEV or original baseline. Creates root-private clone SQL dump, sites/attachment tar, clone-only secret tar and manifest, with SHA digests/readback and postchecks. **Local host checkpoint is not an offsite backup; recovery remains untested.** On any STOP after write, preserve partial checkpoint without rerun/delete/auto-clean. The checkpoint is not created until operator reports successful run.
+
+**Current delivery gate:** Owner has approved Stage17V-H restricted acceptance, not final go-live. **NEXT** owner transfers H1B script, reports NEW-host SHA256 verification; only then execute bounded one-use H1B. Once successful, test recovery/off-host copy as a separate gate, then real app read-only/functional acceptance without live external side effects; no old PROD/DEV modifications, migrations or production cutover.
+
 ## NEW REHEARSAL STAGE 17V-H1 NONTRANSACTIONAL ENGINE PREFLIGHT STOP — 2026-11-09
 
 **STOP BEFORE ANY WRITES — operator-run NEW `ccpcadmin@ccpcerp-prod`:** Owner ran SHA256-verified one-use `stage17v_h1_checkpoint.py` and reported solely `STOP:STAGE17V_H1_NONTRANSACTIONAL_TABLE_REVIEW_REQUIRED`. Inspected exact locally archived script SHA256 `28cef42ea98fed81d9f7090bcbfbc1c13a868f83bb9d298a8aaa8b841246442a`: the guard checks `information_schema.tables` for any `BASE TABLE` in the cloned Nov5 schema whose `ENGINE IS NULL OR ENGINE <> 'InnoDB'`, and this check occurs **before** `WRITES_STARTED=True` and `os.mkdir(CHECKPOINT,...)`. The script's preflight passed earlier host/Docker/schema/count/credential checks (some do not emit markers until later); SQL operations through the STOP are SELECT-only. **No local H1 checkpoint directory, SQL dump, credential tar, site tar or Docker/database/site mutation is created by this halted script.** This is a consistency-method guard, **not** proof of database corruption, restored data loss or app incompatibility. Operator console is evidence, not remote host inspection.
