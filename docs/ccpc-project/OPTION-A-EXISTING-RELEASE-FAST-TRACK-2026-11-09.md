@@ -19,6 +19,19 @@
 3. **Recoverable fresh source capture and cutover rehearsal:** independently verify OLD current four-artifact **consistent** backup (DB, public files, private files, site config, correct encryption key) and restore it onto a designated NEW candidate, not a protected pre-existing rehearsal volume. Before any final cutover, demonstrate isolated restoration and verify DB/site/apps/files compatibility and rollback from an independently held backup. Full write-capable restore/production freeze needs an explicit scoped approval and owner-observed current OLD status. A newer fresh backup must supersede Nov5; do not call Nov5 current.
 4. **LAN HTTPS and controlled cutover:** select validated cert/trust for office clients and a secure 443 gateway to loopback application frontend, keep DB/Redis non-public and management access restricted. Confirm login and permissions from an authorized office workstation. Plan a maintenance window; stop OLD writes only when explicitly approved; take final consistent backup, verify/import into NEW, smoke check and reconcile critical data, then explicitly approve DNS/employee access switch. **Never allow both OLD and NEW to accept production writes simultaneously.** Keep OLD recoverable, rollback decision tree and audit trail. Stop rather than blind restart/restore if any invariant or final smoke check fails.
 
+## Stage A0 — NEW Compose and listener preflight PASS (owner report, 2026-11-09)
+
+On `ccpcerp-prod` the owner ran `sudo docker compose version --short` and `sudo ss -ltn '( sport = :80 or sport = :443 or sport = :8080 )'`. Exact Compose output: `5.6.1`; `ss` produced only its header, with **no listeners on TCP ports 80, 443 or 8080 at check time**. Docker Compose version exceeds the documented v2.24.4 minimum for `!override`; actual candidate five-file Compose configuration has **not yet been rendered/accepted**. Open port availability does **not** prove firewall policy, trust/certificates, DNS, backend health or safe ability to start containers. No NEW or OLD service was changed through these read-only checks.
+
+**Next single NEW-only operator batch (read-only, no secrets):** inspect existing container/volume/network names and free Docker filesystem capacity before selecting distinct `Option A` candidate namespace; compare specifically against proposed `ccpc_prod_erpnext` and preserved rehearsal projects. No `docker compose up`, deploy script, new site, image pull, migration or release action until namespace/source/config/invariants and approved rollback are independently verified.
+
+```bash
+sudo docker ps -a --format 'CONTAINER={{.Names}}' | sort
+sudo docker volume ls --format 'VOLUME={{.Name}}' | sort
+sudo docker network ls --format 'NETWORK={{.Name}}' | sort
+df -h /var/lib/docker
+```
+
 ## Current deliberately omitted scope
 
 - Do not make the newer draft finance/billing/Withdrawal Slip branches blockers for this **like-for-like migration**. Their production integration, reports, schemas, migrations, authorization and approvals are a **separate future release**, not hidden work added to the frozen historical image.
