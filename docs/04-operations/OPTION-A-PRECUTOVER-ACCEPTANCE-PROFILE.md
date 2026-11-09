@@ -54,3 +54,27 @@ NEW host's actual production app/http services have **not** yet been started or 
 ## Gate summary
 
 The fastest safe plan is: **verify the one extra overlay by real Compose parser, approve one bounded isolated candidate start, perform one consolidated login/app acceptance, then fresh current backup + independent restore/rollback + TLS + final owner-approved cutover.** No extra H2B/H2C DocType mismatch tests or draft-feature release are necessary.
+
+## Stage A1 no-profile validator mismatch — owner report 2026-11-09
+
+The NEW sixth-file checksum matches GitHub. Operator ran the synthetic read-only Compose validator and received `STOP:OPTION_A_SYNTHETIC_COMPOSE_VALIDATION_FAILED`. A separately instrumented read-only diagnostic reported:
+
+```text
+A1_FILE_CHECK_PASS
+A1_COMPOSE_PARSER_PASS
+A1_SERVICE_SET=FAIL
+A1_ACTIVE_PROFILES=FAIL
+A1_DISABLED_PROFILES=FAIL
+A1_NO_PORTS=PASS
+A1_NO_RESTART=PASS
+A1_NO_PULL=PASS
+A1_INTERNAL_NETWORK=FAIL
+A1_NAMED_VOLUMES=FAIL
+A1_DIAGNOSTIC_COMPLETE
+```
+
+**Root-cause hypothesis, not yet proven with the corrected NEW-host run:** Original validator called `docker compose ... config --format json` with **no active profiles** and incorrectly expected all ten profile-gated services, default-network and named-volume declarations to appear. Compose normally omits inactive-profile services from the effective model; the empty/no-profile model can also omit unused network/volume definitions. These outputs do **not** prove the six-file config broken; parser itself passed. No service was started by this read-only check.
+
+A new **review-branch-only** test file `scripts/review_option_a_compose_profiles.py` corrects the test: it verifies the five exact Git blob IDs and sixth SHA-256 first; renders the model three times with synthetic password only—`--profile "*"` for all ten service definitions and all networks/volumes; `--profile ccpc-acceptance` for precisely six allowed acceptance services; and no profile for zero default services. Checks no privileged services, unapproved mounts, exposed ports, restarts, pulls, disabled-service dependencies and non-internal networks. It suppresses raw Compose JSON and environment. **Source prepared, not yet run on NEW; do not claim PASS.** Never use `--profile "*"` with `up`; it is safe here only with `config`.
+
+The source/configuration overlay itself was **not modified** to address this validation mistake. Continue with corrected synthetic parser check only; NEW actual application startup, restore, migrations, DNS or OLD production remains separately gated.
