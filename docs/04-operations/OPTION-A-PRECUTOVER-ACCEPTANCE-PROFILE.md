@@ -1,5 +1,18 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 9 — A3 sites root fixed, logs root ownership gate
+
+Owner's exact NEW Ubuntu output from the guarded one-use sites-volume root ownership correction:
+
+```text
+A3_CANDIDATE_ROOT_PREFLIGHT_PASS
+A3_CANDIDATE_SITES_ROOT_OWNER_1000_PASS
+A3_CANDIDATE_LOGS_ROOT_UID=0 MODE=755
+A3_NO_APP_SERVICE_STARTED
+```
+
+**Verified milestone as operator-reported:** NEW candidate sites volume root was changed from UID 0 / 0755 to UID/GID 1000/1000, without recursively changing site files; no application service was started. This command is consumed; **never rerun it.** Separate candidate logs volume `ccpc_prod_erpnext_logs` remains UID 0 / 0755. The pinned image's Frappe backend runs as UID 1000 and requires a writable volume for application logs. Before app startup, carry out one more precisely guarded candidate-only, nonrecursive root-owner change, using an already-opened no-follow directory FD and `os.fchown(fd,1000,1000)`. Guard NEW hostname/operator, exact Docker socket/context, volume mountpoint/project+stage labels, root currently UID/GID 0/0755 and EMPTY, sites volume root UID/GID 1000/0755, nine expected running DB/Redis support containers, candidate bridge internal/nonattachable, and no unexpected Docker resources. Never inspect or print any business/secret file contents. On unexpected state, STOP without changes. After exact PASS, prepare separate fail-closed A3 script to launch backend/websocket/frontend only on existing NEW internal bridge and perform sanitized internal HTTP /login check; no queues, scheduler, configurator, migrations, public ports, old production or rehearsal impact. **The logs-root fix and application startup have not yet been executed.**
+
 ## November 9 — A3 volume-root ownership guard (pending operator run)
 
 Owner's direct NEW-host `sudo stat` reported `A3_CANDIDATE_SITES_ROOT_UID=0 MODE=755` for exact candidate-only volume root `/var/lib/docker/volumes/ccpc_prod_erpnext_sites/_data`. The pinned custom image's `resources/core/main-entrypoint.sh` removes and re-creates `sites/assets` using the Frappe image process (UID 1000). Directory UID 0, mode 0755 will deny UID 1000 the link write. This is a verified filesystem ownership discrepancy, not evidence of an attempted app startup. The original A2 scripts are consumed and must not be rerun.
