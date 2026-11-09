@@ -1,5 +1,19 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 10 — Repeated A3 hash failure: exact A2 byte copy under A3 name
+
+Operator ran independent NEW Ubuntu `sha256sum`, `wc -c`, `stat` on `/home/ccpcadmin/option_a_a3_start_internal_app.py` after the second failed hash check:
+
+```text
+9799bb8d34e012dddd55f57bac60959ccdf16e7b30de4c09aeeb6b14eea902d9  option_a_a3_start_internal_app.py
+17124
+LAST_MODIFIED=2026-11-09 23:33:43.610964808 +0000
+```
+
+This proves the currently named A3 candidate is still a **byte-for-byte copy of previously consumed A2 partial-site writer** (same 17,124-byte source SHA256), not the reviewed 11,646-byte A3 startup script. The UTC timestamp corresponds to 2026-11-10 07:33:43 PHT, but does not establish *how* the wrong script was transferred. The two `sha256sum --check && py_compile && python3` calls exited before Python execution; no A3 app was started by those commands. Do not bypass the checksum or rerun old A2.
+
+**Safest transfer correction:** On Windows PowerShell (not Ubuntu), fetch exact A3 source from raw URL pinned to `646c384db1e0c884200c652fea85734930e8a414`, verify local SHA256 `de207481685b0ae4b950edd7af0f5001fe1fa7e9b43df8d2c4aed614bb025504` and 11,646 bytes, use strict-host-key SCP/known private SSH identity to **different, distinct** NEW filename `/home/ccpcadmin/ccpc_a3_verified_646c384d.py`. Do not overwrite the misleadingly named existing NEW file; preserve all restoration assets. After SCP, independently verify remote hash+size and Python compilation in a separate **verification-only** command; do not automatically execute A3. No OLD/rehearsal/DB/volume changes. If transfer fails report exact step.
+
 ## November 10 — A3 transfer file identified as A2 content (NOT EXECUTED)
 
 Owner's read-only NEW-host diagnostic for the file **named** `/home/ccpcadmin/option_a_a3_start_internal_app.py`:
