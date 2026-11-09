@@ -1,0 +1,79 @@
+# CCPC Option A PRE-CUTOVER ACCEPTANCE ONLY.
+# Layer SIXTH, strictly after the five pinned dedicated pre-TLS files.
+# Do NOT deploy from this file: source-reviewed profile, not runtime acceptance.
+# No default-profile services should run; explicit profile selection requires
+# separately reviewed credentials, site restore, and NEW-only approval.
+#
+# No external routing, published application listener, scheduler, worker,
+# configurator site rewriting, automatic image pulls, or auto-restarts.
+# Do not enable any ccpc-disabled-* profile.
+services:
+  configurator:
+    profiles: [ccpc-disabled-configurator]
+    restart: "no"
+    pull_policy: never
+
+  backend:
+    profiles: [ccpc-acceptance]
+    # The stock configurator changes common_site_config.json; do not run it
+    # against an accepted/restored site. Read-only inspection of an existing
+    # site and separate site-config preparation must precede runtime use.
+    depends_on: !override
+      db:
+        condition: service_healthy
+      redis-cache:
+        condition: service_started
+      redis-queue:
+        condition: service_started
+    restart: "no"
+    pull_policy: never
+
+  websocket:
+    profiles: [ccpc-acceptance]
+    depends_on: !override
+      redis-cache:
+        condition: service_started
+      redis-queue:
+        condition: service_started
+    restart: "no"
+    pull_policy: never
+
+  frontend:
+    profiles: [ccpc-acceptance]
+    ports: !override []
+    restart: "no"
+    pull_policy: never
+
+  queue-short:
+    profiles: [ccpc-disabled-workers]
+    restart: "no"
+    pull_policy: never
+
+  queue-long:
+    profiles: [ccpc-disabled-workers]
+    restart: "no"
+    pull_policy: never
+
+  scheduler:
+    profiles: [ccpc-disabled-scheduler]
+    restart: "no"
+    pull_policy: never
+
+  db:
+    profiles: [ccpc-acceptance]
+    restart: "no"
+    pull_policy: never
+
+  redis-cache:
+    profiles: [ccpc-acceptance]
+    restart: "no"
+    pull_policy: never
+
+  redis-queue:
+    profiles: [ccpc-acceptance]
+    restart: "no"
+    pull_policy: never
+
+networks:
+  default:
+    internal: true
