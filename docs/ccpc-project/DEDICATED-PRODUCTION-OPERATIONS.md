@@ -1,5 +1,26 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17V-H1B PRIVATE CLONE CHECKPOINT PASS — 2026-11-09
+
+**PASS — owner-reported successful one-use H1B execution on NEW `ccpcadmin@ccpcerp-prod`, after prior SHA256 verification:**
+
+```text
+STAGE17V_H1B_PRECHECK_VERIFIED
+STAGE17V_H1B_CLONE_SITE_DB_AND_FILES_VERIFIED
+STAGE17V_H1B_CLONE_SQL_CHECKPOINT_VERIFIED
+STAGE17V_H1B_CLONE_SITES_AND_PRIVATE_FILE_CHECKPOINT_VERIFIED
+STAGE17V_H1B_CLONE_CREDENTIALS_CHECKPOINT_PRIVATE
+STAGE17V_H1B_BASELINE_UNCHANGED
+STAGE17V_H1B_NO_APPLICATION_OR_SCHEMA_MUTATION
+STAGE17V_H1B_LOCAL_CHECKPOINT_CREATED_RESTORE_NOT_TESTED
+```
+
+**Result/evidence:** The previously SHA256-pinned `stage17v_h1b_checkpoint.py` (hash `76cfab138cb4c4ce359271e183b397f1dcf0665c102978acf40df4d6621c0488`) successfully completed all Stage17V-H1B markers. Exact NEW-only cloned MariaDB 738 InnoDB / 3 MyISAM base-table distribution and 6 sequences, historical Nov5 four-company schema, site config and single private attachment were guarded. Independent root-private checkpoint directory `/home/ccpcadmin/.ccpc-full-acceptance-checkpoint-20261109-h1b/` (0700) now holds four 0600 artifacts: `clone-db.sql.gz` (consistent logical dump using `mariadb-dump --skip-single-transaction --lock-all-tables --quick` for both InnoDB and MyISAM; global read lock during dump), `clone-sites.tar.gz` (exact site tree and attachment), `clone-secrets.tar.gz` (clone-only credentials), `manifest.json` (sizes, digests, expected identity and `restore_tested=false`, `off_host=false`). Script reports digest/readback and unchanged original restore baseline, no application/schema mutation, and no app or scheduler startup. User supplied sanitized terminal output; this does not provide independent NEW-host access. **Do not rerun H1B; it is exclusive/one-use.** Keep private checkpoint intact; never share secret tar, SQL data, or raw manifest contents in chat/GitHub.
+
+**Major limitations:** This is a **same-host backup**, not an off-host disaster recovery copy or a restore test. The original Nov5 source remains historical and is not a current source-consistent final migration snapshot. No persistent Frappe backend/HTTP/authentication/custom workflow tests have been executed against the full independent clone yet. OLD PRODUCTION, DEVELOPMENT, and baseline restore remain protected. Live cutover, live-data backup, rollout, rollback and go-live require independent explicit owner approval.
+
+**NEXT Stage17V-H2:** Move to a clone-only SELECT-restricted application-layer test using the pinned `ccpcerp:v16.50.0` image, with DB writes impossible from the diagnostic identity and no persistent app, worker, scheduler, mail, webhook, frontend or proxy services. The new clone database has a write-capable application user, so **do not** launch a generic Frappe process with its real `site_config.json` before establishing an isolated read-only DB identity/secret and an egress/side-effect barrier. Check current GitHub current custom-app branch/features before picking representative custom DocTypes/queries; use controlled one-use diagnostic helper with fixed clone-network source identity, isolated tmpfs and nonroot/no-capability settings. Later verify a real login/HTTP path and actual transaction workflows only after isolating rollbacks and separate bounded approval. No further SQL import, table engine conversion or automatic migration.
+
 ## NEW REHEARSAL STAGE 17V-H1A ENGINE CLASSIFICATION PASS; H1B CORRECTED CHECKPOINT PREPARED — 2026-11-09
 
 **H1A PASS — owner-run READ-ONLY NEW-only SQL metadata diagnostic:**
