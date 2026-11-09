@@ -58,6 +58,24 @@ Operator first verified the exact reviewed sixth overlay downloaded to Windows u
 
 **Fastest actual next operation:** Create third candidate Docker namespace *foundation only* with strict identity/backup/image/inventory guards and guaranteed non-overwrite, then follow directly with protected NEW-only DB/Redis credentials and support startup, an isolated Nov5 SQL+file restore, and only then manual app/HTTP acceptance. Avoid repeating already passed A1/H2 tests. This is the first NEW persistent write under approved Stage A2, but creates only empty network and volumes (no DB/app yet). Stop on partial creation without blind retry/cleanup. The actual employee-facing go-live requires authenticated app test + backup reconciliation, recovery/rollback, trusted 443 LAN gateway and final cutover authorization.
 
+## Stage A2-support — NEW independent MariaDB/Redis PASS (owner-reported, 2026-11-09)
+
+**Owner on NEW ran the one-use guarded `option_a_a2_support_start.py` and provided exact PASS markers:**
+
+```text
+A2_SUPPORT_PREFLIGHT_ALL_PROTECTED_RESOURCES_AND_NOV05_VERIFIED
+A2_SUPPORT_NEW_PRIVATE_DB_SECRET_CREATED
+A2_SUPPORT_DB_RUNNING_HEALTHY_ROOT_SOCKET_AUTH_PASS
+A2_SUPPORT_BOTH_REDIS_PING_PASS
+A2_SUPPORT_THREE_CANDIDATE_SERVICES_ISOLATED_PASS
+A2_SUPPORT_SIX_REHEARSAL_SERVICES_PRESERVED
+A2_SUPPORT_NO_APP_SQL_IMPORT_WORKERS_OR_CUTOVER
+```
+
+**Verified inference from script and operator output:** NEW candidate `ccpc_prod_erpnext` has exactly 3 new running isolated support containers (`db`, `redis-cache`, `redis-queue`) on its new internal bridge with no host-published ports and new private MariaDB root client config. Six existing baseline/acceptance clone support containers remain running; all 12 named volumes remain separate. The four approved Nov5 archival SHA256s were independently rechecked. No candidate business SQL imported or ERPNext backend/frontend/websocket/worker/scheduler started. Do **not** rerun foundation/support-start one-use scripts.
+
+**Next decisive A2 operation:** NEW-only guarded SQL restore of exactly pinned Nov5 DB into the new candidate's empty DB/schema using the existing candidate root client `/run/secrets/db-client.cnf` (secret never in argv/output). Verify DB is truly empty of the historical schema, six old containers/volumes preserved, archives pinned, root local socket authentication, then create schema and import with streamed gzip; check expected 741 base tables, six sequences and four Companies, plus DocType/User/Singles expected counts. Stop on any post-write error without dropping or retrying. Then one new scoped app DB identity and site/files restore, app-only login test; no obsolete H2B reruns. OLD remains live but reportedly unused; final cutover still needs post-Nov5 change reconciliation and separately approved employee-access switch.
+
 ## Current deliberately omitted scope## Stage A1 — CORRECTED SIX-FILE COMPOSE VALIDATION PASS — 2026-11-09
 
 **OWNER-REPORTED NEW-ONLY REAL COMPOSE CONFIG PASS:** The operator reran only the corrected *synthetic*, no-start validator on `ccpcerp-prod`; no Compose `up`, app/DB start, secret use or other mutation. Exact sanitized markers:
