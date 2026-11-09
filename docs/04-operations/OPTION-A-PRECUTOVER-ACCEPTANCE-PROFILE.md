@@ -1,5 +1,13 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 9 — A3 volume-root ownership guard (pending operator run)
+
+Owner's direct NEW-host `sudo stat` reported `A3_CANDIDATE_SITES_ROOT_UID=0 MODE=755` for exact candidate-only volume root `/var/lib/docker/volumes/ccpc_prod_erpnext_sites/_data`. The pinned custom image's `resources/core/main-entrypoint.sh` removes and re-creates `sites/assets` using the Frappe image process (UID 1000). Directory UID 0, mode 0755 will deny UID 1000 the link write. This is a verified filesystem ownership discrepancy, not evidence of an attempted app startup. The original A2 scripts are consumed and must not be rerun.
+
+**Next single operator command:** A NEW-only, one-use, root-privileged guarded inline Python procedure. Before the write, verify hostname/operator, exact volume name/mountpoint and Compose/project+stage labels, exactly the nine expected candidate/rehearsal support containers, the restored candidate site-files structure, UID/mode of the files and single private attachment without printing secret or attachment filename, and `sites` root currently UID 0/mode 0755. Then execute `os.fchown()` on an already-opened no-follow fd for **only the candidate sites-volume root inode**, to UID/GID 1000. No recursion, chmod, file overwrite, SQL, services, Docker network, volume deletion, scheduler/migration, OLD PROD/DEV or rehearsal modification. Confirm new ownership and emit `A3_CANDIDATE_SITES_ROOT_OWNER_1000_PASS`. The operation is not yet executed; any STOP requires inspection and no blind rerun. Observe the separate candidate logs-volume root UID/mode read-only to plan later app startup; do **not** change logs ownership without its own preflight.
+
+The later backend/websocket/frontend startup must remain limited to the original image `sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8`, internal bridge `ccpc_prod_erpnext_default`, zero published ports, no worker/scheduler/configurator/migration. The owner-reported A2 PASS is not app login proof; actual runtime startup/HTTP/authentication/cutover remain pending.
+
 ## November 9 — Candidate A2 site/attachment recovery SUCCESS (owner-reported)
 
 Operator ran the verified one-use recovery script `option_a_a2_complete_partial_site.py` on NEW and reported **all seven complete success markers**:
