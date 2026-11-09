@@ -1,5 +1,25 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17V-H2A SELECT-ONLY CLONE ACCOUNT PASS — 2026-11-09
+
+**PASS — owner-reported NEW-only execution of hash-verified `stage17v_h2a_readonly_account.py`:**
+
+```text
+STAGE17V_H2A_PRECHECK_VERIFIED
+STAGE17V_H2A_RECOVERY_CHECKPOINT_VERIFIED
+STAGE17V_H2A_FIXED_PRIVATE_HELPER_IDENTITY_AVAILABLE
+STAGE17V_H2A_NEW_SELECT_ONLY_SECRET_CREATED
+STAGE17V_H2A_SELECT_ONLY_ACCOUNT_AND_GRANT_CREATED
+STAGE17V_H2A_SELECT_ONLY_PERMISSIONS_VERIFIED
+STAGE17V_H2A_ORIGINAL_BASELINE_PRESERVED
+STAGE17V_H2A_NO_APPLICATION_STARTED
+STAGE17V_H2A_READONLY_ACCOUNT_READY
+```
+
+H2A owner-run prechecks reported clone DB/schema and H1B root-private logical checkpoint intact; **new SELECT-only identity `ccpc_h2_ro_20261109` restricted to the fixed isolated clone bridge IP** was created only in cloned MariaDB, with one schema-level SELECT grant and no global/table/column/routine/role/proxy/other privileges; its fresh 64-hex secret is held privately in `/home/ccpcadmin/.ccpc-full-acceptance-secrets-20261107/readonly-h2a.env` (0600, private 0700 parent). Original restored baseline reportedly unchanged; no app/runtime services, OLD PROD/DEV, migrations or production release actions. Evidence is owner terminal sanitized markers, not direct NEW-host readback. **Do not rerun H2A**; account already exists and exclusive secret file is created. Existing same-host H1B checkpoint is still not off-host or independently restore-tested.
+
+**Next Stage17V-H2B:** Use a new one-time nonprivileged read-only-rootfs app-container probe pinned to exact `ccpcerp:v16.50.0` image, on clone-only private bridge at the fixed grant-bound IP. Obtain *only* the new SELECT-only diagnostic secret (never transfer full-write clone password/historical encryption key); create an ephemeral synthetic site config on tmpfs with DB host fixed clone DB and safe flags, disable external Redis/mail/queue/scheduler, and test selected Frappe/ERPNext/ccpcerp DocType/ORM reads. Guard all six baseline+clone DB/Redis service containers, two internal networks, eight volumes and original checkpoint before/after; redact table rows/secret values/tracebacks in owner terminal. No persistent app, worker, scheduler, HTTP, SMTP/webhook, SQL writes, migrations or OLD PROD/DEV. **H2B not yet created or run.** Later test full site access/recovery/real workflows only after separate constrained plan; current Nov5 data remains historical rehearsal snapshot.
+
 ## NEW REHEARSAL STAGE 17V-H2A SELECT-ONLY CLONE ACCOUNT SCRIPT PREPARED — 2026-11-09
 
 **PREPARED, NOT EXECUTED ON NEW.** One-use `stage17v_h2a_readonly_account.py` artifact, **18,469 UTF-8 bytes**, local Python `py_compile` and static no-`shell=True`/no-`docker run` check passed, **SHA-256 `3f660844af54c06508908f67409b1619dbd265e47905a261b3bfd5ea8c01df24`**. Executable is a conversation file download, not committed in GitHub. Operator must transfer with the known Windows SSH identity to NEW `ccpcadmin@192.168.50.186` and verify SHA256 on NEW, then separately execute only after hash match. Never auto-run a downloaded script. Current Stage17V-H1B private local clone checkpoint is COMPLETE as reported, remains off-host=false and restore_tested=false; original baseline intact.
