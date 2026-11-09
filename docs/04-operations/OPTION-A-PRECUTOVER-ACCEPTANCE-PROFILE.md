@@ -1,5 +1,23 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 9 — A3 logs root correction PASSED; isolated app start reviewed, NOT RUN
+
+Owner's exact NEW-host output:
+
+```text
+A3_LOGS_ROOT_PREFLIGHT_PASS
+A3_CANDIDATE_LOGS_ROOT_OWNER_1000_PASS
+A3_NO_APP_SERVICE_STARTED
+```
+
+Both candidate sites and logs named-volume roots now have UID/GID 1000 with 0755 permissions, reported by two separately guarded commands. **Do not rerun** either volume-root ownership script, any earlier A2 recovery script, or candidate SQL import. NEW has only 9 running DB/Redis support containers, 12 named volumes and 3 project bridges; protected rehearsal containers and OLD PROD/DEV remain untouched according to the passed operator guards. The backend/websocket/frontend are **not yet started**.
+
+A NEW one-use reviewed A3 candidate-only startup source has been committed on `review/option-a-existing-release-precutover-2026-11-09`: [`scripts/option_a_a3_start_internal_app.py`](../../scripts/option_a_a3_start_internal_app.py), commit `646c384db1e0c884200c652fea85734930e8a414`, Git blob `443ef2e98e3570d478c2ebda43f662fe565fa860`, **SHA256 `de207481685b0ae4b950edd7af0f5001fe1fa7e9b43df8d2c4aed614bb025504`**, UTF-8 11,646 bytes. GitHub source bytes verified and match the locally compiled, offline-tested file. The local synthetic read-only guard was tested for exact state PASS and rejection of wrong site-file mode and an unexpected assets symlink. **No live NEW app startup, Docker service, HTTP endpoint, or authenticated login test has yet been performed**.
+
+A3 startup script guards NEW hostname/operator/default local Docker context, exact 9 support containers (all running), 12 named volumes, expected 6 Docker networks including three protected project bridges, image IDs, candidate DB health, internal nonattachable candidate bridge with only 3 expected peers, candidate volume labels/mountpoints, strict exact site/logs ownership and contents, correct scheduler/mail-disabled site config, and no preexisting `sites/assets` link. It then runs only candidate `backend`, `websocket`, `frontend` from immutable image `sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8`, with `--pull=never --restart=no --user=1000:1000 --cap-drop=ALL`, no host ports, attached **only** to `ccpc_prod_erpnext_default`, mounting **only** candidate sites+logs volumes. The original image entrypoint creates `sites/assets` symlink; no configurator, worker, scheduler, migration, SMTP, DNS, public listener or production/rehearsal action is included. After resource checks, it makes an HTTP GET to `/login` **inside the candidate frontend** with Host `ccpcerp.local`, discarding response body and exposing only sanitized HTTP status markers. HTTP 200 is a connectivity/login-page milestone **not proof of authenticated application login** or financial correctness.
+
+**Operator next:** Download the exact pinned GitHub source through "Download raw file" to Windows Downloads; SHA256 check in PowerShell; strict-host-checking SCP through existing key to `ccpcadmin@192.168.50.186:/home/ccpcadmin/`; independently verify SHA256 and `python3 -m py_compile` on NEW, then execute **once** as normal `ccpcadmin` under the existing separately approved isolated NEW candidate application acceptance. On any `STOP:A3_APP_...`, preserve all partial candidate containers/volumes; **do not rerun**. If successful, proceed to separate supervised authenticated login and read-only Company/Work Request/finance acceptance before any gateway/TLS/final cutover; source remains Nov05 02:00 subject to post-backup write reconciliation.
+
 ## November 9 — A3 sites root fixed, logs root ownership gate
 
 Owner's exact NEW Ubuntu output from the guarded one-use sites-volume root ownership correction:
