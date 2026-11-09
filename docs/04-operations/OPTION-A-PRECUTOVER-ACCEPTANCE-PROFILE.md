@@ -1,5 +1,23 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 9 — Candidate A2 site/attachment recovery SUCCESS (owner-reported)
+
+Operator ran the verified one-use recovery script `option_a_a2_complete_partial_site.py` on NEW and reported **all seven complete success markers**:
+
+```text
+A2_PARTIAL_PREFLIGHT_DB_NETWORK_BACKUP_AND_ARCHIVES_PASS
+A2_PARTIAL_CANDIDATE_SECRET_AND_DB_ACCOUNT_REUSED
+A2_PARTIAL_SCHEMA_SCOPED_APP_ACCOUNT_RECONFIRMED_PASS
+A2_PARTIAL_SITE_CONFIG_AND_PRIVATE_ATTACHMENT_RESTORED_PASS
+A2_PARTIAL_SIX_REHEARSAL_SERVICES_PRESERVED
+A2_PARTIAL_NO_APP_WORKERS_MIGRATION_OR_PUBLIC_PORTS
+A2_PARTIAL_CANDIDATE_SITE_READY_FOR_APP_TEST
+```
+
+**Status:** Candidate November 5 SQL backup, original source encryption key, candidate-only application DB account and private secret, site common/app/site config, public directory and single private attachment are reported restored on NEW. Both rehearsal environments remain protected and the output reports no app, workers, migrations or host-published application port. Treat these as operator-observed/script-reported assertions, not an independent ChatGPT connection to NEW. **No A2 script must ever be rerun**; preserve the exact candidate state. No actual HTTP, authenticated login, ERPNext record validation, employee HTTPS, or cutover has yet passed.
+
+**Next bounded A3 step:** Start only `backend`, `websocket`, and `frontend` from the pinned `ccpcerp:v16.50.0` immutable image in the already-created `ccpc_prod_erpnext_default` internal-only Docker network. No `docker compose up`, configurator, scheduler, queue workers, mail/integrations, migrations, published host ports, DNS, old server or rehearsal changes. First verify the site volume root's UID/mode: the pinned `resources/core/main-entrypoint.sh` unlinks/relinks `sites/assets` as runtime UID 1000, and the A2 writer changed *file/subdirectory* ownership but did not explicitly change the **sites volume root** ownership. If the root is UID 0/0755, a narrowly bounded NEW-only root-ownership adjustment is needed before starting the image. A missing permission guard would reproduce another startup failure. Read-only candidate site inspection and fixed-volume single-use startup should fail closed on changed inventory; preserve partial state on STOP and never repeat one-use scripts. HTTP probe can occur **inside** isolated frontend, with only sanitized status output; authenticated login and employee-facing gateway are later separate milestones. Nov05 is the owner-selected source, subject to final post-backup write reconciliation.
+
 ## November 9 — A2 partial site writer diagnostic and guarded continuation (NOT RUN)
 
 Operator's exact read-only NEW candidate-volume diagnostic: `COMMON_CONFIG=FILE UID=1000 MODE=600`, `APPS_TXT=FILE UID=1000 MODE=644`, `SITE_DIRECTORY=DIR UID=1000 MODE=755`, `SITE_CONFIG=MISSING`, `PUBLIC_FILES_DIR=MISSING`, `PRIVATE_FILES_DIR=MISSING`, `PRIVATE_ATTACHMENT_COUNT=UNAVAILABLE`, `SITE_ROOT_ENTRY_COUNT=3`, `ONEOFF_WRITER_CONTAINER=ABSENT`; markers `A2_DIAGNOSTIC_CANDIDATE_VOLUME_VERIFIED` and `A2_READ_ONLY_DIAGNOSTIC_COMPLETE`. No password, encryption key, private filename or attachment contents were printed.
