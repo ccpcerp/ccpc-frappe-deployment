@@ -1,5 +1,25 @@
 # CCPC ERPNext — Dedicated PRODUCTION Operations and Deployment Record
 
+## NEW REHEARSAL STAGE 17V-G CLONE ATTACHMENTS RESTORED AND VERIFIED — 2026-11-09
+
+**PASS — owner-reported NEW-only one-use restore from Nov5 protected public/private archives to independent full-application clone.** The owner previously transferred `stage17v_g.py` (pinned SHA-256 `2c850375ec01cddb0d84bdde7b7c43dd814a23d19d9074fae1729647f5c17827`) to NEW `ccpcadmin@ccpcerp-prod` and reported hash verification. The executed command's output contains the exact nine success markers:
+
+```text
+STAGE17V_G_PRECHECK_VERIFIED
+STAGE17V_G_PINNED_ARCHIVES_AND_STRICT_LAYOUT_VERIFIED
+STAGE17V_G_CLONE_STAGE_F_SITE_CONFIG_UNCHANGED
+STAGE17V_G_PUBLIC_FILES_DIRECTORY_RESTORED
+STAGE17V_G_PRIVATE_FILE_RESTORED_AND_VERIFIED
+STAGE17V_G_EXISTING_CLONE_CONFIG_UNCHANGED
+STAGE17V_G_BASELINE_PRESERVED
+STAGE17V_G_NO_APPLICATION_OR_SQL_MUTATION_STARTED
+STAGE17V_G_ATTACHMENT_RESTORE_COMPLETE
+```
+
+**Result:** The separate `ccpc_full_acceptance_20261107` clone has a historically restored MariaDB schema (**741 BASE TABLE**, **6 SEQUENCE**, four Company records), separate cloned MariaDB/Redis support services, separately generated schema-scoped clone-only application DB credential, prepared `ccpcerp.local` site config retaining Nov5 encryption key and disabling maintenance-sensitive side effects, and now the exact archive public/files directory (empty) plus single private file under `private/files`, with source member type/hash/layout and target content digest verified. Stage17V-G postchecks report previous site/common/apps file bytes unchanged, original baseline six-vs-three support service separation preserved, no Frappe app/HTTP/worker/scheduler startup, SQL rewrite, migration, or OLD PRODUCTION/DEVELOPMENT operation. **This is operator console evidence, not independent live host access.** Do **not** rerun Stage17V-G because files now exist, and do not rerun Stages V-C through V-F or prior SQL import.
+
+**NEXT Stage17V-H (bounded readiness/acceptance gate):** Before any Frappe app runtime with a full-write clone account, perform a **read-only** clone-specific host/volume/site/DB/network security and compatible-image inspection. Confirm expected clone site and attachment state; check pinned app image contains the intended Frappe/ERPNext/ccpcerp apps and that UID1000 can read the clone's files without publishing ports. Assess remaining runtime side effects, Redis/mail/webhooks and clone network host-gateway/egress exposure. Prefer a one-shot, nonprivileged read-only-rootfs app diagnostic with SELECT-only clone DB access (or otherwise safely constrained) *after* the runtime safety review; avoid starting persistent backend/frontend/workers/scheduler before this gate. Distinguish observed process-level Frappe/HTTP/functionality tests from present offline checks. No automatic migrate, submit, posting, email, integrations, or approval of actual PROD cutover. Final current source-consistent backup, independent rollback and separate explicit go-live approval remain prerequisites.
+
 ## NEW REHEARSAL STAGE 17V-G CLONE ATTACHMENT SCRIPT PREPARED — 2026-11-09
 
 **PREPARED / NOT EXECUTED on NEW.** One-use `stage17v_g.py` prepared in conversation artifact runtime, **24,001 UTF-8 bytes**, syntax compiled and AST-checked (no `tar.extract`/`extractall`, no network call or `shell=True`); **SHA-256 `2c850375ec01cddb0d84bdde7b7c43dd814a23d19d9074fae1729647f5c17827`**. Executable bytes are in the conversation attachment, **not GitHub**; GitHub records the scope/hash. Operator should SCP through existing Windows public-key SSH path to NEW `192.168.50.186`, then compare this exact SHA-256 on NEW before a separate execution step. No automatic download/execution.
