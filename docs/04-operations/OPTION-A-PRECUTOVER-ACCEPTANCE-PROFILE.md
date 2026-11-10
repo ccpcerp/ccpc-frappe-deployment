@@ -1,5 +1,12 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 10 — Four-company visibility operator PASS; Work Request list next
+
+Owner reports “I can see all the company” in response to the first read-only **Company List** check for four expected companies after authenticated browser login via Windows loopback-only SSH into isolated NEW ERPNext. Treat as **operator-confirmed four expected Company entries visible**; actual company identities, underlying record fields, accounting mappings, cross-company permissions and full restoration integrity are NOT yet independently checked. Company list view was requested read-only; no record mutation is reported.
+
+**Next one operator step:** In the same browser and with SSH tunnel open, use ERPNext top search for **Work Request**, open its **List** view, and check whether existing entries appear and the list loads without error. If a known record is visible, only view its details; do not edit or submit. Report existence/count or a sanitized error, without pasting business identities/content, URLs with tokens or credentials. If list has no rows, check whether list filters are active before inferring data loss; stop before creating anything. Inventory, accounting/GL, finance permissions, four-company data consistency, post-Nov 5 backup activity reconciliation, TLS and cutover remain separate gates. No NEW worker/scheduler/mail, A2/A3 script, Docker or host port change, no OLD PROD/DEV/rehearsals modification.
+
+
 ## November 10 — Operator authenticated browser login reported PASS; four-Company list next
 
 Owner confirms from Windows browser: **“I log in and its working”** at the verified `http://127.0.0.1:18080/login` SSH-loopback access to isolated NEW candidate. Record this as **operator-reported successful authenticated browser login**, not independently observed user/session/role audit or full Desk workflow test. Login/session and routine audit writes in isolated NEW candidate are expected; do not claim zero database writes. No business master transaction, four-Company or permissions acceptance has yet been reported.
