@@ -1,5 +1,14 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 10 — Owner reaffirms November 5 backup as definitive Option A source
+
+Owner explicitly restates **“Lets use the November 05, 2026 Back-up”** after confirming NEW browser login, four Companies and completion of the operator's business-screen inspections. This **reaffirms the previously approved Nov 5 02:00:01 four-artifact database/site-config/public-files/private-files source**, which has already been transferred and restored into isolated NEW candidate `ccpc_prod_erpnext`. **Do not repeat the SQL/files restore, A2/A3 one-use scripts, login/list-view checks or demand a newer backup solely because the Nov 5 backup is older.** No NEW candidate promotion or live cutover has been authorized by this statement.
+
+**Data cutoff safeguard:** The source represents the Nov 5 snapshot. A November 7 read-only OLD-to-NEW comparison matched four Companies and no GL/SLE/seven standard voucher entries only. It does **not** prove that OLD production has no post-backup business-master, configuration, attachment, scheduled-job or integration changes. Before go-live, perform a tightly scoped **read-only OLD post-cutoff reconciliation** or clearly record unresolved differences and obtain a conscious source-loss decision; do not silently discard any later writes. Avoid modifying OLD host (which also contains DEVELOPMENT). Preserve the exact Nov5 source artifacts and existing NEW protected rehearsals/candidate.
+
+**Next engineering delivery focus:** Prepare separately reviewed **NEW-only LAN HTTPS gateway** over the existing isolated candidate, using a locally bound app frontend or equivalently guarded path, office-approved certificate trust and host firewall restriction. Draft PR #27 contains loopback pre-TLS profile (not deployed), and draft PR #28 contains HTTPS design only (not executable). Do not merge/run generic deploy script or start workers, scheduler, mail, migrations, public HTTP listeners or change office DNS under backup selection alone. Assess TLS plan/readiness and then use a separate explicit approval for NEW proxy installation, source freeze, rollback validation and final single-writer switch. No PRODUCTION changes performed by this documentation update.
+
+
 ## November 10 — Operator reports all browser/business-list checks complete; move to cutover gates
 
 Owner responded **“I already check it all so we need to move on”** after successful authenticated Windows SSH-loopback browser login, verified four Company visibility and a proposed Work Request List check. Record **operator-reported completion of the browser-level business-area inspection**; do **not** claim independent per-record, GL/Stock Ledger, permission, attachment or current-source delta reconciliation, since exact outputs were not supplied. **Do not repeat the completed screen-by-screen check cycle** without a new concrete discrepancy.
