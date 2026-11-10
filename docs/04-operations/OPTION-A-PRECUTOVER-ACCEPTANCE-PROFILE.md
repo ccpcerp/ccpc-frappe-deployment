@@ -1,5 +1,26 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 10 — A3 backend/websocket/frontend STARTED; internal login 500 STOP
+
+Owner ran `sha256sum --check && python3 ./ccpc_a3_network_guard_fix_20261110.py` once on NEW; exact output:
+
+```text
+ccpc_a3_network_guard_fix_20261110.py: OK
+A3_APP_PREFLIGHT_NINE_SUPPORT_CONTAINERS_AND_PRIVATE_NETWORK_PASS
+A3_CANDIDATE_SITE_LOGS_AND_SIDE_EFFECT_FLAGS_PASS
+A3_BACKEND_STARTED_INTERNAL_ONLY_PASS
+A3_WEBSOCKET_STARTED_INTERNAL_ONLY_PASS
+A3_FRONTEND_STARTED_INTERNAL_ONLY_PASS
+A3_ALL_SIX_REHEARSAL_SERVICES_PRESERVED_PASS
+A3_NO_PUBLISHED_PORTS_WORKERS_SCHEDULER_MIGRATION_PASS
+A3_INTERNAL_LOGIN_LAST_HTTP_STATUS=500
+STOP:A3_APP_INTERNAL_LOGIN_HTTP_NOT_200_RETAIN_STATE
+```
+
+**A3 PARTIAL SUCCESS / STOP:** The corrected A3 one-use script passed preflight and started three named NEW-only app containers, validated all six rehearsal support containers remained, no host-published ports, no worker/scheduler/configurator/migration; internal HTTP GET to frontend `/login` returned **500** rather than 200 after retries. Thus the app containers and their shared candidate site/log volumes are **now present and must be preserved**. This is **not a successful login**, and the backend application exception is unknown. No OLD PROD/DEV/employee access/cutover changes. **Never rerun any A3 script** or repeat A2 restoration, ownership, Docker startup, Docker restart, or database migrations. Do not expose raw logs that might contain credentials or business values.
+
+**Next single step:** NEW-only, root-privileged **read-only sanitized diagnostic**, invoked as `sudo python3 - <<'PY'` on NEW as `ccpcadmin`. It first guards exact hostname/operator/default local Docker socket, then prints counts of expected support vs app vs unexpected containers, each A3 role's RUNNING/STOPPED/exit code and flags for expected private candidate Docker network, zero published ports and stage label; retrieves only up to 250 trailing Docker log lines per named A3 container but **prints no raw log line**, only categories from a fixed regex allowlist (DB auth/connection/schema, Redis, site, missing Python module, file permissions, file missing, encryption, Gunicorn, traceback, HTTP 500). Independently verifies exact candidate logs volume path and labels and inspects only selected standard log filenames, again printing fixed categories only. No `docker exec` HTTP requests, no restarts, no file writes, no SQL, no secrets/filenames exposed. This diagnostic was syntax-checked offline. If categories remain insufficient, prepare a narrower follow-up with sanitized error-type extraction rather than revealing raw business logs. HTTP 500 diagnosis is unverified; do not guess cause or claim app readiness.
+
 ## November 10 — A3 network-fix script independently VERIFIED on NEW (startup pending)
 
 Owner reported exact NEW Ubuntu result for `/home/ccpcadmin/ccpc_a3_network_guard_fix_20261110.py`:
