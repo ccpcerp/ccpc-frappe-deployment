@@ -1,5 +1,28 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 10 — A3 missing-file exception isolated to SITE_ROOT; logfile directory missing
+
+Owner ran second approved NEW-only read-only backend traceback classifier. Reported exact sanitized output:
+
+```text
+A3_BACKEND_MISSING_EXCEPTION_LINE_COUNT=10
+A3_BACKEND_MISSING_PATH_EXTRACTED_COUNT=10
+A3_MISSING_CATEGORY=SITE_ROOT NAME=OTHER OCCURRENCES=10
+A3_BACKEND_LAST_FRAME_GROUPS=PYTHON_PACKAGE,FRAPPE,FRAPPE,FRAPPE,FRAPPE
+A3_SITE_ENTRY_COMMON_CONFIG=REGULAR_FILE
+A3_SITE_ENTRY_APPS_TXT=REGULAR_FILE
+A3_SITE_ENTRY_SITE_CONFIG=REGULAR_FILE
+A3_SITE_ENTRY_SITES_ASSETS=SYMLINK
+A3_SITE_ENTRY_SITE_PUBLIC_FILES=DIRECTORY
+A3_SITE_ENTRY_SITE_PRIVATE_FILES=DIRECTORY
+A3_SITE_ENTRY_SITE_LOGS=MISSING
+A3_READ_ONLY_MISSINGFILE_DIAGNOSTIC_COMPLETE
+```
+
+**Interpretation limited to evidence:** Ten reported `FileNotFoundError`/errno2 lines referenced paths classified `SITE_ROOT`; leaf basename was not one of previous script's short public allowlist. This count does **not** prove ten distinct files or ten independent requests. The last traceback frames were in Python package / Frappe. The site-specific `ccpcerp.local/logs` entry is absent, but this by itself does NOT confirm which path triggered HTTP500. The `sites/assets` symlink exists (expected to be populated by frontend startup) and should not be modified based on this diagnostic. Site config/apps and private/public files roots are present. **Do not create the logs directory, invent files, fix symlinks, rerun A3, restart apps, run migrations, alter DB, or touch OLD/DEV/rehearsals.**
+
+**Next one step:** A third bounded, sanitized, NEW-only read-only backend log classifier should distinguish exact site-relative first-segment categories `logs`, `locks`, `cache`, `error-snapshots`, `assets`, `public`, `private`, `site_config.json`, or other; print only fixed categories, relative path depth, extension family, distinct missing-path count and occurrences. Never output the raw traceback, full missing path, arbitrary basename, credential, or business data. Inspect existing running backend with strict local Docker host/network/label/no-published-port guards before log retrieval, no Docker writes or exec, no HTTP repeat. This narrows whether missing `site/logs` is causal or incidental. A minimal, separately reviewed candidate-only remediation should be proposed only after the exact missing subtree is grounded. Current partial success remains 12 containers (9 support +3 apps), private Docker networks, no published ports; internal login HTTP 500, not accepted.
+
 ## November 10 — A3 HTTP500 sanitized Docker diagnostic confirms backend FileNotFoundError
 
 Owner ran the approved NEW-only **read-only** diagnostic after the one-use corrected A3 started backend/websocket/frontend and the internal `/login` probe failed HTTP500. Exact sanitized output:
