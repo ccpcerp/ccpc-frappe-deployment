@@ -1,5 +1,21 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 10 — A3 internal /login HTTP 200 PASS after candidate-only logs repair
+
+Owner performed exactly one guarded, internal-only HTTP GET from the existing NEW candidate frontend to `http://127.0.0.1:8080/login` with `Host: ccpcerp.local`, after the separately confirmed creation of the isolated candidate site's `logs` subdirectory. Exact output:
+
+```text
+A3_INTERNAL_LOGIN_RECHECK_GUARDS_PASS
+A3_INTERNAL_LOGIN_HTTP_STATUS=200
+A3_INTERNAL_LOGIN_HTTP_200_PASS
+```
+
+**A3 internal HTTP recovery milestone PASS:** The prior `HTTP 500` / backend FileNotFoundError for a single missing `ccpcerp.local/logs/*.log` path was corrected by **creating only** the missing site-specific `logs` directory (owner UID/GID 1000:1000, mode 0755). New unauthenticated login-page request returned `200` through the private, not host-published frontend. Before the request, the guard verified the expected candidate backend, websocket and frontend were still running with immutable image, exact internal-only Docker network, no published host ports, `option-a-a3` stage labels, and site logs ownership/type; it did not independently re-count all nine support containers this time. Previously all nine support and six protected rehearsal containers passed checks. **Do not claim authenticated user login, persistence, browser rendering, business-data acceptance, background workers or a release-ready system** from this HTTP marker alone.
+
+**Preserve boundaries:** 3 app + 9 support candidate/rehearsal containers remain the last verified topology, no host HTTP ports authorized, no A3 or A2 one-use script replay, no Docker restart/recreation, no migrations, SQL replay, OLD PROD/DEV changes or final PRODUCTION cutover. Restore source still approved Nov 5 02:00 snapshot; reconcile any post-snapshot activity prior to separate live cutover. Protected production only under distinct explicit authorization after backup/recovery/rollback and finance/transaction integrity review.
+
+**Next approved direction:** gated read-only and authenticated NEW-only acceptance of login/session, 4-company mapping, Work Request, inventory/accounting/financial documents. Safest operator setup before any browser session is **a read-only preflight of candidate frontend container's Docker internal IPv4, running state, exact private bridge and zero published ports, plus confirmation of secure SSH support**; then, if accepted and feasible, a Windows *loopback-only* `ssh -L` tunnel to the candidate internal frontend port for a manual user-entered login. Never create a LAN listener or modify site/DB to expose the service. Do not include any credentials in terminal/chat output. Tunnel/host browser access and authenticated behavior are not yet established or tested.
+
 ## November 10 — NEW candidate site logs directory CREATED AND VERIFIED, HTTP retest pending
 
 Owner executed the previously reviewed **one-use, guarded, NEW-only** `sudo python3` repair that first verified 12 exact named/running containers (nine support + three A3 apps), private Docker network membership/no host-published ports, candidate application container image/stage/volume mounts, network isolation, site volume labels/identity, site root UID/GID 1000:1000 and mode 0755, and confirmed `ccpcerp.local/logs` did not exist. Exact owner output:
