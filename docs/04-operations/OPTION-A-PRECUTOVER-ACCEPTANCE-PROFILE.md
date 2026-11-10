@@ -1,5 +1,20 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 10 — A3 browser-readiness private frontend IP verified; SSH tunnel preflight pending
+
+Owner ran the previously reviewed NEW-only **read-only** Docker frontend private-IP inspector with host/operator/local Docker context, running app containers, private network, stage labels and zero published ports. Exact reported output:
+
+```text
+A3_THREE_APP_CONTAINERS_PRIVATE_ONLY_PASS
+A3_NO_PUBLISHED_APPLICATION_PORTS_PASS
+A3_FRONTEND_PRIVATE_IPV4=172.20.0.7
+A3_BROWSER_ACCESS_PREFLIGHT_COMPLETE
+```
+
+**Verified:** All three NEW candidate backend, websocket and frontend containers continued on the exact `ccpc_prod_erpnext_default` internal nonattachable bridge, zero published host ports; current frontend IP `172.20.0.7` is a **dynamic container address** within Docker bridge IPAM, not an office/LAN URL or promise of stability. Previous isolated GET from inside frontend returned `200` for `/login` with `Host: ccpcerp.local`. Authenticated login/browser access remains unverified.
+
+**Next single read-only reachability test:** Run a **single** `curl -sS --max-time 10 -o /dev/null -w '%{http_code}' -H 'Host: ccpcerp.local' http://172.20.0.7:8080/login` from the NEW host, capturing only three-digit HTTP status and no HTML/headers, check exactly 200. This verifies whether host-to-bridge routing works before recommending an operator-only Windows loopback-bound SSH `-L` tunnel, without modifying Docker or publishing a LAN port. A GET may append ordinary access/application logs. Failure: STOP, preserve resources, investigate routing/security rather than changing Docker networks or launching app scripts. Do **not** assume the frontend address remains fixed after any future container restart. Once reachability is verified, separately establish secured Windows loopback-only SSH forwarding and operator-entered authenticated login (no credentials in chat, no employee-facing access). Preserve OLD PROD/DEV, both rehearsals, worker/scheduler/mail disabled, original Nov5 backup and isolated candidate.
+
 ## November 10 — A3 internal /login HTTP 200 PASS after candidate-only logs repair
 
 Owner performed exactly one guarded, internal-only HTTP GET from the existing NEW candidate frontend to `http://127.0.0.1:8080/login` with `Host: ccpcerp.local`, after the separately confirmed creation of the isolated candidate site's `logs` subdirectory. Exact output:
