@@ -1,5 +1,12 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 10 — Windows browser visual login-page confirmation PASS; authenticated operator session next
+
+Owner reports that Chrome/Edge opened `http://127.0.0.1:18080/login` successfully through the previously verified Windows-local loopback SSH tunnel and **the ERPNext login page is visible**. This verifies manual visual display of the login page as operator-reported, in addition to the previously verified unauthenticated HTTP200 and browser-origin Host routing. No authenticated login, Desk navigation, Company/Work Request/inventory/finance acceptance, end-to-end transaction or cutover has yet been evidenced. Do not imply independent remote visual inspection or successful login.
+
+**Next single operator step:** Keep the original Windows SSH-tunnel PowerShell window open; in the same private browser tab, use an existing authorized ERPNext account to sign in directly to the isolated NEW candidate; report only whether Desk opens or a sanitized on-screen error. Do not paste passwords, recovery codes, cookies, tokens, raw headers, business data or sensitive screenshots. Operator login creates NEW candidate session/audit records and is **not a no-write/read-only action**. After login, restrict acceptance to viewing; no create/edit/submit/cancel/delete, email, background worker/scheduler activation, migrations, reruns of consumed A2/A3 scripts, host port publishing, Docker changes or OLD PROD/DEV/rehearsal changes. Separate post-Nov5 cutoff reconciliation, TLS/cutover, backup/recovery and PRODUCTION approval remain mandatory.
+
+
 ## November 10 — Windows browser-origin Host routing HTTP 200 PASS; manual login-page visual check next
 
 Owner ran exactly one Windows PowerShell `curl.exe` GET to `http://127.0.0.1:18080/login` over the **already running loopback-only SSH tunnel**, this time **without** any manually specified Host header; reported exact output:
