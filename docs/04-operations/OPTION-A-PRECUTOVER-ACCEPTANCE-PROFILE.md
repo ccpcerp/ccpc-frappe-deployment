@@ -1,5 +1,18 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 10 — A3 host-to-frontend direct HTTP200 PASS; Windows loopback SSH tunnel next
+
+Owner ran a **single** host-originating HTTP probe on NEW Ubuntu as `ccpcadmin` against the candidate frontend's previously inspected private Docker IPv4 `172.20.0.7:8080`, with `Host: ccpcerp.local`; exact result:
+
+```text
+A3_HOST_TO_FRONTEND_HTTP_STATUS=200
+A3_HOST_TO_FRONTEND_HTTP_200_PASS
+```
+
+**PASS:** NEW host successfully routed one GET `/login` to the candidate frontend's *nonpublished*, nonattachable, internal `ccpc_prod_erpnext_default` bridge. Prior inside-container HTTP GET 200, three A3 app identity/network checks PASS, and six protected rehearsal support services preserved. This is **unauthenticated HTTP reachability only**, not successful login, application role permissions, any transaction, or production acceptance. No container/environment mutation was requested by this curl probe; routine web/app request logging may occur. Docker IPv4 is dynamic and must not be treated as a persistent host DNS or LAN endpoint.
+
+**Next one step (Windows only):** In a dedicated PowerShell window use the existing strict-host-key SSH identity `$env:USERPROFILE\.ssh\ccpcerp_prod_ed25519` to connect to `ccpcadmin@192.168.50.186` with `ssh -N -T -o ExitOnForwardFailure=yes -o StrictHostKeyChecking=yes -L 127.0.0.1:18080:172.20.0.7:8080`. Preflight that the Windows port 18080 is not already LISTENING; do not bind `0.0.0.0`, use `-R`, enable GatewayPorts or change sshd server configuration. Tunnel is client-side and dies with its dedicated SSH window. Stop if SSH fails or port conflicts; do not change Docker, firewall, OLD PROD/DEV, protected rehearsal, scheduler, email, or candidate database. **Do not yet enter ERPNext credentials in browser until loopback reachability and site-host header/redirect behavior are validated** in a separate step. Since Frappe request routing depends on `Host: ccpcerp.local`, do not assume `http://127.0.0.1:18080/login` is a working or trustworthy login origin until verified. A future browser route may require an isolated host-header-mapping profile or other reviewed solution without touching Windows system-wide DNS/hosts or exposing LAN ports.
+
 ## November 10 — A3 browser-readiness private frontend IP verified; SSH tunnel preflight pending
 
 Owner ran the previously reviewed NEW-only **read-only** Docker frontend private-IP inspector with host/operator/local Docker context, running app containers, private network, stage labels and zero published ports. Exact reported output:
