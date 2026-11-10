@@ -1,5 +1,23 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 10 — One missing .log file under absent site/logs subtree; guarded repair proposed
+
+Operator completed the **third** NEW-only backend-log classifier with exact output:
+
+```text
+A3_FILE_EXCEPTION_LINE_COUNT=3
+A3_FILE_EXCEPTION_PARSED_COUNT=3
+A3_DISTINCT_MISSING_PATH_COUNT=1
+A3_PATH_CATEGORY=SITE_LOGS DEPTH=MULTIPLE_SEGMENTS EXTENSION=LOG COUNT=3
+A3_READ_ONLY_SITE_PATH_DIAGNOSTIC_COMPLETE
+```
+
+This establishes that the backend raised three `FileNotFoundError`/errno-2 log lines referring to **one distinct .log path inside `/home/frappe/frappe-bench/sites/ccpcerp.local/logs/...`**. Independent NEW host `lstat` already established `/var/lib/docker/volumes/ccpc_prod_erpnext_sites/_data/ccpcerp.local/logs` **MISSING**, while `ccpcerp.local` root and `site_config.json` exist and A3 preflight verified site UID/GID 1000:1000 mode 0755; other candidate volumes, six protected rehearsal support services, all nine support containers, and 3 internal candidate apps exist. These findings justify only a **site-specific logs-directory creation**, not schema migration, DB repair, changing configured secrets, reinstalling apps, recreating/restarting Docker containers, or exposing employee-facing ports. HTTP500 root-cause resolution remains **UNTESTED** until subsequent internal-only probe.
+
+**One-time NEW-only remediation design:** as `ccpcadmin` via `sudo python3` with no command-line secrets, first verify exact `ccpcerp-prod` hostname, operator, local/default Docker daemon, 12 named/running support+apps, correct candidate private network and no published app ports, candidate site volume labels/name/mountpoint, backend site's sites mount, and root/site directory ownership/modes. Open candidate site root with `O_DIRECTORY|O_NOFOLLOW` using dirfds; **refuse if `logs` already exists including symlinks**. Create **only** `ccpcerp.local/logs` via atomic `os.mkdir('logs', 0755, dir_fd=sitefd)`, `os.chown('logs',1000,1000,dir_fd=sitefd,follow_symlinks=False)`, and verify exact UID/GID and 0755 directory; do not create any named `.log` files or modify other paths. Print only `A3_SITE_LOGS_DIRECTORY_CREATED_AND_VERIFIED_PASS` upon success. Any preflight failure STOP without filesystem writes; failure after mkdir must retain partial state and **never blindly rerun**. This operation is limited to the previously authorized isolated NEW A3 candidate acceptance; not final PRODUCTION deployment. After success, **separately** perform single internal-only `/login` HTTP probe with fixed status code output and no raw HTML/logs/secrets; on non200 preserve state and investigate.
+
+**Current status:** exact missing subtree diagnosed, **logs directory not yet created**, HTTP500 not yet retested or resolved; candidate remains all 12 containers isolated with no employee ports. No action authorized on OLD PROD, DEVELOPMENT, restored finance records, or preserved rehearsals.
+
 ## November 10 — A3 missing-file exception isolated to SITE_ROOT; logfile directory missing
 
 Owner ran second approved NEW-only read-only backend traceback classifier. Reported exact sanitized output:
