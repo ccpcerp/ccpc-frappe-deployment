@@ -1,10 +1,13 @@
 # CCPC NEW dedicated production HTTPS gateway - REVIEW TEMPLATE ONLY.
 # Do not install/start/reload Caddy or open firewall ports by committing this file.
 # Caddy runs on the NEW Ubuntu host, not as a Docker-published 443 container.
+# Approved operator-selected LAN hostname: ccpcerp.internal
 # Requires explicit operator-provided values:
-#   CCPC_HTTPS_HOST            approved HTTPS DNS name, trusted by employees
 #   CCPC_TLS_FULLCHAIN_FILE    approved readable full-chain PEM certificate
 #   CCPC_TLS_PRIVATE_KEY_FILE  approved protected PEM private key
+# Required internal DNS A record: ccpcerp.internal -> 192.168.50.186.
+# Certificate SAN MUST contain DNS:ccpcerp.internal; deploy issuer root trust
+# to approved Windows clients; protect and back up CA signing keys off-host.
 # Configure certificate chain, private key permissions, DNS and client trust
 # outside GitHub. Never supply credential contents in commits or chat.
 # Host frontend must independently be published ONLY to 127.0.0.1:8080
@@ -20,7 +23,7 @@
     }
 }
 
-https://{$CCPC_HTTPS_HOST}:443 {
+https://ccpcerp.internal:443 {
     bind 192.168.50.186
     tls {$CCPC_TLS_FULLCHAIN_FILE} {$CCPC_TLS_PRIVATE_KEY_FILE}
     reverse_proxy 127.0.0.1:8080
