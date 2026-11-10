@@ -1,5 +1,16 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 10, 2026 — ER7206 router LAN DNS capability confirmed by operator UI
+
+Owner identified the actual gateway as **TP-Link Omada ER7206** and supplied its authenticated **LAN > LAN DNS** screen. The screenshot shows an existing distinct **enabled IP-type** profile named `ccpcerp` for domain **`ccpcerp.com`**, with **no alias** shown, alongside `Add`, `Delete` and existing-row edit/delete controls. **Leave the preexisting `ccpcerp.com` record untouched**: its current target address is not shown, and it might support OLD PRODUCTION access. The previously observed router DNS NXDOMAIN for `ccpcerp.internal` therefore requires a **separate** entry, not modification of the historical one.
+
+TP-Link/Omada official guidance for ER7206-supported **LAN DNS IP** entries confirms the expected fields: Profile Name, enabled Status, Domain Name, optional Alias Domain Name, Type **IP**, explicit IPv4 **IP Address**, and **Apply To LAN** selection, with Save/OK after review. For CCPC's proposed NEW host, prepare **new profile `ccpcerp-new`**, Domain `ccpcerp.internal`, Type `IP`, IPv4 `192.168.50.186`, no aliases/IPv6, apply only to the office `192.168.50.0/24` LAN (identify the corresponding actual LAN label in the router). Do not infer the label if VLAN/network names differ. This is **pure DNS routing**, not readiness of HTTPS or authorization to make NEW the live writer.
+
+**Immediate safe operator step:** Click **Add** (not the edit/pencil on existing `ccpcerp.com`) to inspect the new-entry form, optionally populate the reviewed fields, and share a screenshot of the prepared form **before saving**. Avoid showing administrator tokens, credentials, device inventory, or other network configuration. **Do not click OK/Save until the operator explicitly authorizes this router-network change and the intended LAN scope is checked.** No need for new DNS infrastructure if router record creation and lookup validation succeed. After an authorized save, verify `nslookup ccpcerp.internal 192.168.50.1` returns only `192.168.50.186`; preserve `ccpcerp.com` by not editing it. No NEW proxy, Caddy, TLS or Docker alterations under this UI inspection. A later accepted HTTPS pilot must have a LAN-trusted cert with SAN DNS `ccpcerp.internal`, a guarded backend upstream, and correct WebSockets/Host behavior before office traffic.
+
+Official reference: https://www.omadanetworks.com/us/document/40077/ ; Omada Controller User Guide v6.0: https://support.omadanetworks.com/en/document/111217?app=web .
+
+
 ## November 10, 2026 — Office router DNS returns NXDOMAIN for selected NEW name
 
 **Operator-reported read-only Windows DNS test**:
