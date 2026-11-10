@@ -1,5 +1,18 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 10 — Windows browser-origin Host routing HTTP 200 PASS; manual login-page visual check next
+
+Owner ran exactly one Windows PowerShell `curl.exe` GET to `http://127.0.0.1:18080/login` over the **already running loopback-only SSH tunnel**, this time **without** any manually specified Host header; reported exact output:
+
+```text
+A3_BROWSER_HOST_HTTP_STATUS=200
+A3_BROWSER_HOST_ROUTING_PASS
+```
+
+This confirms the normal browser-origin `Host: 127.0.0.1:18080` route returns **HTTP 200** through Windows-local `127.0.0.1:18080` SSH forwarding to NEW candidate private frontend `172.20.0.7:8080`. Prior GET with `Host: ccpcerp.local` also returned 200. The first dedicated Windows PowerShell window must stay open for the tunnel. No NEW Docker host ports opened, no Docker/network/SQL/application mutation initiated by this step beyond ordinary request logging; OLD PROD/DEV, two rehearsal environments and workers/scheduler remain protected. **This is not browser visual validation or authenticated login.**
+
+**Next one operator step:** Open private/incognito Chrome/Edge tab on Windows to **`http://127.0.0.1:18080/login`**, leave original SSH tunnel window open, visually inspect actual ERPNext page/branding/stylesheet and absence of 500/asset failures; **do not enter any ERPNext credentials yet**. No browser screenshot containing secrets is required. A client-local HTTP URL can be acceptable only via this loopback-only encrypted SSH tunnel; it must never be opened by an office or remote LAN listener. If browser redirects or errors, note only status/URL (without tokens), preserve current tunnel/candidate state and investigate; do not patch host DNS or Docker preemptively. Once visually confirmed, plan a separately guarded, authorized operator-only authenticated session on isolated NEW candidate and read-only Company, Work Request, inventory/financial acceptance. Login will create candidate-only session records; do not equate with read-only database behavior. No employee TLS/cutover without separate approval and source cutoff reconciliation.
+
 ## November 10 — Windows loopback SSH tunnel HTTP 200 PASS, browser Host routing check pending
 
 Owner reports that Windows PowerShell opened an SSH `-N -T` session from the verified Windows SSH identity to NEW `ccpcadmin@192.168.50.186` using only `127.0.0.1:18080:172.20.0.7:8080` local loopback forwarding. The terminal stayed open with a blinking cursor rather than a shell prompt (consistent with active SSH forwarding). A **second Windows PowerShell window** then performed a single `curl.exe` GET to `http://127.0.0.1:18080/login` with `Host: ccpcerp.local` and no body/headers displayed. Exact owner output:
