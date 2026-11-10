@@ -1,5 +1,21 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 10, 2026 — Office router DNS returns NXDOMAIN for selected NEW name
+
+**Operator-reported read-only Windows DNS test**:
+
+```text
+nslookup ccpcerp.internal 192.168.50.1
+Server: UnKnown
+Address: 192.168.50.1
+*** UnKnown can't find ccpcerp.internal: Non-existent domain
+```
+
+**Interpretation:** At test time the configured Ethernet DNS resolver/router **192.168.50.1** returned **NXDOMAIN** for the selected new hostname **ccpcerp.internal**. The reverse-name presentation `Server: UnKnown` does **not** by itself indicate a bad DNS server; the explicit resolver response is what matters. This does not indicate an ERPNext application/backend problem; the future office HTTPS hostname will not work via this resolver until an A record is provided. NXDOMAIN does not establish whether the router supports local DNS static mappings or whether all client networks use the same DNS.
+
+**Next single safe operator step:** In Windows browser on the authorized Ethernet LAN navigate to `http://192.168.50.1`, identify **router brand/model from the login page or router label**, and report only the make/model; avoid opening configuration panels if not necessary, making DNS/DHCP/port-forward/firewall changes or pasting administrator credentials. If router administration is HTTPS-only, the owner may use its existing approved administrative address; do not bypass certificate warnings. Identify the relevant supported custom local DNS record capability after the model is known, before preparing any network-change authorization. Keep NOV5 approved source, restored NEW database and OLD PROD+DEV untouched. NEW candidate/frontend remains private-only; no Caddy install/TLS/port 443 live. 
+
+
 ## November 10, 2026 — Windows LAN DNS resolver identified; non-mutating hostname check next
 
 Owner provided Windows `ipconfig /all` from the authorized CCPC Ethernet LAN. Sanitized relevant observations: Windows Ethernet IPv4 `192.168.50.194/24`, DHCP server and default gateway `192.168.50.1`, and DNS server **`192.168.50.1`**; DNS connection suffix currently `lan`. The Tailscale virtual interface is not the active Ethernet DNS path, and the Hyper-V default switch is a distinct virtual subnet. The host's DNS-server setting proves **use of router IP as the Windows DNS resolver**, but not that the router permits static local A records, authoritative local zones, or successful `.internal` resolution. No sensitive MAC/client identifier needs to be reproduced.
