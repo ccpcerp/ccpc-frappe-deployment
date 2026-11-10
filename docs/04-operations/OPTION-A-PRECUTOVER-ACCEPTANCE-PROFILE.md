@@ -1,5 +1,12 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 10 — Operator authenticated browser login reported PASS; four-Company list next
+
+Owner confirms from Windows browser: **“I log in and its working”** at the verified `http://127.0.0.1:18080/login` SSH-loopback access to isolated NEW candidate. Record this as **operator-reported successful authenticated browser login**, not independently observed user/session/role audit or full Desk workflow test. Login/session and routine audit writes in isolated NEW candidate are expected; do not claim zero database writes. No business master transaction, four-Company or permissions acceptance has yet been reported.
+
+**Next single operator-visible read-only acceptance:** keep loopback SSH tunnel active, use ERPNext global search to open **Company List** and check whether the four expected companies are visible. Report count or a sanitized error only; do not print private company details or session tokens. Do not create, edit, submit, cancel or delete any records. The list view is the first data-surface smoke check, not proof of full data consistency or finance authorization. Follow with guarded Work Request, stock/GL/accounting/finance records and original Nov 5 backup cutoff/post-backup activity reconciliation. Preserve no-published-host-ports, all OLD PROD/DEV and protected rehearsals, workers/scheduler/mail disabled; no reruns, migrations, restarts, or cutover. Trusted office HTTPS and final production cutover require separate explicit approval.
+
+
 ## November 10 — Windows browser visual login-page confirmation PASS; authenticated operator session next
 
 Owner reports that Chrome/Edge opened `http://127.0.0.1:18080/login` successfully through the previously verified Windows-local loopback SSH tunnel and **the ERPNext login page is visible**. This verifies manual visual display of the login page as operator-reported, in addition to the previously verified unauthenticated HTTP200 and browser-origin Host routing. No authenticated login, Desk navigation, Company/Work Request/inventory/finance acceptance, end-to-end transaction or cutover has yet been evidenced. Do not imply independent remote visual inspection or successful login.
