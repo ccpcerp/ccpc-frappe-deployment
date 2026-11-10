@@ -1,5 +1,18 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 10 — NEW candidate site logs directory CREATED AND VERIFIED, HTTP retest pending
+
+Owner executed the previously reviewed **one-use, guarded, NEW-only** `sudo python3` repair that first verified 12 exact named/running containers (nine support + three A3 apps), private Docker network membership/no host-published ports, candidate application container image/stage/volume mounts, network isolation, site volume labels/identity, site root UID/GID 1000:1000 and mode 0755, and confirmed `ccpcerp.local/logs` did not exist. Exact owner output:
+
+```text
+A3_CONTAINER_AND_VOLUME_GUARDS_PASS
+A3_SITE_LOGS_DIRECTORY_CREATED_AND_VERIFIED_PASS
+```
+
+**Repair verified:** Only `/var/lib/docker/volumes/ccpc_prod_erpnext_sites/_data/ccpcerp.local/logs` was created as a directory using safe dirfd/no-follow and checked UID/GID 1000:1000 with mode 0755. No .log file was explicitly created; no SQL restore/database write, migration, Docker app restart, host-port publishing, OLD PROD/DEV or protected rehearsal changes were requested by the repair. The 12 containers passed guard checks *before* creation. The initial A3 app startup script remains consumed and MUST NOT be rerun. HTTP500 is **last known status**; directory creation is not by itself confirmation of login page success.
+
+**Next one step**: perform **a single internal-only HTTP GET `/login` from inside existing NEW candidate frontend** with `Host: ccpcerp.local`, no raw HTML/headers/cookies/tokens printed, only whitelisted three-digit HTTP status and success/STOP marker. Before GET, verify NEW hostname/ccpcadmin operator/local default Docker socket, expected candidate app identities/network/zero host bindings, and candidate site logs directory type/UID/GID/mode. The GET can generate routine app/access log entries; it is not a database integration test or authenticated login. If 200, only `A3_INTERNAL_LOGIN_HTTP_200_PASS` (unauthenticated HTTP page) is established, and any authenticated test/employee TLS/cutover require separately gated steps; if 500 or other status, preserve state, classify new backend error signatures before any other fix. Never expose LAN ports or restart containers.
+
 ## November 10 — One missing .log file under absent site/logs subtree; guarded repair proposed
 
 Operator completed the **third** NEW-only backend-log classifier with exact output:
