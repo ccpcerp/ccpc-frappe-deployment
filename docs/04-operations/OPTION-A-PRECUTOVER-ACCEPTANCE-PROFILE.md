@@ -1,5 +1,18 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 10 — A3 exact NEW script VERIFIED, app startup STILL PENDING
+
+Owner's direct NEW Ubuntu command checked `/home/ccpcadmin/ccpc_a3_from_chatgpt_646c384d.py` against pinned A3 SHA256 `de207481685b0ae4b950edd7af0f5001fe1fa7e9b43df8d2c4aed614bb025504` and 11,646 bytes, then ran `python3 -m py_compile`. Exact output:
+
+```text
+ccpc_a3_from_chatgpt_646c384d.py: OK
+A3_NEW_SCRIPT_VERIFIED_AND_COMPILED_PASS
+```
+
+**Transfer problem RESOLVED.** This different-named file is the correct reviewed A3 script at pinned GitHub commit `646c384db1e0c884200c652fea85734930e8a414` and Git blob `443ef2e98e3570d478c2ebda43f662fe565fa860`. Do not use the older misnamed `option_a_a3_start_internal_app.py` on NEW; it has the A2 SHA and is unsafe to execute. **The correct A3 script has NOT yet been executed.** Both candidate sites/logs volume roots were already guardedly changed to UID/GID1000; do not redo either ownership correction, restore, or SQL import.
+
+**Next one-time operator step under existing isolated NEW application-acceptance approval:** Run only `cd /home/ccpcadmin && python3 ./ccpc_a3_from_chatgpt_646c384d.py` as normal `ccpcadmin`. The reviewed script rechecks exact nine running support containers, image IDs, named volumes, internal-only project network and preserved rehearsals before any mutation; then creates only backend, websocket and frontend candidate containers without host-published ports, migrations, scheduler/worker/configurator or OLD PROD/DEV modifications. It probes `/login` internally and reports sanitized markers. **On ANY `STOP:A3_APP_...` or partial runtime failure, preserve all state and DO NOT rerun.** If `A3_NEW_CANDIDATE_READY_FOR_AUTHENTICATED_ACCEPTANCE` appears, proceed to separately controlled authenticated login/browser access and read-only ERPNext business acceptance, not employee cutover. No HTTP 200 or login PASS yet.
+
 ## November 10 — Direct raw download 404; verified A3 file delivered as chat attachment
 
 Owner's Windows PowerShell `Invoke-WebRequest` to the pinned direct `raw.githubusercontent.com/ccpcerp/ccpc-frappe-deployment/646c384.../scripts/option_a_a3_start_internal_app.py` returned `404: Not Found` and **did not** reach SCP. Connected GitHub `get_repo` confirms the repository has `visibility=private`; unauthenticated raw download is therefore not a reliable delivery path. Never advise unauthenticated `Invoke-WebRequest` against this source again.
