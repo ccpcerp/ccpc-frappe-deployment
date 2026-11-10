@@ -1,5 +1,19 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 10, 2026 — Owner requires LAN-only ERPNext with no public Internet access
+
+**Owner security requirement:** “I hope this site will be exclusive to LAN and can't be access from internet.” Record this as **a mandatory release-acceptance condition** for NEW `https://ccpcerp.internal`, not just a preference. Approved office LAN clients may use the ERPNext HTTPS gateway; public Internet clients, guest/IoT VLANs and remote VPN/tailnet devices **must be denied by default** unless a subsequent explicitly scoped exception is approved. DNS name resolution is not access control.
+
+**Defense-in-depth implementation and verification requirements before go-live:**
+1. Router **ER7206**: keep selected `.internal` DNS mapping LAN-scoped; audit WAN NAT/virtual-server/port forwarding, UPnP mappings, DMZ, remote management, exposed IPv6 paths and any routing policies that could make NEW host reachable from Internet. No forwarding of TCP 443/80/8080, SQL/Redis or SSH to NEW; any existing unrelated router rule must not be changed unilaterally. No reliance on private IPv4 alone to claim Internet isolation.
+2. **NEW Ubuntu host-level Caddy**: bind TCP 443 only to actual NEW LAN IPv4 `192.168.50.186` and require a locally managed, trusted TLS certificate for `ccpcerp.internal`; no automatic WAN ACME/HTTP80/QUIC/IPv6 listeners. Source-address firewall must restrict TCP 443 to the authorized **office** network(s) after confirming actual VLAN segmentation; for the known user workstation `192.168.50.194/24`, `192.168.50.0/24` is a candidate but may include non-office devices. Do not automatically authorize guest/IoT devices on the same subnet. Preserve existing SSH access.
+3. **App isolation**: route Caddy only to a separately verified host loopback `127.0.0.1:8080` upstream; do not expose Docker Nginx/DB/Redis to any office LAN or WAN address; inspect published port bindings and Docker/nftables/UFW pathways, as Docker-published ports may not be controlled by a plain UFW INPUT rule.
+4. **Acceptance from distinct client positions:** authorized LAN workstation can open trusted HTTPS and ERPNext login; a genuinely external network (for example an authorized test device on cellular data, with Wi-Fi/tunnel/VPN disabled) **cannot reach** the NEW server via any public address/NAT path; unauthorized guest/VLAN clients denied. Confirm intended LAN DNS returns private target; test firewalls/listeners and, if applicable, IPv6. Do not equate failure to resolve `.internal` on cellular with proof the WAN IP/port is blocked. Record sanitized evidence only.
+5. Maintain OLD PROD+co-hosted DEV, original Nov5 backup, preserved NEW rehearsals and single-writer cutover rollback. **No network, proxy, container, certificate, DNS, or router modification authorized by this documentation entry.**
+
+**Current evidence:** ER7206 LAN DNS `ccpcerp.internal -> 192.168.50.186` Windows query PASS. Neither effective WAN/NAT/UPnP rules, NEW host 443 firewall/listeners, Caddy installation, actual frontend loopback upstream, client CA trust nor external network denial has been tested or claimed PASS. **No statement of present Internet inaccessibility can be definitive until the above checks pass.**
+
+
 ## November 10, 2026 — NEW LAN DNS `ccpcerp.internal` resolves successfully
 
 **Operator-confirmed resolution PASS** following creation of a new enabled, IP-type **ER7206 LAN DNS** profile `ccpcerp_prod`, domain `ccpcerp.internal`, target `192.168.50.186`, blank alias, `Apply To: LAN` (the operator was explicitly instructed to choose LAN, not ALL). The previously existing `ccpcerp.com` router entry is separate; there is no user report that it was modified. Operator ran the explicit router-resolver test from Windows:
