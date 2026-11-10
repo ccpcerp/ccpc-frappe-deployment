@@ -1,5 +1,24 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 10 — A3 network STOP host diagnostic PASS; corrected script delivery ready
+
+Owner ran the approved read-only Docker network diagnostic on NEW, reporting the following exact markers:
+
+```text
+A3_SUPPORT_CONTAINER_COUNT=9
+A3_APP_CONTAINER_COUNT=0
+A3_UNEXPECTED_CONTAINER_COUNT=0
+A3_SUPPORT_NETWORK_MATCH_COUNT=9/9
+A3_SUPPORT_RUNNING_COUNT=9/9
+A3_READ_ONLY_NETWORK_DIAGNOSTIC_COMPLETE
+```
+
+This independently confirms the prior `STOP:A3_APP_UNEXPECTED_CONTAINER_NETWORK` occurred before an A3 application container was created. All nine MariaDB/Redis support containers, including both preserved rehearsal environments, remain running and individually attached to their expected project default networks. No network repair, container restart, SQL restore, file restoration or other mutation is warranted. The old A3 script `ccpc_a3_from_chatgpt_646c384d.py` is **consumed and must not be rerun**, even though its STOP occurred in preflight.
+
+The corrected, separately named file `scripts/option_a_a3_start_internal_app_networkfix.py` was already committed in GitHub review commit `4547110a8cd5d1ac16e9a11ae8aa94c0f93e0e6f`; Git blob `49b8542f9a064c1291d715e15b0b7ca696c0651b`, 11,916 bytes, SHA256 `227ed881750c1c657ca6b1529554964926ff61f2f2d0dca5b4dc8e7b413a16bd`. I independently reverified the local downloadable ChatGPT artifact `ccpc_a3_network_guard_fix_20261110.py` using `wc -c`, `sha256sum`, `git hash-object`, Python syntax compilation, and nine exact support-project/service network mappings, all PASS and matching the connected GitHub source. Only two original network-name expressions were corrected using an explicit network-mapping helper. **The corrected script has not yet been transferred to NEW or executed.**
+
+**Next operator step:** Download ChatGPT's byte-verified `ccpc_a3_network_guard_fix_20261110.py` into Windows Downloads. Do not use unauthenticated `raw.githubusercontent.com` for this private repo. In Windows PowerShell, check the exact local filename, SHA256 and 11,916-byte size; only if both match, strict-host-checking SCP with previously verified SSH key to **new** NEW path `/home/ccpcadmin/ccpc_a3_network_guard_fix_20261110.py`. Do not overwrite previous scripts. Await SCP PASS, then independently hash/compile on NEW. Only after a verified transfer and explicit step should the corrected one-use app startup execute under existing NEW-only acceptance authority. STOP anywhere requires preservation of volumes/containers and diagnosis; no blind retry, no cutover or OLD PROD change.
+
 ## November 10 — A3 NETWORK STOP: redis-queue project parsing bug
 
 Owner executed once on NEW the SHA-pinned and locally compiled A3 script `ccpc_a3_from_chatgpt_646c384d.py` and reported only `STOP:A3_APP_UNEXPECTED_CONTAINER_NETWORK`. **Do not rerun** consumed A3 script, start/stop containers, alter networks, or redo A2/ownership fixes. Its source has a **deterministic network validation bug**: for protected rehearsal container names `ccpc_full_acceptance_20261107-redis-queue-1` and `ccpc_restore_rehearsal_20261107-redis-queue-1`, the line `name.rsplit('-', 2)[0] + '_default'` incorrectly yields `ccpc_full_acceptance_20261107-redis_default` or `ccpc_restore_rehearsal_20261107-redis_default` instead of the actual expected `...20261107_default`. This affects BOTH the preflight check before the first Docker mutation and the post-start verification. The single reported STOP is consistent with preflight, but actual host inventory has not yet been independently checked; do not assume no new container exists without confirming.
