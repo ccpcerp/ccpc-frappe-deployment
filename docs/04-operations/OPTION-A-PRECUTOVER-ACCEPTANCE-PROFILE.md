@@ -1,5 +1,18 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 10 — Windows loopback SSH tunnel HTTP 200 PASS, browser Host routing check pending
+
+Owner reports that Windows PowerShell opened an SSH `-N -T` session from the verified Windows SSH identity to NEW `ccpcadmin@192.168.50.186` using only `127.0.0.1:18080:172.20.0.7:8080` local loopback forwarding. The terminal stayed open with a blinking cursor rather than a shell prompt (consistent with active SSH forwarding). A **second Windows PowerShell window** then performed a single `curl.exe` GET to `http://127.0.0.1:18080/login` with `Host: ccpcerp.local` and no body/headers displayed. Exact owner output:
+
+```text
+A3_WINDOWS_TUNNEL_HTTP_STATUS=200
+A3_WINDOWS_SSH_TUNNEL_HTTP_200_PASS
+```
+
+This **confirms functioning Windows-to-NEW SSH loopback forwarding with an explicit Frappe site Host header**, not necessarily successful browser-host routing or an authenticated session. No Docker port publication or changes to backend, frontend, scheduler, DB, OLD PROD/DEV, rehearsals or office firewall. The SSH tunnel is temporary; it ends when the owner closes the original PowerShell SSH session. As previously, Docker frontend `172.20.0.7` is dynamic.
+
+**Next one step** in second PowerShell: a single `curl.exe` GET to `http://127.0.0.1:18080/login` **without a manual Host header**, with `--output NUL --write-out '%{http_code}'` and no follow redirects, so its Host matches what a normal Windows browser would send. Print only the numeric status and a browser routing PASS marker if 200; on non-200 STOP and preserve tunnel/container/network state for a reviewed site-origin approach (do NOT alter Windows system hosts, server configuration, Docker network or open LAN ports by default). Browser credential entry is **not authorized yet** pending this check and a separately controlled NEW-only operator-auth acceptance procedure. Never transmit passwords in chat/CLI. Read-only Company/Work Request/finance acceptance and final production deployment remain pending separate gates.
+
 ## November 10 — A3 host-to-frontend direct HTTP200 PASS; Windows loopback SSH tunnel next
 
 Owner ran a **single** host-originating HTTP probe on NEW Ubuntu as `ccpcadmin` against the candidate frontend's previously inspected private Docker IPv4 `172.20.0.7:8080`, with `Host: ccpcerp.local`; exact result:
