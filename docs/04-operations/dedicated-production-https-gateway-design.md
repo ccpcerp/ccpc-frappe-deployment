@@ -1,5 +1,23 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 10, 2026 — NEW LAN DNS `ccpcerp.internal` resolves successfully
+
+**Operator-confirmed resolution PASS** following creation of a new enabled, IP-type **ER7206 LAN DNS** profile `ccpcerp_prod`, domain `ccpcerp.internal`, target `192.168.50.186`, blank alias, `Apply To: LAN` (the operator was explicitly instructed to choose LAN, not ALL). The previously existing `ccpcerp.com` router entry is separate; there is no user report that it was modified. Operator ran the explicit router-resolver test from Windows:
+
+```text
+nslookup ccpcerp.internal 192.168.50.1
+Server:  UnKnown
+Address:  192.168.50.1
+
+Name:    ccpcerp.internal
+Address:  192.168.50.186
+```
+
+**Scope:** This verifies one Ethernet LAN Windows client's direct DNS lookup via router `192.168.50.1` to the correct NEW IPv4. It does **not** independently establish DNS propagation to every office/VLAN client, whether the DNS router survives WAN outage, HTTPS/TLS trust, proxy/WebSocket behavior, host 443 listener, or app write cutover. DNS is now configured; **do not repeat earlier DNS provisioning** or alter old `ccpcerp.com`.
+
+**Next single NEW-only, read-only operator step:** In a normal SSH session on NEW `ccpcadmin@192.168.50.186` (not in the Windows SSH-forwarding PowerShell), inspect `hostname`, local Caddy installation/version availability, and TCP listening ports **80, 443, 8080** using `ss`. Output only these sanitized observations, no private keys, credentials, full network configuration or server secrets. No `apt install`, `systemctl start/restart`, `docker compose up`, `docker restart`, `ufw allow` or network changes from this preflight. The currently running candidate frontend was last proven internal-only (no host 8080), so if Caddy is absent and no listeners exist, that is **expected**, not a reason to install/unilaterally publish ports. Follow with a separately reviewed host-level HTTPS pilot using internal CA trusted by client workstations and a stable protected loopback-only backend; do not assume draft template is executable/validated. Old PROD+DEV and two protected NEW rehearsals remain untouched. The selected November 5, 2026 backup is already restored in NEW; no repeated backup validation demanded.
+
+
 ## November 10, 2026 — ER7206 router LAN DNS capability confirmed by operator UI
 
 Owner identified the actual gateway as **TP-Link Omada ER7206** and supplied its authenticated **LAN > LAN DNS** screen. The screenshot shows an existing distinct **enabled IP-type** profile named `ccpcerp` for domain **`ccpcerp.com`**, with **no alias** shown, alongside `Add`, `Delete` and existing-row edit/delete controls. **Leave the preexisting `ccpcerp.com` record untouched**: its current target address is not shown, and it might support OLD PRODUCTION access. The previously observed router DNS NXDOMAIN for `ccpcerp.internal` therefore requires a **separate** entry, not modification of the historical one.
