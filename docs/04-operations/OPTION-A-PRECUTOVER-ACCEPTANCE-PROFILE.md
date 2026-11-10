@@ -1,5 +1,40 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 10 — A3 HTTP500 sanitized Docker diagnostic confirms backend FileNotFoundError
+
+Owner ran the approved NEW-only **read-only** diagnostic after the one-use corrected A3 started backend/websocket/frontend and the internal `/login` probe failed HTTP500. Exact sanitized output:
+
+```text
+A3_SUPPORT_CONTAINER_COUNT=9
+A3_APP_CONTAINER_COUNT=3
+A3_UNEXPECTED_CONTAINER_COUNT=0
+A3_BACKEND_STATE=RUNNING
+A3_BACKEND_EXIT_CODE=0
+A3_BACKEND_PRIVATE_NETWORK=PASS
+A3_BACKEND_NO_PUBLISHED_PORTS=PASS
+A3_BACKEND_STAGE_LABEL=PASS
+A3_BACKEND_LOG_CATEGORIES=FILE_MISSING,TRACEBACK_PRESENT
+A3_WEBSOCKET_STATE=RUNNING
+A3_WEBSOCKET_EXIT_CODE=0
+A3_WEBSOCKET_PRIVATE_NETWORK=PASS
+A3_WEBSOCKET_NO_PUBLISHED_PORTS=PASS
+A3_WEBSOCKET_STAGE_LABEL=PASS
+A3_WEBSOCKET_LOG_CATEGORIES=NONE_MATCHED
+A3_FRONTEND_STATE=RUNNING
+A3_FRONTEND_EXIT_CODE=0
+A3_FRONTEND_PRIVATE_NETWORK=PASS
+A3_FRONTEND_NO_PUBLISHED_PORTS=PASS
+A3_FRONTEND_STAGE_LABEL=PASS
+A3_FRONTEND_LOG_CATEGORIES=HTTP_500_PRESENT
+A3_KNOWN_LOG_FILE_COUNT=0
+A3_VOLUME_LOG_CATEGORIES=NONE_MATCHED
+A3_READ_ONLY_HTTP500_DIAGNOSTIC_COMPLETE
+```
+
+**Confirmed:** Nine support containers, three running A3 app containers, zero unexpected; each app on exact private network, no ports published, correct stage label. Backend has a Python missing-file/traceback signature and frontend received HTTP500. **Not confirmed:** exact missing path or whether backend FileNotFoundError is the HTTP500 root cause. The absence of three *known* logfile names is not evidence that no other logs exist. Repeated HTTP probe, migration, DB writes, restarting, recreating or exposing containers is not authorized. Existing A3 startup is consumed; do not rerun.
+
+**Next NEW-only read-only diagnostic:** Collect up to a bounded tail of only backend Docker logs in memory under `sudo python3`; parse any `FileNotFoundError` / `[Errno 2]` lines, emit ONLY fixed category labels for missing pathname (site assets/config/private/log, bench apps/env/logs, system, unknown), allowlisted filename labels for known nonsecret names, and counts. Print **no raw logfile lines, file paths, exception messages, tracebacks, passwords, user or business content**. In addition, check existence and type of only a short allowlist of site roots/common config/site config/assets and logs directories via host readonly `lstat`, no content reads or site mutations. The resulting evidence will ground a separately reviewed minimal correction or a more targeted diagnostic; no speculative fixes. Protect OLD PROD/DEV, two rehearsals and the current candidate DB/site/log state.
+
 ## November 10 — A3 backend/websocket/frontend STARTED; internal login 500 STOP
 
 Owner ran `sha256sum --check && python3 ./ccpc_a3_network_guard_fix_20261110.py` once on NEW; exact output:
