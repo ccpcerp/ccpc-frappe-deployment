@@ -1,5 +1,18 @@
 # Option A — like-for-like NEW-host pre-cutover application acceptance profile
 
+## November 10 — A3 network-fix script independently VERIFIED on NEW (startup pending)
+
+Owner reported exact NEW Ubuntu result for `/home/ccpcadmin/ccpc_a3_network_guard_fix_20261110.py`:
+
+```text
+ccpc_a3_network_guard_fix_20261110.py: OK
+A3_NETWORKFIX_NEW_VERIFIED_AND_COMPILED_PASS
+```
+
+This was a guarded `sha256sum --check`, exact **11,916-byte** size check, and `python3 -m py_compile`. The verified SHA256 was `227ed881750c1c657ca6b1529554964926ff61f2f2d0dca5b4dc8e7b413a16bd`. GitHub source remains pinned at review commit `4547110a8cd5d1ac16e9a11ae8aa94c0f93e0e6f`, Git blob `49b8542f9a064c1291d715e15b0b7ca696c0651b`, exactly 11,916 bytes. Original bad network parsing removed from both pre/post checks; corrected explicit support-network mappings independently verified at source. **The corrected NEW script was NOT executed by the checksum/compile verification.** Do not run the previous failed `ccpc_a3_from_chatgpt_646c384d.py` or mislabeled A3 file; do not rerun any A2/volume-root actions.
+
+The last read-only NEW Docker inventory showed nine running support containers, nine correct support network memberships, zero unexpected containers, and **zero A3 app containers**. The next operation is the already-approved **one-use, NEW-candidate-only application startup** using `python3 ./ccpc_a3_network_guard_fix_20261110.py` as `ccpcadmin`, preferably behind the same exact SHA256 check. Startup script performs its own strict state preflight before Docker mutation; it starts only `ccpc_prod_erpnext-{backend,websocket,frontend}-1`, uses pinned immutable image and internal-only candidate network with no host-published ports, workers, scheduler, configurator, migrations, or changes to OLD/DEV/rehearsal systems. On ANY `STOP:A3_APP_...` or other exception, preserve partial state and **never rerun**; inspect read-only. Actual successful internal HTTP 200 and authenticated login are still **unverified**. Trusted LAN HTTPS, final rollback and production cutover remain separately gated.
+
 ## November 10 — A3 network STOP host diagnostic PASS; corrected script delivery ready
 
 Owner ran the approved read-only Docker network diagnostic on NEW, reporting the following exact markers:
