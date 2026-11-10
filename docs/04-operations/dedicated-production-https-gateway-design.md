@@ -1,5 +1,14 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 10, 2026 — Windows LAN DNS resolver identified; non-mutating hostname check next
+
+Owner provided Windows `ipconfig /all` from the authorized CCPC Ethernet LAN. Sanitized relevant observations: Windows Ethernet IPv4 `192.168.50.194/24`, DHCP server and default gateway `192.168.50.1`, and DNS server **`192.168.50.1`**; DNS connection suffix currently `lan`. The Tailscale virtual interface is not the active Ethernet DNS path, and the Hyper-V default switch is a distinct virtual subnet. The host's DNS-server setting proves **use of router IP as the Windows DNS resolver**, but not that the router permits static local A records, authoritative local zones, or successful `.internal` resolution. No sensitive MAC/client identifier needs to be reproduced.
+
+**One safe next operator action:** in Windows PowerShell on that same LAN run `nslookup ccpcerp.internal 192.168.50.1`, returning only the DNS answer/status. NXDOMAIN (non-existent domain) is a normal result before provisioning a local record, not an application or HTTPS failure; if an A record already exists, compare it with the approved NEW host `192.168.50.186` before any edits. Do not create DNS records, sign into a router admin UI, change DHCP/DNS clients, or alter OLD PROD/DEV, NEW Docker, firewall, proxy or TLS as part of this lookup.
+
+**Next implementation decision after lookup:** determine whether the existing router/local DNS can host an explicit `ccpcerp.internal` A record reliably on the office LAN and whether it serves all authorized client VLANs during WAN outages; otherwise use a separately reviewed managed internal resolver. Any change to router DNS or DHCP is a distinct network-operation approval, not implied by the hostname selection. The manually selected November 5 backup is already restored in the isolated NEW candidate; do not repeat verification or restore.
+
+
 ## November 10, 2026 — Owner selects `https://ccpcerp.internal` for NEW LAN ERPNext
 
 **Newer owner decision; supersedes earlier illustrative hostname and undecided-name notes below.** Owner proposed `https://ccpcerp.internal` as the employee address in response to the explicit hostname-choice question; proceed with this as the preferred LAN hostname for the NEW dedicated ERPNext server, distinct from legacy `ccpcerp.com` and the actual internal Frappe site identity `ccpcerp.local`. ICANN's 2024-07-29 board resolution permanently reserved the `.internal` TLD for private-use applications; this name is not a public Internet DNS or a publicly ACME-issued certificate endpoint.
