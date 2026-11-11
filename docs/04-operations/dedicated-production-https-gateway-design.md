@@ -1,5 +1,28 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 11, 2026 — Git for Windows OpenSSL 3.5.3 verified executable; internal CA plan pending
+
+**Operator-reported PowerShell read-only PASS** on trusted Windows workstation after public CSR SHA256 integrity check:
+```text
+=== GIT VERSION ===
+git version 2.51.0.windows.2
+=== OPENSSL FILE ===
+PATH=C:\Program Files\Git\mingw64\bin\openssl.exe
+SIGNATURE_STATUS=NotSigned
+OPENSSL_SHA256=8602F98442E68DFA9F2687B04A8B69DD19549C3E2807097963FD4D3524BE0669
+=== OPENSSL VERSION ===
+OpenSSL 3.5.3 16 Sep 2025 (Library: OpenSSL 3.5.3 16 Sep 2025)
+built on: Thu Sep 18 08:48:12 2025 UTC
+platform: mingw64
+GIT_BUNDLED_OPENSSL_READONLY_PASS
+```
+Thus a working existing Git-bundled OpenSSL is available without installation/WSL startup. **`NotSigned` is an unsigned executable status, not proof of malware or independent supplier provenance; SHA256 is the local fingerprint, not an independently vendor-authenticated hash.** No root CA or signed leaf has yet been generated. Do not infer blanket authority to install CA trust or expose HTTPS merely from this tool check.
+
+**Next one safe Windows action:** Use built-in read-only Windows `Cert:\CurrentUser\Root` and `Cert:\LocalMachine\Root` enumeration to look for an already-deployed CCPC/ccpcerp-named root/intermediate trusted CA, reporting subject/issuer/expiration/thumbprint only (no private-key material). This checks only the **local trust stores**, so zero matches cannot establish that CCPC has no organizational CA elsewhere. Before generating a new root, confirm with owner that no approved company-managed CA exists and choose a secure non-synced off-NEW workstation store with encrypted signing key, independent secure backup and renewal/recovery plan. If no managed CA, use Git-bundled OpenSSL for an owner-controlled internal CA; a 3072-bit RSA leaf CSR with SAN `DNS:ccpcerp.internal` is already verified. CA root key **must never be placed on NEW server, GitHub, chat or client devices**; only public root cert to approved clients, signed leaf chain only to NEW.
+
+**Status unchanged:** Draft PR28, no root CA issuance, client trust, Caddy runtime config/activation, TCP443/UFW LAN rule, WAN/guest denial, employee cutover, NEW A3/DB/rehearsal or OLD PROD+DEV change.
+
+
 ## November 11, 2026 — Git-bundled OpenSSL candidates discovered on Windows; no new install needed
 
 **Operator-reported read-only PowerShell results** after previously verified Windows CSR integrity:
