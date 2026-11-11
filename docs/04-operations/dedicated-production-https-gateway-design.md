@@ -1,5 +1,22 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 11, 2026 — Ubuntu Caddy package installed, masked and inactive; Caddyfile adaptation next
+
+**Operator-reported NEW-host package verification PASS** after the prior safe precheck. NEW Ubuntu 24.04 selected the package `caddy=2.6.2-6ubuntu0.24.04.3` from official Ubuntu `noble-updates/universe` and `noble-security/universe` archives; no third-party APT repository required. Before install the operator created both systemd service masks: `/etc/systemd/system/caddy.service -> /dev/null` and `caddy-api.service -> /dev/null`, verified `masked` for both, with marker `CADDY_AUTOSTART_GUARD_PASS`.
+
+**Operator-reported post-install checks PASS:**
+```text
+install ok installed 2.6.2-6ubuntu0.24.04.3
+caddy.service ENABLED=masked ACTIVE=inactive
+caddy-api.service ENABLED=masked ACTIVE=inactive
+HTTP/HTTPS LISTENERS: (none on TCP 80 or 443)
+CADDY_INSTALLED_NOT_STARTED_PASS
+```
+This confirms **package installation, not HTTPS activation**. Do not unmask, enable, start or reload Caddy yet. The previously tested loopback-only `127.0.0.1:8080` relay to the protected A3 frontend is a separate pilot component; no subsequent relay health test is claimed here. No reported Docker restart, application migration, database/restore action, firewall change, certificate issuance, router change, OLD PROD+DEV change, or employee cutover.
+
+**Next NEW-only operator step:** Run installed Caddy 2.6.2 **adapter-only** against the exact reviewed `overrides/Caddyfile.dedicated-https.review` syntax via a read-only stdin here-document, with disposable absolute-path string placeholders for `CCPC_TLS_FULLCHAIN_FILE` and `CCPC_TLS_PRIVATE_KEY_FILE`. Use `caddy adapt --config - --adapter caddyfile` and discard generated JSON. This parses/adapts only; it must **not** start any listener, attempt certificate issuance, change active systemd services, write a live Caddyfile, or open UFW. The real certificate/key do not exist yet, so do not use `caddy validate` at this stage. If Caddy 2.6.2 rejects syntax such as `strict_sni_host`, STOP and revise review source on draft PR #28 before staging any live configuration. Then plan off-host internal CA key, leaf SAN `DNS:ccpcerp.internal`, protected Caddy-readable PEM/key, LAN-restricted 443 and independent Windows/office Wi-Fi client trust and WAN/guest denial verification.
+
+
 ## November 11, 2026 — Localhost relay activated and HTTP200 PASS; Caddy package source check next
 
 **Operator-reported live NEW-only PASS** after previously verified root-owned matching systemd unit-file staging:
