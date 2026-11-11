@@ -10,10 +10,14 @@
 # to approved Windows clients; protect and back up CA signing keys off-host.
 # Configure certificate chain, private key permissions, DNS and client trust
 # outside GitHub. Never supply credential contents in commits or chat.
-# Host frontend must independently be published ONLY to 127.0.0.1:8080
-# after separately reviewed candidate container recreation/activation.
-# This file is not compatible with the current A3 internal-only frontend
-# until that loopback upstream is deliberately established and verified.
+# Host-only upstream is now available from a separately guarded systemd
+# socket relay at 127.0.0.1:8080, forwarding to NEW A3 private Docker frontend.
+# Operator-reported on 2026-11-11: socket active, bound ONLY to localhost,
+# GET /login returned HTTP 200 with Frappe internal Host ccpcerp.local.
+# The A3 frontend itself has NO Docker host-published ports and must not be
+# recreated or published just to run this gateway.
+# This still requires a trusted SAN-matching certificate, on-host Caddyfile
+# adapter/runtime validation, LAN-scoped firewall and true external denial.
 {
     admin off
     auto_https off
