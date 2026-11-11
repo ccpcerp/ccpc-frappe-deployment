@@ -1,5 +1,30 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 11, 2026 — Windows CSR absent and default SSH identities; public PEM manual fallback
+
+**Operator-reported Windows Step 11B read-only diagnostic:**
+```text
+=== WINDOWS CSR FILE ===
+LOCAL_CSR_NOT_FOUND
+=== WINDOWS SSH CONFIGURATION ===
+user ccpcadmin
+hostname 192.168.50.186
+port 22
+identitiesonly no
+identityfile ~/.ssh/id_rsa
+identityfile ~/.ssh/id_ecdsa
+identityfile ~/.ssh/id_ecdsa_sk
+identityfile ~/.ssh/id_ed25519
+identityfile ~/.ssh/id_ed25519_sk
+identityfile ~/.ssh/id_xmss
+identityfile ~/.ssh/id_dsa
+WINDOWS_SSH_CONFIG_CHECK_COMPLETE
+```
+Tag: WINDOWS_DEFAULT_SSH_IDENTITIES_CONFIRMED. No local CSR target exists; the default Windows OpenSSH identity search did not authenticate in the previous `scp` attempt. `ssh -G` is configuration inspection only, **not a connection or proof that listed key files exist**. No SSH server change is justified; do not enable password login, turn off host verification, generate server/CA keys on Windows by accident, or rerun the failed `scp`.
+
+**Next one safe action:** From the **already-working trusted Ubuntu terminal**, show only the nonsecret `/home/ccpcadmin/ccpcerp.internal.csr` PEM (not `/etc/ccpc-https/ccpcerp.internal.key`); copy PEM to the **Windows local clipboard** without posting it in chat/GitHub. Then in a separate guarded Windows step, create the previously absent local CSR with exact PEM boundaries and line-ending normalization, parse/verify it where supported, compare its SHA256 to the server's read-only `sha256sum` evidence from the working Ubuntu session, and mark transfer PASS only after byte/hash equality. If a trusted existing GUI SSH client has an established authenticated file transfer channel, an approved CSR-only GUI transfer is also valid. **Never handle private keys through clipboard.** Off-host protected CA signing still separate. No Caddy/ERPNext service, firewall, app, data or employee cutover change.
+
+
 ## November 11, 2026 — Windows CSR transfer blocked by public-key SSH auth
 
 **Operator-reported Windows PowerShell `scp` STOP:** Attempting to retrieve only `ccpcadmin@192.168.50.186:/home/ccpcadmin/ccpcerp.internal.csr` returned `Permission denied (publickey)`, `Connection closed`, and `STOP: SCP transfer failed`. Tag: WINDOWS_SCP_PUBLICKEY_STOP. **No successful Windows CSR download or SHA256 cross-host verification is established.** The failed `scp` may leave a partial/empty local target; do not assume destination absence or rerun the same download block. This is **client SSH authentication**, not proof of a bad CSR or bad private-key/certificate material. Earlier NEW-server `CCPC_PUBLIC_CSR_READY_PASS` remains verified.
