@@ -1,5 +1,21 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 11, 2026 — Localhost relay activated and HTTP200 PASS; Caddy package source check next
+
+**Operator-reported live NEW-only PASS** after previously verified root-owned matching systemd unit-file staging:
+```text
+sudo systemctl daemon-reload && sudo systemctl start ccpc-erpnext-upstream.socket
+active
+LISTEN ... 127.0.0.1:8080 ... 0.0.0.0:*
+LOCAL_RELAY_HTTP=200
+```
+The `0.0.0.0:*` part is the **peer-address wildcard for a listening socket**, not a public bind. The **local listening address is exactly `127.0.0.1:8080`**. The operator's GET `http://127.0.0.1:8080/login` using Host `ccpcerp.local` returned HTTP **200**, verifying systemd socket activation and forwarding from localhost to protected A3 frontend `172.20.0.7:8080`. **No `systemctl enable`**, Docker/container change, MariaDB/ERPNext migration, firewall alteration, Caddy installation, certificate, WAN/employee access or final cutover. Note that systemd socket remains **running** in the present pilot session; after host reboot this socket is not set to auto-activate; a future controlled durable service plan is required before go-live.
+
+**Gateway source reconciliation:** Draft `overrides/Caddyfile.dedicated-https.review` comments previously claimed the only path was publishing Docker frontend to 127.0.0.1 and recreating the A3 frontend. Those comments are obsolete. The same Caddy `reverse_proxy 127.0.0.1:8080` is now backed by a **verified host systemd socket relay**. Revised source-comments commit `951d5430a6b2337fbceaf5a62496661c771f1fd4` on draft PR28; actual Caddy gateway remains **not installed or runtime-tested**. No source configs/keys copied to host yet.
+
+**Next NEW-only safe operator step:** Read-only `apt-cache policy caddy`, `dpkg-query -W` and `systemctl list-unit-files caddy.service caddy-api.service` to identify whether an Ubuntu-supported candidate is available and whether any unrelated package/service state already exists. The vendor notes that installing official Ubuntu/Debian Caddy *automatically starts* `caddy.service`; **never issue `apt install caddy` blindly** because default example config may bind wildcard HTTP80. Source: https://caddyserver.com/docs/install . Next, if package/version/source acceptable, stage precise NEW-only start suppression for both `caddy` and optional `caddy-api` services before package installation; confirm no wildcard/public listener after installation. Do not add a new third-party APT repository or curl-pipe remote script without reviewed trust and approval. Plan CA root signing key off NEW and protected manual leaf SAN `DNS:ccpcerp.internal`, then Caddy adaptation/443 LAN-only UFW gating and Windows/plant phone trust tests, WAN/guest denial. Preserve OLD PROD/DEV, two NEW rehearsals and owner-approved Nov5 restored candidate; no A2/A3 replay.
+
+
 ## November 11, 2026 — Companion systemd relay staged+verified; activation next
 
 **Operator-reported NEW-host action:** staged only the reviewed `/etc/systemd/system/ccpc-erpnext-upstream.service` companion with `set -C` (noclobber); terminal output ended with `MODE=644 OWNER=root:root` and **`CCPC_SERVICE_STAGED_AND_VERIFIED_NOT_STARTED`**. The operator's staging block required the source SHA256 equality `1f75e7a7f6eabda560faa052bc39f520950b1abb3c115afead28cdf7b075b22a` and `sudo systemd-analyze verify` to succeed before that marker. Reported success therefore supports exact reviewed **service-file SHA and systemd static verification PASS**; the socket companion was previously independently checked against GitHub SHA with `root:root` and mode 644. The terminal echo again contains interleaved heredoc/paste fragments, but the later check marker is a stronger test than what the echoed heredoc appears to show. **Neither systemd socket nor service has been started or enabled** by the staging script. No Docker/DB/OLD PROD+DEV/rehearsal, UFW, Internet or employee gateway changes reported.
