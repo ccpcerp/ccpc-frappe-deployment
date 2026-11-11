@@ -1,5 +1,14 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 11, 2026 — Public CSR reconstructed from pasted PEM and matched to NEW server SHA256
+
+**Operator-reported NEW read-only output:** The public CSR `/home/ccpcadmin/ccpcerp.internal.csr` self-signature verified OK and `sha256sum` yielded `6f88c8f0001a3c0db15c59446580b0b7057de5f84e86127587c272bc78545a46`. User supplied the **public CSR PEM** (BEGIN/END CERTIFICATE REQUEST, not private key material) in the active chat. ChatGPT recreated a downloadable local `ccpcerp.internal.csr` artifact; independent local SHA256 matched that **exact** operator-reported server digest, OpenSSL `req -noout -verify` succeeded, CSR subject was `CN=ccpcerp.internal`, and `req -noout -text` showed `DNS:ccpcerp.internal`. Tag: CSR_PUBLIC_ARTIFACT_SHA256_MATCH.
+
+**Meaningful boundary:** The reconstructed file and checksum are verified in this chat's generated artifact runtime, **not yet shown downloaded or checksum-verified on the owner's Windows signing workstation**. The previously failed Windows `scp` and null SHA checks did not establish transfer. No further SSH auth configuration is needed to acquire this **public CSR**. Next: operator downloads only this verified public CSR artifact to a trusted Windows signing workstation, verifies its SHA256 locally against the known digest before signing, and preserves NEW's already-generated leaf private key. Never commit private key/CSR to GitHub merely to transfer it; no root CA key created/placed on NEW. Off-host CA signing plan remains separate; secure CA signing/private-key backup, public root certificate distribution, signed leaf SAN+serverAuth and renewal are all pending.
+
+**Current deployment safety:** Caddy installed and draft adapter PASS, service masked/inactive at last checked state; no signed TLS certificate, Caddy start/unmask, TCP443 LAN listener, UFW/router change, browser/phone trust, guest/WAN denial acceptance or employee cutover. No reported NEW A3 DB, rehearsal, OLD PROD/DEV or backup/restore modification.
+
+
 ## November 11, 2026 — Windows CSR absent and default SSH identities; public PEM manual fallback
 
 **Operator-reported Windows Step 11B read-only diagnostic:**
