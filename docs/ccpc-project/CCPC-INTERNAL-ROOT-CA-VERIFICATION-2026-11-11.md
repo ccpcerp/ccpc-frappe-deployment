@@ -152,3 +152,21 @@ Next controlled step: prepare the existing public `ccpc-root-ca.crt.pem` on the 
 - **NAT-DMZ List is empty — owner**: on standalone ER7206 admin interface after navigating `Transmission > NAT > NAT-DMZ`, owner reports NAT-DMZ list empty. Together with previously empty `Transmission > NAT > Virtual Servers`, this supports no configured virtual-server or NAT-DMZ exposures at inspection time. It does **not** prove all WAN ingress paths absent.
 - The owner previously reports guest Wi-Fi disabled; only main/staff Wi-Fi enabled. UFW TCP443 LAN rule remains dry-run only; actual UFW listed only LAN-restricted SSH22. Caddy remains masked/inactive with no HTTPS 443 listener at last verified observation. No router config was saved or modified.
 - NEXT one read-only router step: open `Services > UPnP` (2024 TP-Link ER7206 user guide; some firmware labels it `Service > UPnP`) and report whether `Enable UPnP` is checked/on and whether `UPnP Portmap List` has entries, particularly any mapping to NEW 192.168.50.186. Do not click Enable, Save, Delete or Add. Later check other NAT paths, WAN admin, IPv6 and true external-origin negative test before claim of external denial.
+
+## November 11, 2026 — ER7206 UPnP mapping list empty; one-pass router security review
+
+- **UPnP Portmap List is empty (owner report)** on ER7206 in read-only inspection. Crucially, the owner has NOT yet reported whether the **Enable UPnP** setting itself is checked: an empty table does not prove UPnP is disabled or prevent future dynamic mappings.
+- Earlier owner-confirmed results: main/staff Wi-Fi on, guest Wi-Fi disabled; `Transmission > NAT > Virtual Servers` empty; `Transmission > NAT > NAT-DMZ` empty. NEW Ubuntu UFW TCP443 allow only dry-run (actual sole allow remained SSH 22 from `192.168.50.0/24`); Caddy last reported masked and inactive, TCP443 closed.
+- Owner specifically requests ONE combined read-only checklist, no repeated one-at-a-time prompts. Outstanding router checks using TP-Link ER7206 or family standalone UI (menu wording may vary by hardware/firmware):
+  1. `Services > UPnP`: Enable UPnP ON/OFF **and** table (table currently EMPTY).
+  2. `Transmission > NAT > One-to-One NAT`: enabled list, public-to-private mapping to NEW `192.168.50.186` or subnet.
+  3. `Transmission > NAT > Port Triggering`: rules enabled, inbound open ports, especially 80/443/8080.
+  4. `Transmission > NAT > Multi-Nets NAT` (if present): note enabled rules, chiefly to establish presence of nonstandard network path; not automatically an inbound exposure.
+  5. `System Tools > Admin Setup > Remote Management`: enabled WAN admin entries, especially broad source networks.
+  6. `System Tools > Diagnostics > Remote Assistance`: enable/disable state (router SSH from Internet).
+  7. `Network > IPv6 > WAN` and `... > LAN`: whether IPv6 globally/WAN/LAN enabled or routable global addresses/prefixes assigned; do NOT paste full WAN IP.
+  8. `Network > WAN > WAN Mode` and active WAN interfaces: count, whether ISP modem/router in front, any upstream forwarding to ER7206; avoid sharing public IPs.
+  9. `VPN`, `SSL VPN` submenus: any enabled remote-access VPN servers or client-to-LAN routes; note VPN policy to NEW; do not alter business VPNs.
+  10. `Firewall > Access Control`/IPv6 firewall if available: unintended permit paths from WAN/other VLANs to NEW; audit only.
+  11. `System Tools > SNMP` or management/cloud access if enabled: administrative exposure (separate from direct TCP443 forwarding).
+- Later verification required: NEW host read-only `ip -6` and socket checks; inspection of upstream ISP device/router for NAT/DMZ; actual external-origin and unauthorized-VLAN reachability testing once NEW-only HTTPS listener is deliberately activated. A list of empty NAT tables is not proof of global WAN denial. No UFW rule, Caddy unmask/start, router save, employee cutover, candidate Docker/DB, OLD PROD or DEV changes authorized by these audit notes.
