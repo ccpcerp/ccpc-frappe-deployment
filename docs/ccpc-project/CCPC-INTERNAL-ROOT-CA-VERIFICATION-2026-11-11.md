@@ -18,6 +18,17 @@ Scope: Windows administrator signing workstation and Synology backup only. This 
 - Owner explicitly declined GitHub storage of the key. Synology backup is a second copy of the *same encrypted PEM*, not a separate passphrase. Offline escrow of the sole Root CA passphrase and independently tested full recovery on a replacement workstation have **not** been verified.
 - Public CA trust is **not yet installed** on employee devices; CA certificate verification is not a TLS deployment or validation of full client trust.
 - Existing NEW-host server leaf key and matching unsigned CSR `ccpcerp.internal.csr` must be **reused**, never regenerated. Its previously verified public CSR SHA-256 is `6f88c8f0001a3c0db15c59446580b0b7057de5f84e86127587c272bc78545a46`. Sign off-host with SAN `DNS:ccpcerp.internal`, EKU `serverAuth`, CA:FALSE, suitable leaf keyUsage and a much shorter leaf lifetime; inspect CSR and verify identity before signing. Keep CA signing key on Windows; return only leaf certificate/chain to NEW.
-- No signed leaf has been reported yet. No Windows/root-trust installation, Caddy activation, LAN443 firewall opening, DNS/cutover, OLD PROD+DEV change, NEW ERPNext DB/container change, or employee rollout has been authorized by this checkpoint.
+- The subsequently owner-reported signed server leaf certificate is recorded in the issuance section below. No Windows/root-trust installation, Caddy activation, LAN443 firewall opening, DNS/cutover, OLD PROD+DEV change, NEW ERPNext DB/container change, or employee rollout was performed in that signing step.
 
-Next controlled action: inspect verified Windows public CSR and prepare a no-overwrite, off-host server leaf signing operation. Keep PR #28 DRAFT and maintain the separately approved NEW-only pilot boundaries.
+Earlier next action (now completed): inspect verified Windows public CSR and sign the server leaf. Keep PR #28 DRAFT and maintain the separately approved NEW-only pilot boundaries.
+
+## November 11, 2026 — server leaf certificate issued off NEW (owner-reported PASS)
+
+- Windows signer rechecked `ccpcerp.internal.csr`: OpenSSL CSR self-signature `Certificate request self-signature verify OK`; `subject=CN=ccpcerp.internal`; digest and SAN guard `CCPC_SERVER_CSR_READY_FOR_SIGNING`.
+- Using the existing encrypted Root CA key on Windows, owner performed a no-overwrite OpenSSL CSR signing operation with SHA-256, random 128-bit serial (positive), short validity `-days 365`, and explicit server leaf extensions. **No new CA key or server private key generated.**
+- Public leaf `ccpcerp.internal.crt.pem` successfully passed `openssl verify -purpose sslserver -verify_hostname ccpcerp.internal -CAfile <public-root> <leaf>` with `ccpcerp.internal.crt.pem: OK` and marker `CCPC_HTTPS_SERVER_CERTIFICATE_SIGNED_AND_VERIFIED`.
+- Observed leaf identity `subject=CN=ccpcerp.internal`, `issuer=C=PH, O=CCPC, CN=CCPC Internal Root CA`; valid from `Nov 11 07:01:07 2026 GMT` until `Nov 11 07:01:07 2027 GMT` (one-year **leaf**, 50-year root unchanged).
+- Observed leaf extensions: critical `basicConstraints CA:FALSE`, critical `keyUsage Digital Signature, Key Encipherment`, EKU `TLS Web Server Authentication`, SAN `DNS:ccpcerp.internal`.
+- **Not yet performed:** compare public key in signed leaf vs CSR as a separate read-only check, transfer public signed certificate to NEW, verify signed certificate matches NEW server's original leaf private key in situ, install client CA trust, install/activate live Caddy TLS listener, UFW/LAN443 change, employee login/browser tests, Wi-Fi/external denial acceptance, DNS/old PROD+DEV cutover. The Root CA private key must stay off NEW.
+
+Next controlled step: read-only compare signed leaf public key with the already-verified CSR public key on Windows; then stage **only** the public leaf and root certificates to NEW with a no-overwrite guarded procedure. No deployment or production cutover is implied.
