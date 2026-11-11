@@ -1,5 +1,16 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 11, 2026 — Leaf private key and CSR verified PASS; transfer public CSR off-host next
+
+**Operator-reported on NEW `ccpcerp-prod`:** A previously approved root-only leaf key and unsigned CSR were generated at `/etc/ccpc-https/ccpcerp.internal.key` and `/etc/ccpc-https/ccpcerp.internal.csr`. Initial generation output reached `Certificate request self-signature verify OK` but did not show the final marker, so we **did not repeat/rekey**. Follow-up inspection proved directory `700 root:root`, server private key `600 root:root`, CSR `600 root:root`, subject `CN = ccpcerp.internal`.
+
+**Verification CLI compatibility:** The attempted `openssl req -noout -ext subjectAltName` failed with `req: Use -help for summary.`, because the installed `openssl req` did not support `-ext` on that command; this did **not** mean the SAN was missing. Corrected read-only `openssl req -noout -text` inspection then reported exactly `SAN=DNS:ccpcerp.internal`; CSR cryptographic self-signature `Certificate request self-signature verify OK`; independent SHA256 digests of public keys extracted from CSR and protected private key matched `PRIVATE_KEY_CSR_MATCH_PASS`, finishing `CCPC_LEAF_KEY_AND_CSR_PASS`. **This validates CSR/key generation and match, not issuance of a signed certificate.** Do not rerun key generation or overwrite files.
+
+**Next NEW-only stage (public CSR only):** Create a no-overwrite `0600` copy of the **nonsecret CSR** at `/home/ccpcadmin/ccpcerp.internal.csr`, preserving the root-owned original `0600` key/CSR. Guard exact hostname/account, no existing destination or symlink, use `umask 077` and bash noclobber redirection with `sudo cat`, and verify exact content with `sudo cmp`. Do not copy, display, transfer, or change permissions of the leaf private key. Later retrieve the CSR alone from an approved operator workstation using a verified SSH host key, then sign via an off-NEW protected CCPC internal CA. Root CA signing **private key stays off NEW**. Only leaf certificate/fullchain returns to NEW; clients receive only public trusted CA root.
+
+**Unchanged scope:** Caddy 2.6.2 adapter syntax PASS, Caddy services masked/inactive; no signed cert, CA, active TCP443 listener, UFW rule, tested client trust, WAN/guest denial, or employee cutover. Do not change NEW candidate database/containers, protected rehearsals or OLD PROD+DEV. PR28 remains DRAFT.
+
+
 ## November 11, 2026 — Installed Caddy 2.6.2 adapter PASS; leaf CSR creation next
 
 **Operator-reported NEW-only adapter execution:**
