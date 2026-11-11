@@ -1,5 +1,12 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 11, 2026 — NEW localhost socket file staged and exact-content verified
+
+**Operator-reported on-host result:** one-file staging command yielded `CCPC_SOCKET_FILE_STAGED_NOT_STARTED`. Operator subsequently ran the SHA256 ownership/mode check and returned exact `CCPC_SOCKET_MATCHES_GITHUB_PASS`, `MODE=644 OWNER=root:root` for `/etc/systemd/system/ccpc-erpnext-upstream.socket`. This verifies the NEW-host socket unit file matches the GitHub-reviewed source in the operator's validated SHA256 comparison, with appropriate file owner and mode; **it has not been daemon-reloaded or started/enabled**. The original terminal paste had interleaved heredoc text, but the separate hash check now confirms exact file bytes. The companion service file has not been staged. No front-end, database, Docker port, UFW, WAN or OLD PROD/DEV changes reported.
+
+**Next NEW-only operator step within approved pilot:** Stage only `/etc/systemd/system/ccpc-erpnext-upstream.service` using an exclusive, no-overwrite `sudo sh -c 'set -C; umask 022; cat > "$1"' sh "$unit"` with exact reviewed `overrides/systemd/ccpc-erpnext-upstream.service` bytes, after checking hostname, matching socket file, companion absent and relay binary. Review-source SHA256 for exact **825-byte** UTF-8 service content ending in newline is `1f75e7a7f6eabda560faa052bc39f520950b1abb3c115afead28cdf7b075b22a`; compare a new host SHA256 to expected and run `sudo systemd-analyze verify /etc/systemd/system/ccpc-erpnext-upstream.socket /etc/systemd/system/ccpc-erpnext-upstream.service`. Do not `systemctl daemon-reload`, `systemctl start`, enable, or change UFW yet. If SHA or systemd verification fails, stop without overwriting/rerunning, inspect exact bytes and output. After staged+verified PASS, next approved tiny step: reload manager and start socket only (not enable), reverify 127.0.0.1:8080 exclusively and HTTP200 through relay, with stop-only rollback. Ensure private frontend IP unchanged before activation. TLS/Caddy, host 443 firewall and mobile trust all remain pending.
+
+
 ## November 11, 2026 — Retry state verified clean; stage socket unit alone
 
 **Operator report after staging STOP:** exactly
