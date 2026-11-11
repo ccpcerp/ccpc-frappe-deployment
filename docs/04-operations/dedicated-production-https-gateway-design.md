@@ -1,5 +1,32 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 11, 2026 — First operator relay staging STOP: strict string guard mismatch
+
+**Operator evidence:** The NEW pilot staging block stopped with **`STOP: FRONTEND_IDENTITY_CHANGED`** before its intended unit-file `tee` commands. The pasted terminal text also includes interleaved heredoc fragments, so the absence of writes must be **confirmed** rather than assumed. No observed evidence of Docker/container changes or any service activation, but state check remains pending.
+
+**Review finding in ChatGPT-authored stage block:** The inspection command's Go template `... PRIVATE_IPV4={{$net.IPAddress}} {{end}}` emits a **literal trailing ASCII space** before the closing `{{end}}` when one network is present. Bash `$(...)` strips trailing newlines, **not trailing spaces**, while the expected comparison string had none. Therefore `[ "$actual" = "$expected" ]` can reject a correct unchanged frontend. This is **a command-guard false-negative**, not proof of frontend identity drift. The source-reviewed `.socket`/`.service` files are not implicated. Do not rerun the previous staging block, and do not remove/overwrite any unit file without checking its existence.
+
+**Immediate single safe read-only operator check on NEW:**
+
+```bash
+printf '%s\n' '=== FRONTEND CHECK (WHITESPACE VISIBLE) ==='
+actual="$(sudo docker inspect --format 'RUNNING={{.State.Running}} PORT_BINDINGS={{json .HostConfig.PortBindings}} {{range $name,$net := .NetworkSettings.Networks}}NETWORK={{$name}} PRIVATE_IPV4={{$net.IPAddress}} {{end}}' ccpc_prod_erpnext-frontend-1)" || exit 1
+printf 'ACTUAL_BASH_ESCAPED=%q\n' "$actual"
+printf '%s\n' '=== STAGED UNIT FILE PRESENCE ==='
+for unit in ccpc-erpnext-upstream.socket ccpc-erpnext-upstream.service; do
+  if sudo test -e "/etc/systemd/system/$unit" || sudo test -L "/etc/systemd/system/$unit"; then
+    printf '%s EXISTS\n' "$unit"
+  else
+    printf '%s ABSENT\n' "$unit"
+  fi
+done
+printf '%s\n' '=== TCP 8080 LISTENER ==='
+ss -H -ltn '( sport = :8080 )'
+```
+
+The command only reads sanitized Docker identity/network/port bindings, NEW unit presence, and TCP8080 listeners. No host, Docker, UFW, TLS or DB changes. If both units are ABSENT, no 8080 listener, and frontend identity is correct apart from trailing space, **build a fresh no-overwrite staging block with a whitespace-safe, structured identity check**, not an exact formatted string; verify one-shot steps with `bash -n`/unit validation where possible. Do not auto-rerun the failed script; stop on unexpected files/listeners. Existing approved NEW-only HTTPS pilot scope remains in force, with OLD PROD/DEV, protected NEW rehearsals and Nov5 restored candidate preserved.
+
+
 ## November 11, 2026 — NEW UFW/relay guards PASS; reviewed pilot socket units authored
 
 **Operator-reported host safety preflight:**
