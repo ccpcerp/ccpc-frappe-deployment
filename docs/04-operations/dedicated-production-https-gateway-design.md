@@ -1,5 +1,14 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 11, 2026 — Windows CSR checksum false positive; transfer still unverified
+
+**Operator-reported PowerShell outcome:** After attempting the planned CSR-only retrieval, `$remoteHash = (($remoteOutput -split '\s+')[0]).ToUpperInvariant()` threw `You cannot call a method on a null-valued expression.` The next separately executed comparison block did **not** throw, and a separately executed `Write-Output 'CCPC_CSR_TRANSFER_SHA256_PASS'` displayed that marker. **This marker is invalid: local/remote digest agreement is NOT verified.** `$remoteOutput` was empty or unset; even presence of the local file has not yet been proved. Tag: WINDOWS_CSR_HASH_NULL_STOP.
+
+**Next safe one-step action:** On the same trusted Windows workstation, **read-only** inspect whether `$env:LOCALAPPDATA\CCPC-HTTPS-CSR\ccpcerp.internal.csr` is an existing nonempty file; compute its SHA256; make a new known-host-enforced SSH `sha256sum /home/ccpcadmin/ccpcerp.internal.csr` call; inspect its exit code, require an exact 64-hex SHA256 followed by the expected remote filename, and compare normalized digests **within one fail-closed PowerShell block**, emitting the PASS marker only at the end. If SSH host key unknown/changed or auth fails, stop, do not accept an unverified fingerprint or echo PASS manually. Do **not** rerun CSR generation or blindly repeat `scp`; no private key or CA key should leave protected storage.
+
+**Scope unchanged:** NEW Caddy masked/inactive, no signed cert, live TCP443 HTTPS, firewall alteration, client trust, WAN/guest denial or employee cutover. Keep OLD PROD/DEV, candidate restore, two protected rehearsals, and all app/DB data untouched.
+
+
 ## November 11, 2026 — NEW public CSR copy ready; trusted workstation retrieval next
 
 **Operator-reported pass:** On NEW `ccpcerp-prod`, owner ran a guarded no-clobber procedure from `ccpcadmin` to copy **only** the verified, unsigned `/etc/ccpc-https/ccpcerp.internal.csr` to `/home/ccpcadmin/ccpcerp.internal.csr`. The command was designed to fail if target existed, require exact byte match (`sudo cmp`), check `600:ccpcadmin` destination mode/ownership and run `openssl req -noout -verify`. Terminal ended:
