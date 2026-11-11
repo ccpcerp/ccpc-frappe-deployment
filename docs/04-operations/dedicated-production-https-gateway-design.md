@@ -1,5 +1,16 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 11, 2026 — Owner approves dedicated CA on this trusted Windows PC; secure workspace first
+
+**Owner explicit decision (WINDOWS_CA_WORKSTATION_OWNER_APPROVED):** After no CCPC/ccpcerp-named authority appeared in this workstation's selected user/machine root/intermediate Windows trust stores, the owner stated they did not know whether any central CA existed. Assistant recommended a **new dedicated CCPC internal CA** for the bounded LAN HTTPS pilot with passphrase-protected CA signing key, offline encrypted backup and signing performed **off NEW**. Owner then answered **"Approved and Yes lets use this PC"** to using the present trusted Windows administrative PC for CA signing-key custody and protected offline backup. This is authorization for this Windows CA preparation/issuance route, not authority to deploy trust to other employee devices or to activate Caddy/443, alter UFW/router, or change ERPNext production data. A centrally managed CA under another name remains unverified; do not claim it conclusively absent.
+
+**Available signer:** Existing Git for Windows OpenSSL 3.5.3 at `C:\Program Files\Git\mingw64\bin\openssl.exe`, version output and local file fingerprint already inspected; executable `NotSigned` is not independent supplier provenance. Verified downloaded public leaf CSR at Windows `%USERPROFILE%\Downloads\ccpcerp.internal.csr` has NEW-host matching SHA256 `6f88c8f0001a3c0db15c59446580b0b7057de5f84e86127587c272bc78545a46` and SAN `DNS:ccpcerp.internal`. NEW server leaf private key remains protected `0600 root:root`; **do not create CA signing key there**.
+
+**Next one operator action:** On the approved Windows PC create **only** a new, exclusive, non-synced per-user `%LOCALAPPDATA%\CCPC-Internal-CA` directory. Guard destination absent, deny known OneDrive/sync path, grant inherited-object Full Control only to current Windows SID, SYSTEM SID and BUILTIN Administrators SID, disable inheritance for directory with `icacls`, and check ACL after staging. Never operate against existing paths or recursively modify other user folders. This step creates **no root key/certificate or trust changes**. After PASS, prepare interactive no-echo OpenSSL AES-256 encrypted root private key generation with secure, independent offline backup and recovery documentation. Never put passphrase/private material in commands, logs, chat, GitHub, NEW ERPNext, or client endpoints. Confirm local storage protection/backup before actual root-key generation.
+
+**Unchanged:** Caddy installed and source adapter checked, but still masked/inactive at last verified test; no HTTPS TLS cert, LAN443 listener, UFW/router, production cutover or changes to A3 candidate/Nov5 restored DB, both protected rehearsals and OLD PROD+DEV.
+
+
 ## November 11, 2026 — Windows local trust-store CCPC match absent; CA root must be scoped and protected
 
 **Operator-reported read-only Windows PowerShell result:**
