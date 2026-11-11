@@ -1,5 +1,14 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 11, 2026 — Windows CSR transfer blocked by public-key SSH auth
+
+**Operator-reported Windows PowerShell `scp` STOP:** Attempting to retrieve only `ccpcadmin@192.168.50.186:/home/ccpcadmin/ccpcerp.internal.csr` returned `Permission denied (publickey)`, `Connection closed`, and `STOP: SCP transfer failed`. Tag: WINDOWS_SCP_PUBLICKEY_STOP. **No successful Windows CSR download or SHA256 cross-host verification is established.** The failed `scp` may leave a partial/empty local target; do not assume destination absence or rerun the same download block. This is **client SSH authentication**, not proof of a bad CSR or bad private-key/certificate material. Earlier NEW-server `CCPC_PUBLIC_CSR_READY_PASS` remains verified.
+
+**Next one read-only Windows check:** Inspect `$env:LOCALAPPDATA\CCPC-HTTPS-CSR\ccpcerp.internal.csr` presence and size (without opening file), plus `ssh -G ccpcadmin@192.168.50.186` effective `user`, `hostname`, `port`, `identityfile`, `identitiesonly`, `proxyjump` configuration (not SSH key file contents). Determine approved pre-existing SSH login key/alias or whether operator normally uses PuTTY/other trusted route; do not disable `StrictHostKeyChecking`, copy private keys, enable password logins, modify `sshd` configuration or overwrite the destination blindly. A manual **public CSR only** copy/paste with subsequent SHA256 verification is a fallback if Windows OpenSSH authentication cannot be used.
+
+**Unchanged:** NEW server leaf key remains `0600 root:root`; original CSR and `/home/ccpcadmin` public CSR were previously verified, and Caddy services remain masked/inactive per last observed guard. No root CA or leaf signing, port443 listener, UFW/router rule, production cutover, or NEW database/container/OLD PROD+DEV changes authorized by this transfer failure.
+
+
 ## November 11, 2026 — Windows CSR checksum false positive; transfer still unverified
 
 **Operator-reported PowerShell outcome:** After attempting the planned CSR-only retrieval, `$remoteHash = (($remoteOutput -split '\s+')[0]).ToUpperInvariant()` threw `You cannot call a method on a null-valued expression.` The next separately executed comparison block did **not** throw, and a separately executed `Write-Output 'CCPC_CSR_TRANSFER_SHA256_PASS'` displayed that marker. **This marker is invalid: local/remote digest agreement is NOT verified.** `$remoteOutput` was empty or unset; even presence of the local file has not yet been proved. Tag: WINDOWS_CSR_HASH_NULL_STOP.
