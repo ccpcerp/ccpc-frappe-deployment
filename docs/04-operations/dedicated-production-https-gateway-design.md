@@ -1,5 +1,14 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 11, 2026 — Windows encrypted internal CA signing private key created PASS; integrity and offline backup next
+
+**Operator-reported Windows OpenSSL key creation result:** On the specifically approved CCPC Windows administrative signing PC, inside previously protected non-synced `%LOCALAPPDATA%\CCPC-Internal-CA` workspace, operator executed the guarded Git-bundled OpenSSL 3.5.3 `genpkey` RSA-4096 `-aes-256-cbc` generation targeting `ccpc-root-ca.key.pem`. OpenSSL interactively prompted `Enter PEM pass phrase:` and `Verifying - Enter PEM pass phrase:`, and then the guard block printed **`CCPC_ENCRYPTED_CA_ROOT_KEY_CREATED_PASS`**. This block required expected OpenSSL binary SHA256, protected workspace ACL, target absent, creation exit success, nonempty non-reparse-point PEM file with `-----BEGIN ENCRYPTED PRIVATE KEY-----` header and only current Windows user/SYSTEM/Administrators ACL identities. **An encrypted RSA-4096 CA signing private key now exists on the approved Windows PC**, but no CA certificate, signed server leaf, root trust import, offline backup or signing-key recovery check has yet been completed. Never repeat the generator or overwrite key material; no key/passphrase contents were provided in chat.
+
+**Next small read-only Windows step:** Inspect the existing encrypted key at `%LOCALAPPDATA%\CCPC-Internal-CA\ccpc-root-ca.key.pem`; check exact expected Git-bundled OpenSSL fingerprint, protected workspace and file ACL, encrypted PEM marker and nonzero file; run `openssl pkey -in <key> -check -noout` with OpenSSL's **interactive** decryption prompt (no `-passin` or unencrypted output), verify command success and report only a PASS marker and benign status text. This validates the private key and confirms the custodian can unlock it without revealing passphrase. If wrong passphrase or error, STOP; do not regenerate. OpenSSL 3.5 `pkey -check -noout` documented at https://docs.openssl.org/3.5/man1/openssl-pkey/ .
+
+**Before any CA certificate issuance or leaf signing:** plan and verify a **separate encrypted offline USB recovery backup** with safe custody of the passphrase independent from backup media; do not upload key to OneDrive, GitHub, ChatGPT, email, server or staff devices. Confirm backup destination and encryption/BitLocker protection before copying any signing private key. Strong PC ACL alone is not an offline recovery plan. No change to NEW ERPNext server/Caddy, port443, UFW, router, old production, NOV5 candidate, rehearsals or employee cutover.
+
+
 ## November 11, 2026 — Owner-approved Windows CA workspace staged with restrictive ACL; encrypted root key next
 
 **Operator-reported Windows PowerShell PASS** on approved, existing CCPC administrative PC:
