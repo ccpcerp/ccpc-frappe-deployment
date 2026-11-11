@@ -1,5 +1,22 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 11, 2026 — Owner-approved Windows CA workspace staged with restrictive ACL; encrypted root key next
+
+**Operator-reported Windows PowerShell PASS** on approved, existing CCPC administrative PC:
+```text
+processed file: C:\Users\Lee\AppData\Local\CCPC-Internal-CA
+Successfully processed 1 files; Failed processing 0 files
+processed file: C:\Users\Lee\AppData\Local\CCPC-Internal-CA
+Successfully processed 1 files; Failed processing 0 files
+CCPC_CA_WORKSPACE_STAGED_PASS
+```
+The owner executed a guarded **create-new** directory and `icacls` procedure for `%LOCALAPPDATA%\CCPC-Internal-CA`. Its script required a previously absent directory, excluded obvious OneDrive/Dropbox/Google Drive subpaths, granted current-user SID/SYSTEM/BUILTIN Administrators full access, disabled inherited ACL rules, then verified inheritance was protected and no unexpected access SID appeared. This is **owner-reported directory staging PASS**, not a CA key, root certificate, offline backup or OS trust-store change. Standard local administrators and SYSTEM retain access as designed; a password-protected CA key and an independent encrypted offline backup remain mandatory. The precise `C:\Users\Lee` path should not be published further except in this project-private operational checkpoint.
+
+**Next one approved scoped Windows step:** Create one **AES-256-CBC passphrase-encrypted RSA-4096 CA root private key** using the existing verified `C:\Program Files\Git\mingw64\bin\openssl.exe`, `openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:4096 -aes-256-cbc -out <new private-path>`, with **interactive** passphrase prompt (no `-pass` argument, environment secret, PowerShell variable, clipboard, GitHub/chat or file log). Before invocation guard installed OpenSSL SHA256 `8602F98442E68DFA9F2687B04A8B69DD19549C3E2807097963FD4D3524BE0669`, directory existence/no reparse point/ACL inheritance protected, and **target key absence**. Afterward check nonempty file, no symlink/reparse point, PEM first line `-----BEGIN ENCRYPTED PRIVATE KEY-----`, and Windows file ACL only current SID, SYSTEM, Administrators; print success only after all checks. A key-generation failure may leave a partial target; **never rerun or overwrite until inspected**. No CA root certificate issuance or leaf signing in this step. Immediately afterward plan and independently verify the encrypted external USB recovery backup of the CA key and safe offline passphrase custody before any leaf signing. If workstation is compromised, user profile ACL alone is insufficient.
+
+**Preserve approved boundaries:** CA signing private key must stay **off NEW**, not in GitHub, not on staff devices; NEW server continues to hold only its protected leaf key and unsigned CSR. No CA trust deployment, Caddy activation, 443 firewall/router, existing ERPNext A3 candidate/DB/rehearsal, OLD PROD/DEV or employee cutover change.
+
+
 ## November 11, 2026 — Owner approves dedicated CA on this trusted Windows PC; secure workspace first
 
 **Owner explicit decision (WINDOWS_CA_WORKSTATION_OWNER_APPROVED):** After no CCPC/ccpcerp-named authority appeared in this workstation's selected user/machine root/intermediate Windows trust stores, the owner stated they did not know whether any central CA existed. Assistant recommended a **new dedicated CCPC internal CA** for the bounded LAN HTTPS pilot with passphrase-protected CA signing key, offline encrypted backup and signing performed **off NEW**. Owner then answered **"Approved and Yes lets use this PC"** to using the present trusted Windows administrative PC for CA signing-key custody and protected offline backup. This is authorization for this Windows CA preparation/issuance route, not authority to deploy trust to other employee devices or to activate Caddy/443, alter UFW/router, or change ERPNext production data. A centrally managed CA under another name remains unverified; do not claim it conclusively absent.
