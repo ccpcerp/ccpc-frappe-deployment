@@ -1,5 +1,12 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 11, 2026 — Caddy adaptation invocation STOP: 2.6.2 treats dash as filename
+
+**Operator-reported outcome of parser-only test:** `caddy version` returned `2.6.2`, then `caddy adapt --config - --adapter caddyfile` failed **before parsing** with `Error: reading input file: open -: no such file or directory` and `STOP: CADDY_TEMPLATE_ADAPT_FAILED`. Tag: CADDY_STDIN_DASH_2_6_2. This is a **CLI input-path compatibility issue**, not proof of an invalid gateway Caddyfile. The Caddy services were required to be masked/inactive by the command; no service start, HTTPS listener, certificate/key access, Caddy configuration write, firewall, Docker or application change was part of the failed attempt. Caddyfile syntax is **still unverified**.
+
+**Corrected NEW-only next step:** For the Ubuntu package's observed behavior, use Linux `/dev/stdin` as the `--config` *file path*, fed from the identical reviewed here-document: `caddy adapt --config /dev/stdin --adapter caddyfile >/dev/null <<'CADDYFILE'`. Keep the guard for NEW hostname, masked+inactive services, and no TCP80/443 listener. Set harmless dummy `CCPC_TLS_FULLCHAIN_FILE` and `CCPC_TLS_PRIVATE_KEY_FILE` environment values, do **not** use `--validate` until genuine protected cert/key files exist. Do not start, reload, unmask or enable either Caddy service. If the parser now rejects a Caddyfile directive, STOP and fix source on PR28 rather than staging a live Caddyfile. Current upstream documentation indicates `--config -` for stdin, but the operator's **installed Caddy 2.6.2** demonstrably did not implement that behavior.
+
+
 ## November 11, 2026 — Ubuntu Caddy package installed, masked and inactive; Caddyfile adaptation next
 
 **Operator-reported NEW-host package verification PASS** after the prior safe precheck. NEW Ubuntu 24.04 selected the package `caddy=2.6.2-6ubuntu0.24.04.3` from official Ubuntu `noble-updates/universe` and `noble-security/universe` archives; no third-party APT repository required. Before install the operator created both systemd service masks: `/etc/systemd/system/caddy.service -> /dev/null` and `caddy-api.service -> /dev/null`, verified `masked` for both, with marker `CADDY_AUTOSTART_GUARD_PASS`.
