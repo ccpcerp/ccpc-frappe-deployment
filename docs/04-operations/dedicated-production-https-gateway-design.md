@@ -1,5 +1,14 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 11, 2026 — Plant Wi-Fi confirmed on 192.168.50.0/24; no extra subnet needed
+
+**Owner confirmed:** the same mobile phone, while connected to the authorized **plant Wi-Fi**, receives IPv4 `192.168.50.xxx`. This is within the same **`192.168.50.0/24`** subnet as the previously verified Windows Ethernet client `192.168.50.194` and dedicated NEW ERPNext server `192.168.50.186`. Together with earlier owner observation that the phone reaches OLD ERPNext login on plant Wi-Fi, this closes the immediate subnet-discovery step. **Do not ask for the phone's full IP or repeat this check.**
+
+**Access policy now specific:** future NEW host TCP 443 should serve authorized **CCPC wired LAN and plant/staff Wi-Fi clients on `192.168.50.0/24`**, subject to staff SSID authentication and ER7206 LAN/VLAN segmentation. Public Internet/mobile data, unauthorized guest/IoT/tailnet and arbitrary outside subnets stay blocked. If guests share `192.168.50.0/24`, an IP-prefix UFW rule **alone cannot distinguish them**: review ER7206 Wi-Fi SSID/VLAN/ACL isolation before claiming guest exclusion. No extra routed Wi-Fi subnet allow rule is needed on current evidence. The phone's full IP was neither requested nor recorded.
+
+**Next implementation stage:** NEW-only, guarded HTTPS integration with **internal CA trust** and existing Caddy review template, with source-address restrictions and no WAN/NAT/port forwarding. The current A3 frontend remains unexposed Docker-internal and has no `127.0.0.1:8080` host listener. Caddy is not installed, and host ports 80/443/8080 were free at the last read-only check. To make the drafted gateway operational, a **separately scoped owner authorization** is required for host-package/systemd installation, secure issuance/storage of a `DNS:ccpcerp.internal` cert and CA key, a deliberate loopback-only frontend bridge, LAN-scoped host firewall TCP443 change and pilot tests. Review service startup behavior and rollback first. Absolutely no generic `deploy_release`, A2/A3 reruns, database restore/migration, scheduler/worker/mail enablement, OLD PROD+co-hosted DEV or employee traffic switch. Capture actual allow/deny evidence from office workstation and staff phone before any go-live claim. The user-approved Nov5 historical backup is already restored; no repeat verification requested.
+
+
 ## November 11, 2026 — Plant Wi-Fi phone opens OLD login page; NEW staff subnet still unknown
 
 **Owner observation:** On a mobile phone connected to CCPC **plant Wi-Fi**, the **OLD live production ERPNext login page** opens. When the same phone uses **mobile cellular data**, that old login page is not reachable. This confirms an **operator-reported, login-page-only** LAN Wi-Fi reachability difference for OLD, not authenticated phone use or any NEW server accessibility. It is compatible with the desired NEW office/plant Wi-Fi allow, cellular/WAN deny security policy.
