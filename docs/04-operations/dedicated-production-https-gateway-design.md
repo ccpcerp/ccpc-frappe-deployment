@@ -1,5 +1,33 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 11, 2026 — Owner APPROVES bounded NEW-only HTTPS pilot; scoped execution underway
+
+**Owner explicit authorization (2026-11-11):** “aPPROVED”, in response to “Do you approve this NEW-server-only HTTPS pilot, with no changes to OLD PRODUCTION, no database migrations or restores, and no employee cutover yet?” The bounded approval covers controlled NEW-host-only Caddy HTTPS gateway installation, guarded loopback ERPNext access, LAN-restricted TCP443 firewall, internal HTTPS cert/client trust staging and smoke testing. It **does not authorize** modifying OLD PROD/DEV, changing NEW candidate DB/master/ledger or MariaDB volumes, rerunning one-shot A2/A3 scripts, enabling jobs/mail, touching two preserved rehearsal namespaces, changing ER7206 DNS/port forwarding, unrestricted firewall changes, broad guest/WAN access, or general go-live/cutover.
+
+**Verified facts before this approval:** TP-Link ER7206 office LAN DNS `ccpcerp.internal -> 192.168.50.186` Windows explicit query PASS; phone on plant/staff Wi-Fi uses `192.168.50.x` as do office Windows client and NEW. Operator NEW `hostname` gives `ccpcerp-prod`; `caddy` absent from PATH; host TCP ports 80,443,8080 no listeners at last inspection. The A3 candidate frontend `ccpc_prod_erpnext-frontend-1` remains Docker internal-only, last accessible from SSH-forwarded Docker bridge IP `172.20.0.7:8080`; backend/database are protected and must NOT be recreated for this pilot. Existing GitHub `overrides/Caddyfile.dedicated-https.review` is template-only and expects unavailable host loopback `127.0.0.1:8080`. Branch draft PRs #27 and #32 overlay files are not live; don't assume Compose `up`/generic deploy can safely generate pilot.
+
+**Fastest low-change approach to evaluate:** Prefer a **NEW-host loopback-only byte-stream socket relay** `127.0.0.1:8080` to the **currently inspected** internal frontend IP `<actual A3 private Docker IPv4>:8080`, using existing `systemd-socket-proxyd` if present, **rather than recreating the protected A3 frontend merely to publish Docker ports**. The relay's destination IP may drift on container restart; this must be guarded and is pilot-only until a stable reviewed name/connection is available. The existing Caddy template can then reverse proxy to `127.0.0.1:8080` without change. No new Docker host bindings. Do not presume `systemd-socket-proxyd` is installed or working until host checks. If not present, choose a separately reviewed alternate stable loopback bridge, avoiding Docker restart.
+
+**Immediate authorized first operator action: NEW-only read-only safety evidence** (run on NEW under `ccpcadmin`; no passwords, server configs or private data printed):
+
+```bash
+printf '\n=== OS ===\n'
+. /etc/os-release; printf '%s\n' "$PRETTY_NAME"
+printf '\n=== FIREWALL ===\n'
+if command -v ufw >/dev/null 2>&1; then sudo ufw status verbose; else echo UFW_NOT_INSTALLED; fi
+printf '\n=== FRONTEND INTERNAL CONTAINER ===\n'
+sudo docker inspect --format 'RUNNING={{.State.Running}} PORT_BINDINGS={{json .HostConfig.PortBindings}} {{range $name,$net := .NetworkSettings.Networks}}NETWORK={{$name}} PRIVATE_IPV4={{$net.IPAddress}} {{end}}' ccpc_prod_erpnext-frontend-1
+printf '\n=== SYSTEMD SOCKET RELAY ===\n'
+if [ -x /usr/lib/systemd/systemd-socket-proxyd ]; then echo RELAY_AVAILABLE=/usr/lib/systemd/systemd-socket-proxyd
+elif [ -x /lib/systemd/systemd-socket-proxyd ]; then echo RELAY_AVAILABLE=/lib/systemd/systemd-socket-proxyd
+else echo RELAY_NOT_FOUND; fi
+```
+
+**Must review output before writes:** The firewall may be inactive or managed by other tooling, and arbitrary UFW changes can impair SSH; inspect current policy and forwarding, source allowlists and Docker bypass. Verify candidate running, no host `PortBindings`, private network name/address, and relay binary path. Never infer that bind to `192.168.50.186` alone blocks WAN NAT. On server, ensure a persisted rollback of any *new gateway-specific* config and that Caddy package installation does not start the default wildcard HTTP/HTTPS service; official Debian/Ubuntu package **auto-starts Caddy** (https://caddyserver.com/docs/install). Pre-mask/otherwise prevent that start in a separately reviewed and validated step before installing. Do not commit/print any cert private keys. An internal CA **root private key must be retained securely off the NEW host**; Caddy runs a manually issued, SAN-checked leaf certificate at protected local paths and approved clients import **public CA certificate only**. Don't rely on public ACME or disable certificate verification to make mobile work.
+
+**Acceptance and rollback:** With employee cutover still forbidden, verify Caddyfile via installed Caddy adapter, exact IPv4 host listeners 443 and loopback 8080 only, no 80 or UDP443/IPv6/public bindings, guarded local proxy HTTP200/WebSockets/Host/forwarded HTTPS, authorized Windows + plant/staff Wi-Fi mobile trust; confirm negative tests from unauthorized guest and true Internet client via a non-DNS-only method; confirm no WAN NAT/UPnP/DMZ to NEW; retain SSH access. If anything fails, stop only the newly introduced Caddy/relay services and remove only new dedicated gateway firewall allows, leaving Docker candidate, DB, OLD and rehearsal containers untouched. Site remains `ccpcerp.local` internally. Record actual operator results before marking any runtime stage PASS.
+
+
 ## November 11, 2026 — Plant Wi-Fi confirmed on 192.168.50.0/24; no extra subnet needed
 
 **Owner confirmed:** the same mobile phone, while connected to the authorized **plant Wi-Fi**, receives IPv4 `192.168.50.xxx`. This is within the same **`192.168.50.0/24`** subnet as the previously verified Windows Ethernet client `192.168.50.194` and dedicated NEW ERPNext server `192.168.50.186`. Together with earlier owner observation that the phone reaches OLD ERPNext login on plant Wi-Fi, this closes the immediate subnet-discovery step. **Do not ask for the phone's full IP or repeat this check.**
