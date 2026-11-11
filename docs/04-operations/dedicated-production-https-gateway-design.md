@@ -1,5 +1,22 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 11, 2026 — Installed Caddy 2.6.2 adapter PASS; leaf CSR creation next
+
+**Operator-reported NEW-only adapter execution:**
+```text
+=== CADDY VERSION ===
+2.6.2
+=== REVIEW TEMPLATE ADAPTATION ===
+{"level":"warn", ... "logger":"caddyfile","msg":"Caddyfile input is not formatted; run the 'caddy fmt' command to fix inconsistencies","file":"/dev/stdin","line":2}
+CADDY_TEMPLATE_ADAPT_PASS
+```
+The reviewed `https://ccpcerp.internal:443`, `bind 192.168.50.186`, `reverse_proxy 127.0.0.1:8080`, explicit `tls` certificate/key placeholders and `admin off`/auto-HTTPS off template **adapted to JSON successfully with installed Ubuntu Caddy 2.6.2**. The only emitted warning was nonfatal indentation/formatting. No configuration file, cert/key, systemd start/unmask/enable, TCP443 listener or UFW change resulted from `caddy adapt`. **This is syntax adaptation only, not certificate provisioning, loaded-config validation, browser trust, WebSockets, HTTPS, firewall, internet-denial or cutover validation.** Source Caddyfile remains draft PR28 review-only.
+
+**Next one NEW-only pilot step:** Safely generate a new **server leaf** private key and CSR on the NEW host, scoped to `DNS:ccpcerp.internal`, in a newly absent root-only directory `/etc/ccpc-https` (0700, key 0600). Guard hostname `ccpcerp-prod`, both Caddy services still masked/inactive, no 80/443 listeners, and no existing target directory/symlink; use `openssl req -new -newkey rsa:3072 -nodes -subj /CN=ccpcerp.internal -addext subjectAltName=DNS:ccpcerp.internal`. Verify CSR signature, SAN and file modes without displaying key bytes. Stop on any unexpected pre-existing state or failure; do not rerun over partial material.
+
+**CA boundary:** This is only a leaf key/unsigned certificate signing request. Keep the **root CA signing private key and signing process off the NEW ERPNext server**, in authorized secure owner-managed storage. Later transfer the nonsecret CSR to trusted signing workstation, issue a short-validity leaf certificate with SAN `DNS:ccpcerp.internal`, serverAuth EKU and proper chain, and copy back only leaf certificate/chain (never CA private key). Clients receive approved **public CA root certificate** only. Plan secure renewal/off-host CA backup and explicit Caddy service file permissions, config `--validate` and 443 LAN-only firewall before starting Caddy. Preserve OLD PROD/DEV, Nov5 restored candidate, both protected rehearsals, no employee cutover.
+
+
 ## November 11, 2026 — Caddy adaptation invocation STOP: 2.6.2 treats dash as filename
 
 **Operator-reported outcome of parser-only test:** `caddy version` returned `2.6.2`, then `caddy adapt --config - --adapter caddyfile` failed **before parsing** with `Error: reading input file: open -: no such file or directory` and `STOP: CADDY_TEMPLATE_ADAPT_FAILED`. Tag: CADDY_STDIN_DASH_2_6_2. This is a **CLI input-path compatibility issue**, not proof of an invalid gateway Caddyfile. The Caddy services were required to be masked/inactive by the command; no service start, HTTPS listener, certificate/key access, Caddy configuration write, firewall, Docker or application change was part of the failed attempt. Caddyfile syntax is **still unverified**.
