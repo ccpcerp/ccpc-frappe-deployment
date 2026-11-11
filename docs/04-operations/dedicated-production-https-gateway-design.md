@@ -1,5 +1,22 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 11, 2026 — Retry state verified clean; stage socket unit alone
+
+**Operator report after staging STOP:** exactly
+```text
+=== FRONTEND CHECK ===
+ACTUAL_BASH_ESCAPED=RUNNING=true\ PORT_BINDINGS=\{\}\ NETWORK=ccpc_prod_erpnext_default\ PRIVATE_IPV4=172.20.0.7\
+=== SYSTEMD FILES ===
+ccpc-erpnext-upstream.socket ABSENT
+ccpc-erpnext-upstream.service ABSENT
+=== PORT 8080 ===
+```
+
+**Verified by operator output:** Docker inspection matches prior A3 running/private/unpublished identity, except for a **trailing literal space** visible as final `\` in `printf %q`; both intended unit files are **ABSENT**; no host TCP8080 listener. Therefore previous `STOP: FRONTEND_IDENTITY_CHANGED` was a guard false-positive and the intended files were not written. No evidence of service activation or container/data change. Prior script **must not be re-run**.
+
+**Next NEW-only one-small-step within standing bounded HTTPS pilot approval:** Stage only the GitHub-reviewed `overrides/systemd/ccpc-erpnext-upstream.socket` as a root-owned, permissions-0644 file at `/etc/systemd/system/ccpc-erpnext-upstream.socket`. Before creating, guard exact host, exact absence of path/symlink, port 8080 unoccupied, inspected A3 running and still not host-published, and require direct Docker private frontend GET returning HTTP200. Use a short clearly terminated heredoc to copy source; print success only if exact file exists and has `ListenStream=127.0.0.1:8080`. **Do not use `systemctl daemon-reload`, start/enable, UFW or Caddy yet**, and do not install or overwrite if a unit already exists. After the socket file alone stages successfully, stage the companion existing reviewed service separately and perform `systemd-analyze verify` on both; then separately start localhost socket only. Existing draft PR28 units unchanged, no new source commit. If any failure or paste corruption, STOP without rerun; inspect files first.
+
+
 ## November 11, 2026 — First operator relay staging STOP: strict string guard mismatch
 
 **Operator evidence:** The NEW pilot staging block stopped with **`STOP: FRONTEND_IDENTITY_CHANGED`** before its intended unit-file `tee` commands. The pasted terminal text also includes interleaved heredoc fragments, so the absence of writes must be **confirmed** rather than assumed. No observed evidence of Docker/container changes or any service activation, but state check remains pending.
