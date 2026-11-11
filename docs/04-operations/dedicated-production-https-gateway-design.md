@@ -1,5 +1,24 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 11, 2026 — NEW UFW/relay guards PASS; reviewed pilot socket units authored
+
+**Operator-reported host safety preflight:**
+- `ccpcadmin@ccpcerp-prod` is **Ubuntu 24.04.5 LTS**.
+- UFW **active**; defaults **deny incoming, allow outgoing, deny routed**; **only explicit inbound exception** reported `22/tcp ALLOW IN 192.168.50.0/24`. *This is a snapshot of UFW, not proof there are no alternate nftables/Docker/WAN bypass paths.*
+- NEW candidate frontend `ccpc_prod_erpnext-frontend-1`: **running true**, `HostConfig.PortBindings={}`, solely reported Docker network `ccpc_prod_erpnext_default`, private IPv4 **`172.20.0.7`**. No host listener; current Windows SSH tunnel/ERPNext login must be preserved.
+- `systemd-socket-proxyd` binary **available** on host (at one of standard `/usr/lib` or `/lib` paths). The reviewed service uses `/usr/lib/systemd/systemd-socket-proxyd`; this path must be verified on host during staging.
+- No Caddy installed in PATH, host TCP 80/443/8080 listeners last observed empty, so no gateway yet.
+
+**Source-implemented on draft PR #28 branch** `docs/dedicated-production-https-gateway-2026-10-23`:
+1. `overrides/systemd/ccpc-erpnext-upstream.socket` — **IPv4 127.0.0.1:8080** only, socket activation, Accept=no. Commit `61f54c35b3f121389ef68346a5d2f4e21b50e6b7`, Git blob `f29d31223876e3c50923c1985ce8cbec0cf603e0`.
+2. `overrides/systemd/ccpc-erpnext-upstream.service` — executable socket proxy to *observed* private frontend `172.20.0.7:8080`, DynamicUser, restricted capabilities/FS and `Restart=no`, no containers touched. Commit `52a92bf150ab2c7649b087129cf6a4586a0941fe`, Git blob `e701b9e811beac034a0f72e8538b2093186e02ff`.
+3. Source static assertions re-fetched both files PASS for IPv4 loopback-only bind, exact private target, no wildcard/public listener, socket match, minimal hardening, no Compose/DB commands. **Not a live `systemd-analyze verify` or operational test.** Read upstream documentation at https://www.freedesktop.org/software/systemd/man/257/systemd-socket-proxyd.html and https://www.freedesktop.org/software/systemd/man/latest/systemd.socket .
+
+**Next single operator step, within approved pilot:** Stage **only these two new systemd unit files** on NEW Ubuntu under `/etc/systemd/system/` using an exact-match, no-overwrite guarded command. Precheck host identity `ccpcerp-prod`, absence of existing unit files and local TCP8080 listener, required relay executable, running unexposed A3 frontend at exact observed `172.20.0.7`, and private upstream `curl -H 'Host: ccpcerp.local' http://172.20.0.7:8080/login` returning HTTP200. Stage files and run `systemd-analyze verify` on NEW, **but do NOT `systemctl daemon-reload`, start/enable any socket or change UFW until staged unit contents and verification output are reviewed**. If guard fails, STOP; no auto-rerun/recovery that overwrites files. This action writes only two previously absent root-owned text unit files; does not alter currently loaded systemd units or change any network listener.
+
+**After verified staging**, next operator action would be `systemctl daemon-reload` and `systemctl start ccpc-erpnext-upstream.socket` (**not enable yet**) then verify the *only* new listener is `127.0.0.1:8080` and a local GET through relay returns HTTP200; record a socket/service-only stop/disable rollback. Caddy installation, sanitized TLS certificate source/CA trust, UFW approved TCP443 LAN-only rule and true Internet-origin exclusion remain subsequent scoped steps. **Do not** run generic Docker deployment, edit OLD production, restart/recreate candidate, replay A2/A3, migrate or restore databases, start workers/scheduler/mail, modify router DNS/NAT, touch protected rehearsals or perform employee cutover. Owner's approved Nov5 backup already restored; no repeat backup validation.
+
+
 ## November 11, 2026 — Owner APPROVES bounded NEW-only HTTPS pilot; scoped execution underway
 
 **Owner explicit authorization (2026-11-11):** “aPPROVED”, in response to “Do you approve this NEW-server-only HTTPS pilot, with no changes to OLD PRODUCTION, no database migrations or restores, and no employee cutover yet?” The bounded approval covers controlled NEW-host-only Caddy HTTPS gateway installation, guarded loopback ERPNext access, LAN-restricted TCP443 firewall, internal HTTPS cert/client trust staging and smoke testing. It **does not authorize** modifying OLD PROD/DEV, changing NEW candidate DB/master/ledger or MariaDB volumes, rerunning one-shot A2/A3 scripts, enabling jobs/mail, touching two preserved rehearsal namespaces, changing ER7206 DNS/port forwarding, unrestricted firewall changes, broad guest/WAN access, or general go-live/cutover.
