@@ -1,5 +1,26 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 11, 2026 — Git-bundled OpenSSL candidates discovered on Windows; no new install needed
+
+**Operator-reported read-only PowerShell results** after previously verified Windows CSR integrity:
+```text
+=== GIT FOR WINDOWS ===
+GIT_PATH=C:\Program Files\Git\cmd\git.exe
+OPENSSL_CANDIDATE=C:\Program Files\Git\usr\bin\openssl.exe
+OPENSSL_CANDIDATE=C:\Program Files\Git\mingw64\bin\openssl.exe
+=== WSL ===
+  NAME            STATE           VERSION
+* Ubuntu-22.04    Stopped         2
+WSL_LIST_EXIT_CODE=0
+SIGNING_TOOL_DISCOVERY_COMPLETE
+```
+Tag: WINDOWS_GIT_BUNDLED_OPENSSL_FOUND. The previous `OPENSSL_NOT_FOUND` meant **not in ordinary PowerShell PATH**; two existing Git for Windows bundled executables are present. WSL Ubuntu 22.04 is also already installed but stopped. **No new software installation or WSL startup is necessary at this stage.**
+
+**Next one read-only Windows step:** Inspect Git for Windows installation identity (`git --version` and resolved path), inspect installed `mingw64\bin\openssl.exe` version, file metadata, SHA256 and Authenticode signature if available. A bundled executable may be unsigned even when a trusted signed Git for Windows installer installed it; do not treat signature absence alone as compromise or claim software provenance cryptographically established. Do not create root CA, keys, certificates or change trust stores during this check. If the bundled OpenSSL works, plan an **off-NEW**, passphrase-protected internal CA root private key and securely backed-up issuer with proper CA constraints and short-validity `DNS:ccpcerp.internal` / serverAuth leaf. Review potential pre-existing CCPC CA before creating a second trust root.
+
+**Unchanged boundary:** Server leaf key remains root-only on NEW; the downloaded CSR on Windows matches known SHA256. Caddy services remain masked/inactive at last operator check. No signed certificate, LAN HTTPS/443, router/UFW change, staff phone/Windows trust, guest/WAN denial verification, NEW A3 data/container, protected rehearsals, OLD PROD/DEV modification or employee cutover.
+
+
 ## November 11, 2026 — Windows PowerShell OpenSSL PATH check returned NOT FOUND; check existing off-host tools
 
 **Operator-reported trusted Windows signing-workstation result** after verified public CSR download/sha256 PASS:
