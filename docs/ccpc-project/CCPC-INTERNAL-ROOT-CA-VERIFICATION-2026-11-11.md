@@ -49,3 +49,12 @@ Next controlled step: read-only compare signed leaf public key with the already-
 - Review operations should not rely on long-leaf expiry alone. Since deployed revocation infrastructure is not established, an incident may require rekey/replace leaf, distribute trust changes if CA compromised, and restrict network access. Continue to guard the pilot to NEW only, retain OLD PROD+DEV, and keep PR #28 draft.
 
 Next controlled step: prepare the existing public `ccpc-root-ca.crt.pem` on the approved Windows signer for transfer without exposing the CA private key/passphrase; transfer public root cert only to NEW with checksum and fingerprint verification, then run read-only chain validation against already staged leaf. No Caddy service, firewall, DNS or production cutover action in this certificate-copy milestone.
+
+
+## November 11, 2026 — Root CA public PEM independently parsed and chain checked (PASS)
+
+- Owner provided **public Root CA certificate PEM only**, following guarded Windows output `CCPC_PUBLIC_ROOT_CA_CERTIFICATE_VERIFIED`; the encrypted CA signing private key and passphrase were **not** shared.
+- In an isolated verification environment the pasted PEM was reconstructed with LF line endings (1,939 bytes), parsed with OpenSSL and independently fingerprinted. Root CA public DER SHA-256 fingerprint was exactly `59:BF:C1:48:65:6E:30:59:96:C1:B4:C0:29:2E:7F:5B:AE:A8:E0:92:AE:92:EB:E0:B4:4E:43:25:37:D2:46:81`, matching the previously verified Windows root.
+- Verified subject and issuer `C=PH, O=CCPC, CN=CCPC Internal Root CA`, validity `Nov 11 06:24:49 2026 GMT` — `Nov 11 06:24:49 2076 GMT`, critical `CA:TRUE` and `Certificate Sign, CRL Sign`. Self-signature check `openssl verify -check_ss_sig` returned `OK`.
+- The previously generated public **50-year server leaf** artifact was also checked against the reconstructed public Root CA with `openssl verify -purpose sslserver -verify_hostname ccpcerp.internal -CAfile <root-public> <leaf-public>`, which returned `OK` in the isolated environment. **This is not yet an on-NEW chain check or a browser/mobile trust test.**
+- Next controlled action: transfer only this **public** Root CA certificate into a previously absent file in NEW `ccpcadmin` home directory; verify DER SHA256 against `59bfc148656e305996c1b4c0292e7f5baea8e092ae92ebe0b44e432537d24681`, self-signature, and on-host leaf chain; no existing key overwrites, Caddy activation, root CA installation into host trust, firewall, DNS or employee cutover. 
