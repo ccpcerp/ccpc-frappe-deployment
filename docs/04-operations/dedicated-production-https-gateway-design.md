@@ -1,5 +1,20 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 11, 2026 — Windows PowerShell OpenSSL PATH check returned NOT FOUND; check existing off-host tools
+
+**Operator-reported trusted Windows signing-workstation result** after verified public CSR download/sha256 PASS:
+```text
+=== OPENSSL AVAILABILITY ===
+OPENSSL_NOT_FOUND
+CA_SIGNER_TOOL_CHECK_COMPLETE
+```
+This means `Get-Command openssl.exe` could not find the executable in this user's **PowerShell PATH**. It does **not** prove OpenSSL is absent from other software on the PC, or that certificate signing on the workstation is impossible. No CA key or signed leaf has been created. **Avoid installing OpenSSL from an unverified source** or creating a new local CA as a reaction to this check.
+
+**Next one read-only operator step:** In Windows PowerShell, determine `git.exe` installed path and look for an existing `openssl.exe` beneath the Git for Windows installation at `usr\bin`, `mingw64\bin` or current `ucrt64\bin`; check whether `wsl.exe` and any **already installed** distro are present using `wsl --list --quiet` only (never `wsl --install`). Do not invoke a discovered unsigned/unreviewed binary; first inspect its location/version/provenance. Git for Windows places bundled tools in subdirectories that may not be in regular PowerShell PATH (https://gitforwindows.org/git-wrapper.html); Microsoft documents `wsl --list --quiet` as read-only enumeration (https://learn.microsoft.com/windows/wsl/reference).
+
+**Security boundary unchanged:** Off-NEW root CA signer/backup and the procedure for issuing a certificate with `DNS:ccpcerp.internal` SAN and serverAuth EKU require separate validation. Before creating a new CA confirm that CCPC does not already have an approved internal issuer. Root signing key must be password-protected, maintained securely OFF NEW, and backed up with owner-controlled recovery. Do not use public websites to sign or upload the CSR when internal issuance is intended. No Caddy unmask/start/443 listener, UFW, router, ERPNext database/container, rehearsal or OLD PROD+DEV action.
+
+
 ## November 11, 2026 — Windows downloaded public CSR SHA256 PASS; off-NEW CA tooling precheck next
 
 **Operator-reported Windows PowerShell verification:** After ChatGPT created a public-only CSR downloadable artifact whose SHA256 matched the NEW server's CSR, user downloaded `ccpcerp.internal.csr` to Windows Downloads and ran a guarded PowerShell `Get-FileHash -Algorithm SHA256` against known exact expected digest `6f88c8f0001a3c0db15c59446580b0b7057de5f84e86127587c272bc78545a46`. User's terminal returned **`CCPC_WINDOWS_CSR_VERIFIED_PASS`**. This is a valid *Windows file-to-server-reported digest match*, independent of the prior invalid print-only PASS. **Public CSR transfer and Windows integrity check PASS**; server private leaf key remains only on NEW in root-only `/etc/ccpc-https/ccpcerp.internal.key`.
