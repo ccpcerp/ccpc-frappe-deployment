@@ -1,5 +1,19 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 11, 2026 — NEW public CSR copy ready; trusted workstation retrieval next
+
+**Operator-reported pass:** On NEW `ccpcerp-prod`, owner ran a guarded no-clobber procedure from `ccpcadmin` to copy **only** the verified, unsigned `/etc/ccpc-https/ccpcerp.internal.csr` to `/home/ccpcadmin/ccpcerp.internal.csr`. The command was designed to fail if target existed, require exact byte match (`sudo cmp`), check `600:ccpcadmin` destination mode/ownership and run `openssl req -noout -verify`. Terminal ended:
+```text
+Certificate request self-signature verify OK
+CCPC_PUBLIC_CSR_READY_PASS
+```
+This establishes **a user-readable copy of the public CSR**; it does not transfer the protected server private key, issue a certificate or create a CA. Preserve root-only `/etc/ccpc-https/ccpcerp.internal.key`, original CSR, and deployed ERPNext candidate.
+
+**Next one operator step:** From a **trusted office Windows workstation**, use built-in OpenSSH `scp` with `StrictHostKeyChecking=yes` to **pull** `ccpcadmin@192.168.50.186:/home/ccpcadmin/ccpcerp.internal.csr` to a newly absent local-only `$env:LOCALAPPDATA\CCPC-HTTPS-CSR\ccpcerp.internal.csr`. Do not overwrite existing local data and do not accept a new/changed SSH host key without independently confirming its fingerprint. Compare the downloaded CSR SHA256 with the remote via `ssh` using the same strict host-key check. This is CSR-only transfer; do not create a signing CA or move CA/private keys to NEW.
+
+**Later separate CA step:** Choose an owner-controlled protected off-NEW signing workstation with backup arrangement, issue a short-lived internal CA leaf with SAN `DNS:ccpcerp.internal` and serverAuth EKU, distribute only public CA root for client trust, and return only signed leaf/chain to protected NEW storage. No Caddy unmask/start, TCP443, firewall, Windows/phone HTTPS trust, WAN/guest denial or employee cutover yet. Draft PR28 remains unmerged. No modification of OLD PROD+DEV, NOV5 restored candidate, rehearsals, MariaDB or application containers.
+
+
 ## November 11, 2026 — Leaf private key and CSR verified PASS; transfer public CSR off-host next
 
 **Operator-reported on NEW `ccpcerp-prod`:** A previously approved root-only leaf key and unsigned CSR were generated at `/etc/ccpc-https/ccpcerp.internal.key` and `/etc/ccpc-https/ccpcerp.internal.csr`. Initial generation output reached `Certificate request self-signature verify OK` but did not show the final marker, so we **did not repeat/rekey**. Follow-up inspection proved directory `700 root:root`, server private key `600 root:root`, CSR `600 root:root`, subject `CN = ccpcerp.internal`.
