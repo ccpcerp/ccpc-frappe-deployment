@@ -1,5 +1,19 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 11, 2026 — Companion systemd relay staged+verified; activation next
+
+**Operator-reported NEW-host action:** staged only the reviewed `/etc/systemd/system/ccpc-erpnext-upstream.service` companion with `set -C` (noclobber); terminal output ended with `MODE=644 OWNER=root:root` and **`CCPC_SERVICE_STAGED_AND_VERIFIED_NOT_STARTED`**. The operator's staging block required the source SHA256 equality `1f75e7a7f6eabda560faa052bc39f520950b1abb3c115afead28cdf7b075b22a` and `sudo systemd-analyze verify` to succeed before that marker. Reported success therefore supports exact reviewed **service-file SHA and systemd static verification PASS**; the socket companion was previously independently checked against GitHub SHA with `root:root` and mode 644. The terminal echo again contains interleaved heredoc/paste fragments, but the later check marker is a stronger test than what the echoed heredoc appears to show. **Neither systemd socket nor service has been started or enabled** by the staging script. No Docker/DB/OLD PROD+DEV/rehearsal, UFW, Internet or employee gateway changes reported.
+
+**Checked upstream mechanism:** Official systemd `systemd-socket-proxyd` documentation supports socket-activated `Type=notify` forwarding using `Accept=no` and `ListenStream` (https://www.freedesktop.org/software/systemd/man/254/systemd-socket-proxyd.html). This is not a substitute for on-host functional validation.
+
+**Next small owner-approved NEW-only operation — temporary loopback activation and functional smoke:**
+1. Guard on NEW hostname `ccpcerp-prod`, sha256 of both staged units, candidate frontend running/portbindings empty and private IPv4 `172.20.0.7`, host 8080 not already listening, UFW unchanged. Fail closed on mismatch.
+2. `sudo systemctl daemon-reload` then **`sudo systemctl start ccpc-erpnext-upstream.socket` only**; **do not `enable`** (temporary pilot); no Docker restart.
+3. Verify exactly **one host TCP8080 listener, bound to `127.0.0.1:8080`** (not `0.0.0.0`, `::` or `192.168.50.186`), then single no-body GET `curl -H 'Host: ccpcerp.local' -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/login` must return `200`. Curl causes socket to activate companion service; check active socket state. Do not print session/cookie/html.
+4. On any listener/status or HTTP failure, stop **only** these newly introduced socket/service units, leave two staged unit files for inspection, and report safe STOP; do not rerun/overwrite. Rollback for this phase is `sudo systemctl stop ccpc-erpnext-upstream.socket ccpc-erpnext-upstream.service` (only these NEW pilot units); verify port8080 absent.
+5. Caddy installation/default-service autostart prevention, CA cert issuance/protection and Windows/mobile trust, host IPv4 LAN-only 443 UFW source allow and true WAN/guest exclusion remain **NOT PERFORMED**. Continue only after functional relay PASS and operator report. Preserve OLD PROD+DEV, A3 app/DB, both NEW rehearsals, worker/scheduler/mail disabled, NOV5 selected restore and distinct employee cutover approval.
+
+
 ## November 11, 2026 — NEW localhost socket file staged and exact-content verified
 
 **Operator-reported on-host result:** one-file staging command yielded `CCPC_SOCKET_FILE_STAGED_NOT_STARTED`. Operator subsequently ran the SHA256 ownership/mode check and returned exact `CCPC_SOCKET_MATCHES_GITHUB_PASS`, `MODE=644 OWNER=root:root` for `/etc/systemd/system/ccpc-erpnext-upstream.socket`. This verifies the NEW-host socket unit file matches the GitHub-reviewed source in the operator's validated SHA256 comparison, with appropriate file owner and mode; **it has not been daemon-reloaded or started/enabled**. The original terminal paste had interleaved heredoc text, but the separate hash check now confirms exact file bytes. The companion service file has not been staged. No front-end, database, Docker port, UFW, WAN or OLD PROD/DEV changes reported.
