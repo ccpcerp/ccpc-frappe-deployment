@@ -1,5 +1,20 @@
 # CCPC dedicated PRODUCTION host — LAN HTTPS gateway design
 
+## November 11, 2026 — Windows local trust-store CCPC match absent; CA root must be scoped and protected
+
+**Operator-reported read-only Windows PowerShell result:**
+```text
+=== EXISTING CCPC CERTIFICATES ===
+NO_CCPC_CERTIFICATES_IN_LOCAL_TRUST_STORES
+EXISTING_CA_TRUST_CHECK_COMPLETE
+```
+The check enumerated user/machine `Root` and `CA` stores and filtered **only** subject/issuer containing `CCPC` or `ccpcerp`. This does **not** prove there is no company-managed or differently named CA, nor does it prove any Windows root authority has been created. No certificate trust import or other Windows setting was changed. The Windows public `ccpcerp.internal.csr` is already SHA256-verified against NEW host; OpenSSL 3.5.3 from existing Git for Windows tested functional. TLS leaf and CA root are still **not issued**.
+
+**Next bounded step:** Ensure the workstation is appropriate to hold a **passphrase-encrypted, protected off-NEW root signing private key** and a separately stored encrypted recovery backup. Prefer existing approved CCPC corporate issuer if one is already managed elsewhere. If no such CA is known, stage a new `CCPC internal LAN pilot` CA workspace on the Windows signing PC with non-synced path and restrictive user-only ACL; inspect the actual location and effective access before generating the root key. Use no secret values in PowerShell history, chat, GitHub or command-line arguments. Root CA generation/signing is a distinct high-sensitivity operation; ensure the owner explicitly accepts responsibility for the key, passphrase and offline recovery before proceeding. The untrusted signing PC must not be used to enroll other clients casually. No trust import or website exposure until subsequent reviewed gates.
+
+**Pilot scope:** Caddy service on NEW remains masked/inactive at last operator check; no HTTPS listener, LAN443 UFW, router, public DNS, staff trust, WAN/guest access change, employee cutover, NEW A3/Docker/DB or OLD PROD+DEV modification. PR28 remains draft.
+
+
 ## November 11, 2026 — Git for Windows OpenSSL 3.5.3 verified executable; internal CA plan pending
 
 **Operator-reported PowerShell read-only PASS** on trusted Windows workstation after public CSR SHA256 integrity check:
