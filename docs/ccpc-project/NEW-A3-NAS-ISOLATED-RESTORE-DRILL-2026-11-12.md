@@ -55,3 +55,9 @@ Run a NEW-only read-only Stage 0 inspection of the stored local backup and targe
 
 - Owner reports authenticated Windows PowerShell SCP transfer of the hash-verified Stage1 Synology reread script to NEW `192.168.50.186`, displaying `ccpc_new_a3_restore_stage1_nas_readback.py 100% 13KB`, and `REMOTE_FILE=ccpc_a3_restore_stage1_20261112_174811_48f67f58.py`. Remote home file: `/home/ccpcadmin/ccpc_a3_restore_stage1_20261112_174811_48f67f58.py`.
 - This confirms owner-observed file transfer only. **NEW-side SHA256 and root-owned protected staging are still pending**, followed by script `--preflight`. Pinned expected source SHA-256: `f070df7a727c61ce495d446df177ab6b06779d8bbef4873958b3fc792b7b2685`. Do not run `--execute` or mount NAS yet; no isolated DB restore.
+
+## November 12, 2026 — STAGE1_NEW_HOST_SHA256_VERIFIED_20261112_174811
+
+- Owner reports exact remote NEW Ubuntu checksum: `f070df7a727c61ce495d446df177ab6b06779d8bbef4873958b3fc792b7b2685  /home/ccpcadmin/ccpc_a3_restore_stage1_20261112_174811_48f67f58.py`. This matches the previously verified GitHub Stage1 source SHA-256 and Windows download, establishing correct transferred contents.
+- Next operator step on `ccpcerp-prod`, under `ccpcadmin`: guard expected hostname/account/source SHA and absent root destination before `sudo install -o root -g root -m 0600 -T --` into `/root/ccpc_new_a3_restore_stage1_nas_readback.py`; verify protected owner/mode and SHA. No mount or backup copy is permitted before separately reviewed `sudo python3 /root/ccpc_new_a3_restore_stage1_nas_readback.py --preflight`.
+- The independently completed NAS backup run remains `20261112T090214Z-0148d36b2cb678b3`; isolated restore Stage0 local checksum/unused namespace/capacity audit PASS, but **Stage1 NAS re-read and Stage2 DB/files restore still NOT executed**. Protect A3, OLD PROD+DEV, rehearsals, snapshots and secrets.
