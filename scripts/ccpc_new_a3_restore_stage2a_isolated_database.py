@@ -158,6 +158,10 @@ def preflight() -> dict[str, dict]:
                "A test resource already exists")
     insist(shutil.disk_usage("/var/lib/docker").free > 20 * 1024 ** 3,
            "Insufficient test database free disk")
+    mem = re.search(r"^MemAvailable:\s+(\d+)\s+kB$",
+                    Path("/proc/meminfo").read_text(), re.MULTILINE)
+    insist(mem is not None and int(mem.group(1)) * 1024 >= 3 * 1024 ** 3,
+           "Insufficient available RAM for test-only MariaDB without risk to A3")
     archive = ROOT / roles["database"]["filename"]
     total = 0
     try:
@@ -238,7 +242,7 @@ def execute() -> None:
         "run", "--detach", "--pull=never", "--name", DB,
         "--network", NETWORK, "--network-alias", "db",
         "--restart", "no", "--security-opt", "no-new-privileges",
-        "--pids-limit", "256", "--memory", "2g",
+        "--pids-limit", "256", "--memory", "2g", "--cpus", "2",
         "--env", "MARIADB_ROOT_PASSWORD_FILE=/run/secrets/mariadb-root-password",
         "--env", "MARIADB_ROOT_HOST=localhost",
         "--health-cmd", "healthcheck.sh --connect --innodb_initialized",
