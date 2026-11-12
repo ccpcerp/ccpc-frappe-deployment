@@ -1,0 +1,14 @@
+# CCPC NEW dedicated ERPNext HTTPS pilot - DRAFT, operator-staged only.
+# Not active merely because this file exists in GitHub.
+# Bind ONLY host IPv4 loopback; no employee LAN/Internet listener here.
+[Unit]
+Description=CCPC NEW ERPNext host-only pilot upstream socket
+
+[Socket]
+ListenStream=127.0.0.1:8080
+Accept=no
+NoDelay=true
+Service=ccpc-erpnext-upstream.service
+
+[Install]
+WantedBy=sockets.target

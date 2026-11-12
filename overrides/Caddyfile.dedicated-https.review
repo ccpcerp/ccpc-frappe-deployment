@@ -1,0 +1,34 @@
+# CCPC NEW dedicated production HTTPS gateway - REVIEW TEMPLATE ONLY.
+# Do not install/start/reload Caddy or open firewall ports by committing this file.
+# Caddy runs on the NEW Ubuntu host, not as a Docker-published 443 container.
+# Approved operator-selected LAN hostname: ccpcerp.internal
+# Requires explicit operator-provided values:
+#   CCPC_TLS_FULLCHAIN_FILE    approved readable full-chain PEM certificate
+#   CCPC_TLS_PRIVATE_KEY_FILE  approved protected PEM private key
+# Required internal DNS A record: ccpcerp.internal -> 192.168.50.186.
+# Certificate SAN MUST contain DNS:ccpcerp.internal; deploy issuer root trust
+# to approved Windows clients; protect and back up CA signing keys off-host.
+# Configure certificate chain, private key permissions, DNS and client trust
+# outside GitHub. Never supply credential contents in commits or chat.
+# Host-only upstream is now available from a separately guarded systemd
+# socket relay at 127.0.0.1:8080, forwarding to NEW A3 private Docker frontend.
+# Operator-reported on 2026-11-11: socket active, bound ONLY to localhost,
+# GET /login returned HTTP 200 with Frappe internal Host ccpcerp.local.
+# The A3 frontend itself has NO Docker host-published ports and must not be
+# recreated or published just to run this gateway.
+# This still requires a trusted SAN-matching certificate, on-host Caddyfile
+# adapter/runtime validation, LAN-scoped firewall and true external denial.
+{
+    admin off
+    auto_https off
+    servers 192.168.50.186:443 {
+        protocols h1 h2
+        strict_sni_host on
+    }
+}
+
+https://ccpcerp.internal:443 {
+    bind 192.168.50.186
+    tls {$CCPC_TLS_FULLCHAIN_FILE} {$CCPC_TLS_PRIVATE_KEY_FILE}
+    reverse_proxy 127.0.0.1:8080
+}
