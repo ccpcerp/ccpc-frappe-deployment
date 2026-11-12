@@ -72,3 +72,24 @@ Run a NEW-only read-only Stage 0 inspection of the stored local backup and targe
 - Owner reports the exact root-staged, byte-verified script `sudo python3 /root/ccpc_new_a3_restore_stage1_nas_readback.py --preflight` completed with marker **`CCPC_NEW_A3_RESTORE_STAGE1_PREFLIGHT_PASS`**. This is operator-reported preflight PASS, not yet an actual NAS read or isolated restore.
 - Rechecked draft PR #34 head and GitHub script blob `d3324517e133a0024556156f25835a383fbb9853`, matching previously SHA-verified root-only staged script (SHA256 `f070df7a727c61ce495d446df177ab6b06779d8bbef4873958b3fc792b7b2685`). Read-only exact CIFS source `//192.168.50.132/ccpcerp-prod_backups`, dedicated fresh mountpoint `/mnt/ccpc-a3-restore-readonly-20261112`, unique scratch `/var/lib/ccpc-a3-isolated-restore-20261112`, strict manifest+four file readback and clean umount are pinned in reviewed script. No Docker/DB mutations in Stage1.
 - **Next one owner-approved operator action:** exactly one manual `sudo python3 /root/ccpc_new_a3_restore_stage1_nas_readback.py --execute` on NEW `ccpcerp-prod`. This mounts exact dedicated Synology source read-only, copies verified immutable NAS four-artifact run `20261112T090214Z-0148d36b2cb678b3` into separate root-only restore scratch, and unmounts. On `CCPC_NEW_A3_RESTORE_STAGE1_STOP_REVIEW_REQUIRED` or other unexpected output, **do not rerun, delete scratch or manually unmount**; investigate exact state. No SQL/Frappe restore occurs in Stage1. No employee cutover or activity in OLD PROD/DEV or either Nov7 rehearsal.
+
+## November 12, 2026 — STAGE1_NAS_INDEPENDENT_READBACK_COMPLETED_OWNER_PASS_20261112
+
+- **Operator-reported NEW-only, owner-approved Stage1 independent Synology READBACK SUCCESS** for existing completed NEW A3 run `20261112T090214Z-0148d36b2cb678b3`. Exact command `sudo python3 /root/ccpc_new_a3_restore_stage1_nas_readback.py --execute` after installed SHA256 and `--preflight` PASS. Script file blob `d3324517e133a0024556156f25835a383fbb9853`, SHA256 `f070df7a727c61ce495d446df177ab6b06779d8bbef4873958b3fc792b7b2685`. Owner reports the following sanitized exact markers:
+
+```text
+CCPC_RESTORE_NAS_READONLY_MOUNT_ATTEMPT
+CCPC_RESTORE_EXACT_NAS_READONLY_MOUNT_PASS
+CCPC_RESTORE_NAS_COMPLETED_MANIFEST_PASS
+CCPC_RESTORE_NAS_DATABASE_SHA256_PASS
+CCPC_RESTORE_NAS_PRIVATE_FILES_SHA256_PASS
+CCPC_RESTORE_NAS_PUBLIC_FILES_SHA256_PASS
+CCPC_RESTORE_NAS_SITE_CONFIG_SHA256_PASS
+CCPC_RESTORE_INDEPENDENT_SCRATCH_FOUR_ARTIFACTS_PASS
+CCPC_RESTORE_NAS_READONLY_CLEAN_UNMOUNT_PASS
+CCPC_NEW_A3_RESTORE_STAGE1_NAS_READBACK_PASS
+```
+
+- These PASS markers attest the NEW server remounted the **exact dedicated Synology share read-only** under `/mnt/ccpc-a3-restore-readonly-20261112`, observed `COMPLETED` and byte-equal `manifest.json`, read all four NAS artifact hashes, securely copied and rehashed the four files into a **new root-only** scratch `/var/lib/ccpc-a3-isolated-restore-20261112`, and cleanly unmounted. Not an independent second physical-host or restored MariaDB test. The mountpoint directory may remain on local disk, but the CIFS mount is reported cleanly removed; leave it untouched unless later reviewed.
+- **Important outcome:** a physically separate NAS readback has succeeded after the previous backup creation, greatly reducing risk from copied/published file corruption, but **NO SQL database import, Frappe site start, attachment open, or business-record restore test yet**. Do not claim fully recoverable or employee cutover readiness.
+- **Stage2 next**: review pinned MariaDB image/versions, isolated credentials, SQL file metadata and public/private tar layout from the private scratch using a read-only sanitized probe; then implement/review guarded **brand-new** Docker internal network, distinct named volumes, an isolated database and site only. Do not reuse the two Nov7 rehearsal or working NEW candidate containers, images by mutable tags, databases, sites or network. Do not display private site config, SQL contents or attachment names in GitHub/chat. Preserve Nov05 source, working A3/OLD DEV+PROD and NAS/local restores. Owner's isolated test authorization continues; do not request it again for in-scope review/test work.
