@@ -224,7 +224,7 @@ def execute() -> None:
     create_secret(SECRETS / "DO_NOT_RETRY", RUN + "\n")
     secret = secrets.token_hex(32)
     create_secret(SECRETS / "mariadb-root-password", secret + "\n")
-    create_secret(SECRETS / "db-client.cnf", "[client]\nuser=root\npassword=" + secret + "\n")
+    create_secret(SECRETS / "db-client.cnf", "[client]\nuser=root\npassword=" + secret + "\nprotocol=socket\n")
     del secret
     print("CCPC_STAGE2A_NEW_TEST_ONLY_SECRETS_CREATED", flush=True)
     docker("network", "create", "--driver", "bridge", "--internal",
@@ -262,7 +262,8 @@ def execute() -> None:
                    "--defaults-extra-file=/run/secrets/db-client.cnf",
                    "--batch", "--skip-column-names", "--execute=SELECT 1",
                    timeout=10, check=False)
-        if p.returncode == 0 and p.stdout.strip() == b"1":
+        if (p.returncode == 0 and p.stdout.strip() == b"1" and
+                state.get("Health", {}).get("Status") == "healthy"):
             ready = True
             break
         time.sleep(2)
