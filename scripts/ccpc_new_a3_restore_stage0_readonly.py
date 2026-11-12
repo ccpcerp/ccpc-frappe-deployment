@@ -21,6 +21,8 @@ DIR = Path("/var/lib/ccpc-a3-one-time-backup") / RUN
 PREFIX = "ccpc_a3_restore_drill_20261112"
 IMAGE = "sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8"
 ROLES = {"database", "site_config", "public_files", "private_files"}
+SUFFIX_ROLES = {"database.sql.gz": "database", "site_config_backup.json": "site_config",
+                "files.tar": "public_files", "private-files.tar": "private_files"}
 EXPECTED = {
     *(f"ccpc_prod_erpnext-{s}-1" for s in
       ("frontend", "websocket", "backend", "redis-cache", "redis-queue", "db")),
@@ -82,8 +84,9 @@ def check() -> None:
             item.get("role"), item.get("filename"),
             item.get("size"), item.get("sha256"),
         )
+        match = PATTERN.fullmatch(filename) if isinstance(filename, str) else None
         if (role not in ROLES or role in seen_roles
-            or not isinstance(filename, str) or PATTERN.fullmatch(filename) is None
+            or match is None or SUFFIX_ROLES.get(match.group(1)) != role
             or filename in seen_names or type(size) is not int or size <= 0
             or not isinstance(expected, str) or re.fullmatch(r"[a-f0-9]{64}", expected) is None):
             stop("Unexpected backup artifact role/name/digest")
