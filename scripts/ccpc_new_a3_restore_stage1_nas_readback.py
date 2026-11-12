@@ -143,12 +143,12 @@ def check_baseline() -> tuple[bytes, list[dict]]:
     guard(not MOUNT.exists() and not MOUNT.is_symlink(), "Drill mountpoint already exists; STOP")
     guard(not SCRATCH.exists() and not SCRATCH.is_symlink(), "Restore scratch already exists; STOP")
     guard(LOCAL.is_dir() and not LOCAL.is_symlink(), "Original backup directory missing")
-    containers = set(execute(["docker", "ps", "-a", "--format", "{{.Names}}"], timeout=30).splitlines())
+    containers = set(execute(["docker", "--host", "unix:///var/run/docker.sock", "ps", "-a", "--format", "{{.Names}}"], timeout=30).splitlines())
     guard(containers == CONTAINERS, "Protected Docker container inventory changed")
-    running = set(execute(["docker", "ps", "--format", "{{.Names}}"], timeout=30).splitlines())
+    running = set(execute(["docker", "--host", "unix:///var/run/docker.sock", "ps", "--format", "{{.Names}}"], timeout=30).splitlines())
     guard(running == CONTAINERS, "A protected container stopped")
     for typ in ("volume", "network"):
-        names = execute(["docker", typ, "ls", "--format", "{{.Name}}"], timeout=30).splitlines()
+        names = execute(["docker", "--host", "unix:///var/run/docker.sock", typ, "ls", "--format", "{{.Name}}"], timeout=30).splitlines()
         guard(not any(n.startswith(PREFIX) for n in names), "Restore test namespace occupied")
     raw, arts = manifest_from(LOCAL / "manifest.json")
     guard(set(f.name for f in LOCAL.iterdir()) ==
