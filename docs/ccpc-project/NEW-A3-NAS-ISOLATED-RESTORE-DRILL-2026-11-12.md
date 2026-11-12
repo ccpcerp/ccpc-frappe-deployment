@@ -139,3 +139,26 @@ CCPC_NEW_A3_RESTORE_STAGE1_NAS_READBACK_PASS
 - Re-fetched reviewed source blob **`43a51b5c73afdc318dc193941309cc2cf1c86dbb`** in draft PR #34. Source guards include exact NEW host/SUDO operator/local Docker socket, 12 protected running containers unchanged, pinned application/MariaDB/Redis image IDs, complete gzip and private NAS-copy SHA256, no existing test resources/secrets or NAS mounts, RAM/disk headroom, exact internal-only network, distinct new DB volume/schema, new test-only credential file, root-local socket MariaDB login, no host-published ports or automatic restarts, bounded test DB memory/CPU, empty schema before SQL import and post-import company/tables checks.
 - **Next within already-granted independent restore-test scope:** ONE manual NEW-only `sudo python3 /root/ccpc_new_a3_restore_stage2a_isolated_database.py --execute` after confirming no competing operator is provisioning Docker test resources. It will create only `ccpc_a3_restore_drill_20261112_internal`, `ccpc_a3_restore_drill_20261112_db-data`, `ccpc_a3_restore_drill_20261112-db-1`, root-only new test credentials, and `ccpc_restore_20261112` SQL schema, then import verified SQL from local independent Synology scratch and verify business/schema counts. It will **not** start Frappe or import files in this stage; no OLD PROD/DEV, existing Nov07 rehearsal or working NEW A3 changes intended.
 - On any `CCPC_NEW_A3_RESTORE_STAGE2A_STOP_REVIEW_REQUIRED`, no blind rerun, cleanup, resource removal or production alteration; preserve partial state and report sanitized markers only. Success marker `CCPC_NEW_A3_RESTORE_STAGE2A_ISOLATED_DATABASE_PASS_SITE_PENDING` means isolated SQL restored but site/private/public files and attachment application tests still unverified. Do not treat as employee cutover readiness.
+
+## November 13, 2026 — STAGE2A_OWNER_ISOLATED_SQL_DATABASE_RESTORE_PASS_20261113
+
+- **SUCCESSFUL ONE-USE RESTORE TO SEPARATE MARIA DB TEST INSTANCE**, operator-reported NEW `ccpcerp-prod` execution of the verified root-only GitHub Stage2A runner: `sudo python3 /root/ccpc_new_a3_restore_stage2a_isolated_database.py --execute`. Full sanitized terminal markers:
+
+```text
+CCPC_STAGE2A_BACKUP_GZIP_SHA256_AND_CONFIG_PASS
+CCPC_STAGE2A_PROTECTED_DOCKER_AND_IMAGES_PASS
+CCPC_STAGE2A_NEW_TEST_NAMESPACE_UNUSED_PASS
+CCPC_STAGE2A_NEW_TEST_ONLY_SECRETS_CREATED
+CCPC_STAGE2A_NEW_INTERNAL_NETWORK_PASS
+CCPC_STAGE2A_NEW_ISOLATED_DB_CONTAINER_PASS
+CCPC_STAGE2A_ISOLATED_EMPTY_MARIADB_READY_PASS
+CCPC_STAGE2A_NEW_SCHEMA_CREATED
+CCPC_STAGE2A_ISOLATED_SQL_IMPORT_CLIENT_EXIT_ZERO
+CCPC_STAGE2A_RESTORED_DB_COMPANY_AND_SCHEMA_COUNTS_PASS
+CCPC_STAGE2A_PROTECTED_ORIGINAL_CONTAINERS_PRESERVED_PASS
+CCPC_NEW_A3_RESTORE_STAGE2A_ISOLATED_DATABASE_PASS_SITE_PENDING
+```
+
+- This demonstrates **real independently reread Synology SQL backup imported into new isolated MariaDB** using a new test-only Docker internal network `ccpc_a3_restore_drill_20261112_internal`, distinct `ccpc_a3_restore_drill_20261112_db-data` volume, `ccpc_a3_restore_drill_20261112-db-1` container, new `ccpc_restore_20261112` schema and newly generated root-only credentials in `/var/lib/ccpc-a3-restore-db-secrets-20261112`. The success marker certifies app-side structure/company counts and original **12 protected containers preserved at the time of verification**. It does not certify DB bytes identical to live future transactions, Frappe load, decrypted field values, attachments, full GL/inventory behavior, or a second physical restore host.
+- **Do NOT rerun Stage2A `--execute`** now that it has created DB/network/secrets; fail-closed guard intentionally stops on any retry. Do not change/delete existing test DB/network or production/rehearsal resources. No employee traffic, worker, scheduler, mail, app container or web publication authorized.
+- **Next stage Stage2B:** read-only verify isolated DB identity/health/new network and manifest, thoroughly audit every Nov12 public/private tar member and expected backup site config names (metadata only; no filenames/business data/secrets in chat or GitHub). Then create/review a separate guarded one-use Stage2B script to establish fresh test-only app DB account and restore site config/public/private attachments to a **new distinct test sites volume**, using the original historical encryption key from backup but a **new app DB password**, no scheduler/mail/integrations. Do not run old Nov05-only A2 restore script, and do not start a Frappe app/worker/port in this step. Stage3 isolated Frappe acceptance later.
