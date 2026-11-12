@@ -138,3 +138,38 @@ These results confirm exact Frappe version/API and backup safety settings on NEW
 - After exact Windows/NEW transfer SHA-256 and NEW protected root-only staging, operator ran the reviewed script's `sudo python3 /root/ccpc_new_a3_one_time_backup.py --preflight` and reported **`CCPC_A3_BACKUP_HOST_DOCKER_NAS_LOCAL_PREFLIGHT_PASS`**. As written, the `--preflight` verifies exact NEW host/operator/root identity, 12 expected containers and running state, protected named volumes and pinned application image, MariaDB health, frontend relay target, 0700/0600 NAS mountpoint/credential metadata, NAS currently unmounted and minimum local storage. It does not authenticate Synology, reserve one-run marker, mount NAS, capture data or publish files.
 - Rechecked exact reviewed runner source (GitHub blob `46a12197e427e54a2f89c253e83cf4da398ea616`) and locally backed script SHA256 `daa3f1d2ad906b0d3be1dc331bee9724d0d868ec386f3ab5fc13a7ee53f9101b`, plus pinned Frappe v16.33.1 generator source and previously owner-reported `SCHEDULER_PAUSED=True`, `MUTE_EMAILS=True`, backup encryption disabled. No old normal `bench backup` cleanup path is used. Linux `renameat2(RENAME_NOREPLACE)` documented filesystem support includes CIFS; actual NAS behavior remains untested until execution.
 - **Owner previously explicitly approved** preparing/manual execution of exactly one NEW A3 candidate full backup to dedicated Synology. Proceed to **one manual `--execute` only** in a no-business-writes window, with operator observing uninterrupted shell, reporting only sanitized status and run ID, no blind rerun if STOP. Execution will create a new site-private backup directory and root-only local/NAS artifacts and temporary mount; no deleting old recovery material, no scheduler/worker enable, no OLD PROD/DEV/rehearsal changes, no employee cutover. The NAS copy is unencrypted by Frappe, so preserve NAS ACL/private credential scope and do not paste files/passwords. A successful four-artifact copy is not independently restored; isolated restore remains separately gated.
+
+## November 12, 2026 — OWNER_REPORTED_ONE_TIME_NEW_A3_SYNOLOGY_BACKUP_COMPLETE_20261112
+
+**Owner-reported LIVE, ONE-TIME, NEW-ONLY BACKUP RESULT: PASS** — this is evidence from sanitized `sudo python3 /root/ccpc_new_a3_one_time_backup.py --execute` terminal output, **not direct ChatGPT filesystem/NAS access and NOT an independent restore test**.
+
+Run ID: **`20261112T090214Z-0148d36b2cb678b3`** (UTC from script).
+
+Reported exact status markers:
+
+```text
+RUN_ID=20261112T090214Z-0148d36b2cb678b3
+=== CAPTURE NEW A3 SITE ONLY ===
+CCPC_A3_GENERATOR_CAPTURE_PASS
+LOCAL_DATABASE_SHA256_VERIFIED
+LOCAL_PRIVATE_FILES_SHA256_VERIFIED
+LOCAL_PUBLIC_FILES_SHA256_VERIFIED
+LOCAL_SITE_CONFIG_SHA256_VERIFIED
+CCPC_A3_FOUR_LOCAL_ARTIFACTS_PASS
+=== MOUNT DEDICATED NAS SHARE ===
+NAS_DATABASE_SHA256_VERIFIED
+NAS_PRIVATE_FILES_SHA256_VERIFIED
+NAS_PUBLIC_FILES_SHA256_VERIFIED
+NAS_SITE_CONFIG_SHA256_VERIFIED
+CCPC_A3_NAS_FOUR_ARTIFACT_PUBLICATION_PASS
+CCPC_A3_NAS_CLEAN_UNMOUNT_PASS
+CCPC_NEW_A3_ONE_TIME_BACKUP_COMPLETE_RESTORE_TEST_PENDING
+```
+
+**Result interpretation:** All four Frappe backup artifacts (DB compressed SQL, site config, public/private tar archives) were generated through direct installed Frappe 16.33.1 BackupGenerator into a new private NEW candidate site directory, validated for basic format, size and SHA256, copied to a unique root-only scratch set, temporarily mounted exact dedicated Synology share `//192.168.50.132/ccpcerp-prod_backups`, published via no-replace run folder with manifest and COMPLETED marker, re-read and SHA-256 matched, then cleanly unmounted as reported. No need to re-run this one-use script. The root-only local run path according to the verified source is `/var/lib/ccpc-a3-one-time-backup/20261112T090214Z-0148d36b2cb678b3`; intended unique NAS folder is `ccpc-new-a3-20261112T090214Z-0148d36b2cb678b3` on dedicated share. These are *script-derived paths*, not independently observed path listings.
+
+**Security and continuity:** Preserve original approved Nov05 source backup and two protected rehearsal projects; none are intentionally modified by this script. Do not publish backup files, site config/keys or manifest in GitHub/chat. Frappe backup encryption was OFF at capture, so NAS root/SMB ACL, offline recovery keys, and separate restricted access matter. Any stray unknown run files should not be cleaned without separate inspection/approval.
+
+**Still pending and not authorized by this success:** independent off-host read-back at a later time; isolated restore of this new complete backup with separate site/DB/volumes and no live integration activity; evidence of source OLD post-Nov05 no-write/data reconciliation; boot-safe startup (candidate six containers `RestartPolicy=no`, Caddy and relay socket disabled at boot), three-upstream-ISP WAN-origin negative access check, staff certificate trust rollout and explicit single-writer employee cutover. A successful hash-verified backup is not a demonstrated restore, not evidence the OLD source has no missing transactions, and not employee go-live approval.
+
+**Proposed next decision:** request separately scoped owner approval for an independent NEW-host isolated restore drill of this exact NAS run ID using a **new disposable target namespace** with separate volumes/credentials and no active outbound or LAN listener. Do not touch NEW candidate `ccpc_prod_erpnext`, either of the existing two rehearsal environments, OLD PRODUCTION or DEVELOPMENT. First perform read-only source+capacity/namespace review; develop a reviewed test/rollback procedure in GitHub; execute only upon explicit authorization; no cleanup without separate permission. Or use independently verifiable backup readback first if resource limits require it.
