@@ -240,6 +240,9 @@ def execute() -> None:
         "--restart", "no", "--security-opt", "no-new-privileges",
         "--pids-limit", "256", "--memory", "2g",
         "--env", "MARIADB_ROOT_PASSWORD_FILE=/run/secrets/mariadb-root-password",
+        "--env", "MARIADB_ROOT_HOST=localhost",
+        "--health-cmd", "healthcheck.sh --connect --innodb_initialized",
+        "--health-interval", "5s", "--health-timeout", "5s", "--health-retries", "15",
         "--mount", "type=volume,source=" + VOLUME + ",target=/var/lib/mysql,volume-nocopy",
         "--mount", "type=bind,source=" + str(SECRETS / "mariadb-root-password") +
                    ",target=/run/secrets/mariadb-root-password,readonly",
@@ -251,6 +254,10 @@ def execute() -> None:
     print("CCPC_STAGE2A_NEW_ISOLATED_DB_CONTAINER_PASS", flush=True)
     ready = False
     for _ in range(60):
+        state = json.loads(docker("inspect", DB).stdout)[0].get("State", {})
+        insist(state.get("Running") is True and
+               state.get("Health", {}).get("Status") != "unhealthy",
+               "Isolated DB stopped or became unhealthy")
         p = docker("exec", DB, "mariadb",
                    "--defaults-extra-file=/run/secrets/db-client.cnf",
                    "--batch", "--skip-column-names", "--execute=SELECT 1",
@@ -260,6 +267,9 @@ def execute() -> None:
             break
         time.sleep(2)
     insist(ready, "New isolated DB did not become ready; preserve partial")
+    state = json.loads(docker("inspect", DB).stdout)[0].get("State", {})
+    insist(state.get("Health", {}).get("Status") == "healthy",
+           "Isolated DB never reached healthy")
     insist(set(sql_query("SHOW DATABASES").splitlines()) ==
            {"information_schema", "mysql", "performance_schema", "sys"},
            "Test DB unexpectedly has existing schema")
