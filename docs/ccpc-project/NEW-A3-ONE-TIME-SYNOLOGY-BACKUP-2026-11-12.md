@@ -82,3 +82,34 @@ Implement a reviewed, one-use, **NEW A3-specific** operator script on this GitHu
 ## After Stage 2 (not part of this approval)
 
 Review isolated restore, current OLD source/no-post-Nov05-write reconciliation, single-writer cutover/rollback, boot-safe persistent Caddy+socket/containers (currently disabled/no restart), employee public Root CA deployment, authorized staff network and negative WAN test. No automatic cron/systemd backup schedule or retention changes until separately approved.
+
+## November 12, 2026 — STAGE1_RUNTIME_CONFIRMED_AND_BACKUP_RUNNER_PREPARED_2026_11_12
+
+**Operator Stage 1 result (NEW candidate):**
+
+```text
+FRAPPE_VERSION=16.33.1
+BACKUP_GENERATOR_API=PASS
+SCHEDULER_PAUSED=True
+MUTE_EMAILS=True
+BACKUP_ENCRYPTION=DISABLED
+EXISTING_DEFAULT_BACKUP_ENTRY_COUNT=0
+CCPC_NEW_BACKUP_RUNTIME_API_PREFLIGHT_COMPLETE
+```
+
+These results confirm exact Frappe version/API and backup safety settings on NEW A3 as of the operator test. It is not a full backup, restore, site-data write freeze or NAS mount confirmation.
+
+**New owner-approved one-use runner, not yet transferred/executed:**
+
+- GitHub code file `scripts/ccpc_new_a3_one_time_backup.py`, source Git blob **`46a12197e427e54a2f89c253e83cf4da398ea616`**, SHA-256 **`daa3f1d2ad906b0d3be1dc331bee9724d0d868ec386f3ab5fc13a7ee53f9101b`**, 20,167 bytes, code commit **`2675c69fa0903d2f7f56976c8d5c27c71f46cb21`**.
+- Synthetic offline tests `tests/test_ccpc_new_a3_one_time_backup.py`, Git blob **`9b334466c1e26a93b621fb373da7f9d591d7f72c`**, test commit **`755b68bd1117539203ea66b683b2253e90ca6c10`**. Ran 7 Python unittest cases **all PASS**, `python3 -m py_compile` PASS, exact local Git blobs independently matched GitHub. The 7 tests are mock/file-fixture tests only, not real Docker, Frappe DB, SMB/NAS, host root, SQL restore or publication integration results.
+- Script supports **`--preflight` read-only** and **`--execute` once**, not automatic jobs. It requires `sudo` from exact `ccpcadmin` on `ccpcerp-prod`; exact 12 expected running protected containers, pinned app image, candidate internal Docker network, healthy MariaDB, source persistent volumes, no published candidate port, source site and private directory, protected NAS root-only mountpoint/credential file, sufficient local free space and NAS *not* mounted. A failure halts with sanitized output.
+- On one approved execution it acquires an exclusive lock, creates an unrepeatable root-only attempt marker and a new immutable run ID; runs Frappe **`BackupGenerator` directly** through the existing backend only, with existing scheduler paused and email muted, no config backup encryption, empty excludes/includes and four output artifacts generated under a new private site directory **outside the standard backup cleanup path**. It validates gzip/tar/JSON, exact four names and sizes, and copies them with exclusive destination creation to private NEW local staging with SHA-256 hashes. Temporary `mount.cifs` to exact dedicated NAS share is guarded by `findmnt` source/type/rw (no local fallback), verifies free space, publishes only a new run via no-replace `renameat2`, rechecks all digests, writes a `COMPLETED` marker last and cleanly unmounts *only* a mount created by this run.
+- Backup may create new nonbusiness backup files on candidate site volume and root-only local/NAS directories; never delete an existing production file. A failed/partial run **must not be blindly retried or cleaned up**; inspect state and prepare a separately reviewed recovery continuation if necessary. The one-time marker deliberately blocks replay, even if failed after marker creation. This manual backup operation does not restart containers, change restart policies, enable scheduler/workers/mail, restore Nov05, touch OLD PROD/DEV/rehearsals, or approve employee go-live.
+- The backup files contain confidential company data and unencrypted site config secrets (the ERPNext application `encrypt_backup` setting is off). Keep exact root-only local and Synology access controls; share only nonsecret PASS/STOP markers and the run ID, never dumps, site config, `.env` or passwords. SMB3.1.1 transport/recovery is still to be validated in the actual one-use run. A published four-artifact backup is not an independently restored rollback until an isolated restore drill passes.
+
+### Next operator action — trusted Windows transfer + SHA-256, not execution
+
+1. Obtain the exact reviewed `ccpc_new_a3_one_time_backup.py` bytes from ChatGPT's current-turn verified artifact or the GitHub file at the **pinned commit**, save to the trusted Windows `Downloads` directory. **Verify SHA-256 `daa3f1d2ad906b0d3be1dc331bee9724d0d868ec386f3ab5fc13a7ee53f9101b` before SCP**. Do not run the script locally on Windows.
+2. Securely SCP to the pre-existing NEW `ccpcadmin` home under original filename (no SSH password/passphrase ever pasted here). On NEW, verify SHA-256 again, then stage as a new protected `root:root` mode0600 script without overwriting. Verify staged SHA-256 and run only `sudo python3 /root/ccpc_new_a3_one_time_backup.py --preflight` first; this is read-only and must return exact `CCPC_A3_BACKUP_HOST_DOCKER_NAS_LOCAL_PREFLIGHT_PASS` before any one-use `--execute`.
+3. **Do not run `--execute` yet** until the preflight result is reviewed and an actual no-business-write window is established. Source archive Nov05 stays protected. Operator already approved one time, so no second approval for same bounded operation is needed if all guards PASS and no new risk emerges.
