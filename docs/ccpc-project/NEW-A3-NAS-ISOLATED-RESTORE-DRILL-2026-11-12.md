@@ -806,3 +806,19 @@ CCPC_STAGE3B_LOCAL_AUTH_DECORATOR_READONLY_COMPLETE
 - Current independent isolation acceptance evidence: four Company master records, zero Item/GL/Stock Ledger, three File records (one private physical file of 16501 bytes), metadata-to-file URL association PASS, isolated backend+frontend /login HTTP200, guest private-file GET denied HTTP403 at backend and frontend, Socket.IO Engine.IO polling open packet HTTP200. **Authenticated login, authorized private-file HTTP retrieval, role/permission acceptance, business workflows and release readiness remain NOT TESTED.** All one-use Stage3A/3R/3S/3T --execute consumed, NEVER rerun.
 - **Next one operator step:** on NEW `ccpcadmin@ccpcerp-prod` perform a **read-only aggregate restored `tabUser` inventory** using exact isolated DB `ccpc_a3_restore_drill_20261112-db-1`, pinned image and sole internal test network guard. Query only `COUNT(*)` and categorized counts (`enabled=1`, `user_type='System User'`, `name='Administrator'`) from `ccpc_restore_20261112.tabUser`, print **only aggregate counts**, no usernames, hashes, passwords, emails, roles or user records. This is preparatory information for a separately approved, strictly isolated authenticated test, **not permission to use existing credentials, reset passwords, create accounts, issue tokens, or change test data**.
 - Preserve original 12 protected containers and all OLD PROD/DEV, working NEW A3, Nov07 rehearsals, isolated test DB/sites/logs/Redis/backend/frontend/websocket/failed backend evidence, all root-only marker files and NAS sources. No Docker restart/recreation, cleanup, migrations, host port exposure or production deployment.
+
+## November 13, 2026 — STAGE3B_RESTORED_USER_ACCOUNT_COUNTS_7_7_5_1
+
+- Operator reports guarded **read-only aggregate account inventory** from the **isolated** MariaDB Docker container `ccpc_a3_restore_drill_20261112-db-1` (pinned image `sha256:efb4959ef2c835cd735dbc388eb9ad6aab0c78dd64febcd51bc17481111890c4`, healthy, only internal test network and no host-published ports), restored schema `ccpc_restore_20261112`:
+
+```text
+TOTAL_USERS=7
+ENABLED_USERS=7
+ENABLED_SYSTEM_USERS=5
+ENABLED_ADMINISTRATORS=1
+CCPC_STAGE3B_USER_INVENTORY_READONLY_COMPLETE
+```
+
+- This establishes **seven `tabUser` rows, all enabled, five enabled System User rows and one enabled Administrator row** in the isolated restored database. It does not establish which non-Administrator accounts can authenticate, password validity, role permissions, authorized private attachment retrieval, frontend authenticated functionality or production readiness. No usernames, emails, hashes, secrets, user details, business records or account modifications were printed or requested.
+- **Next safe operator step**: read-only aggregate `tabHas Role` join to `tabUser` in the **same exact isolated restored schema**, determining how many **enabled non-Administrator System Users** exist and how many have at least one assigned role; no identity/role names or credentials printed. Verify exact DB image/healthy/isolated network/no ports before SQL `SELECT` only. Results help decide whether a representative nonadmin login/authorization test is possible later, but **do not authorize login credentials, password resets, creation of users/tokens, SQL writes or automated credential submissions**.
+- Authenticated acceptance will need separate authorization and a secure, private test-user mechanism without exposing historical credentials or altering protected original systems. Guest `get_logged_user` 403 was expected after local AST decorator verification; backend/frontend guest private-file 403, Engine.IO open packet 200, frontend/backend /login 200 and restored private file metadata linkage PASS. All Stage3A/3R/3S/3T one-use `--execute` consumed (NEVER rerun). Preserve 12 originals, OLD PROD/DEV, working NEW A3, Nov07 rehearsals, isolated DB/sites/logs/Redis/frontend/websocket/backend/failed backend, markers and NAS source.
