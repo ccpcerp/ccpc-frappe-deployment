@@ -365,3 +365,26 @@ CCPC_NEW_A3_RESTORE_STAGE3R_READONLY_PREFLIGHT_PASS
 - Independently refetched reviewed GitHub runner on current `review/new-a3-isolated-restore-2026-11-12` (blob `29ca089b5863ba6ac7369d2b43aef3e6a1df0c81`) after the operator-reported preflight. It reruns guards before its first mutation. This is **not** a Stage3R repair execution or backend HTTP pass.
 - **Next operator action inside existing approved bounded isolated drill:** if no other operator is currently changing isolated test Docker resources, run **exactly once** `sudo python3 /root/ccpc_new_a3_restore_stage3r_sites_owner_and_backend_recovery.py --execute`. Script should create one-use root-only marker, chown **only** `/var/lib/docker/volumes/ccpc_a3_restore_drill_20261112_sites/_data` from `root:root` to `1000:1000` without recursion/mode change; preserve all child paths, protected original 12, restored DB, logs, two Redis and failed backend, then start a **new differently named** internal-only replacement backend with no external ports, workers, scheduler, migration or PROD/DEV changes. A strictly private HTTP GET `/login` on localhost:8000 checks the recovered backend only, not Stage3B/attachment/business acceptance.
 - Expected terminal success marker `CCPC_NEW_A3_RESTORE_STAGE3R_BACKEND_RECOVERY_PASS_FRONTEND_AND_BUSINESS_PENDING`. On **any** `CCPC_NEW_A3_RESTORE_STAGE3R_STOP_PRESERVE_NO_RETRY`, command failure or missing final PASS, **STOP, do NOT rerun `--execute`, `chown`, `docker start`, cleanup or migrate**; preserve any partially mutated test-only state for read-only diagnosis. No Stage3R execution reported so far.
+
+## November 13, 2026 — STAGE3R_ONE_USE_STOP_AFTER_ISOLATED_BACKEND_STARTED_PRESERVE_STATE
+
+- Operator reports Stage3R **one-use `--execute` STOP** after the separate replacement backend was created, verified running, and protected originals/test-only isolation rechecked. Exact sanitized markers:
+
+```text
+CCPC_STAGE3R_TWELVE_PROTECTED_ORIGINALS_PASS
+CCPC_STAGE3R_FAILED_BACKEND_PRESERVED_EXIT1_PASS
+CCPC_STAGE3R_RESTORED_SITE_SECRETS_AND_FLAGS_PASS
+CCPC_STAGE3R_ONLY_TEST_SITES_ROOT_OWNER_MISMATCH_PASS
+CCPC_STAGE3R_UNUSED_REPAIR_MARKER_AND_BACKEND_PASS
+CCPC_STAGE3R_NEW_ONE_USE_REPAIR_MARKER_PASS
+CCPC_STAGE3R_ONLY_SITES_ROOT_OWNER_REPAIRED_PASS
+CCPC_STAGE3R_NEW_SEPARATE_INTERNAL_BACKEND_STARTED_PASS
+CCPC_STAGE3R_TWELVE_PROTECTED_ORIGINALS_PASS
+CCPC_STAGE3R_PROTECTED_ORIGINALS_AND_TEST_ISOLATION_PASS
+CCPC_NEW_A3_RESTORE_STAGE3R_STOP_PRESERVE_NO_RETRY
+```
+
+- GitHub Stage3R runner re-reviewed at current draft PR #34 (blob `29ca089b5863ba6ac7369d2b43aef3e6a1df0c81`). Source's final success `CCPC_STAGE3R_RECOVERED_BACKEND_LOCAL_LOGIN_HTTP_200_PASS` was absent. Therefore expected `GET /login` on `127.0.0.1:8000` inside the recovery backend **did not demonstrate HTTP 200 in the bounded attempt window** (the script suppresses stderr, retries and does not report actual status). Exact cause is unknown. It does not prove the backend is still running now or whether it returned another status/failed to connect.
+- Stage3R created new one-use repair marker `/var/lib/ccpc-a3-stage3r-repair1-20261113`, changed **ONLY isolated sites volume mountpoint owner** `ccpc_a3_restore_drill_20261112_sites/_data` from `0:0` to `1000:1000` (no recursive chown), and created replacement backend `ccpc_a3_restore_drill_20261112-backend-recovery1-1` using pinned app image on internal-only recovery network. The original failed backend remains preserved/exited, 12 protected containers unchanged per script. No frontend/websocket/Stage3B verified.
+- **CRITICAL NO-RETRY**: Stage3R is consumed; NEVER rerun `--execute`, manually `chown`, `docker start`/restart, cleanup, remove logs/containers/volumes or migrate databases. Preserve test-only Redis, DB, sites/logs volumes, both backend containers, one-use marker, 12 original containers, NEW A3 and Nov07 rehearsals, OLD PROD/DEV.
+- Next one **read-only** NEW Ubuntu step: inspect only recovery backend via `sudo docker inspect --format 'NAME={{.Name}} STATUS={{.State.Status}} EXIT_CODE={{.State.ExitCode}} OOM_KILLED={{.State.OOMKilled}} ERROR={{json .State.Error}} RESTARTS={{.RestartCount}}' ccpc_a3_restore_drill_20261112-backend-recovery1-1`. Does not disclose secrets, start anything or access protected containers. If running, follow with separate safe status-only inside-backend localhost HTTP diagnostic; if exited, perform redacted local log classification. Do not assume root cause.
