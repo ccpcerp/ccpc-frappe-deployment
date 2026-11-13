@@ -539,3 +539,26 @@ CCPC_NEW_A3_RESTORE_STAGE3S_READONLY_PREFLIGHT_PASS
 - Refetched GitHub Stage3S revision2 `scripts/ccpc_new_a3_restore_stage3s_site_logs_repair_once.py` (blob `9bf37cb0502209cbad91ffff9d828cbe0644cd70`, source revision commit `a03ce16e16d19db6c6bdedc50fffd802666f96b3`) and pinned Stage3R read-only helper (blob `29ca089b5863ba6ac7369d2b43aef3e6a1df0c81`): six markers exist in their combined source. Stage3S `once(r)` **rechecks complete `preflight(r)` before any mutation**, then writes **separate root-only one-use marker** `/var/lib/ccpc-a3-stage3s-site-logs-repair1-20261113`; creates **only** `/var/lib/docker/volumes/ccpc_a3_restore_drill_20261112_sites/_data/ccpcerp.local/logs` by no-follow directory-fd `os.mkdir("logs", mode=0o700, dir_fd=parent_fd)`, and sets its owner UID/GID `1000:1000` and mode `0755` using fchown/fchmod. Checks protected originals, exact runtime assets symlink, restored config/private attachment/secrets/flags, and test volume after mutation. No start/restart/migrate/cleanup/external port exposure in reviewed helper.
 - **Next operator action in existing authorized bounded isolated restore drill**, if nobody else is changing test resources: run **exactly once** `sudo python3 /root/ccpc_new_a3_restore_stage3s_site_logs_repair_revision2.py --execute`. Required final marker `CCPC_NEW_A3_RESTORE_STAGE3S_SITE_LOGS_REPAIR_PASS_BACKEND_HTTP_PENDING`; on missing final PASS or `CCPC_NEW_A3_RESTORE_STAGE3S_STOP_PRESERVE_NO_RETRY`, **STOP preserve state, NEVER retry --execute**, manual mkdir/chown, restart or cleanup. Stage3S preflight PASS does **not** indicate directory creation or backend success. Backend HTTP and KeyError diagnostics still pending separately even after PASS.
 - Stage3A/Stage3R `--execute` both consumed; preserve test-only DB/sites/logs/Redis/failed and replacement backend, original 12 protected containers, OLD PROD/DEV, NEW A3 and Nov07 rehearsals, prior repair markers and NAS backup. **No Stage3S `--execute` yet reported.**
+
+## November 13, 2026 — STAGE3S_REVISION2_ONE_USE_EXECUTE_COMPLETE_SITE_LOGS_CREATED_HTTP_PENDING
+
+- Owner reports **one-use `--execute`** on NEW `ccpcadmin@ccpcerp-prod` of protected root-staged exact Stage3S revision2 `/root/ccpc_new_a3_restore_stage3s_site_logs_repair_revision2.py` (source SHA256 `c4bcea4abfcd946c3b39850a492efd7d0c7f216d45e5159fb3c735070e5c7290`, GitHub source blob `9bf37cb0502209cbad91ffff9d828cbe0644cd70`, commit `a03ce16e16d19db6c6bdedc50fffd802666f96b3`). **All 12 reported markers**:
+
+```text
+CCPC_STAGE3R_TWELVE_PROTECTED_ORIGINALS_PASS
+CCPC_STAGE3R_FAILED_BACKEND_PRESERVED_EXIT1_PASS
+CCPC_STAGE3S_PINNED_TEST_ASSETS_SYMLINK_PASS
+CCPC_STAGE3S_RESTORED_SITE_SECRETS_AND_FLAGS_PASS
+CCPC_STAGE3S_MISSING_TEST_SITE_LOGS_AND_PROTECTED_RESOURCES_PASS
+CCPC_NEW_A3_RESTORE_STAGE3S_READONLY_PREFLIGHT_PASS
+CCPC_STAGE3S_NEW_ONE_USE_MARKER_PASS
+CCPC_STAGE3S_PINNED_TEST_ASSETS_SYMLINK_PASS
+CCPC_STAGE3S_RESTORED_SITE_SECRETS_AND_FLAGS_PASS
+CCPC_STAGE3R_TWELVE_PROTECTED_ORIGINALS_PASS
+CCPC_STAGE3S_ONLY_ISOLATED_SITE_LOGS_DIRECTORY_CREATED_PASS
+CCPC_NEW_A3_RESTORE_STAGE3S_SITE_LOGS_REPAIR_PASS_BACKEND_HTTP_PENDING
+```
+
+- **Stage3S filesystem repair is VERIFIED PASS from runner's reported guard outputs.** First mutation created fresh root-only one-use marker `/var/lib/ccpc-a3-stage3s-site-logs-repair1-20261113/DO_NOT_RETRY`; then created ONLY site-local `logs` inside independent test sites volume at `/var/lib/docker/volumes/ccpc_a3_restore_drill_20261112_sites/_data/ccpcerp.local/logs`, UID/GID `1000:1000`, mode `0755`, checked exact site+root inventory, DB/secrets/attachment preservation and 12 protected originals. No container start/restart, migration, SQL write, cleanup or production/DEV changes by Stage3S script. The existing replacement backend may still fail HTTP; do not assume readiness from filesystem repair.
+- **NO RE-RUN:** Stage3S `--execute` is now CONSUMED; Stage3A and Stage3R `--execute` already consumed. Do not rerun any. Do not manual chown/mkdir, restart failed or recovered backend, clean resources, run migrations or change ports. Preserve test-only DB/sites/logs, two Redis, both backend containers, original protected 12, working NEW A3, Nov07 rehearsal environments, OLD PROD/DEV and NAS source.
+- **Next one read-only acceptance probe** on NEW `ccpcadmin@ccpcerp-prod`: verify exact running replacement backend identity, then a single private `GET /login` via `docker exec` from within `ccpc_a3_restore_drill_20261112-backend-recovery1-1`, targeting `127.0.0.1:8000` with `Host: ccpcerp.local`. Print only `BACKEND_HTTP_STATUS=<integer>` or whitelisted exception class and `CCPC_STAGE3S_POST_REPAIR_HTTP_DIAGNOSTIC_COMPLETE`, no HTML, config, headers, cookies, secrets, personal/business records, logs or private file names. If not HTTP200, diagnose separately without restart. Even HTTP200 proves only local login response; frontend, private-attachment retrieval and restored company/ledger-level acceptance remain pending.
