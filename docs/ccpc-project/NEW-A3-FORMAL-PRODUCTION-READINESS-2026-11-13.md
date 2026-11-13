@@ -193,3 +193,24 @@ CCPC_NEW_A3_CONFIG_FLAGS_READONLY_COMPLETE
 **G1 state remains BLOCKED** until a reviewed, approved boot plan is deployed and actual recovery behavior is verified; no boot-policy changes made under this assessment so far. **Overall production remains NO-GO** pending source OLD-to-NEW data freshness, role/permission/security, end-to-end financial workflow/report checks, continuous backup/alerts, cutover/rollback and separately authorized owner GO.
 
 **Next read-only candidate preflight to finalize boot design:** verify that the candidate Docker network's exact attached member names are only the six expected candidate containers, and gather sanitized `State.Health.Status` and `Config.Healthcheck` presence for each existing candidate service. We already know MariaDB reports healthy; frontend/backend/websocket/Redis readiness at boot must not be inferred from Docker `Running` alone. Do not dump healthcheck test commands, Docker inspect env/secret mounts or raw process command lines. No writes or restarts.
+
+## November 13, 2026 — G1 EXACT SIX-MEMBER INTERNAL NETWORK AND DOCKER HEALTHCHECK INVENTORY
+
+- Owner reports guarded **read-only** Docker `container inspect` and `network inspect` checks for the actual NEW candidate (`ccpc_prod_erpnext`) on `ccpcadmin@ccpcerp-prod`, with complete sanitized output:
+
+```text
+NETWORK_INTERNAL=YES
+NETWORK_MEMBERS_EXACTLY_SIX=YES
+DB_HEALTH=HEALTHY
+REDIS_CACHE_HEALTH=NO_HEALTHCHECK
+REDIS_QUEUE_HEALTH=NO_HEALTHCHECK
+BACKEND_HEALTH=NO_HEALTHCHECK
+WEBSOCKET_HEALTH=NO_HEALTHCHECK
+FRONTEND_HEALTH=NO_HEALTHCHECK
+CCPC_NEW_A3_HEALTH_INVENTORY_READONLY_COMPLETE
+```
+
+- **PASS for this precise scope:** all six existing NEW A3 candidate containers are Running; all use one exact **internal** Docker network; the network's current endpoint-container IDs are **exactly the six candidate IDs** (no unexpected attached test/rehearsal endpoints). Database is **HEALTHY** under Docker's configured check. The two Redis services and three application services have **no Docker health checks defined**, so `Running` is **not equivalent to application-ready** and `NO_HEALTHCHECK` is **not an unhealthy/fail status**. This inventory did not query health endpoints, Redis response, application routing, Frappe session state, or actual DB transaction integrity.
+- **G1 reboot resilience remains BLOCKED:** all six exact candidate containers have `RestartPolicy=no`; Caddy and `ccpc-erpnext-upstream.socket` are currently active but boot-disabled; the relay's installed static private IP target `172.20.0.7:8080` currently matches candidate frontend. Do not automatically enable these units or modify restart policies before an owner-reviewed boot plan and restore/manual rollback procedure. Do not reboot to test readiness. Current operator-confirmed `pause_scheduler=YES` and `mute_emails=YES` must be preserved.
+- **Next one strictly bounded live-service READ-ONLY verification:** guarded against the six exact candidate IDs and network, perform small local GET `/login` probes for **both** backend (`8000`) and frontend (`8080`) using `Host: ccpcerp.local`, TCP reachability of websocket (`9000`), and Redis `PING` of cache/queue (`6379`) from the existing backend container. A GET may produce application access logs and Redis PING transient activity, but does not authorize document submission, scheduler, email, DB writes/migration, account/password changes, restarting containers, port publishing, external access or old production changes. Print only PASS/FAIL markers, no headers, response bodies, session IDs, credentials or raw config. A Redis server may require authentication, so a PING refusal would be a **test limitation**, not direct proof of a failed Redis service. MariaDB Docker healthy previously established. Successful probes prove **current liveness**, not post-reboot reliability.
+- Then author/review a **non-destructive** per-container service-readiness and fail-closed boot policy. Future boot changes require explicit new approval, and all user-facing production gates G2–G7 remain pending. Preserve OLD PROD/DEV, 12 original protected Docker containers, isolated restored test resources and failed-backend evidence, Nov07 rehearsals, NAS recovery artifacts and one-use markers. All consumed Stage3A/3R/3S/3T executions must **NEVER** be replayed; no cutover authorized.
