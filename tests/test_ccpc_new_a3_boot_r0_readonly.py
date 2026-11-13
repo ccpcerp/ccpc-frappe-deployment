@@ -127,6 +127,10 @@ class GuardFixtureTests(unittest.TestCase):
         self.m["container_ids"].pop(guard.CANDIDATE[0])
         self.assert_stops()
 
+    def test_malformed_manifest_ids_type(self):
+        self.m["container_ids"] = list(self.m["container_ids"])
+        self.assert_stops()
+
     def test_duplicate_manifest_ids(self):
         self.m["container_ids"][guard.CANDIDATE[0]] = self.m["container_ids"][guard.CANDIDATE[1]]
         self.assert_stops()
