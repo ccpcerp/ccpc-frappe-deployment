@@ -587,3 +587,22 @@ CCPC_STAGE3B_ISOLATED_COUNTS_READONLY_COMPLETE
 - Earlier **post-Stage3S** test-only backend `GET /login` returned HTTP200 on 127.0.0.1:8000 (host `ccpcerp.local`). Stage3S site-local logs one-use repair PASS; Stage3A/Stage3R prior stopped executions remain consumed and must not be re-run. No frontend or authenticated business acceptance yet.
 - **Next one safe Stage3B read-only step**: query **aggregate File metadata only** on exact isolated DB; count `is_private` values, nonempty `file_url` and fully linked `attached_to_doctype`+`attached_to_name` rows without returning any names/URLs/business data, then compare expected 3 records and one restored private physical attachment with separate guarded metadata check. Avoid login, writes, arbitrary file/path output or exposing secrets. Plan backend attachment HTTP/auth checks separately after aggregate result; no frontend restart, migration, cleanup, port publication or PROD/DEV changes.
 - **NO-RETRY/PRESERVE**: Stage3A, Stage3R and Stage3S one-use `--execute` all consumed; preserve 12 original protected containers, OLD PROD/DEV, working NEW A3, Nov07 rehearsals, isolated test DB/sites/logs/Redis, original failed backend, existing replacement backend, root-only one-use markers, and NAS source.
+
+## November 13, 2026 — STAGE3B_FILE_METADATA_AGGREGATES_3_1_2_URL1_LINK1
+
+- Operator reports successful **isolated restored `tabFile` aggregate-only SQL** (guarded exact DB container/image/internal network, no ports) with output:
+
+```text
+FILE_RECORDS=3
+PRIVATE_FILE_ROWS=1
+PUBLIC_FILE_ROWS=2
+UNCLASSIFIED_PRIVACY_ROWS=0
+ROWS_WITH_FILE_URL=1
+ROWS_LINKED_TO_DOCUMENT=1
+CCPC_STAGE3B_FILE_METADATA_READONLY_COMPLETE
+```
+
+- These counts are direct evidence only: three `tabFile` metadata rows, exactly one private and two public, one nonempty `file_url`, one row with both `attached_to_doctype` and `attached_to_name`. **Not yet verified** that the private row is the one with a URL/doctype link or that its URL matches the single restored 16,501-byte physical private file. Two public rows might be placeholders with empty URLs; do **not** report physical file loss based solely on their existence. No actual business row data/URLs/names were printed.
+- Refetched Stage2B reviewed source `scripts/ccpc_new_a3_restore_stage2b_isolated_site_files.py` blob `8f82e09a8fa908fa64eef5ae8641ef01eb583a02`: verified independently backed up tar archives contain exactly one private file of **16,501 bytes**, no public files, Stage2B wrote one private file owner UID1000 mode0600 under independent test-only `sites/ccpcerp.local/private/files/` and verified its SHA256 at restoration; the absolute filename was deliberately not published.
+- **Next one safe read-only step**: on NEW, guarded isolated DB exact container/image/network and sites-volume identity/mountpoint, inspect just the single physical private restored file (UID/GID1000, mode0600, size16501) and compare its **basename** locally to the **one nonempty restored `tabFile.file_url`** queried into private process memory. Print only `YES`/`NO` sanitized match status and whether that row is private and document-linked; no attachment bytes/names/URL row data printed. This is a metadata/path association check, **not authorized file HTTP retrieval or full frontend acceptance**. Abort safely if path/container/mount/row inventory differs; no writes/restart/migration/host port changes.
+- Preserve protected 12 original containers, OLD PROD/DEV, working NEW A3, Nov07 rehearsals, isolated DB/sites/logs/Redis, failed and replacement backend, test-only one-use markers, NAS source. Stage3A/Stage3R/Stage3S `--execute` all consumed, NEVER retry.
