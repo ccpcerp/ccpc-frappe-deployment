@@ -6,8 +6,8 @@
 
 ## Exact reviewed source
 
-- [Read-only R0 guard](../../scripts/ccpc_new_a3_boot_r0_readonly.py) — GitHub blob `3bcaa26378ca1278420fc2dd6d12c87957ab94f9`, Python 3 stdlib only.
-- [Offline synthetic test suite](../../tests/test_ccpc_new_a3_boot_r0_readonly.py) — GitHub blob `c71f0ca531ab5edccd8749a7a2fa597e91dd2198`, 20 tests.
+- [Read-only R0 guard](../../scripts/ccpc_new_a3_boot_r0_readonly.py) — GitHub blob `a65b6c0907c0b28e390557b153d220ffd110c42b`, Python 3 stdlib only.
+- [Offline synthetic test suite](../../tests/test_ccpc_new_a3_boot_r0_readonly.py) — GitHub blob `feabe9b32bea40f56a54ee5ee616933677a9bc04`, 21 tests.
 - [G1 non-destructive boot-recovery design](NEW-A3-PRESERVATION-SAFE-BOOT-RECOVERY-DESIGN-2026-11-13.md).
 - [Formal NEW A3 production readiness report](NEW-A3-FORMAL-PRODUCTION-READINESS-2026-11-13.md).
 
@@ -47,8 +47,8 @@ This is an illustrative schema, **not** a valid manifest: exactly 19 keys must b
 
 - In a separate isolated Python workspace, placed **exact identical Git blobs** for the source and test suite under `scripts/` and `tests/` and ran:
   `python -B -m unittest discover -s tests -p 'test_ccpc_new_a3_boot_r0_readonly.py' -v`
-- **20/20 synthetic tests PASS**, including baseline PASS and offline command-line PASS/STOP. Failure tests cover extra network member/container, changed container ID/frontend IP, stale relay target, published port, missing volume, app image drift, unpaused scheduler, unmuted email, missing failed test backend, stopped original rehearsal service, restart policy unexpectedly changed, unexpected Caddy enablement, missing/duplicate manifest IDs. CLI negative case returned only `CCPC_NEW_A3_R0_STOP_REVIEW_REQUIRED` and nonzero exit. No actual Docker or systemd service was accessed by the offline tests.
-- GitHub source blob and tested local Git blob matched exactly: `3bcaa26378ca1278420fc2dd6d12c87957ab94f9`; test blob matched exactly: `c71f0ca531ab5edccd8749a7a2fa597e91dd2198`. This confirms code bytes tested are what GitHub currently contains at this checkpoint. **Not a live host validation**; live collection's Docker/systemd behavior remains separately untested.
+- **21/21 synthetic tests PASS**, including baseline PASS and offline command-line PASS/STOP. Failure tests cover extra network member/container, changed container ID/frontend IP, stale relay target, published port, missing volume, app image drift, unpaused scheduler, unmuted email, missing failed test backend, stopped original rehearsal service, restart policy unexpectedly changed, unexpected Caddy enablement, missing/duplicate/malformed manifest IDs. CLI negative case returned only `CCPC_NEW_A3_R0_STOP_REVIEW_REQUIRED` and nonzero exit. No actual Docker or systemd service was accessed by the offline tests.
+- GitHub source blob and tested local Git blob matched exactly: `a65b6c0907c0b28e390557b153d220ffd110c42b`; test blob matched exactly: `feabe9b32bea40f56a54ee5ee616933677a9bc04`. This confirms code bytes tested are what GitHub currently contains at this checkpoint. **Not a live host validation**; live collection's Docker/systemd behavior remains separately untested.
 - A Python syntax compilation and module import test completed locally with no errors. The offline cases do **not** establish no time-of-check/time-of-use race, boot reproducibility, real network failover, credential/role correctness, power failure resilience, or production release status.
 
 ## Next controlled decision
