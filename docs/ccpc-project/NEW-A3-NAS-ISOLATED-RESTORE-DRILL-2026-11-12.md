@@ -205,3 +205,24 @@ CCPC_NEW_A3_RESTORE_STAGE2A_ISOLATED_DATABASE_PASS_SITE_PENDING
 - GitHub Stage2B runner was refetched from draft PR #34 branch `review/new-a3-isolated-restore-2026-11-12` before recommending execution, blob `8f82e09a8fa908fa64eef5ae8641ef01eb583a02`; it retains one-use guards and the reviewed `--preflight`/ `--execute` mode selection. No ChatGPT tool executed on NEW.
 - **Next operator action within existing approved isolated drill:** if no competing operator is modifying Docker test resources, one manual run on NEW only: `sudo python3 /root/ccpc_new_a3_restore_stage2b_isolated_site_files.py --execute`. This rechecks the read-only guards before any writes. It may create only a brand-new test sites volume, schema-scoped test DB app account with a new password, root-only test secrets and Frappe site config (historical encryption key), no public files and one 16,501-byte private attachment. Does not start app/worker/scheduler/mail/webhooks, publish ports, alter existing protected A3/rehearsals, OLD PROD/DEV or cut over.
 - **ONE USE ONLY:** on `CCPC_NEW_A3_RESTORE_STAGE2B_STOP_REVIEW_REQUIRED`, command failure or unexpected output, STOP and preserve all partial new-only data; **never rerun**, remove resources, clean volumes or improvise repair without review. On final `CCPC_NEW_A3_RESTORE_STAGE2B_ISOLATED_SITE_AND_ATTACHMENT_PASS_APP_PENDING`, Stage2B is operator-reported PASS, but isolated Frappe app/attachment accessibility and representative business records are still Stage3 pending.
+
+## November 13, 2026 — STAGE2B_OWNER_ISOLATED_SITE_AND_ATTACHMENT_RESTORE_PASS
+
+- Operator reports successful **single** NEW-only Stage2B execution: `sudo python3 /root/ccpc_new_a3_restore_stage2b_isolated_site_files.py --execute`. Exact sanitized markers:
+
+```text
+CCPC_STAGE2B_PRIVATE_AND_PUBLIC_ARCHIVES_SHA256_AND_LAYOUT_PASS
+CCPC_STAGE2B_ISOLATED_DATABASE_HEALTH_AND_SCHEMA_PASS
+CCPC_STAGE2B_SITE_VOLUME_AND_ACCOUNT_UNUSED_PASS
+CCPC_STAGE2B_NEW_TEST_ONLY_SITE_CREDENTIALS_CREATED
+CCPC_STAGE2B_NEW_EMPTY_ISOLATED_SITE_VOLUME_PASS
+CCPC_STAGE2B_NEW_SCHEMA_ONLY_DATABASE_ACCOUNT_PASS
+CCPC_STAGE2B_SITE_CONFIG_HISTORICAL_KEY_NEW_DB_SECRET_PASS
+CCPC_STAGE2B_PRIVATE_ATTACHMENT_SHA256_PUBLIC_EMPTY_PASS
+CCPC_STAGE2B_PROTECTED_ORIGINALS_AND_TEST_ISOLATION_PASS
+CCPC_NEW_A3_RESTORE_STAGE2B_ISOLATED_SITE_AND_ATTACHMENT_PASS_APP_PENDING
+```
+
+- Stage2B runner was previously verified on NEW as root:root mode0600 with SHA256 `1f869d4342d5f1a00b1c6b0ed9ad7e1dbf4fe7ae6c35cd9bd35a8368826d6f24`, identical to reviewed GitHub blob `8f82e09a8fa908fa64eef5ae8641ef01eb583a02`. The operator-reported success means the **new-only sites volume** `ccpc_a3_restore_drill_20261112_sites` holds a restored `ccpcerp.local` site config with original historical encryption key but a new test-only DB password, no public files, and exactly one 16,501-byte private attachment whose restored SHA256 matched archive content. One new schema-only MariaDB account was created for the separate test schema `ccpc_restore_20261112` on internal-only network `ccpc_a3_restore_drill_20261112_internal`. Final script guard reports original 12 protected containers and test network unchanged at completion.
+- **Never rerun Stage2B or Stage2A `--execute`.** Both are consumed and may fail closed on rerun. Do not automatically cleanup volumes, credentials, or backup source. No Frappe application was started in Stage2B; no worker, scheduler, external port or employee go-live. OLD PROD/DEV, working NEW A3, both Nov07 rehearsals and Synology source remain protected.
+- **Next: Stage3 isolated Frappe application acceptance.** First inspect and review a bounded NEW-only execution strategy using the pinned app and Redis images on the existing internal test network with isolated test sites volume. Strictly no host port, scheduler/queue worker/mail/webhook/integration, production network joins, migrations or external egress. Verify authenticated/read-only Frappe site access, the four Company records, representative Work Request/GL/inventory counts where present, and one private File/attachment retrieval with appropriate permission, without exposing records or attachment filenames. Distinguish database row checks from actual application startup and file-access checks. Prepare a guarded test runner and read-only preflight before one-use test-only container creation. Existing owner approval covers the isolated drill, not PRODUCTION cutover.
