@@ -1,13 +1,11 @@
 """Synthetic/offline only: no Docker, systemd, server, or database access."""
 import copy
 import hashlib
-import importlib.util
 from pathlib import Path
-import tempfile
 import unittest
 
 import sys
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import ccpc_new_a3_boot_r0_readonly as guard
 
 
@@ -23,7 +21,6 @@ def fake():
     }
     rows = {}
     for name in guard.EXPECTED:
-        role = name.split("-")[-2]
         is_candidate = name in guard.CANDIDATE
         is_app = name in tuple(f"{guard.PREFIX}-{x}-1" for x in ("backend", "websocket", "frontend"))
         vols = {}
