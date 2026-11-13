@@ -348,3 +348,20 @@ CCPC_NEW_A3_RESTORE_STAGE3A_STOP_REVIEW_REQUIRED
 - Operator reports guarded NEW Ubuntu Stage3R protected root copy, checksum and Python AST syntax verification successful, exact sanitized output: `OWNER=root:root MODE=600`; `a05e3f53d49766f42bd97f7bb508f59e7c282399ce3766cf46082138e626bdbe  /root/ccpc_new_a3_restore_stage3r_sites_owner_and_backend_recovery.py`; `CCPC_RESTORE_STAGE3R_PROTECTED_STAGING_AND_SYNTAX_PASS`. SHA256 matches GitHub-reviewed Stage3R source blob `29ca089b5863ba6ac7369d2b43aef3e6a1df0c81` pinned at commit `6be0e3c3a878e0645739ef6a00e2053ef069f517`.
 - **Next single read-only operator step:** `sudo python3 /root/ccpc_new_a3_restore_stage3r_sites_owner_and_backend_recovery.py --preflight` from `ccpcadmin@ccpcerp-prod`. Expected Stage3R markers: `CCPC_STAGE3R_TWELVE_PROTECTED_ORIGINALS_PASS`, `CCPC_STAGE3R_FAILED_BACKEND_PRESERVED_EXIT1_PASS`, `CCPC_STAGE3R_RESTORED_SITE_SECRETS_AND_FLAGS_PASS`, `CCPC_STAGE3R_ONLY_TEST_SITES_ROOT_OWNER_MISMATCH_PASS`, `CCPC_STAGE3R_UNUSED_REPAIR_MARKER_AND_BACKEND_PASS`, `CCPC_NEW_A3_RESTORE_STAGE3R_READONLY_PREFLIGHT_PASS`. If unexpected exception or `CCPC_NEW_A3_RESTORE_STAGE3R_STOP_PRESERVE_NO_RETRY`, stop, review without modifications.
 - Stage3R `--execute` **not yet run**; no site-root `chown`, backend recovery container or repair marker created, and no original/production/DEV/rehearsal containers altered. Do not run one-use execution until preflight reviewed. Stage3A one-use execution remains consumed and exited backend must be preserved.
+
+## November 13, 2026 — STAGE3R_READONLY_PREFLIGHT_OWNER_PASS_EXECUTE_GATE
+
+- Operator reports **all six** exact Stage3R one-use forward-only recovery runner `--preflight` markers, on NEW `ccpcerp-prod`:
+
+```text
+CCPC_STAGE3R_TWELVE_PROTECTED_ORIGINALS_PASS
+CCPC_STAGE3R_FAILED_BACKEND_PRESERVED_EXIT1_PASS
+CCPC_STAGE3R_RESTORED_SITE_SECRETS_AND_FLAGS_PASS
+CCPC_STAGE3R_ONLY_TEST_SITES_ROOT_OWNER_MISMATCH_PASS
+CCPC_STAGE3R_UNUSED_REPAIR_MARKER_AND_BACKEND_PASS
+CCPC_NEW_A3_RESTORE_STAGE3R_READONLY_PREFLIGHT_PASS
+```
+
+- Independently refetched reviewed GitHub runner on current `review/new-a3-isolated-restore-2026-11-12` (blob `29ca089b5863ba6ac7369d2b43aef3e6a1df0c81`) after the operator-reported preflight. It reruns guards before its first mutation. This is **not** a Stage3R repair execution or backend HTTP pass.
+- **Next operator action inside existing approved bounded isolated drill:** if no other operator is currently changing isolated test Docker resources, run **exactly once** `sudo python3 /root/ccpc_new_a3_restore_stage3r_sites_owner_and_backend_recovery.py --execute`. Script should create one-use root-only marker, chown **only** `/var/lib/docker/volumes/ccpc_a3_restore_drill_20261112_sites/_data` from `root:root` to `1000:1000` without recursion/mode change; preserve all child paths, protected original 12, restored DB, logs, two Redis and failed backend, then start a **new differently named** internal-only replacement backend with no external ports, workers, scheduler, migration or PROD/DEV changes. A strictly private HTTP GET `/login` on localhost:8000 checks the recovered backend only, not Stage3B/attachment/business acceptance.
+- Expected terminal success marker `CCPC_NEW_A3_RESTORE_STAGE3R_BACKEND_RECOVERY_PASS_FRONTEND_AND_BUSINESS_PENDING`. On **any** `CCPC_NEW_A3_RESTORE_STAGE3R_STOP_PRESERVE_NO_RETRY`, command failure or missing final PASS, **STOP, do NOT rerun `--execute`, `chown`, `docker start`, cleanup or migrate**; preserve any partially mutated test-only state for read-only diagnosis. No Stage3R execution reported so far.
