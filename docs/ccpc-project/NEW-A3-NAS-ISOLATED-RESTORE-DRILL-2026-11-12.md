@@ -257,3 +257,18 @@ CCPC_NEW_A3_RESTORE_STAGE2B_ISOLATED_SITE_AND_ATTACHMENT_PASS_APP_PENDING
 - Owner reports NEW Ubuntu protected Stage3A staging and read-only syntax check successful. Exact sanitized output: `OWNER=root:root MODE=600`; `963869258881fd1d5d51a59524332a899de4ef099867ab99415be946cbc91fa4  /root/ccpc_new_a3_restore_stage3a_internal_frappe.py`; `CCPC_RESTORE_STAGE3A_PROTECTED_STAGING_AND_SYNTAX_PASS`. This confirms the operator's guarded file copy, source integrity, and Python `ast.parse` on the host. Source Git blob `b70ece34b6b65242c0e8626773a10566f2a7f324` from pinned Stage3A commit `0242a7fb69dcb7210a701bbc6e53d7aae49e0608`.
 - **Next one operator step (read-only):** on NEW Ubuntu `ccpcadmin@ccpcerp-prod`, `sudo python3 /root/ccpc_new_a3_restore_stage3a_internal_frappe.py --preflight`. Expected named safety PASS markers `CCPC_STAGE3A_TWELVE_PROTECTED_ORIGINALS_PASS`, `CCPC_STAGE3A_SITE_CONFIG_AND_ONE_PRIVATE_FILE_PASS`, `CCPC_STAGE3A_PINNED_IMAGES_AND_INTERNAL_DB_PASS`, `CCPC_STAGE3A_UNUSED_APP_CONTAINERS_AND_LOGS_VOLUME_PASS`, ending `CCPC_NEW_A3_RESTORE_STAGE3A_READONLY_PREFLIGHT_PASS`. A STOP means no execution and inspection of the guard mismatch without modifying protected resources.
 - No Stage3A `--execute`, backend/frontend/websocket/Redis startup, volumes or database changes have been performed at this milestone; prior Stage2A/2B one-use actions remain consumed. Do not run Stage3A `--execute` until preflight reviewed.
+
+## November 13, 2026 — STAGE3A_READONLY_PREFLIGHT_OWNER_PASS_STARTUP_NEXT
+
+- On NEW `ccpcerp-prod`, operator reports the exact five output markers from the reviewed root-staged Stage3A runner `sudo python3 /root/ccpc_new_a3_restore_stage3a_internal_frappe.py --preflight`:
+
+```text
+CCPC_STAGE3A_TWELVE_PROTECTED_ORIGINALS_PASS
+CCPC_STAGE3A_SITE_CONFIG_AND_ONE_PRIVATE_FILE_PASS
+CCPC_STAGE3A_PINNED_IMAGES_AND_INTERNAL_DB_PASS
+CCPC_STAGE3A_UNUSED_APP_CONTAINERS_AND_LOGS_VOLUME_PASS
+CCPC_NEW_A3_RESTORE_STAGE3A_READONLY_PREFLIGHT_PASS
+```
+
+- This is an **owner-reported read-only PASS**, not yet an application smoke test. Independently refetched GitHub Stage3A source in review branch `review/new-a3-isolated-restore-2026-11-12`, Git blob `b70ece34b6b65242c0e8626773a10566f2a7f324`, and confirmed the expected CLI PASS/STOP markers and bounded, test-only `--execute` startup guard. No GitHub source changes for this milestone.
+- Next **one-use manual NEW-only** command after the already-approved isolated-restore drill: `sudo python3 /root/ccpc_new_a3_restore_stage3a_internal_frappe.py --execute`. It rechecks preflight, then creates only test-only logs volume, isolated Redis cache/queue, backend, websocket and frontend on existing internal-only network, with image pins, no host ports/restart, no workers/scheduler/email/webhooks/integrations/migration, and verifies private `GET /login` returns HTTP 200. It is a one-use operation: after **any** STOP/error/timeout preserve partial resources, **NEVER RERUN** or cleanup. Report sanitized output only, no secrets. Completion marker `CCPC_NEW_A3_RESTORE_STAGE3A_INTERNAL_APP_PASS_BUSINESS_ACCEPTANCE_PENDING` does **not** validate representative business records, authorized attachment retrieval, or production readiness; Stage3B remains pending.
