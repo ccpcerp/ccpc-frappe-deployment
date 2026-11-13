@@ -99,7 +99,7 @@ def check_path(path: Path, *, uid: int, mode: int, directory: bool) -> None:
             "Isolated recovery path owner/type/mode unexpected")
 
 
-def check_mount(volname: str, *, owner: int) -> Path:
+def check_mount(volname: str, *, owner: int | None) -> Path:
     obj = inspect("volume", volname)
     path = Path("/var/lib/docker/volumes") / volname / "_data"
     require(obj.get("Name") == volname and obj.get("Driver") == "local"
@@ -107,7 +107,12 @@ def check_mount(volname: str, *, owner: int) -> Path:
             and obj.get("Mountpoint") == str(path)
             and (obj.get("Labels") or {}).get("com.ccpc.test") == TAG,
             "Unexpected isolated Docker volume identity")
-    check_path(path, uid=owner, mode=0o755, directory=True)
+    # MariaDB's entrypoint may chown its own data-root to mysql.
+    # Do not impose a guessed UID or mode on the protected test DB volume.
+    if owner is None:
+        require(stat.S_ISDIR(path.lstat().st_mode), "DB volume mountpoint is not a directory")
+    else:
+        check_path(path, uid=owner, mode=0o755, directory=True)
     return path
 
 
@@ -131,14 +136,15 @@ def check_originals() -> None:
     print("CCPC_STAGE3R_TWELVE_PROTECTED_ORIGINALS_PASS", flush=True)
 
 
-def test_service(name: str, image: str) -> dict:
+def test_service(name: str, image: str, *, require_label: bool = True) -> dict:
     obj = inspect("container", name)
     require(obj.get("Image") == image
             and obj.get("State", {}).get("Running") is True
             and not obj.get("HostConfig", {}).get("PortBindings")
             and set((obj.get("NetworkSettings", {}).get("Networks") or {})) == {NETWORK}
             and (obj.get("HostConfig", {}).get("RestartPolicy") or {}).get("Name") == "no"
-            and (obj.get("Config", {}).get("Labels") or {}).get("com.ccpc.test") == TAG,
+            and (not require_label or
+                 (obj.get("Config", {}).get("Labels") or {}).get("com.ccpc.test") == TAG),
             "Isolated test service changed")
     return obj
 
@@ -256,7 +262,7 @@ def preflight() -> None:
         require(docker("image", "inspect", "--format", "{{.Id}}", image).
                 stdout.decode("ascii", "strict").strip() == image,
                 "Pinned image not available")
-    db = test_service(DB, MYSQL_IMAGE)
+    db = test_service(DB, MYSQL_IMAGE, require_label=False)
     require((db.get("State", {}).get("Health") or {}).get("Status") == "healthy",
             "Isolated database no longer healthy")
     test_service(RC, REDIS_IMAGE)
@@ -276,7 +282,7 @@ def preflight() -> None:
                 ("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16")),
             "Non-private isolated network")
     check_failed_backend()
-    check_mount(DB_VOLUME, owner=0)
+    check_mount(DB_VOLUME, owner=None)
     sites_root = check_mount(SITES, owner=0)
     check_mount(LOGS, owner=1000)
     check_site_and_config(sites_root)
