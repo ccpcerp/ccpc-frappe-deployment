@@ -161,6 +161,7 @@ def check_failed_backend() -> None:
             and not obj.get("HostConfig", {}).get("PortBindings")
             and (obj.get("HostConfig", {}).get("RestartPolicy") or {}).get("Name") == "no"
             and (obj.get("Config", {}).get("User") == "1000:1000")
+            and set((obj.get("NetworkSettings", {}).get("Networks") or {})) == {NETWORK}
             and (obj.get("Config", {}).get("Labels") or {}).get("com.ccpc.test") == TAG,
             "Failed test backend state changed")
     mounts = {(m.get("Type"), m.get("Name"), m.get("Destination"))
@@ -265,6 +266,14 @@ def preflight() -> None:
     db = test_service(DB, MYSQL_IMAGE, require_label=False)
     require((db.get("State", {}).get("Health") or {}).get("Status") == "healthy",
             "Isolated database no longer healthy")
+    # Strictly read-only SQL against the dedicated restored schema, not PROD.
+    count = docker(
+        "exec", DB, "mariadb",
+        "--defaults-extra-file=/run/secrets/db-client.cnf",
+        "--batch", "--skip-column-names",
+        "--execute=SELECT COUNT(*) FROM `" + SCHEMA + "`.`tabCompany`;",
+    ).stdout.decode("ascii", "strict").strip()
+    require(count == "4", "Restored isolated Company count changed")
     test_service(RC, REDIS_IMAGE)
     test_service(RQ, REDIS_IMAGE)
     net = inspect("network", NETWORK)
