@@ -66,3 +66,44 @@ CCPC_NEW_A3_READINESS_READONLY_CHECK_COMPLETE
 - **G1 reboot resilience:** All six actual NEW candidate containers have `RestartPolicy=no`, Caddy `ActiveState=active` but `UnitFileState=disabled`, and `ccpc-erpnext-upstream.socket` likewise active/disabled. **G1 remains BLOCKED** pending separately authorized, reviewable boot-order and restart design and verification. A surprise power loss/reboot could leave application/gateway unavailable. The present audit does not establish whether another independent boot orchestrator might start components; do **not** conclude it is impossible for any service to start automatically until checking. Do not reboot, enable services, edit restart policies, recreate Docker containers or restart original systems merely to test this.
 - **Next one operator read-only inspection:** check only the systemd unit inventory of `docker.service`, `containerd.service`, `caddy.service`, `ccpc-erpnext-upstream.socket`, `ccpc-erpnext-upstream.service` and any CCPC/Frappe/ERPNext startup units without printing `ExecStart`, `Environment`, Caddyfile contents, password/secret paths or application data. This reveals whether an existing launch mechanism exists and determines the safest boot plan before requesting approval for changes. No modification authorized.
 - **NO-GO unchanged:** G2 staff security and WAN/guest negative checks pending; G3 OLD-to-NEW current source/cutover consistency pending; G4 end-to-end GL/stock/billing/reports pending; G5 roles/attachments pending; G6 ongoing backup and monitoring pending; G7 explicit final production approval not granted. Preserve all original and test containers, OLD PROD/DEV, Synology copies and one-use markers. Prior recovery --execute stages consumed; never rerun.
+
+## November 13, 2026 — G1 SYSTEMD BOOT UNIT INVENTORY AND STATIC RELAY TARGET RISK
+
+- Owner reports exact read-only `systemctl show` and `systemctl list-unit-files` from NEW `ccpcadmin@ccpcerp-prod`:
+
+```text
+UNIT=docker.service
+ActiveState=active
+LoadState=loaded
+UnitFileState=enabled
+UNIT=containerd.service
+ActiveState=active
+LoadState=loaded
+UnitFileState=enabled
+UNIT=caddy.service
+ActiveState=active
+LoadState=loaded
+UnitFileState=disabled
+UNIT=ccpc-erpnext-upstream.socket
+ActiveState=active
+LoadState=loaded
+UnitFileState=disabled
+UNIT=ccpc-erpnext-upstream.service
+ActiveState=active
+LoadState=loaded
+UnitFileState=static
+=== RELATED INSTALLED SYSTEMD UNITS ===
+caddy-api.service masked
+caddy.service disabled
+ccpc-erpnext-upstream.service static
+containerd.service enabled
+docker.service enabled
+ccpc-erpnext-upstream.socket disabled
+docker.socket enabled
+CCPC_NEW_A3_BOOT_UNIT_INVENTORY_READONLY_COMPLETE
+```
+
+- **G1 operational finding:** Docker/containerd and Docker socket are enabled at boot; Caddy and the socket activation endpoint are currently active but disabled, the companion relay service is active and static (activated via matching socket), and all six real candidate containers `ccpc_prod_erpnext` have Docker `RestartPolicy=no`. No CCPC/ERPNext-named independent boot orchestrator appears among systemd *service/socket* unit filenames; still do not claim cron/timers or other mechanisms exhaustively absent. The current all-up state is not reboot-durable under the demonstrated configuration; **G1 remains BLOCKED**, NO-GO, no change authorized.
+- Refetched exact [PR28](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/28) source at open draft branch `docs/dedicated-production-https-gateway-2026-10-23`: `overrides/systemd/ccpc-erpnext-upstream.socket` Git blob `f29d31223876e3c50923c1985ce8cbec0cf603e0` binds only `127.0.0.1:8080`, invokes `ccpc-erpnext-upstream.service`; `overrides/systemd/ccpc-erpnext-upstream.service` blob `e701b9e811beac034a0f72e8538b2093186e02ff` uses a **fixed pilot upstream `172.20.0.7:8080`**, `Restart=no`, and only `Requires/After=ccpc-erpnext-upstream.socket`, **not docker.service or candidate readiness**. `overrides/Caddyfile.dedicated-https.review` forwards to `127.0.0.1:8080`. These are GitHub reviewed source assumptions; installed live unit content must be independently checked before deciding boot changes. A Docker container recreation/IP change would risk a stale upstream address. Never change a live relay blindly or recreate working candidate just to adopt Compose.
+- **Next single operator read-only step:** on NEW, inspect **only** the exact frontend container `ccpc_prod_erpnext-frontend-1`, its Docker private IPv4/network and restart policy; then read only the *locally installed* `/etc/systemd/system/ccpc-erpnext-upstream.service` `ExecStart` target **inside a fixed check that does not print the line**, verifying whether target is `<current candidate frontend IPv4>:8080`, IP exact safe RFC1918, and whether socket unit still binds only `127.0.0.1:8080`. Print sanitized `RELAY_TARGET_MATCHES_LIVE_FRONTEND` and other statuses, no credential paths or environment contents. Stop if unexpected. This determines whether the static target is currently matched and how much the boot plan must change. **Read-only and no power-cycle.**
+- Still pending: reviewed boot orchestrator preserving original container IDs/volumes, database dependency readiness, Caddy/relay ordering with LAN-only bind, automatic backups/alerting, OLD->NEW reconciliation and single-writer cutover, employee role/permission and G4 financial workflows, separate explicit final owner GO. Preserve twelve originals, both NEW rehearsals, independent restore drill, all markers/NAS backups; consumed scripts NEVER rerun.
