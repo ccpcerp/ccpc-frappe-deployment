@@ -1,7 +1,10 @@
 """Synthetic/offline only: no Docker, systemd, server, or database access."""
 import copy
 import hashlib
+import json
 from pathlib import Path
+import subprocess
+import tempfile
 import unittest
 
 import sys
@@ -127,6 +130,35 @@ class GuardFixtureTests(unittest.TestCase):
     def test_duplicate_manifest_ids(self):
         self.m["container_ids"][guard.CANDIDATE[0]] = self.m["container_ids"][guard.CANDIDATE[1]]
         self.assert_stops()
+
+    def run_cli(self, break_flag=False):
+        with tempfile.TemporaryDirectory() as directory:
+            manifest = Path(directory) / "manifest.json"
+            snapshot = Path(directory) / "snapshot.json"
+            manifest.write_text(json.dumps(self.m), encoding="utf-8")
+            if break_flag:
+                self.s["flags"]["pause_scheduler"] = False
+            snapshot.write_text(json.dumps(self.s), encoding="utf-8")
+            return subprocess.run(
+                [sys.executable, "-B", str(Path(guard.__file__)),
+                 "--manifest", str(manifest), "--offline-fixture", str(snapshot)],
+                text=True, capture_output=True, timeout=10,
+                cwd=directory)
+
+    def test_offline_cli_pass(self):
+        p = self.run_cli()
+        self.assertEqual(p.returncode, 0)
+        self.assertEqual(p.stdout.strip().splitlines(), [
+            "CCPC_NEW_A3_R0_IDENTITY_STORAGE_NETWORK_PASS",
+            "CCPC_NEW_A3_R0_GATEWAY_AND_PRECUTOVER_FLAGS_PASS",
+            "CCPC_NEW_A3_R0_READONLY_PREFLIGHT_PASS"])
+        self.assertEqual(p.stderr, "")
+
+    def test_offline_cli_fail_closed(self):
+        p = self.run_cli(break_flag=True)
+        self.assertEqual(p.returncode, 1)
+        self.assertEqual(p.stdout.strip(), "CCPC_NEW_A3_R0_STOP_REVIEW_REQUIRED")
+        self.assertEqual(p.stderr, "")
 
     def test_not_live_without_args(self):
         # No automatic calls to Docker or systemd on import.
