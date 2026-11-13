@@ -259,7 +259,8 @@ def test_container(name: str, image: str, mounts: int) -> None:
            not st.get("HostConfig", {}).get("PortBindings") and
            set(st.get("NetworkSettings", {}).get("Networks", {})) == {NETWORK} and
            (st.get("HostConfig", {}).get("RestartPolicy") or {}).get("Name") == "no" and
-           (st.get("HostConfig", {}).get("SecurityOpt") or []) == ["no-new-privileges"] and
+           (st.get("HostConfig", {}).get("SecurityOpt") or []) in
+           (["no-new-privileges"], ["no-new-privileges:true"]) and
            (st.get("Config", {}).get("Labels") or {}).get("com.ccpc.test") == LABEL and
            len(actual) == mounts and actual == expected,
            "New isolated container identity/network/mount/security invalid")
