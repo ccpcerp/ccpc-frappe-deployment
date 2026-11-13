@@ -181,7 +181,8 @@ def guard_site() -> None:
     for config in (cfg, common):
         insist(config.get("db_host") == "db" and config.get("db_port") == 3306 and
                config.get("disable_scheduler") == 1 and config.get("pause_scheduler") == 1 and
-               config.get("mute_emails") == 1 and config.get("developer_mode") == 0,
+               config.get("mute_emails") == 1 and config.get("developer_mode") == 0 and
+               config.get("maintenance_mode") == 0,
                "Site side effect safety flags changed")
     insist(cfg.get("db_name") == SCHEMA and cfg.get("db_password") == password and
            isinstance(cfg.get("encryption_key"), str) and len(cfg["encryption_key"]) >= 20,
@@ -240,20 +241,28 @@ def preflight() -> None:
            "Test DB credentials/company counts failed")
     guard_site()
     mem = re.search(r"^MemAvailable:\s+(\d+)\s+kB$", Path("/proc/meminfo").read_text(), re.M)
-    insist(mem is not None and int(mem.group(1)) * 1024 >= 2 * 1024 ** 3,
-           "Insufficient RAM for isolated Frappe startup")
+    insist(mem is not None and int(mem.group(1)) * 1024 >= 4 * 1024 ** 3,
+           "Insufficient RAM headroom for bounded isolated Frappe startup")
     print("CCPC_STAGE3A_PINNED_IMAGES_AND_INTERNAL_DB_PASS", flush=True)
     print("CCPC_STAGE3A_UNUSED_APP_CONTAINERS_AND_LOGS_VOLUME_PASS", flush=True)
 
 
 def test_container(name: str, image: str, mounts: int) -> None:
     st = inspect("container", name)
+    actual = {(m.get("Type"), m.get("Name"), m.get("Destination")) for m in
+              (st.get("Mounts") or [])}
+    expected = set() if mounts == 0 else {
+        ("volume", SITES_VOLUME, "/home/frappe/frappe-bench/sites"),
+        ("volume", LOGS_VOLUME, "/home/frappe/frappe-bench/logs"),
+    }
     insist(st.get("Image") == image and st.get("State", {}).get("Running") is True and
            not st.get("HostConfig", {}).get("PortBindings") and
            set(st.get("NetworkSettings", {}).get("Networks", {})) == {NETWORK} and
            (st.get("HostConfig", {}).get("RestartPolicy") or {}).get("Name") == "no" and
+           (st.get("HostConfig", {}).get("SecurityOpt") or []) == ["no-new-privileges"] and
            (st.get("Config", {}).get("Labels") or {}).get("com.ccpc.test") == LABEL and
-           len(st.get("Mounts") or []) == mounts, "New isolated container guard failed")
+           len(actual) == mounts and actual == expected,
+           "New isolated container identity/network/mount/security invalid")
 
 
 def once() -> None:
@@ -284,7 +293,7 @@ def once() -> None:
     ]
     for role in ("redis-cache", "redis-queue"):
         docker(*common, "--name", NEW[role], "--network-alias", role,
-               "--memory", "256m", "--cpus", "0.5",
+               "--memory", "256m", "--cpus", "0.5", "--user", "redis",
                REDIS, "redis-server", "--save", "", "--appendonly", "no",
                "--protected-mode", "no", "--maxmemory", "128mb",
                "--maxmemory-policy", "allkeys-lru", timeout=60)
