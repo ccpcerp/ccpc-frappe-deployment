@@ -720,3 +720,30 @@ CCPC_NEW_A3_RESTORE_STAGE3T_READONLY_PREFLIGHT_PASS
 - Refetched exact reviewed GitHub Stage3T source `scripts/ccpc_new_a3_restore_stage3t_frontend_websocket_once.py` blob `3e87227a70a5c989c4a576c5052c7feeadd8f7d5` (new source commit `4bf9ae4584b266f9f09fa2eebc38b943103ff2f4`, SHA256 `ffe0cfb426842613074f26ec67e6363a4c4605c231c571fd58c9bca34dd98d23`); reviewed that `once(r, s)` **reruns complete preflight before mutation**, first creates its **fresh root-only one-use** marker `/var/lib/ccpc-a3-stage3t-frontend-websocket1-20261113/DO_NOT_RETRY`, then creates **only two unique internal test containers** `ccpc_a3_restore_drill_20261112-websocket-completion1-1` and `ccpc_a3_restore_drill_20261112-frontend-completion1-1`, using pinned local Frappe image, test-only sites/logs volumes, exact internal-only private network, restricted UID1000, no port publication/restarts, resource caps and security opts, no workers/migrations. Postchecks include 12 protected originals, preserved failed backend, network membership, test frontend local `GET /login` HTTP200 and websocket **TCP** port9000 reachability. **These latter outcomes are not yet verified.**
 - **Next one operator action inside existing independently isolated recovery drill:** if no parallel operator is changing any test resource, run **exactly once** `sudo python3 /root/ccpc_new_a3_restore_stage3t_frontend_websocket_once.py --execute`. Full final success marker must be `CCPC_NEW_A3_RESTORE_STAGE3T_FRONTEND_HTTP200_WEBSOCKET_TCP_PASS_AUTH_PENDING`. If `CCPC_NEW_A3_RESTORE_STAGE3T_STOP_PRESERVE_NO_RETRY` appears, final success marker missing, or container exits, **STOP**, preserve partial evidence/state; NEVER rerun Stage3T execute, restart/cleanup/recreate containers, or replay Stage3A/3R/3S. Even Stage3T success is frontend HTTP-only and websocket TCP-only; websocket protocol, authenticated ERPNext UI, authorized private attachment retrieval, and production readiness remain unverified.
 - Preserve all twelve protected originals, OLD PROD/DEV, working NEW A3, Nov07 rehearsals, isolated database/Redis/sites/logs/failed+replacement backend, all root-only marker state and backup source. No production deployment, service restart, migration or database write authorized.
+
+## November 13, 2026 — STAGE3T_ONE_USE_FRONTEND_HTTP200_WEBSOCKET_TCP_PASS
+
+- Operator reports **Stage3T one-use `--execute`** of `/root/ccpc_new_a3_restore_stage3t_frontend_websocket_once.py` on NEW `ccpcadmin@ccpcerp-prod` completed with **all 16 exact PASS markers**:
+
+```text
+CCPC_STAGE3R_TWELVE_PROTECTED_ORIGINALS_PASS
+CCPC_STAGE3R_FAILED_BACKEND_PRESERVED_EXIT1_PASS
+CCPC_STAGE3S_PINNED_TEST_ASSETS_SYMLINK_PASS
+CCPC_STAGE3S_RESTORED_SITE_SECRETS_AND_FLAGS_PASS
+CCPC_STAGE3T_PROTECTED_ORIGINALS_AND_EXISTING_BACKEND_PASS
+CCPC_STAGE3T_PINNED_NETWORK_SITE_AND_RESOURCES_PASS
+CCPC_NEW_A3_RESTORE_STAGE3T_READONLY_PREFLIGHT_PASS
+CCPC_STAGE3T_NEW_ONE_USE_MARKER_PASS
+CCPC_STAGE3T_ISOLATED_WEBSOCKET_STARTED_PASS
+CCPC_STAGE3T_ISOLATED_FRONTEND_STARTED_PASS
+CCPC_STAGE3R_TWELVE_PROTECTED_ORIGINALS_PASS
+CCPC_STAGE3R_FAILED_BACKEND_PRESERVED_EXIT1_PASS
+CCPC_STAGE3T_PROTECTED_ORIGINALS_AND_NO_HOST_PORTS_PASS
+CCPC_STAGE3T_ISOLATED_FRONTEND_LOGIN_HTTP200_PASS
+CCPC_STAGE3T_ISOLATED_WEBSOCKET_TCP_PASS
+CCPC_NEW_A3_RESTORE_STAGE3T_FRONTEND_HTTP200_WEBSOCKET_TCP_PASS_AUTH_PENDING
+```
+
+- **Verified from exact Stage3T runner outputs** (review branch source blob `3e87227a70a5c989c4a576c5052c7feeadd8f7d5`, source commit `4bf9ae4584b266f9f09fa2eebc38b943103ff2f4`): after rerunning guards and creating NEW root-only `/var/lib/ccpc-a3-stage3t-frontend-websocket1-20261113/DO_NOT_RETRY` one-use marker, started **two separately named internal-only containers** `ccpc_a3_restore_drill_20261112-websocket-completion1-1` and `ccpc_a3_restore_drill_20261112-frontend-completion1-1`, using pinned local Frappe image with 384MiB memory caps and one CPU each, user 1000, security restrictions, only test sites/logs volumes, no external network and no host-published ports. Existing restored DB/Redis/recovery backend, failed backend evidence, and all twelve original protected containers preserved according to final runner checks. Frontend directly served `GET /login` HTTP **200** inside frontend on localhost:8080 (Host `ccpcerp.local`); `websocket:9000` TCP listener reachable from frontend. TCP connection does **not** prove Socket.IO protocol functionality. This is **Stage3T completion PASS**, not full authenticated/production acceptance.
+- **NO RE-RUN**: Stage3T `--execute` is now **CONSUMED**, alongside Stage3A, Stage3R and Stage3S. Never repeat any, restart or recreate containers, clean resources, run migrations, change original environments or publish a host port. Preserve site artifacts and all root-only markers. No production deployment authorized.
+- **Next one non-mutating Stage3B security acceptance step** on NEW: use **existing** independent test frontend `ccpc_a3_restore_drill_20261112-frontend-completion1-1`, verify pinned image, test label and exact Stage3T label, non-root UID, exact test sites+logs volume mounts, solely private network and no published ports. Inside frontend, derive single 16,501-byte private physical file basename from test-only volume, then issue **guest GET with no Cookie/Authorization** to localhost:8080 `/private/files/<URL-encoded basename>`, Host `ccpcerp.local`, discard body, output only HTTP status/error class and completion marker. **Do not assume expected numeric status**; only 403/401 show denial, 404 may indicate route/proxy behavior; 200 would demand immediate security investigation, not proof of authorized retrieval. No URLs, business data, private bytes, config/secrets, session cookies or raw logs printed. Authenticated file retrieval and full ERPNext business acceptance remain pending and must be planned separately.
