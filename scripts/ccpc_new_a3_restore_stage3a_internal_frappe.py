@@ -113,9 +113,10 @@ def mysql_readonly(query: str) -> str:
     return result.stdout.decode("utf8", "strict").strip()
 
 
-def guard_protected() -> None:
+def guard_protected(extra: set[str] | None = None, *, announce: bool = True) -> None:
     actual = names("ps", "-a", "--format", "{{.Names}}")
-    insist(actual == PROTECTED | {DB}, "Original twelve plus isolated DB inventory changed")
+    insist(actual == PROTECTED | {DB} | (extra or set()),
+           "Original twelve plus isolated test inventory changed")
     insist(names("ps", "--format", "{{.Names}}") == actual,
            "Original or isolated test DB container stopped")
     for name in PROTECTED:
@@ -131,7 +132,8 @@ def guard_protected() -> None:
                not st.get("HostConfig", {}).get("PortBindings") and
                set(st.get("NetworkSettings", {}).get("Networks", {})) ==
                {project + "_default"}, "Protected original image/network/port changed")
-    print("CCPC_STAGE3A_TWELVE_PROTECTED_ORIGINALS_PASS", flush=True)
+    if announce:
+        print("CCPC_STAGE3A_TWELVE_PROTECTED_ORIGINALS_PASS", flush=True)
 
 
 def guard_site() -> None:
@@ -334,6 +336,7 @@ def once() -> None:
            {n for n in names("volume", "ls", "--format", "{{.Name}}") if n.startswith(PREFIX)}
            == {DB_VOLUME, SITES_VOLUME, LOGS_VOLUME},
            "Isolated namespace/volume membership changed after startup")
+    guard_protected(set(NEW.values()), announce=False)
     print("CCPC_STAGE3A_PROTECTED_ORIGINALS_AND_NO_PUBLISHED_PORTS_PASS", flush=True)
 
     # No public ports or host/DNS traffic. Only request the login page inside
