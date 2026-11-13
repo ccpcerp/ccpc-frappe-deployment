@@ -164,7 +164,8 @@ def snapshot_live(manifest):
 
 def validate_manifest(m):
     require(isinstance(m, dict) and m.get("schema") == 1)
-    require(set(m.get("container_ids", {})) == EXPECTED)
+    require(isinstance(m.get("container_ids"), dict))
+    require(set(m["container_ids"]) == EXPECTED)
     require(all(isinstance(v, str) and HEX64.fullmatch(v)
                 for v in m["container_ids"].values()))
     require(len(set(m["container_ids"].values())) == len(EXPECTED))
