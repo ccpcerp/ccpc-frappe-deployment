@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Stage3S: ONE-USE forward-only, test-only site-local logs directory repair.
 
-Read-only --preflight verifies the precise consumed Stage3R recovery state
+Read-only --preflight verifies the consumed Stage3R recovery state
 using the SHA256-pinned Stage3R inspection functions already staged at /root.
 --execute checks again, creates a separate no-retry marker, then creates ONLY
 ccpcerp.local/logs (1000:1000, 0755) in the independent restored test sites
@@ -61,6 +61,96 @@ def reviewed_runner():
     module.__file__ = str(SOURCE)
     exec(compile(data, str(SOURCE), "exec"), module.__dict__)
     return module
+
+def check_restored_site_with_runtime_assets(r, root: Path, *,
+                                            logs_created: bool) -> None:
+    """Keep Stage3R's exact secret/config/data guards; permit only pinned assets link.
+
+    Stage3R was written against the pristine Stage2B site root with exactly
+    three entries. The running Stage3R backend added one Frappe runtime symlink:
+    sites/assets -> /home/frappe/frappe-bench/assets. Verify, do not follow it.
+    """
+    r.check_path(root / "common_site_config.json",
+                 uid=1000, mode=0o600, directory=False)
+    r.check_path(root / "apps.txt", uid=1000, mode=0o644, directory=False)
+    r.require((root / "apps.txt").read_bytes() ==
+              b"frappe\nerpnext\nccpcerp\n", "Installed app listing changed")
+    r.require({p.name for p in root.iterdir()} ==
+              {"common_site_config.json", "apps.txt", SITE, "assets"},
+              "Test sites root inventory unexpected")
+    link = root / "assets"
+    info = link.lstat()
+    need(stat.S_ISLNK(info.st_mode) and info.st_uid == 1000
+         and info.st_gid == 1000
+         and stat.S_IMODE(info.st_mode) == 0o777
+         and os.readlink(link) == "/home/frappe/frappe-bench/assets",
+         "Unexpected test-only Frappe assets symlink identity/target")
+    print("CCPC_STAGE3S_PINNED_TEST_ASSETS_SYMLINK_PASS", flush=True)
+
+    site = root / SITE
+    r.check_path(site, uid=1000, mode=0o755, directory=True)
+    expected = {"site_config.json", "public", "private"}
+    if logs_created:
+        expected.add("logs")
+    r.require({p.name for p in site.iterdir()} == expected,
+              "Restored site layout changed")
+    if logs_created:
+        root_dir(site / "logs", 1000, 0o755)
+    else:
+        target = site / "logs"
+        need(not target.exists() and not target.is_symlink(),
+             "Site-local logs path already used; STOP")
+    r.check_path(site / "site_config.json",
+                 uid=1000, mode=0o600, directory=False)
+    for label in ("public", "private"):
+        r.check_path(site / label, uid=1000, mode=0o755, directory=True)
+        r.check_path(site / label / "files", uid=1000, mode=0o755,
+                     directory=True)
+    r.require(not list((site / "public" / "files").iterdir()),
+              "Public files changed")
+    private_files = list((site / "private" / "files").iterdir())
+    r.require(len(private_files) == 1, "Restored private file count changed")
+    r.check_path(private_files[0], uid=1000, mode=0o600, directory=False)
+    r.require(private_files[0].stat().st_size == 16501,
+              "Restored attachment size changed")
+
+    config = json.loads((site / "site_config.json").read_bytes())
+    common = json.loads((root / "common_site_config.json").read_bytes())
+    for item in (config, common):
+        r.require(item.get("db_host") == "db"
+                  and item.get("db_port") == 3306
+                  and item.get("disable_scheduler") == 1
+                  and item.get("pause_scheduler") == 1
+                  and item.get("mute_emails") == 1
+                  and item.get("developer_mode") == 0
+                  and item.get("maintenance_mode") == 0,
+                  "Forbidden application side-effect configuration")
+    r.require(config.get("db_name") == r.SCHEMA
+              and isinstance(config.get("encryption_key"), str)
+              and len(config["encryption_key"]) >= 20,
+              "Restored schema or encryption key changed")
+    r.require(common.get("redis_cache") == "redis://redis-cache:6379"
+              and common.get("redis_queue") == "redis://redis-queue:6379"
+              and common.get("redis_socketio") == "redis://redis-queue:6379",
+              "Redis points outside isolated services")
+    r.check_path(r.SITE_SECRETS, uid=0, mode=0o700, directory=True)
+    r.check_path(r.DB_SECRETS, uid=0, mode=0o700, directory=True)
+    for directory in (r.SITE_SECRETS, r.DB_SECRETS):
+        r.check_path(directory / "DO_NOT_RETRY",
+                     uid=0, mode=0o600, directory=False)
+        r.require((directory / "DO_NOT_RETRY").read_bytes() ==
+                  (r.RUN_MARKER + "\n").encode(),
+                  "Previous one-use marker altered")
+    r.check_path(r.SITE_SECRETS / "site-db.env",
+                 uid=0, mode=0o600, directory=False)
+    account = (r.SITE_SECRETS / "site-db.env").read_bytes()
+    r.require(r.re.fullmatch(rb"DB_PASSWORD=[0-9a-f]{64}\n", account)
+              is not None
+              and config.get("db_password") ==
+              account.decode("ascii").split("=", 1)[1].strip(),
+              "Isolated DB credentials changed")
+    print("CCPC_STAGE3S_RESTORED_SITE_SECRETS_AND_FLAGS_PASS", flush=True)
+
 
 def preflight(r):
     need(os.geteuid() == 0 and os.environ.get("SUDO_USER") == OPERATOR
@@ -128,14 +218,10 @@ def preflight(r):
     r.check_mount(r.DB_VOLUME, owner=None)
     root = r.check_mount(r.SITES, owner=1000)
     r.check_mount(r.LOGS, owner=1000)
-    # Stage3R helper confirms exact config, flags, DB target, 16,501-byte
-    # private attachment, apps list and original 3-entry site layout.
-    r.check_site_and_config(root)
+    # Stage3R's original pristine-root guard is too strict after Frappe added
+    # its known assets symlink. Retain ALL data, credential, side-effect guards.
+    check_restored_site_with_runtime_assets(r, root, logs_created=False)
     site = root / SITE
-    root_dir(site, 1000, 0o755)
-    target = site / "logs"
-    need(not target.exists() and not target.is_symlink(),
-         "Site-local logs already exists; STOP")
     print("CCPC_STAGE3S_MISSING_TEST_SITE_LOGS_AND_PROTECTED_RESOURCES_PASS",
           flush=True)
     print("CCPC_NEW_A3_RESTORE_STAGE3S_READONLY_PREFLIGHT_PASS", flush=True)
@@ -179,10 +265,10 @@ def once(r):
             os.close(parent_fd)
 
         root_dir(site / "logs", 1000, 0o755)
-        need({p.name for p in site.iterdir()} ==
-             {"site_config.json", "public", "private", "logs"},
-             "Post-create site layout unexpected")
         r.check_mount(r.SITES, owner=1000)
+        check_restored_site_with_runtime_assets(
+            r, Path("/var/lib/docker/volumes") / r.SITES / "_data",
+            logs_created=True)
         r.check_originals()
         print("CCPC_STAGE3S_ONLY_ISOLATED_SITE_LOGS_DIRECTORY_CREATED_PASS",
               flush=True)
