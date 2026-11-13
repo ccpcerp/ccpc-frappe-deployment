@@ -159,9 +159,12 @@ def read_archive(path: Path, section: str) -> tuple[str | None, bytes, str]:
             for member in archive:
                 raw = member.name
                 insist(type(raw) is str and raw and not raw.startswith("/") and
-                       not raw.startswith("./") and "//" not in raw and
+                       not raw.startswith("../") and raw != "." and
+                       not raw.startswith(".//") and "//" not in raw and
                        "\\" not in raw and not any(ord(c) < 32 or ord(c) == 127 for c in raw),
                        "Tar entry unsafe")
+                if raw.startswith("./"):
+                    raw = raw[2:]
                 parts = tuple(raw.rstrip("/").split("/"))
                 insist(parts not in visited and all(p not in ("", ".", "..") for p in parts),
                        "Tar entry duplicate/unsafe")
@@ -334,8 +337,9 @@ def run_once() -> None:
                "restore-20261112" and v.get("Mountpoint") == target_path and
                v.get("Options") in (None, {}), "New-only site volume identity invalid")
         root = Path(target_path)
-        insist(root.is_dir() and not root.is_symlink() and not list(root.iterdir()) and
-               root.lstat().st_uid == 0, "New-only site volume not empty/root-owned")
+        info = root.lstat()
+        insist(stat.S_ISDIR(info.st_mode) and info.st_uid == 0 and info.st_gid == 0 and
+               not list(root.iterdir()), "New-only site volume not empty/root-owned")
         insist(not os.path.islink("/var/lib/docker") and
                not os.path.islink("/var/lib/docker/volumes"),
                "Unexpected Docker volume parent symlink")
