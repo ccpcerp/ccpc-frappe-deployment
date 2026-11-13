@@ -45,3 +45,24 @@ On **NEW Ubuntu** only (`ccpcadmin@ccpcerp-prod`), first inspect exact six candi
 ## Protection and release rule
 
 Keep OLD PRODUCTION/DEVELOPMENT, working NEW A3, both November 7 rehearsals and the completed isolated recovery drill intact, including data volumes, private files, root-only markers, backup artifacts and failed-backend evidence. All prior one-use recovery scripts are consumed. Future NEW changes that could affect services, accounting, permissions, networking, credentials, jobs, reboot, production release or cutover require separately scoped review and explicit approval. GitHub commits document evidence but do not constitute live deployment authorization.
+
+## November 13, 2026 — G0/G1 ACTUAL NEW A3 READ-ONLY RUNTIME AND BOOT-STATE CHECK
+
+- Owner ran exact read-only Python Docker/systemd preflight from `ccpcadmin@ccpcerp-prod` against **working NEW A3** `ccpc_prod_erpnext`, distinct from the independent restored drill. Operator reports:
+
+```text
+NEW_A3_RUNNING_CONTAINERS=6/6
+NEW_A3_DB_HEALTHY=YES
+NEW_A3_RESTART_POLICY_NO=6/6
+NEW_A3_HOST_PUBLISHED_PORTS=NONE
+CADDY_ACTIVE=active
+CADDY_BOOT_STATE=disabled
+UPSTREAM_SOCKET_ACTIVE=active
+UPSTREAM_SOCKET_BOOT_STATE=disabled
+CCPC_NEW_A3_READINESS_READONLY_CHECK_COMPLETE
+```
+
+- **G0 infrastructure runtime:** Six exact candidate containers exist and report running, candidate MariaDB health status healthy; Docker inspect `HostConfig.PortBindings` and `NetworkSettings.Ports` showed **no host-published ports** on these six. This does not verify site identity, mounted volumes, pinned image or entire LAN firewall exposure yet. **G0 remains PARTIAL.**
+- **G1 reboot resilience:** All six actual NEW candidate containers have `RestartPolicy=no`, Caddy `ActiveState=active` but `UnitFileState=disabled`, and `ccpc-erpnext-upstream.socket` likewise active/disabled. **G1 remains BLOCKED** pending separately authorized, reviewable boot-order and restart design and verification. A surprise power loss/reboot could leave application/gateway unavailable. The present audit does not establish whether another independent boot orchestrator might start components; do **not** conclude it is impossible for any service to start automatically until checking. Do not reboot, enable services, edit restart policies, recreate Docker containers or restart original systems merely to test this.
+- **Next one operator read-only inspection:** check only the systemd unit inventory of `docker.service`, `containerd.service`, `caddy.service`, `ccpc-erpnext-upstream.socket`, `ccpc-erpnext-upstream.service` and any CCPC/Frappe/ERPNext startup units without printing `ExecStart`, `Environment`, Caddyfile contents, password/secret paths or application data. This reveals whether an existing launch mechanism exists and determines the safest boot plan before requesting approval for changes. No modification authorized.
+- **NO-GO unchanged:** G2 staff security and WAN/guest negative checks pending; G3 OLD-to-NEW current source/cutover consistency pending; G4 end-to-end GL/stock/billing/reports pending; G5 roles/attachments pending; G6 ongoing backup and monitoring pending; G7 explicit final production approval not granted. Preserve all original and test containers, OLD PROD/DEV, Synology copies and one-use markers. Prior recovery --execute stages consumed; never rerun.
