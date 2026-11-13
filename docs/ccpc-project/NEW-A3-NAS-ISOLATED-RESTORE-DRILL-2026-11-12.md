@@ -569,3 +569,21 @@ CCPC_NEW_A3_RESTORE_STAGE3S_SITE_LOGS_REPAIR_PASS_BACKEND_HTTP_PENDING
 - Verified GitHub current Stage2A runner blob `43a51b5c73afdc318dc193941309cc2cf1c86dbb` established earlier restored schema/table and four-Company counts, and Stage3S one-use test-only `ccpcerp.local/logs` directory was created with UID/GID1000 and 0755; original failed backend remains evidence, no reruns. Do not treat Stage3R consumed script's final marker as PASSED (it STOPPED before HTTP); this is an independent later HTTP200 observation following Stage3S.
 - **Next one read-only Stage3B starting check**: verify aggregate business/master counts inside the **isolated restored database container only** `ccpc_a3_restore_drill_20261112-db-1`, schema `ccpc_restore_20261112`: `tabCompany`, `tabItem`, `tabFile`, `tabGL Entry`, `tabStock Ledger Entry` with SQL **SELECT COUNT(*) only**. Do not print row details, company names, attachments, SQL secrets or passwords; require DB exact container image and isolated network first. Treat counts zero honestly, no invented records. Following that, prepare guarded internal-only frontend/business/attachment read-only test separately in GitHub after review, not a blind Stage3A retry.
 - **NO RETRY:** Stage3A, Stage3R and Stage3S one-use `--execute` all consumed. Preserve 12 protected original containers, OLD PROD/DEV, working NEW A3 and Nov07 rehearsals, isolated DB/sites/logs volumes, test Redis, failed and replacement backend, root-only markers, backup source. No manual mkdir/chown, docker start/restart/cleanup/migration/host-port exposure or production changes.
+
+## November 13, 2026 — STAGE3B_READONLY_RESTORED_BUSINESS_COUNTS_4_0_3_0_0
+
+- Operator reports completed **Stage3B isolated database SELECT COUNT(*) only** with exact sanitized terminal output:
+
+```text
+COMPANIES=4
+ITEMS=0
+FILES=3
+GL_ENTRIES=0
+STOCK_LEDGER_ENTRIES=0
+CCPC_STAGE3B_ISOLATED_COUNTS_READONLY_COMPLETE
+```
+
+- Command guarded exact test DB container `ccpc_a3_restore_drill_20261112-db-1`, image `sha256:efb4959ef2c835cd735dbc388eb9ad6aab0c78dd64febcd51bc17481111890c4`, and only internal network `ccpc_a3_restore_drill_20261112_internal` with no host-published ports; SQL queries scoped to `ccpc_restore_20261112` only. The restored backup thus has four Company master records, **zero Item masters, zero GL Entries and zero Stock Ledger Entries**, and three `tabFile` records at this read-only point. Do not infer lost data or fabricate entries: compare to original backup state if necessary. This count test does not prove private file bytes are accessible via Frappe or that all File rows represent physical attachments.
+- Earlier **post-Stage3S** test-only backend `GET /login` returned HTTP200 on 127.0.0.1:8000 (host `ccpcerp.local`). Stage3S site-local logs one-use repair PASS; Stage3A/Stage3R prior stopped executions remain consumed and must not be re-run. No frontend or authenticated business acceptance yet.
+- **Next one safe Stage3B read-only step**: query **aggregate File metadata only** on exact isolated DB; count `is_private` values, nonempty `file_url` and fully linked `attached_to_doctype`+`attached_to_name` rows without returning any names/URLs/business data, then compare expected 3 records and one restored private physical attachment with separate guarded metadata check. Avoid login, writes, arbitrary file/path output or exposing secrets. Plan backend attachment HTTP/auth checks separately after aggregate result; no frontend restart, migration, cleanup, port publication or PROD/DEV changes.
+- **NO-RETRY/PRESERVE**: Stage3A, Stage3R and Stage3S one-use `--execute` all consumed; preserve 12 original protected containers, OLD PROD/DEV, working NEW A3, Nov07 rehearsals, isolated test DB/sites/logs/Redis, original failed backend, existing replacement backend, root-only one-use markers, and NAS source.
