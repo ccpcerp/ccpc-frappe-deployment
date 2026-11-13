@@ -272,3 +272,22 @@ CCPC_NEW_A3_RESTORE_STAGE3A_READONLY_PREFLIGHT_PASS
 
 - This is an **owner-reported read-only PASS**, not yet an application smoke test. Independently refetched GitHub Stage3A source in review branch `review/new-a3-isolated-restore-2026-11-12`, Git blob `b70ece34b6b65242c0e8626773a10566f2a7f324`, and confirmed the expected CLI PASS/STOP markers and bounded, test-only `--execute` startup guard. No GitHub source changes for this milestone.
 - Next **one-use manual NEW-only** command after the already-approved isolated-restore drill: `sudo python3 /root/ccpc_new_a3_restore_stage3a_internal_frappe.py --execute`. It rechecks preflight, then creates only test-only logs volume, isolated Redis cache/queue, backend, websocket and frontend on existing internal-only network, with image pins, no host ports/restart, no workers/scheduler/email/webhooks/integrations/migration, and verifies private `GET /login` returns HTTP 200. It is a one-use operation: after **any** STOP/error/timeout preserve partial resources, **NEVER RERUN** or cleanup. Report sanitized output only, no secrets. Completion marker `CCPC_NEW_A3_RESTORE_STAGE3A_INTERNAL_APP_PASS_BUSINESS_ACCEPTANCE_PENDING` does **not** validate representative business records, authorized attachment retrieval, or production readiness; Stage3B remains pending.
+
+## November 13, 2026 — STAGE3A_ONE_USE_EXECUTE_STOP_AFTER_REDIS_QUEUE_PRESERVE_STATE
+
+- Owner reports **Stage3A ONE-USE `--execute` began but STOPPED** with exact sanitized markers:
+
+```text
+CCPC_STAGE3A_TWELVE_PROTECTED_ORIGINALS_PASS
+CCPC_STAGE3A_SITE_CONFIG_AND_ONE_PRIVATE_FILE_PASS
+CCPC_STAGE3A_PINNED_IMAGES_AND_INTERNAL_DB_PASS
+CCPC_STAGE3A_UNUSED_APP_CONTAINERS_AND_LOGS_VOLUME_PASS
+CCPC_STAGE3A_NEW_TEST_ONLY_LOGS_VOLUME_PASS
+CCPC_STAGE3A_REDIS_CACHE_INTERNAL_PASS
+CCPC_STAGE3A_REDIS_QUEUE_INTERNAL_PASS
+CCPC_NEW_A3_RESTORE_STAGE3A_STOP_REVIEW_REQUIRED
+```
+
+- This is **NOT** a Stage3A PASS. Initial checks succeeded and the test-only `ccpc_a3_restore_drill_20261112_logs` volume plus test Redis cache/queue containers were created and passed. Source execution next attempts to create the test-only backend; **no backend startup PASS** occurred. Possibilities include backend Docker create/run failure or failed post-run inspection. **Actual backend container status is UNVERIFIED**. Websocket/frontend, HTTP 200, business records and private attachment HTTP access have NOT passed.
+- Critical: **DO NOT RERUN `--execute`**, Stage2A or Stage2B; no cleanup, restart, deletion, Docker recreation, migrate or production operations. Preserve all original/rehearsal containers and all scratch test resources to investigate the partial-state cause. Current source script uses stderr suppression and masks actual failure reason behind `CCPC_NEW_A3_RESTORE_STAGE3A_STOP_REVIEW_REQUIRED`, so do not infer a root cause from markers alone.
+- Next operator step: **read-only**, NEW Ubuntu account `ccpcadmin` and host `ccpcerp-prod`, inspect test-only five Stage3A container names via `sudo docker ps -a --format '{{.Names}}|{{.Status}}'` filtered to prefix `ccpc_a3_restore_drill_20261112-`. Do not use `docker logs` or expose environment/site configuration as first diagnostic. Return sanitized name/state summary for root-cause review; then selectively inspect test-only backend exit/OCI error if needed. No writes authorized by STOP handling.
