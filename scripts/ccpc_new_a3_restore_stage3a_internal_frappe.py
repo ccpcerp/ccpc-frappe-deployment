@@ -216,7 +216,8 @@ def preflight() -> None:
     net = inspect("network", NETWORK)
     db = inspect("container", DB)
     vol = inspect("volume", DB_VOLUME)
-    insist(net.get("Internal") is True and net.get("Driver") == "bridge" and
+    insist(net.get("Internal") is True and net.get("Attachable") is False and
+           net.get("Driver") == "bridge" and
            (net.get("Labels") or {}).get("com.ccpc.test") == LABEL and
            set((net.get("Containers") or {})) == {db.get("Id")},
            "Isolated test-only network identity/membership changed")
