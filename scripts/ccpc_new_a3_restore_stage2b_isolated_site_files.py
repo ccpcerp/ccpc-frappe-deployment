@@ -222,11 +222,31 @@ def read_only_preflight() -> dict:
            "Test DB root secret marker invalid")
     insist(not NEW_SECRETS.exists() and not NEW_SECRETS.is_symlink(),
            "Stage2B test site secret dir exists; NEVER retry")
+    insist(not os.path.islink("/var/lib/docker") and
+           not os.path.islink("/var/lib/docker/volumes"),
+           "Unexpected Docker volume parent symlink")
     insist(SITES_VOLUME not in names("volume", "ls", "--format", "{{.Name}}"),
            "Test site volume already exists; NEVER retry")
     insist(names("ps", "-a", "--format", "{{.Names}}") == PROTECTED | {DB} and
            names("ps", "--format", "{{.Names}}") == PROTECTED | {DB},
            "Protected container count/running-state changed")
+    for existing in PROTECTED:
+        origin = next((project for project in
+                       ("ccpc_prod_erpnext", "ccpc_full_acceptance_20261107",
+                        "ccpc_restore_rehearsal_20261107")
+                       if existing.startswith(project + "-")), None)
+        insist(origin is not None and existing.endswith("-1"),
+               "Protected container name invalid")
+        service = existing[len(origin) + 1:-2]
+        expected = (APP_IMAGE if service in ("frontend", "backend", "websocket")
+                    else DB_IMAGE if service == "db" else REDIS_IMAGE
+                    if service in ("redis-cache", "redis-queue") else None)
+        original = inspect("container", existing)
+        insist(expected is not None and original.get("Image") == expected and
+               original.get("State", {}).get("Running") is True and
+               not original.get("HostConfig", {}).get("PortBindings") and
+               set(original.get("NetworkSettings", {}).get("Networks", {})) ==
+               {origin + "_default"}, "Protected container identity/network changed")
     for image in (APP_IMAGE, DB_IMAGE, REDIS_IMAGE):
         insist(docker("image", "inspect", "--format", "{{.Id}}", image).stdout.strip().decode() == image,
                "Pinned local image missing")
@@ -340,9 +360,6 @@ def run_once() -> None:
         info = root.lstat()
         insist(stat.S_ISDIR(info.st_mode) and info.st_uid == 0 and info.st_gid == 0 and
                not list(root.iterdir()), "New-only site volume not empty/root-owned")
-        insist(not os.path.islink("/var/lib/docker") and
-               not os.path.islink("/var/lib/docker/volumes"),
-               "Unexpected Docker volume parent symlink")
         print("CCPC_STAGE2B_NEW_EMPTY_ISOLATED_SITE_VOLUME_PASS", flush=True)
 
         username = "'" + SCHEMA + "'@'" + data["hostmask"] + "'"
