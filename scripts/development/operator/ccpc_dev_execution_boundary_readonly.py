@@ -18,6 +18,15 @@ OPERATOR = "gani"
 DEV = "frappe_docker_devcontainer-frappe-1"
 DEV_PROJECT = "frappe_docker_devcontainer"
 OLD_PROJECT = "frappe_docker"
+# Retained OLD data containers may remain available for recovery; never
+# stop or remove them merely to permit DEV testing. The app/worker/scheduler
+# services must be inactive and exact project membership must be unchanged.
+OLD_SERVICE_NAMES = ("frontend", "queue-short", "backend", "queue-long",
+                     "websocket", "scheduler", "configurator",
+                     "redis-queue", "redis-cache", "db")
+OLD_EXPECTED = {f"{OLD_PROJECT}-{name}-1" for name in OLD_SERVICE_NAMES}
+OLD_RETAINED_DATA = {f"{OLD_PROJECT}-{name}-1"
+                     for name in ("db", "redis-cache", "redis-queue")}
 DOCKER = ("docker", "--host", "unix:///var/run/docker.sock")
 
 
@@ -72,14 +81,26 @@ def is_risky_credential_mount(item):
 
 
 def audit():
-    # Count OLD Compose containers, but never print any container names.
-    states = docker("ps", "-a", "--filter",
-                    "label=com.docker.compose.project=" + OLD_PROJECT,
-                    "--format", "{{.State}}").splitlines()
-    require(len(states) <= 100)
-    require(all(s in ("running", "created", "exited", "paused", "restarting",
-                      "dead", "removing") for s in states))
-    old_running = sum(s in ("running", "restarting", "paused") for s in states)
+    # Pin expected OLD project names to avoid mistaking an unknown live
+    # container for a harmless retained data service. Never print names.
+    raw_states = docker("ps", "-a", "--filter",
+                        "label=com.docker.compose.project=" + OLD_PROJECT,
+                        "--format", "{{.Names}} {{.State}}").splitlines()
+    require(len(raw_states) == len(OLD_EXPECTED))
+    states = {}
+    valid_states = {"running", "created", "exited", "paused", "restarting",
+                    "dead", "removing"}
+    for line in raw_states:
+        name, sep, state = line.rpartition(" ")
+        require(bool(sep) and name in OLD_EXPECTED and
+                state in valid_states and name not in states)
+        states[name] = state
+    require(set(states) == OLD_EXPECTED)
+    active_states = {"running", "restarting", "paused"}
+    old_app_active = sum(state in active_states for name, state in states.items()
+                         if name not in OLD_RETAINED_DATA)
+    old_data_active = sum(state in active_states for name, state in states.items()
+                          if name in OLD_RETAINED_DATA)
 
     project = inspect_value('{{index .Config.Labels "com.docker.compose.project"}}')
     require(project == DEV_PROJECT)
@@ -93,7 +114,8 @@ def audit():
     # Never describe these results as proving absent writers, private access
     # control, host network isolation, or readiness for arbitrary AI tools.
     return {
-        "OLD_PRODUCTION_COMPOSE_ACTIVE": old_running,
+        "OLD_PRODUCTION_APP_ACTIVE": old_app_active,
+        "OLD_PRODUCTION_RETAINED_DATA_ACTIVE": old_data_active,
         "DEV_CONTAINER_RUNNING": running,
         "DEV_CREDENTIAL_MOUNT_DETECTED": credential_mount,
         "DEV_DOCKER_SOCKET_MOUNT_DETECTED": socket_mount,
@@ -109,7 +131,7 @@ def main():
             if isinstance(value, bool):
                 value = "YES" if value else "NO"
             print(f"{key}={value}")
-        require(result["OLD_PRODUCTION_COMPOSE_ACTIVE"] == 0)
+        require(result["OLD_PRODUCTION_APP_ACTIVE"] == 0)
         require(result["DEV_CONTAINER_RUNNING"] is True)
         require(result["DEV_CREDENTIAL_MOUNT_DETECTED"] is False)
         require(result["DEV_DOCKER_SOCKET_MOUNT_DETECTED"] is False)
