@@ -1,5 +1,14 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
+## 2026-11-15 — OLD PRODUCTION six-service identity and restart-policy inventory PASS; shutdown stage 1 pending
+
+- Owner executed the previous read-only check on OLD host `gani@ccpcerpserver`, returning **six exact Compose-labeled OLD production services** all `running=true`, `restart=unless-stopped`, project `frappe_docker`, expected matching service labels: `frappe_docker-frontend-1`, `frappe_docker-backend-1`, `frappe_docker-websocket-1`, `frappe_docker-queue-short-1`, `frappe_docker-queue-long-1`, `frappe_docker-scheduler-1`. Completion marker: `OLD_PRODUCTION_SIX_SERVICES_IDENTIFIED`. This is **owner-reported live inspection**, not independent connector SSH. The OLD services are still running, not shut down.
+- Important safety fact: all six use `unless-stopped`. Simply stopping them without changing `RestartPolicy` risks future automatic OLD production restart during host/Docker restart. NEW must remain the only business writer after handoff; never touch shared OLD physical host/DEVELOPMENT containers or data.
+- **Pending one-step operator action under owner's earlier scoped cutover approval**: a hostname+Docker-label+live-policy-guarded **frontend-only** stop, with `docker update --restart=no` on the original full ID followed by `docker stop --time=60` on that SAME full ID; verify `Running=false` and `RestartPolicy=no`, other OLD process roles remain untouched. This is the **start** of OLD write-entry quiescence only, not completed transaction fence, and can cause OLD UI downtime. On mismatch or partial failure STOP, do not retry blindly; do not allow NEW staff transactions yet.
+- Next OLD stages after verified result: stop scheduler, drain/review and stop queue workers, then backend and websocket as necessary, also turn off all their auto-restart policies and validate all OLD production transaction entry points and external writer paths are fenced. **Do not casually stop in-flight workers without a bounded drain**; verify NEW user HTTPS reachability and essential worker/scheduler plan before final staff GO. OLD DB/Redis/files kept untouched for rollback. G1 remains unactivated, six NEW candidates `RestartPolicy=no` and HTTPS gateway boot-disabled. Nov 5 owner-approved restoration is final; no backup-date rechecks.
+
+---
+
 ## 2026-11-15 — OWNER APPROVED OLD-PRODUCTION-ONLY SHUTDOWN AND NEW CUTOVER: FIRST PRE-STOP INVENTORY PENDING
 
 - **Owner explicitly approved** beginning the previously described **OLD PRODUCTION-only shutdown and NEW production cutover**, leaving co-hosted DEVELOPMENT untouched and preserving OLD database/files for rollback. This is scoped approval to follow verified stages, **not** authority to shut off shared physical host, run `docker compose down`, remove data, change DEV/PROD schema, or blindly stop unverified containers.
