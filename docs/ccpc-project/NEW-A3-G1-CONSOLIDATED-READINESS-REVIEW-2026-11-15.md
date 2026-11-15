@@ -56,3 +56,36 @@
 **User decision after this review, not implied by today's approval:** authorize that GitHub-only implementation + tests, then authorize a specific sanitized NEW read-only host dependency check as needed, then a separately reviewed staging/policy change. Reboot and staff cutover each require their own explicit approvals.
 
 No code in this milestone was approved to be enabled or run on NEW. Original six candidates, protected thirteen others, immutable R0 manifest, OLD PROD/DEV and credential/key material remain untouched.
+
+---
+
+## November 15 — Owner-approved GitHub-only implementation and offline tests
+
+**Scope:** Owner explicitly approved follow-up code implementation and safety tests **in GitHub only** on draft PR #35. No NEW Ubuntu, OLD PROD or DEV actions; no installation, Docker update, Caddy/socket activation, migration, reboot, production cutover or root-only manifest access. The draft gate's `G1_ACTIVATION_REVIEWED = False` **remains unchanged and enforced**.
+
+### Code changes verified in GitHub
+
+| File (on review branch) | Current Git blob | Effect |
+| --- | --- | --- |
+| [G1 gate](../../scripts/ccpc_new_a3_g1_boot_gate.py) | `83e438c6ade07790d1b2a967923bc3abfc9e68bd` | Imports the separate safety module by **SHA256 pin** before any live call, bounds live R0/Docker/systemd subprocesses to a single 180s deadline, performs disk Caddy/drop-in/systemd-edge and TCP/UDP bind checks, reserves 70s for activation, rechecks immediately before any possible start. **Interlock remains FALSE.** Candidate no-published-ports invariant now targets only the six candidate services. |
+| [Safety module](../../scripts/ccpc_new_a3_g1_safety.py) | `ffa02cec1eb478be6693b7b65929a06a846d517f` | Exact review-template Caddyfile and TLS credential drop-in, source-key metadata (no key bytes), loaded Caddy/socket/relay graph, narrow host TCP443+8080 and UDP443 checks; replaces R0's in-memory `invoke` temporarily to bound each subprocess to the remaining deadline. **No server writes or starts in this module.** Local SHA256: `3c50efcc1add9b1350da059fd4570e63c4bf5d491cb6d572ffb1c7883e92ba65`, equal to the pinned value in G1. |
+| [Pure policy planner](../../scripts/ccpc_new_a3_g1_policy_plan.py) | `5adfa048a82539df7f9945c3d162f4c89e84fb33` | Pure exact-six, 19-identity-guarded `no -> unless-stopped` update **intent** and reverse-order *partial compensation intent* for documented applied IDs. Rejects stale IDs, protected noncandidate policy drift, unexpectedly running failed drill, malformed IDs/ledgers or mismatched partial state. **No Docker execution, CLI, subprocess or systemd mutation exists in this planner; it is NOT an operational executor.** |
+| [G1 existing fixture suite](../../tests/test_ccpc_new_a3_g1_boot_gate.py) | `e1013817ba357afb5904e96125137c565c8ce1b5` | Updated the negative published-port case to candidate-only, added positive preservation of noncandidate ports and a SHA pin/interlock assertion; **12 test methods, NOT YET RERUN** on the revised complete gate. |
+| [Safety tests](../../tests/test_ccpc_new_a3_g1_safety.py) | `acc9d34a922259623b049ad39bfb42407987d824` | **15/15 actual offline mock tests PASS**, including unsafe bind/TLS/drop-in/systemd graph, UDP443 and timeout/failure cases. |
+| [Policy planner tests](../../tests/test_ccpc_new_a3_g1_policy_plan.py) | `2e5d9f6b28170cd8ce110ef281b632e1b5c75045` | **14/14 actual offline tests PASS**, including duplicate/partial compensation, invalid ID drift and noncandidate preservation. |
+
+The 29 new tests ran in a local Python test harness with repository-style `scripts/` and `tests/` directories; exact GitHub blob IDs were compared with the bytes tested. **No repository CI run was reported for the latest commit.** All checks are synthetic: they do not prove NEW host systemd resolution, backend side-effect safety, functional Caddy TLS trust, restart/reboot resilience or production readiness.
+
+**Unchanged protected source:** original R0 guard Git blob `a65b6c0907c0b28e390557b153d220ffd110c42b`; G1 systemd unit Git blob `826762847101af35b83d6c708c1808ea82b6b422`; no manifest modification. The original gate unit now also requires a *future* protected copy of the pinned new safety module in the same G1 staging directory before any separately approved live preflight. **Do not stage it from this review milestone.**
+
+### Updated release blockers (still NO-GO)
+
+1. **P0 backend auto-resume:** actual deployed image/backend entrypoint, hooks, queued jobs, outbound integrations and OLD/NEW single-writer consequences not yet proven safe. Even paused scheduler and muted emails cannot clear this.
+2. **P0 executable policy transaction:** only a *pure planner* exists; no owner-authorized, tested Docker exact-ID update executor, durable journal of applied IDs, or driver-level rollback/partial failure procedure. Do not run any update from a planning result.
+3. **P0 real Caddy/boot validation:** new gate does a stricter **disk** Caddy and loaded-unit subset check and TCP/UDP listener observation. This still does NOT prove complete indirect boot activation triggers, dynamic runtime TLS trust, DNS/guest/WAN denial or exact host installation compatibility. A template mismatch is a safe STOP until reviewed; do not edit production Caddy merely to satisfy an untested guard.
+4. **P1 complete gate testing:** the changed 12-method G1 fixture suite was not rerun after integration, and no real NEW-host cold-state simulation or fail-closed post-start integration was performed. The 29 new offline module tests alone cannot establish correctness of the complete gate or its unit.
+5. **P1 partial gateway start/recovery:** reserved 70s budget reduces activation near deadline; if socket starts but Caddy fails, the gate still stops with no automatic teardown/compensation (to avoid stopping unrelated healthy services). A narrowly authorized partial-start recovery plan and alerting need further work.
+6. **P1 candidate-only port policy:** `published` invariant was scoped to only six candidates because original R0 baseline did not establish no published ports on all 13 protected noncandidates. Any public exposure of those preserved rehearsal/drill services is a separate security concern and must not be silently ignored.
+7. **P2 future deployment pinning:** source+helper hashes, root mode, Python environment, symlink protection, exact G1 paths and current host dependency graph must be reviewed as one immutable, never-overwrite staging package under **new explicit approval**.
+
+**Decision:** This is a meaningful GitHub-only source/test hardening milestone, *not* successful G1 automatic recovery. The next safest development action is rerunning complete original G1 integration fixtures and adding end-to-end mocked gate failure-path tests, then reviewing backend side effects and full recovery/rollback executor. Any host staging/policy changes/reboot require separate independent owner authorization. Employee production cutover remains **NO-GO**.
