@@ -33,8 +33,21 @@ The owner executed a **read-only** `docker ps -a` Compose-label inventory on the
 - OLD PRODUCTION project `frappe_docker`: `frontend`, `backend`, `websocket`, `queue-short`, `queue-long`, `scheduler`, `configurator` are **exited** (7). `db`, `redis-cache`, and `redis-queue` remain **running** (3).
 - DEVELOPMENT project `frappe_docker_devcontainer`: `frappe`, `mariadb`, `redis-cache`, and `redis-queue` are **running** (4).
 - This **supports the owner's claim that the normal OLD web/backend/worker/scheduler application services were shut down**, but does **not** certify no other OLD external writer or retained production credentials. It also does not justify destroying the OLD MariaDB/Redis containers. No mutations were performed by this inspection.
-- In particular, the newly committed exact boundary script requires `OLD_PRODUCTION_COMPOSE_ACTIVE=0`; with this observed inventory it would **STOP** because three OLD project containers are still running. This STOP is expected and must **not** be bypassed by an automatic stop, blind code relaxation, or unauthorized Docker change.
+- The **first** boundary-script revision required `OLD_PRODUCTION_COMPOSE_ACTIVE=0` and would have stopped solely because the retained data services were running. This was an overrestrictive design, **corrected in the review branch** under the access-blocker priority update below. Do not stop the OLD DB/Redis containers or weaken the check for OLD app workers.
 - Next one safe operator observation is a bounded **DEV container privilege/SSH/Docker-socket mount presence check only**, without printing mount source paths or secrets. Even if this narrow check is negative, it does not replace a complete credential isolation and external writer audit.
+
+## Access-blocker priority and revised cutoff-aware audit
+
+**Priority change — requested by owner:** Enable broader *controlled* DEVELOPMENT tests as the immediate engineering priority, without changing NEW PRODUCTION or destroying OLD retained recovery data.
+
+The first draft auditor accidentally treated all three retained OLD MariaDB/Redis containers as an application-writer failure. This conflated **running data services** with **running OLD app/worker/scheduler services**. On the same PR #36 review branch, commit `c24618a4c2364c201c52d319ae6a37dbe2bbb583` revises the auditor to pin the ten expected OLD Compose identities and separately report `OLD_PRODUCTION_APP_ACTIVE` versus `OLD_PRODUCTION_RETAINED_DATA_ACTIVE`. The guard now stops on **any** active OLD app/worker/scheduler, missing/unexpected service, or old identity drift; the three preserved OLD data containers need not be stopped. Commit `85372ff34efd417f1694e23e282407adcc872edd` updated mocked tests to cover this distinction and unexpected OLD service drift. **The revised full test suite has not been executed in this milestone**; these are source changes, not a host clearance. The earlier 11/11 result was on the preceding source and tests, not the revised versions.
+
+**Two independent remaining prerequisites:**
+
+1. The old DEV container historically exposed `/home/frappe/.ssh`. Do not install/run an agent in it even if OLD application processes are exited. Use a **new** isolated worker with no SSH, NAS, production DB/config or Docker-socket mounts; no privileged mode, host network or host-wide sudo. Verify egress/network rules and that only synthetic test DB endpoints are reachable.
+2. This ChatGPT session has **connected GitHub tools but no direct SSH/remote-terminal connector to the original server**. A host-side installation alone does not confer terminal access in chat. We must explicitly choose a supported GitHub-driven test bridge or establish a real supported remote-execution connector; avoid claiming direct interaction until a real end-to-end command and result are verified.
+
+**Fastest meaningful interim result:** use the existing GitHub code connector and separately authorized opt-in hosted disposable Frappe/MariaDB CI to perform actual integration tests while preparing the on-premises isolated worker. An on-premises self-hosted Actions runner is **not** automatically safe merely because it has a GitHub label; do not install one with host Docker socket or untrusted PR triggers.
 
 ## Staged access implementation
 
