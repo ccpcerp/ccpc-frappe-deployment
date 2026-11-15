@@ -46,9 +46,9 @@ def verify_identity(manifest, snapshot):
     require(isinstance(manifest, dict) and isinstance(snapshot, dict))
     ids = manifest.get('container_ids')
     require(isinstance(ids, dict) and set(ids) == EXPECTED and set(snapshot) == EXPECTED)
-    require(len(set(ids.values())) == 19)
     require(all(isinstance(value, str) and re.fullmatch('[0-9a-f]{64}', value)
                 for value in ids.values()))
+    require(len(set(ids.values())) == 19)
     for name in EXPECTED:
         item = snapshot.get(name)
         require(isinstance(item, dict) and item.get('id') == ids[name])
@@ -77,6 +77,7 @@ def plan_partial_compensation(manifest, snapshot, applied_names):
     """
     ids = verify_identity(manifest, snapshot)
     require(isinstance(applied_names, (tuple, list)))
+    require(all(isinstance(name, str) for name in applied_names))
     require(len(set(applied_names)) == len(applied_names))
     require(set(applied_names) <= set(CANDIDATE))
     for name in CANDIDATE:
