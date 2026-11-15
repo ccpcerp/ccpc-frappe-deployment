@@ -1,5 +1,14 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
+## 2026-11-15 — OWNER APPROVED OLD-PRODUCTION-ONLY SHUTDOWN AND NEW CUTOVER: FIRST PRE-STOP INVENTORY PENDING
+
+- **Owner explicitly approved** beginning the previously described **OLD PRODUCTION-only shutdown and NEW production cutover**, leaving co-hosted DEVELOPMENT untouched and preserving OLD database/files for rollback. This is scoped approval to follow verified stages, **not** authority to shut off shared physical host, run `docker compose down`, remove data, change DEV/PROD schema, or blindly stop unverified containers.
+- **First action delivered, pending operator output:** OLD host `gani@ccpcerpserver` **read-only** loop over exactly `frappe_docker-{frontend,backend,websocket,queue-short,queue-long,scheduler}-1`, using explicit `docker --host unix:///var/run/docker.sock container inspect` to print only each container name, `State.Running`, `RestartPolicy.Name`, Compose project/service labels; fail before any mutation on hostname or missing services; successful marker `OLD_PRODUCTION_SIX_SERVICES_IDENTIFIED`. This source inventory is the last tight prerequisite to freezing exactly OLD's staff/worker/scheduler entry points **without affecting DEV**. Await output; **no OLD containers have been stopped in this conversation**.
+- **Next after operator evidence:** check six labels/name/state/restart policy against expected OLD production, identify any overlooked OLD-prod ingress/worker/integration writers as needed, instruct targeted OLD-only shutdown/fence with transaction grace and rollback, confirm NEW staff `https://ccpcerp.internal` access and working essential functions, then single-writer release. November 5 restored backup final owner selection stands, no backup-date recheck. NEW G1 automatic-recovery unit remains blocked/uninstalled and Docker candidate restart policies `no` per last reported state; automatic restart and supervised reboot require separately reviewed staged execution. Never assert cutover complete until OLD freeze and NEW writer release actually verified.
+- **Draft deployment PR #35** remains a source/review checkpoint. The current cutover approval is an operational go-ahead to begin, not approval for random `--gate-once`, restart-policy changes, schema migration, worker/scheduler activation or an unreviewed restart.
+
+---
+
 ## 2026-11-15 — NEW G1 restart-policy transition implementation in GitHub; 22/22 MOCK PASS, not installed
 
 - **Owner asked to continue** cutover and reliable power-loss recovery using the already accepted/final Nov 5 2026 02:00:01 backup on NEW. **No further Nov5 backup-date or OLD post-cutoff recheck requested. No repeat restore, new feature/migration or OLD/NEW/DEV host operation.** Existing six NEW candidates still owner-reported running with `RestartPolicy=no`; Caddy/socket LAN-only HTTPS pilot active but disabled at boot, G1 interlock `False`, not tested after reboot.
