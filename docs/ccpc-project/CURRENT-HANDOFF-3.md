@@ -1,5 +1,13 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
+## 2026-11-15 — OLD application shutdown 5/6; WebSocket still running after first TERM
+
+- **Owner reported guarded six-service read-only `docker inspect` output** on `ccpcerpserver`: OLD `frappe_docker-{frontend,backend,scheduler,queue-short,queue-long}-1` all `running=false restart=no`; only `frappe_docker-websocket-1` remains `running=true restart=no`. Earlier operator ran `sudo docker kill --signal=TERM frappe_docker-websocket-1` and Docker echoed the container name; that confirms signal accepted but not process exit.
+- **Current action** is read-only `sudo docker top frappe_docker-websocket-1 -eo pid,ppid,stat,comm` to learn whether the long-lived WebSocket process remains alive. If it has already exited before this command, Docker may return a "container is not running" error (benign when independently verified). Do not send a duplicate SIGTERM or force kill without considering the observed process state; no assertion that all OLD app services are stopped.
+- OLD database, Redis and co-hosted DEVELOPMENT remain preserved. **NEW staff/business-write cutover is not yet released.** Final OLD fence must also account for alternate app ingress/integrations beyond the six named containers; automatic recovery on NEW is still pending, G1 interlock False and NEW six candidate RestartPolicy=no at last reported reading. Nov5 backup selection remains final.
+
+---
+
 ## 2026-11-15 — OLD app-stop interrupted at Bash continuation; owner inventory shows backend/WebSocket still UP
 
 - **Owner reported Bash secondary `>` continuation prompt** while pasting the two-service backend/WebSocket stop script, pressed Ctrl+C, returned to shell. Do NOT infer the multiline script executed or that its policy modifications succeeded; treat its effects unverified.
