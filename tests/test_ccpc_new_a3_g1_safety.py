@@ -20,11 +20,12 @@ class FakeR0:
         self.caddy_exec = 'argv[]=/usr/bin/caddy run --config /etc/caddy/Caddyfile ;'
         self.env = 'CCPC_TLS_FULLCHAIN_FILE=/private/cert CCPC_TLS_PRIVATE_KEY_FILE=/private/key'
         self.listen = b''
+        self.udp = b''
 
     def invoke(self, command, *, data=None):
         self.calls.append(tuple(command))
         if command[0] == 'ss':
-            return self.listen
+            return self.udp if command[2] == '-lun' else self.listen
         if command[0] != 'systemctl':
             raise AssertionError('unexpected subprocess')
         name = command[2]
@@ -117,6 +118,12 @@ class GatewaySafetyTests(unittest.TestCase):
         f.listen+=b'LISTEN 0 4096 0.0.0.0:443 0.0.0.0:*\n'
         with self.assertRaises(s.SafetyStop):
             s.validate_tcp_bindings(f,gateway_state='pilot')
+
+    def test_udp_quic_443_denied(self):
+        f = FakeR0()
+        f.udp = b'UNCONN 0 0 192.168.50.186:443 0.0.0.0:*\n'
+        with self.assertRaises(s.SafetyStop):
+            s.validate_tcp_bindings(f,gateway_state='cold')
 
     def test_deadline_wrapper_restores_original_and_caps_subprocess(self):
         class R0:
