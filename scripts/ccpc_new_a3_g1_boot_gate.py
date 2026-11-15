@@ -19,6 +19,8 @@ R0_SHA256 = "3f4e03d0e5f5d55bacfd16492fb021045eeb06b0199577a1612c9f18e0a3d72b"
 MANIFEST_PATH = Path("/var/lib/ccpc-new-a3-r0-manifest-20261113/manifest.json")
 G1_DIR = Path("/root/ccpc-new-a3-g1-20261115")
 R0_NAME = "ccpc_new_a3_boot_r0_readonly.py"
+SAFETY_NAME = "ccpc_new_a3_g1_safety.py"
+SAFETY_SHA256 = "a65e302440502602f5ce67e35b88111a1ce91bd5376d514fc478b56ac80611c8"
 UNIT_PATH = Path("/etc/systemd/system/ccpc-new-a3-g1-boot-gate.service")
 # SHA256 of the draft unit file; this binds gate execution to the reviewed unit bytes.
 UNIT_SHA256 = "be8af72e5e05abe1cabe28cdedb184597db9e1510f91b21e4f48af51e85cd274"
@@ -72,6 +74,18 @@ def get_r0(*, offline):
         private_dir(MANIFEST_PATH.parent)
         private_file(MANIFEST_PATH, 0o600)
     spec = importlib.util.spec_from_file_location("ccpc_new_a3_g1_pinned_r0", path)
+    require(spec is not None and spec.loader is not None)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def get_safety(*, offline):
+    path = Path(__file__).with_name(SAFETY_NAME)
+    if not offline:
+        private_file(path, 0o600)
+        require(sha256_file(path) == SAFETY_SHA256)
+    spec = importlib.util.spec_from_file_location("ccpc_new_a3_g1_pinned_safety", path)
     require(spec is not None and spec.loader is not None)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -165,7 +179,7 @@ def evaluate(r0, m, s, *, profile, gateway_state="cold"):
     require(all(rows[k]["restart"] == "no" for k in other))
     restart = "no" if profile == "prechange" else "unless-stopped"
     require(all(rows[k]["restart"] == restart for k in r0.CANDIDATE))
-    require(all(not rows[k]["published"] for k in r0.EXPECTED))
+    require(all(not rows[k]["published"] for k in r0.CANDIDATE))
     require(all(rows[k]["networks"] == [m["network_name"]] for k in r0.CANDIDATE))
     require(all(rows[f"{r0.PREFIX}-{name}-1"]["image"] == m["app_image_id"]
                 for name in ("backend", "websocket", "frontend")))
@@ -266,14 +280,22 @@ def main(argv=None):
                  and args.gateway_state == "cold"))
         offline = args.offline_fixture is not None
         r0 = get_r0(offline=offline)
+        safety = get_safety(offline=offline)
         if offline:
             manifest = r0.validate_manifest(r0.load_json_file(args.manifest))
             snapshot = r0.load_json_file(args.offline_fixture)
-        else:
-            check_host(gate_once=args.gate_once)
-            require(args.manifest == MANIFEST_PATH)
-            manifest = r0.validate_manifest(r0.load_json_file(MANIFEST_PATH, root_only=True))
-            deadline = time.monotonic() + 180
+            evaluate(r0, manifest, snapshot, profile=args.profile,
+                     gateway_state=args.gateway_state)
+            print("CCPC_NEW_A3_G1_READONLY_PREFLIGHT_PASS")
+            return 0
+
+        check_host(gate_once=args.gate_once)
+        require(args.manifest == MANIFEST_PATH)
+        manifest = r0.validate_manifest(r0.load_json_file(MANIFEST_PATH, root_only=True))
+        deadline = time.monotonic() + 180
+        # The context bounds EVERY R0 subprocess, including docker exec probes
+        # and systemd operations, without modifying the SHA-pinned R0 on disk.
+        with safety.deadline_guard(r0, deadline):
             while True:
                 try:
                     snapshot = collect(r0, manifest)
@@ -281,21 +303,32 @@ def main(argv=None):
                              gateway_state=args.gateway_state)
                     probe(r0)
                     break
-                except (Stop, r0.Stop, KeyError, ValueError, TypeError, IndexError):
+                except (Stop, r0.Stop, safety.SafetyStop, KeyError,
+                        ValueError, TypeError, IndexError):
                     if time.monotonic() >= deadline:
                         raise Stop() from None
-                    time.sleep(5)
-        evaluate(r0, manifest, snapshot, profile=args.profile,
-                             gateway_state=args.gateway_state)
-        if args.gate_once:
-            # Recheck immediately before changing systemd; still not race-free.
-            snapshot = collect(r0, manifest)
-            evaluate(r0, manifest, snapshot, profile="postchange", gateway_state="cold")
-            probe(r0)
-            start_gateway(r0)
-            print("CCPC_NEW_A3_G1_GATEWAY_STARTED_PASS")
-        else:
-            print("CCPC_NEW_A3_G1_READONLY_PREFLIGHT_PASS")
+                    time.sleep(min(5, max(0, deadline - time.monotonic())))
+            # Security gate is never retried: unexpected Caddy files, systemd
+            # activation edges, TLS/drop-in metadata or bound ports STOP.
+            safety.validate_gateway_config(r0)
+            safety.validate_tcp_bindings(r0, gateway_state=args.gateway_state)
+            evaluate(r0, manifest, snapshot, profile=args.profile,
+                     gateway_state=args.gateway_state)
+            if args.gate_once:
+                # Reserve enough budget for both sequential systemctl starts.
+                require(deadline - time.monotonic() >= 70)
+                snapshot = collect(r0, manifest)
+                evaluate(r0, manifest, snapshot,
+                         profile="postchange", gateway_state="cold")
+                probe(r0)
+                safety.validate_gateway_config(r0)
+                safety.validate_tcp_bindings(r0, gateway_state="cold")
+                require(deadline - time.monotonic() >= 70)
+                start_gateway(r0)
+                safety.validate_tcp_bindings(r0, gateway_state="pilot")
+                print("CCPC_NEW_A3_G1_GATEWAY_STARTED_PASS")
+            else:
+                print("CCPC_NEW_A3_G1_READONLY_PREFLIGHT_PASS")
         return 0
     except Exception:  # includes the independently imported R0 Stop; no raw error output
         print("CCPC_NEW_A3_G1_STOP_REVIEW_REQUIRED")
