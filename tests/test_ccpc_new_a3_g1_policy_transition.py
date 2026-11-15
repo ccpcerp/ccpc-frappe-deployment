@@ -82,11 +82,39 @@ class PolicyTransitionTests(unittest.TestCase):
         self.fake = FakeDocker(self.data, self.rows)
 
     def run_main(self, mode):
-        with mock.patch.object(mod, 'operator'), mock.patch.object(mod, 'manifest', return_value=self.data), \
+        # Exercise transition logic only inside the mock: production source
+        # retains the False interlock, and --check works with it locked.
+        with mock.patch.object(mod, 'G1_POLICY_MUTATION_REVIEWED', mode != '--check'), \
+             mock.patch.object(mod, 'operator'), mock.patch.object(mod, 'manifest', return_value=self.data), \
              mock.patch.object(mod, 'call', side_effect=self.fake), \
              contextlib.redirect_stdout(io.StringIO()) as buf:
             code = mod.main([mode])
         return code, buf.getvalue()
+
+
+    def test_mutating_modes_locked_before_any_host_or_docker_access(self):
+        self.assertFalse(mod.G1_POLICY_MUTATION_REVIEWED)
+        for mode in ('--apply', '--compensate'):
+            with self.subTest(mode=mode):
+                with mock.patch.object(mod, 'operator') as operator, \
+                     mock.patch.object(mod, 'manifest') as manifest, \
+                     mock.patch.object(mod, 'call') as docker, \
+                     contextlib.redirect_stdout(io.StringIO()) as buf:
+                    rc = mod.main([mode])
+                self.assertEqual(rc, 1)
+                self.assertEqual(buf.getvalue().strip(),
+                                 'CCPC_NEW_A3_G1_POLICY_STOP_REVIEW_REQUIRED')
+                operator.assert_not_called()
+                manifest.assert_not_called()
+                docker.assert_not_called()
+        self.assertFalse(mod.G1_POLICY_MUTATION_REVIEWED)
+
+    def test_readonly_stays_allowed_without_policy_activation(self):
+        self.assertFalse(mod.G1_POLICY_MUTATION_REVIEWED)
+        rc, out = self.run_main('--check')
+        self.assertEqual(rc, 0)
+        self.assertIn('POLICY_READONLY_CHECK_PASS', out)
+        self.assertFalse(self.fake.updates)
 
     def set_prefix(self, n):
         for name in mod.CANDIDATES[:n]:
