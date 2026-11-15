@@ -2,6 +2,16 @@
 
 **Date:** 2026-11-15 (Asia/Manila). **Status:** GitHub-only review implementation. **User authorization:** broaden DEV investigation/test access and set up an auditable, restricted DEV connection; **not** permission to access NEW PRODUCTION, restart any shared host, remove credentials, run unattended Codex, change DNS/firewall, or publish/rotate secrets. No host access has been configured or tested in this milestone.
 
+## Exact-source offline test evidence
+
+On 2026-11-15 the source and test files were reconstructed into a disposable local Python tree and **Git blob IDs verified** against GitHub before interpreting the tests: script `6aed1b7e6989c0896296127fb38d1ac26d00160b`; test `74aef289fabe38ac378f266f7ab73669a58febef`. The exact unit-test command was:
+
+```bash
+python3 -B -m unittest discover -s tests -p 'test_ccpc_dev_execution_boundary_readonly.py' -v
+```
+
+**11/11 mocked Python tests PASS**; scenario coverage includes OLD PROD running, readable SSH mounts, Docker socket mount, privileged container, stopped DEV, wrong Docker Compose identity, bad Docker access, host and context rejection, sanitized output, and no source mutation verbs. **This was not a legacy-host Docker inspection, remote connection, CI runner execution or approval to install the worker.** The review-only script has not been copied to or executed on `ccpcerpserver`.
+
 ## Current state and known hazards
 
 - Dedicated NEW host: `ccpcerp-prod`. This project does **not** authorize changes to it.
