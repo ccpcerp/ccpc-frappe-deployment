@@ -1,5 +1,13 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
+## 2026-11-15 — Owner-reported OLD production frontend STOP PASS; scheduler next
+
+- **Owner reports exact successful marker** `OLD_PRODUCTION_FRONTEND_STOPPED_PASS` after the guard-checked OLD frontend-only command targeting `frappe_docker-frontend-1` on `ccpcerpserver`. The command was designed to verify full immutable Docker ID, `frappe_docker` project/role labels, initial `running=true` and `restart=unless-stopped`, then change only that full ID to `restart=no`, stop it with 60-second grace, and assert `Id=<same> State.Running=false RestartPolicy=no`. **Evidence is operator-reported stdout, not independent SSH.** OLD frontend is now treated as stopped; neither OLD scheduler/worker/backend nor NEW are claimed stopped/changed.
+- **Next one OLD-only stage under already approved controlled cutover:** verify exact frontend still `running=false restart=no`, inspect pinned `frappe_docker-scheduler-1` current full ID, project and `scheduler` label plus `running=true restart=unless-stopped`; change only scheduler restart policy to `no`, stop it gracefully with `docker stop --time=60`, verify same full ID `running=false restart=no`, then report `OLD_PRODUCTION_SCHEDULER_STOPPED_PASS`. If any guard or Docker operation fails, STOP without retry or broad Compose shutdown.
+- **After scheduler PASS:** audit OLD queue-short/queue-long in-flight work through narrowly bounded metadata before their controlled shutdown; stop and set policies `no` only for verified OLD PROD containers after quiescence, then fence remaining backend/websocket/alternate ingress or integration writers if needed. Do not terminate active financial/inventory jobs in flight. Preserve OLD production DB/Redis/site volumes as rollback data and all co-hosted DEVELOPMENT. Nov 5 final owner-approved restored source stands; no backup-age recheck. NEW remains pre-employee cutover with six candidates `RestartPolicy=no` and G1 boot interlock off, so power-loss auto recovery is not yet enabled.
+
+---
+
 ## 2026-11-15 — OLD PRODUCTION six-service identity and restart-policy inventory PASS; shutdown stage 1 pending
 
 - Owner executed the previous read-only check on OLD host `gani@ccpcerpserver`, returning **six exact Compose-labeled OLD production services** all `running=true`, `restart=unless-stopped`, project `frappe_docker`, expected matching service labels: `frappe_docker-frontend-1`, `frappe_docker-backend-1`, `frappe_docker-websocket-1`, `frappe_docker-queue-short-1`, `frappe_docker-queue-long-1`, `frappe_docker-scheduler-1`. Completion marker: `OLD_PRODUCTION_SIX_SERVICES_IDENTIFIED`. This is **owner-reported live inspection**, not independent connector SSH. The OLD services are still running, not shut down.
