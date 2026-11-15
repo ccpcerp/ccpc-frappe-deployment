@@ -223,3 +223,26 @@ CCPC_NEW_A3_G1_CREDENTIAL_METADATA_READONLY_INVENTORY_COMPLETE
 **Next single operator step within existing read-only NEW-host approval:** inspect *only* `lstat` POSIX mode bits and root owner/group flags of `/run/credentials`, `/run/credentials/caddy.service`, `/run/credentials/caddy.service/ccpc_tls_key` (never read the key bytes, dump directories, print service configuration or change permissions). Versioned script [`scripts/ccpc_new_a3_g1_credential_permissions_readonly.py`](../../scripts/ccpc_new_a3_g1_credential_permissions_readonly.py), exact Git blob `2231bc0e1b1b12b4b8c6a05718575b277e23b66d`, SHA256 `55a80f7d1b82a345b55b139cf56d10386b0203c82c10b3282e1827ee0635c4f0`. Offline synthetic [`tests/test_ccpc_new_a3_g1_credential_permissions_readonly.py`](../../tests/test_ccpc_new_a3_g1_credential_permissions_readonly.py), Git blob `aa77af1c41ed9524b368ad9fafdaa0ee3e9deb7a`. **5/5 offline unittests PASS**, byte-for-byte Git blob verified. Script also reads only systemd Caddy active/disabled status. Reports sanitized octal mode + root-ownership booleans + completion/STOP. No server action yet for Step 6.
 
 Do NOT run `chmod`, `chown`, `setfacl`, Caddy reload or service restart merely because runtime credential has nonowner read bits; first interpret parent directory traversal permissions, ACLs and systemd namespace behavior. Even benign observed mode combinations do not prove effective TLS certificate/chain validity, WAN denial or G1 boot recovery. NEW G1 activation remains interlocked; no Docker policy update, gate installation, enablement, reboot, PROD cutover or R0 manifest modifications approved.
+
+## November 15 — Step 6 live runtime credential permissions COMPLETE; R0 SHA256 pin independently verified
+
+Owner reported the Step 6 narrow read-only NEW-host runtime credential `lstat` inspection COMPLETE, with no standalone STOP marker. Terminal leading garbled paste echo was ignored; only exact status markers were interpreted:
+
+```text
+CCPC_NEW_A3_G1_CREDENTIAL_ROOT_DIR_MODE=0755
+CCPC_NEW_A3_G1_CREDENTIAL_ROOT_DIR_OWNER_ROOT=YES
+CCPC_NEW_A3_G1_CREDENTIAL_ROOT_DIR_GROUP_ROOT=YES
+CCPC_NEW_A3_G1_CREDENTIAL_SERVICE_DIR_MODE=0550
+CCPC_NEW_A3_G1_CREDENTIAL_SERVICE_DIR_OWNER_ROOT=YES
+CCPC_NEW_A3_G1_CREDENTIAL_SERVICE_DIR_GROUP_ROOT=YES
+CCPC_NEW_A3_G1_RUNTIME_CREDENTIAL_FILE_MODE=0440
+CCPC_NEW_A3_G1_RUNTIME_CREDENTIAL_FILE_OWNER_ROOT=YES
+CCPC_NEW_A3_G1_RUNTIME_CREDENTIAL_FILE_GROUP_ROOT=YES
+CCPC_NEW_A3_G1_CREDENTIAL_PERMISSIONS_READONLY_INVENTORY_COMPLETE
+```
+
+**Interpretation:** `/run/credentials` allows world traverse, but the service-specific `/run/credentials/caddy.service` is root:root `0550` (no other traverse); the nonempty runtime credential is root:root `0440` (readable by owner/group, not others). This explains why previous simplistic `(mode & 0o077) == 0` predicate yielded `TLS_RUNTIME_CREDENTIAL_PRIVATE_MODE=NO` and does **not** by itself imply exposure to ordinary users outside the root group. POSIX ACLs, root-group membership, other namespaces/paths, mount options and effective access control have not been directly measured: do not claim definitive proof of confidentiality or cert trust. No `chmod`, `chown`, `setfacl`, service restart/reload, or credential replacement is warranted from these observations alone.
+
+**Engineering source verification:** Independently SHA-256 hashed exact GitHub review-branch `scripts/ccpc_new_a3_boot_r0_readonly.py` content, Git blob `a65b6c0907c0b28e390557b153d220ffd110c42b`. Digest `3f4e03d0e5f5d55bacfd16492fb021045eeb06b0199577a1612c9f18e0a3d72b` exactly equals the `R0_SHA256` pin in `scripts/ccpc_new_a3_g1_boot_gate.py`. Calculation implementation confirmed against standard `abc` and empty-string SHA-256 vectors. R0 file unchanged. Other G1 live-host paths, permissions, full boot dependency graph, probes/timeouts, access/side effects and install/rollback plan still require review. The G1 draft has explicit `G1_ACTIVATION_REVIEWED = False` and remains **NON-EXECUTABLE for activation**.
+
+**Next critical path instead of repetitive permission inspections:** consolidate the known Step 1–6 live baseline into a single GitHub-only fail-closed G1 source/unit readiness review: verify installed host path assumptions without printing root-only manifest (only under a separately reviewed passive host step if needed), unit ordering/drop-ins/indirect triggers, check scheduled jobs/outbound effects if enabling Docker restart, align liveness probe timeouts with systemd, pin rollback on exact IDs. Do not schedule a reboot or change Docker restart policies until a separate explicit owner authorization after risk/rollback review. Employee production cutover remains NO-GO; preserve OLD PROD, DEV, 19 NEW containers and immutable root-only R0 manifest.
