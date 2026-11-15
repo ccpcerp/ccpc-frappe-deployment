@@ -1,5 +1,13 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
+## 2026-11-15 — OLD PROD scheduler stop PASS; queue-worker process-only inspection next
+
+- Owner reported `OLD_PRODUCTION_SCHEDULER_STOPPED_PASS` from scoped OLD host `ccpcerpserver` command. The script guards already-stopped frontend (`running=false restart=no`), scheduler exact full Docker ID, Compose labels `frappe_docker/scheduler`, initially `running=true restart=unless-stopped`, then changes only scheduler policy to `no`, gracefully stops it with a 60-second timeout and asserts `same_ID false no`. Treat resulting scheduler stop as **owner-reported**, not independently SSH-verified. OLD frontend previously reported `OLD_PRODUCTION_FRONTEND_STOPPED_PASS`. Both are now expected stopped/auto-restart-disabled; DEV on shared OLD untouched.
+- **Next single operator step is read-only process inventory for OLD PROD workers**: on OLD only verify frontend and scheduler remain `false no`, exact `frappe_docker-queue-short-1` and `frappe_docker-queue-long-1` both have `running=true`, `restart=unless-stopped` and proper Compose project/service labels. Request `docker top ... -eo pid,ppid,stat,comm` only, excluding raw arguments, logs, job data and credentials; output marker `OLD_PRODUCTION_QUEUE_PROCESS_INVENTORY_COMPLETE`. This may expose process hierarchy but is **not itself conclusive proof of no in-flight RQ jobs**; if activity ambiguity remains, use one narrowly scoped read-only queue/worker state check before stopping. Do not kill worker jobs, change Docker restart policies, stop a queue, read private job payloads or touch DEV under this read-only step.
+- Pending: bounded OLD queue worker drain/stop, then backend/websocket and any external writer routes, followed by validated single-writer NEW employee cutover and separately approved NEW automatic restart and reboot validation. Retain old database/Redis/files for rollback, Nov5 backup source final/accepted. G1 activation is still blocked on NEW.
+
+---
+
 ## 2026-11-15 — Owner-reported OLD production frontend STOP PASS; scheduler next
 
 - **Owner reports exact successful marker** `OLD_PRODUCTION_FRONTEND_STOPPED_PASS` after the guard-checked OLD frontend-only command targeting `frappe_docker-frontend-1` on `ccpcerpserver`. The command was designed to verify full immutable Docker ID, `frappe_docker` project/role labels, initial `running=true` and `restart=unless-stopped`, then change only that full ID to `restart=no`, stop it with 60-second grace, and assert `Id=<same> State.Running=false RestartPolicy=no`. **Evidence is operator-reported stdout, not independent SSH.** OLD frontend is now treated as stopped; neither OLD scheduler/worker/backend nor NEW are claimed stopped/changed.
