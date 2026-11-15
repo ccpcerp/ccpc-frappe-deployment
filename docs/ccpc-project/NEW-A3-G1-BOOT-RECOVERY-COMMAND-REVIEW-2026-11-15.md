@@ -124,3 +124,19 @@ Under the already-approved **read-only NEW-host dependency inspection** scope, a
 - Read-only operations: `systemctl show` with only `LoadState,ActiveState,UnitFileState` for Docker, containerd, Caddy, upstream socket/relay, masked Caddy API and proposed G1 gate; `ss -H -ltn` listening TCP ports parsed internally. This audit compares existing expected pilot state, requires G1 unit to remain not installed, requires TCP 443 only bound on `192.168.50.186` and TCP 8080 only bound on `127.0.0.1`. It does not inspect or disclose Caddyfile contents, certs, raw systemd unit text, env, manifest, Docker inspect, keys or passwords. It never writes files or changes services.
 - Expected markers: `CCPC_NEW_A3_G1_SYSTEMD_BASELINE_PASS`, `CCPC_NEW_A3_G1_GATE_UNIT_NOT_INSTALLED_PASS`, `CCPC_NEW_A3_G1_HTTPS_443_LAN_BIND_PASS`, `CCPC_NEW_A3_G1_RELAY_8080_LOOPBACK_BIND_PASS`, `CCPC_NEW_A3_G1_SYSTEMD_LISTENERS_READONLY_PASS`. Failure marker: `CCPC_NEW_A3_G1_SYSTEMD_LISTENERS_STOP_REVIEW_REQUIRED`; any STOP overrides earlier partial PASS, no retry/modification without review.
 - **Important limitations:** checking active TCP listeners and top-level unit states **does not prove** the content or effective routing of Caddy, TLS trust, WAN/guest denial, indirect systemd boot dependencies/drop-ins, UDP/QUIC listeners, scheduler/runtime safety, or recovery after a reboot. Detailed Caddy/config/systemd graph inspection is a separate next step, not presumed PASS. No G1 boot change, reboot, or cutover permitted.
+
+## November 15 — G1 Step 2 systemd and listener inspection — operator PASS
+
+Owner reported all five exact NEW A3 G1 Step 2 read-only markers:
+
+```text
+CCPC_NEW_A3_G1_SYSTEMD_BASELINE_PASS
+CCPC_NEW_A3_G1_GATE_UNIT_NOT_INSTALLED_PASS
+CCPC_NEW_A3_G1_HTTPS_443_LAN_BIND_PASS
+CCPC_NEW_A3_G1_RELAY_8080_LOOPBACK_BIND_PASS
+CCPC_NEW_A3_G1_SYSTEMD_LISTENERS_READONLY_PASS
+```
+
+**Result: Step 2 PASS, as a one-time operator-reported live read-only observation, not a reboot test.** Docker+containerd showed active/enabled; Caddy and upstream socket active/disabled, relay active/static; Caddy API masked; the proposed G1 gate not installed; observed host TCP 443 listen address was only `192.168.50.186`, and TCP 8080 only `127.0.0.1`. Step 1's 19 pinned IDs and restart-policy PASS remains separate prior evidence. The command read only `systemctl show` and `ss` and did not change services.
+
+**Remain unresolved:** actual Caddyfile vs loaded runtime configuration, TLS source/cert matching, DNS/approved Windows trust, security of Caddy routing, IPv6/UDP/QUIC exposure, indirect systemd boot triggers/drop-ins, backend auto-resume side effects, power recovery and G2–G7 requirements. No auto-restart/boot-gate activation, unit installation, rollback rehearsal, reboot, or employee cutover was authorized by this result. Next within approved read-only inspection: scrutinize installed Caddy configuration and systemd dependency graph with sanitized Boolean/status output, never raw certificate, key, systemd environment or full Caddyfile.
