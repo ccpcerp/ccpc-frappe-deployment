@@ -1,11 +1,13 @@
 """Offline, synthetic fail-closed G1 safety tests. No Docker/systemd/network access."""
 import contextlib
+import sys
 from pathlib import Path
 import stat
 from types import SimpleNamespace
 import unittest
 from unittest import mock
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import ccpc_new_a3_g1_safety as s
 
 
