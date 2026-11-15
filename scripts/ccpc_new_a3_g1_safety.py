@@ -154,4 +154,15 @@ def validate_tcp_bindings(r0, *, gateway_state):
     expected = {'443': set(), '8080': set()} if gateway_state == 'cold' else {
         '443': {'192.168.50.186'}, '8080': {'127.0.0.1'}}
     require(listeners == expected)
+    # The reviewed Caddy template permits HTTP/1.1 and HTTP/2 only; UDP443
+    # (QUIC or a different server) is not an approved exposure surface.
+    udp = r0.invoke(('ss', '-H', '-lun'))
+    require(len(udp) <= 262144)
+    try:
+        for line in udp.decode('utf-8').splitlines():
+            fields = line.split()
+            require(len(fields) >= 5)
+            require(fields[3].rpartition(':')[2] != '443')
+    except UnicodeError:
+        raise SafetyStop() from None
     return True
