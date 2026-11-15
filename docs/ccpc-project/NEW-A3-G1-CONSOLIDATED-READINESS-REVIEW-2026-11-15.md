@@ -89,3 +89,28 @@ The 29 new tests ran in a local Python test harness with repository-style `scrip
 7. **P2 future deployment pinning:** source+helper hashes, root mode, Python environment, symlink protection, exact G1 paths and current host dependency graph must be reviewed as one immutable, never-overwrite staging package under **new explicit approval**.
 
 **Decision:** This is a meaningful GitHub-only source/test hardening milestone, *not* successful G1 automatic recovery. The next safest development action is rerunning complete original G1 integration fixtures and adding end-to-end mocked gate failure-path tests, then reviewing backend side effects and full recovery/rollback executor. Any host staging/policy changes/reboot require separate independent owner authorization. Employee production cutover remains **NO-GO**.
+
+---
+
+## November 15 — Gate-flow failure-path fixtures and backend resume source assessment
+
+**Owner continuing authorization:** GitHub-only code/testing and backend source review, **not host mutation or restart**. Draft PR #35 remains open and unmerged. Earlier 29/29 new synthetic helper/planner tests were executed locally and passed against then-matching GitHub blobs; the *12 updated original full G1 tests remain unrun*. New complete-gate tests were authored in this follow-up but have not yet executed.
+
+### Added code/test artifacts
+
+- Added [seven mocked complete G1 flow tests](../../tests/test_ccpc_new_a3_g1_gate_flow.py), Git blob `2cffcc3b75cc528095acf46d1f1e5c08a224bc55`. These tests exercise locked `--gate-once` refusal, read-only gate preflight, Caddy config failure before start, listener failure before start, positive mocked pre-start recheck ordering (with interlock toggled **only inside a mock**), 70s startup reservation block, and Caddy/systemd start error returning STOP with no false success marker. They fake `get_r0`, safety, Docker inspection, systemd/collect, probe and network; no host action. **7 test methods added, not executed** at this checkpoint.
+- Created [G1 test-only GitHub Actions workflow](../../.github/workflows/g1-review-tests.yml), initially triggered on PR review branch push, with no secrets, `permissions: contents: read`, five-minute timeout, Python syntax and three suite invocations. GitHub generated [run 43677160450](https://github.com/ccpcerp/ccpc-frappe-deployment/actions/runs/43677160450), commit `2ac23c2f864bfed73fd39f7c7403be2e30304948`, status completed/conclusion **failure** after approximately three seconds; job ID `132699725796`, `runner_id=0`, `steps=[]`. No Python test steps executed. Job log retrieval returned `BlobNotFound`; **do not classify the failure as code/test failure or success** and do not invent why the runner did not start. To avoid repeated automatic runs without a functioning runner, workflow was changed to **manual `workflow_dispatch` only** at commit `a6f35b75614ccf8cd1bd0c050f8b4285b816dc7a`, and the new seven-case flow suite was included. No further CI attempt is scheduled.
+- [Backend side-effect review](NEW-A3-G1-BACKEND-RESUME-SIDE-EFFECT-REVIEW-2026-11-15.md) added on GitHub. Inspected exact generic deployment `compose.yaml` blob `752b86e1ba4c1977a2636b1916f6015771f4c28c`, and app review branch `review/billing-authorization-correction-2026-11-03` `ccpcerp/hooks.py` blob `816afe85a64e743dec843c7a86531a6fb2818f18`, `mrs_procurement.py` blob `6fbb3961e9f828991be2d6e70618087c37468aec`. Generic Compose declares separate Gunicorn backend, queue worker and scheduler services; NEW R0 observation showed six candidates without named queue-worker/scheduler service. The app review source has active document-event hooks and DB update/email capabilities, commented custom scheduler block, and a migration hook. None of these **proves the deployed candidate image/entrypoint/processes**, whether it can consume jobs automatically after boot, or OLD/NEW single-writer safety. **Backend auto-resume remains P0 BLOCKED** pending live read-only process/queue inspection after separate reviewed scope and business-write signoff.
+
+### Verification ledger and next safe step
+
+| Check | Result | Meaning |
+| --- | --- | --- |
+| Existing 29 safety/planner offline mocks | PASS from previous source-hardening milestone | Against byte-matched helper/planner files; not end-to-end G1 |
+| Updated original 12-method G1 fixture | **NOT RUN** | Changed full gate remains unverified |
+| New 7-method gate flow fixtures | **ADDED, NOT RUN** | Coverage written, no executed result |
+| Test-only GitHub Actions run | **FAILED BEFORE ANY JOB STEP** | Runner not assigned; reason unknown; no code conclusion |
+| Backend side-effect source assessment | **DOCUMENTED, P0 UNRESOLVED** | Deployed image and queues unverified |
+| Real NEW boot/rollback/cutover | **NOT AUTHORIZED OR TESTED** | G1 remains blocked |
+
+**Next actionable testing route:** Run the complete 12+7+15+14 = **48 test methods** using a functioning isolated Python CI/runner, collect its exact pass/fail logs, and fix any errors on the review branch. Do not call them PASS until that execution is recorded. After that, collect separately approved sanitized NEW process/job safety evidence before any candidate policy update. Retain `G1_ACTIVATION_REVIEWED = False`; no unit/restart-policy/host change, no reboot, no employee cutover.
