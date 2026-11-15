@@ -29,3 +29,11 @@
 **Next possible operator observation requires a separate bounded read-only NEW-host review:** collect only sanitized present/absent and count metadata for *pinned* exact six candidate container commands/process roles and worker/scheduler presence, and queue **counts only** with no keys, job arguments, secrets, raw `docker inspect`, site configs or environment values printed. This is a review candidate, **not** an approved command in this document. Determine and test safe business-write isolation first.
 
 GitHub-only code hardening remains in draft PR #35. No action against NEW, OLD PROD or DEVELOPMENT, no production-facing source release, and no credential or business data extraction occurred.
+
+---
+
+## 2026-11-15 — Pinned process inventory source-and-test milestone (not live)
+
+On open DRAFT PR #35 the review branch now includes a metadata-only, **non-executing** [pinned backend process inventory](../../scripts/ccpc_new_a3_g1_backend_process_readonly.py), its [15 synthetic tests](../../tests/test_ccpc_new_a3_g1_backend_process_readonly.py), and a [separate inspection scope and limits review](NEW-A3-G1-BACKEND-PROCESS-INVENTORY-REVIEW-2026-11-15.md). **15/15 newly added isolated mocked tests PASS**; exact GitHub blob IDs verified against the locally executed files (source `0bbebf66f35be2be0d761850d863f433bb92afb6`, test `132001864c1a59496e354245286d2f8f04e4c608`). Existing complete 48-method G1 suite previously passed offline, but a combined 63-method run has **not** been performed.
+
+This script checks the root-only R0 manifest and exact 19 Docker identities/restart policies first, then reads six candidate container process tables using immutable full IDs and prints only sanitized counts/signatures. It does **not** read Redis queues, infer arbitrary Python subprocess safety, inspect external consumers, connect to any database, or prove absence of application-side writes. The live NEW-host process inventory is **PENDING separately reviewed operator authorization and execution**. No NEW/OLD PROD or DEV operation, auto-restart policy, G1 activation, source installation or reboot occurred. **P0 remains BLOCKED / employee cutover NO-GO.**
