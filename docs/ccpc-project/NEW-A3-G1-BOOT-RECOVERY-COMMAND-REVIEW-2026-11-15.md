@@ -201,3 +201,25 @@ New reviewed strictly read-only script [`scripts/ccpc_new_a3_g1_credential_metad
 Within the existing owner-approved *passive* inspection, the operator may paste exact source in memory with `sudo python3 -B -` on `ccpcadmin@ccpcerp-prod`. Reads only `systemctl show` metadata of active/disabled Caddy, plus `lstat` **metadata only** of the known source TLS key and an optionally host-visible credential at `/run/credentials/caddy.service/ccpc_tls_key`. Does not open/read/copy key bytes, certificates, arbitrary service environment, configuration files or credentials, and does not print paths or values. Reports only boolean property/name presence and regular/nonempty/private-mode metadata, plus sanitized completion/STOP. It never writes a file, restarts or reloads anything.
 
 **Interpretation:** an unavailable systemd property, missing host-visible runtime credential path (possibly due to private mount namespaces), or failed metadata check is an observation requiring review, NOT automatic evidence of a missing/invalid key; a present runtime credential does not prove certificate matching, source provenance or staff TLS trust. This step does not complete Caddy/HTTPS security or the full boot graph. No key/cert replacement, systemd update, Docker policy change, gate activation, or reboot permitted.
+
+## November 15 — G1 Step 5 credential metadata operator result and Step 6 permissions check prepared
+
+Owner reported exact Step 5 NEW-host read-only output (`CCPC_NEW_A3_G1_CREDENTIAL_METADATA_READONLY_INVENTORY_COMPLETE`, no STOP):
+
+```text
+CCPC_NEW_A3_G1_SYSTEMD_LOADCREDENTIAL_PROPERTY_PRESENT=YES
+CCPC_NEW_A3_G1_SYSTEMD_LOADCREDENTIAL_NAME_PRESENT=NO
+CCPC_NEW_A3_G1_SYSTEMD_LOADCREDENTIALEX_PROPERTY_PRESENT=NO
+CCPC_NEW_A3_G1_SYSTEMD_LOADCREDENTIALEX_NAME_PRESENT=NO
+CCPC_NEW_A3_G1_TLS_SOURCE_KEY_METADATA_PRESENT=YES
+CCPC_NEW_A3_G1_TLS_SOURCE_KEY_PRIVATE_MODE=YES
+CCPC_NEW_A3_G1_TLS_RUNTIME_CREDENTIAL_HOST_VISIBLE=YES
+CCPC_NEW_A3_G1_TLS_RUNTIME_CREDENTIAL_PRIVATE_MODE=NO
+CCPC_NEW_A3_G1_CREDENTIAL_METADATA_READONLY_INVENTORY_COMPLETE
+```
+
+**Current interpretation:** Root-only source key is present with restrictive POSIX mode. A nonempty runtime credential file is host-visible. `SYSTEMD_LOADCREDENTIAL_NAME_PRESENT=NO` is a substring-search result against a systemd property, not proof that the loaded runtime credential is missing. `TLS_RUNTIME_CREDENTIAL_PRIVATE_MODE=NO` says the runtime file had one or more group/other permission bits according to `(mode & 0o077) != 0`; this may be expected if a protected parent directory or mount namespace prevents nonservice users from traversing to it. **It is not yet a proven security problem nor proof of safe isolation.** Systemd documentation notes service credentials are exposed in read-only runtime directories and scoped to service processes, with mount-namespaced protection depending on configuration: https://systemd.io/CREDENTIALS/ and https://www.freedesktop.org/software/systemd/man/255/systemd.exec.html .
+
+**Next single operator step within existing read-only NEW-host approval:** inspect *only* `lstat` POSIX mode bits and root owner/group flags of `/run/credentials`, `/run/credentials/caddy.service`, `/run/credentials/caddy.service/ccpc_tls_key` (never read the key bytes, dump directories, print service configuration or change permissions). Versioned script [`scripts/ccpc_new_a3_g1_credential_permissions_readonly.py`](../../scripts/ccpc_new_a3_g1_credential_permissions_readonly.py), exact Git blob `2231bc0e1b1b12b4b8c6a05718575b277e23b66d`, SHA256 `55a80f7d1b82a345b55b139cf56d10386b0203c82c10b3282e1827ee0635c4f0`. Offline synthetic [`tests/test_ccpc_new_a3_g1_credential_permissions_readonly.py`](../../tests/test_ccpc_new_a3_g1_credential_permissions_readonly.py), Git blob `aa77af1c41ed9524b368ad9fafdaa0ee3e9deb7a`. **5/5 offline unittests PASS**, byte-for-byte Git blob verified. Script also reads only systemd Caddy active/disabled status. Reports sanitized octal mode + root-ownership booleans + completion/STOP. No server action yet for Step 6.
+
+Do NOT run `chmod`, `chown`, `setfacl`, Caddy reload or service restart merely because runtime credential has nonowner read bits; first interpret parent directory traversal permissions, ACLs and systemd namespace behavior. Even benign observed mode combinations do not prove effective TLS certificate/chain validity, WAN denial or G1 boot recovery. NEW G1 activation remains interlocked; no Docker policy update, gate installation, enablement, reboot, PROD cutover or R0 manifest modifications approved.
