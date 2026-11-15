@@ -1,5 +1,14 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
+## 2026-11-15 — NEW A3 G1 Step 3 live inventory and Step 4 read-only check prepared
+
+- **Step 3 operator reported COMPLETE**, no STOP. Observations: Caddy unit config-path YES; Caddy drop-ins YES; socket reverse edges YES; relay Requires+After socket YES; disk Caddyfile PR28 template shape YES; socket and relay drop-ins NO; Caddy reverse edges NO; direct Caddy After Docker NO; UDP443 listener NO. These are **limited live observations**, not blanket security PASS, boot recovery, runtime TLS validation, or production GO.
+- GitHub PR #28 holds the expected Caddy credential drop-in review template `overrides/systemd/caddy-ccpc-tls-credentials.review.conf`, intended for an installed `/etc/systemd/system/caddy.service.d/ccpc-tls-credentials.conf`. We have **NOT** verified that actual installed drop-in matches. Socket reverse YES may simply be the expected relay, but exact membership is not yet verified.
+- Under existing owner-approved passive NEW-host dependency inspection, next one operator action is the **G1 Step 4** strictly read-only drop-in/reverse-edge check from [review branch source](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/review/new-a3-production-readiness-2026-11-13/scripts/ccpc_new_a3_g1_tls_dropin_readonly.py), SHA256 `cfb452b4d80edec21a7ca58b05f9e86fcce356dd7c3baf7b04e80fb344f6f538`, Git blob `f4888b413a87c354b3129d457dae131b9dadac84`; [test suite](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/review/new-a3-production-readiness-2026-11-13/tests/test_ccpc_new_a3_g1_tls_dropin_readonly.py), Git blob `4adfe4892bc3cc7dc3fac6b828486174d0bf5165`. **11/11 offline tests PASS and Python compilation PASS** against exact blob bytes. Review documentation branch commit `6c3c052a6e143e96589778c75b6c478095b4493c`.
+- Step 4 read-only script, pasted as `sudo python3 -B -` on `ccpcadmin@ccpcerp-prod`, internally inspects only Caddy/socket `systemctl show` selected fields and root-owned reviewed drop-in file text. Prints only fixed YES/NO and completion/STOP markers; does not read TLS private key contents or print any file/env/key paths or arbitrary unit data. No NEW host execution of Step 4 reported yet.
+- Preserve root-only immutable R0 manifest, all 19 protected container identities, OLD PROD and DEV. No Docker restart-policy update, G1 source installation, service activation/enablement, reboot or cutover. **G1 BLOCKED; employee PRODUCTION NO-GO.**
+
+---
 ## 2026-11-15 — G1 Step 3 Caddy and loaded-unit graph inspection prepared (operator pending)
 
 - Operator previously reported G1 Step 1 4/4 and Step 2 5/5 expected PASS markers on NEW. These establish baseline identities/restart policies and systemd/TCP listener states **at inspection times**, not automatic boot recovery.
