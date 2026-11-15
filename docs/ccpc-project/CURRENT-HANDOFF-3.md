@@ -1,5 +1,13 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
+## 2026-11-15 — G1 Step 3 Caddy and loaded-unit graph inspection prepared (operator pending)
+
+- Operator previously reported G1 Step 1 4/4 and Step 2 5/5 expected PASS markers on NEW. These establish baseline identities/restart policies and systemd/TCP listener states **at inspection times**, not automatic boot recovery.
+- On draft deployment PR #35 review branch `review/new-a3-production-readiness-2026-11-13`, now committed a further narrowly scoped read-only NEW-host inventory: `scripts/ccpc_new_a3_g1_caddy_graph_readonly.py` (verified Git blob `e99eb7698b778a04f91075fe8526ec428399f006`), and `tests/test_ccpc_new_a3_g1_caddy_graph_readonly.py` (verified Git blob `5547c09a8c5160361a305dc5dea4a9fd4f597829`). **7/7 offline tests PASS** against exact Git blobs; these are mocked checks, not live integration validation. G1 review document updated at commit `f445142938736de902fb7281020d29b13f75da71`.
+- **Next one operator action under existing passive-inspection approval:** run exact reviewed script in memory using sudo Python on `ccpcadmin@ccpcerp-prod`. It prints YES/NO flags for Caddy service config-path reference, systemd drop-ins/loaded reverse activation edges, relay dependency edges, review-template Caddyfile shape, UDP443 listener existence. It prints NO raw Caddyfile, key/cert path, ExecStart, environment, manifest/container IDs or raw systemd unit text; it does not modify state. Paste only flags plus completion/STOP marker; review booleans as observations, not security PASS.
+- If unexpected flags, STOP on remediation; **do not change anything to match the script**. Template match is NOT proof of effective runtime configuration; loaded-unit properties are NOT a complete reverse boot graph. G1 code activation interlock remains False; no Docker policy changes, unit installation, gateway enable/reload or reboot approved; employee PRODUCTION NO-GO.
+
+---
 ## 2026-11-15 — NEW A3 G1 Step 2 operator PASS (systemd and LAN-only TCP listener inspection)
 
 - Owner reported all five exact expected `CCPC_NEW_A3_G1_*_PASS` markers from the audited read-only NEW-host Step 2. Docker/containerd active/enabled; Caddy + upstream socket active/disabled; relay active/static; Caddy API masked; G1 boot unit not installed; TCP port 443 listening only at `192.168.50.186` and TCP 8080 only at `127.0.0.1` **at inspection time**. No service changes. Step 1's exact 19 container/policy PASS remains valid as separate prior evidence.
