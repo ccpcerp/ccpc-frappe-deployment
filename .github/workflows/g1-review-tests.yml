@@ -1,0 +1,50 @@
+# Review-only Python tests for guarded NEW A3 G1. NO host access or deploy.
+name: NEW A3 G1 offline safety tests
+
+on:
+  push:
+    branches:
+      - review/new-a3-production-readiness-2026-11-13
+    paths:
+      - .github/workflows/g1-review-tests.yml
+      - scripts/ccpc_new_a3_g1_*.py
+      - scripts/ccpc_new_a3_boot_r0_readonly.py
+      - scripts/ccpc-new-a3-g1-boot-gate.service
+      - tests/test_ccpc_new_a3_g1_*.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  g1-offline:
+    name: Python synthetic / failure-path tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Python version
+        run: python3 --version
+      - name: Compile G1 source (no side effects)
+        run: |
+          python3 -B - <<'PY'
+          import ast
+          from pathlib import Path
+          paths = (
+              Path("scripts/ccpc_new_a3_g1_boot_gate.py"),
+              Path("scripts/ccpc_new_a3_g1_safety.py"),
+              Path("scripts/ccpc_new_a3_g1_policy_plan.py"),
+              Path("scripts/ccpc_new_a3_boot_r0_readonly.py"),
+          )
+          for path in paths:
+              ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+          print("CCPC_G1_SOURCE_SYNTAX_PASS")
+          PY
+      - name: G1 complete gate fixture suite
+        run: python3 -B -m unittest discover -s tests -p test_ccpc_new_a3_g1_boot_gate.py -v
+      - name: G1 Caddy / deadline safety suite
+        run: python3 -B -m unittest discover -s tests -p test_ccpc_new_a3_g1_safety.py -v
+      - name: G1 exact-ID policy planning suite
+        run: python3 -B -m unittest discover -s tests -p test_ccpc_new_a3_g1_policy_plan.py -v
