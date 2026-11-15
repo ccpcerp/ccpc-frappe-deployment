@@ -29,7 +29,7 @@ DRILL_RUNNING = tuple(f'{DRILL}-{role}-1' for role in
 DRILL_FAILED = f'{DRILL}-backend-1'
 EXPECTED = set(CANDIDATES + OTHER + DRILL_RUNNING + (DRILL_FAILED,))
 DOCKER = ('docker', '--host', 'unix:///var/run/docker.sock')
-HEX64 = re.compile('[0-9a-f]{64}\Z')
+HEX64 = re.compile(r'[0-9a-f]{64}\Z')
 SITES = '/home/frappe/frappe-bench/sites'
 LOGS = '/home/frappe/frappe-bench/logs'
 
