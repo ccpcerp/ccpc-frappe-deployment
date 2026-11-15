@@ -1,5 +1,12 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
+## 2026-11-15 — NEW A3 G1 Step 1 operator PASS (read-only, not recovery validation)
+
+- Operator reported four exact `CCPC_NEW_A3_G1_*_PASS` markers from the previously reviewed, root-only-manifest-pinned, read-only NEW host policy audit: `PROTECTED_IDENTITIES_19_PASS`, `CANDIDATE_POLICY_NO_6_PASS`, `NONCANDIDATE_POLICY_NO_13_PASS` and `POLICY_READONLY_CHECK_PASS`. This establishes the expected 19 protected IDs and states, all six original candidate and 13 noncandidate Docker RestartPolicy=no **at inspection time**; no live changes were requested.
+- GitHub review evidence added in deployment draft PR #35 at commit `cd68a81c30f094a45fa62895ed5269c87eec6253`. Next under existing approved passive inspection is a separate NEW-host systemd service-state and TCP listener-scope check, then Caddy configuration and detailed unit/drop-in/activation graph, one read-only operator step at a time.
+- No G1 boot recovery tested; no container restart policy update, Caddy/socket enablement, unit installation, reboot, R0 manifest recapture or employee cutover. G1 remains BLOCKED and PRODUCTION remains NO-GO. Preserve immutable R0 manifest, all protected 19 Docker identities and OLD PROD/DEV.
+
+---
 ## 2026-11-15 — NEW A3 G1 approved read-only dependency inspection (operator step pending)
 
 - Owner explicitly **approved passive NEW-host G1 dependency inspection only**, not implementation, installation/enablement, Docker policy changes, gateway mutations, reboot or cutover. Continue one safe verified command at a time on `ccpcadmin@ccpcerp-prod`. R0 one-time identity manifest remains root-owned/immutable; NEVER recapture, print, overwrite or upload.
