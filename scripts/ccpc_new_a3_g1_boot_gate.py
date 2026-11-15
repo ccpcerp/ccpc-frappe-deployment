@@ -20,7 +20,7 @@ MANIFEST_PATH = Path("/var/lib/ccpc-new-a3-r0-manifest-20261113/manifest.json")
 G1_DIR = Path("/root/ccpc-new-a3-g1-20261115")
 R0_NAME = "ccpc_new_a3_boot_r0_readonly.py"
 SAFETY_NAME = "ccpc_new_a3_g1_safety.py"
-SAFETY_SHA256 = "a65e302440502602f5ce67e35b88111a1ce91bd5376d514fc478b56ac80611c8"
+SAFETY_SHA256 = "3c50efcc1add9b1350da059fd4570e63c4bf5d491cb6d572ffb1c7883e92ba65"
 UNIT_PATH = Path("/etc/systemd/system/ccpc-new-a3-g1-boot-gate.service")
 # SHA256 of the draft unit file; this binds gate execution to the reviewed unit bytes.
 UNIT_SHA256 = "be8af72e5e05abe1cabe28cdedb184597db9e1510f91b21e4f48af51e85cd274"
