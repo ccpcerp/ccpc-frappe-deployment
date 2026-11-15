@@ -152,6 +152,7 @@ class G1FixtureTests(unittest.TestCase):
         self.assertNotIn("Wants=caddy.service", unit)
         self.assertNotIn("Requires=caddy.service", unit)
         self.assertNotIn("ExecStop=", unit)
+        self.assertFalse(g1.G1_ACTIVATION_REVIEWED)
         self.assertNotIn("docker update", SCRIPT.read_text())
         self.assertNotIn("docker start", SCRIPT.read_text())
 
