@@ -95,7 +95,7 @@ def inspect():
     for line in read("ss", "-H", "-lun").splitlines():
         fields = line.split()
         assert len(fields) >= 5
-        if fields[4].rpartition(":")[2] == "443":
+        if fields[3].rpartition(":")[2] == "443":
             udp443 = True
     bool_line("UDP443_LISTENER_PRESENT", udp443)
     print("CCPC_NEW_A3_G1_CADDY_GRAPH_READONLY_INVENTORY_COMPLETE")
