@@ -16,7 +16,8 @@ spec.loader.exec_module(a)
 
 class FakeDocker:
     def __init__(self):
-        self.old = "exited\nexited"
+        self.old_states = {name: ("running" if name in a.OLD_RETAINED_DATA else "exited")
+                           for name in a.OLD_EXPECTED}
         self.running = "true"
         self.privileged = "false"
         self.project = a.DEV_PROJECT
@@ -26,7 +27,7 @@ class FakeDocker:
     def __call__(self, *args):
         self.calls.append(args)
         if args[0] == "ps":
-            return self.old
+            return "\n".join(f"{name} {state}" for name, state in sorted(self.old_states.items()))
         if args[:2] == ("container", "inspect"):
             key = args[3]
             if key == '{{index .Config.Labels "com.docker.compose.project"}}':
@@ -59,16 +60,41 @@ class BoundaryTests(unittest.TestCase):
         result, out = self.run_preflight()
         self.assertEqual(result, 0)
         self.assertIn("CCPC_DEV_EXECUTION_BOUNDARY_PREFLIGHT_PASS", out)
-        self.assertIn("OLD_PRODUCTION_COMPOSE_ACTIVE=0", out)
+        self.assertIn("OLD_PRODUCTION_APP_ACTIVE=0", out)
+        self.assertIn("OLD_PRODUCTION_RETAINED_DATA_ACTIVE=3", out)
         self.assertEqual(len(self.fake.calls), 5)
         self.assertTrue(all(cmd[0] in ("ps", "container") for cmd in self.fake.calls))
 
     def test_active_old_production_blocks(self):
-        self.fake.old = "exited\nrunning"
+        self.fake.old_states["frappe_docker-backend-1"] = "running"
         result, out = self.run_preflight()
         self.assertEqual(result, 1)
-        self.assertIn("OLD_PRODUCTION_COMPOSE_ACTIVE=1", out)
+        self.assertIn("OLD_PRODUCTION_APP_ACTIVE=1", out)
         self.assertIn("STOP_REVIEW_REQUIRED", out)
+
+    def test_retained_old_data_does_not_block_if_app_services_exited(self):
+        result, out = self.run_preflight()
+        self.assertEqual(result, 0)
+        self.assertIn("OLD_PRODUCTION_RETAINED_DATA_ACTIVE=3", out)
+
+    def test_old_scheduler_restart_blocks(self):
+        self.fake.old_states["frappe_docker-scheduler-1"] = "restarting"
+        result, out = self.run_preflight()
+        self.assertEqual(result, 1)
+        self.assertIn("OLD_PRODUCTION_APP_ACTIVE=1", out)
+
+    def test_unknown_old_service_blocks_before_printing_names(self):
+        self.fake.old_states["frappe_docker-unexpected-1"] = "running"
+        result, out = self.run_preflight()
+        self.assertEqual(result, 1)
+        self.assertEqual(out.strip(), "CCPC_DEV_EXECUTION_BOUNDARY_STOP_REVIEW_REQUIRED")
+        self.assertNotIn("unexpected", out)
+
+    def test_missing_old_service_blocks(self):
+        self.fake.old_states.pop("frappe_docker-backend-1")
+        result, out = self.run_preflight()
+        self.assertEqual(result, 1)
+        self.assertEqual(out.strip(), "CCPC_DEV_EXECUTION_BOUNDARY_STOP_REVIEW_REQUIRED")
 
     def test_ssh_mount_blocks_without_printing_source(self):
         self.fake.add_mount("/home/gani/.ssh", "/home/frappe/.ssh")
