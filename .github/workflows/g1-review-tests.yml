@@ -1,16 +1,9 @@
 # Review-only Python tests for guarded NEW A3 G1. NO host access or deploy.
 name: NEW A3 G1 offline safety tests
 
+# Manual dispatch only: the hosted runner returned no assigned runner
+# and no executed job steps on 2026-11-15. Avoid repeated automatic attempts.
 on:
-  push:
-    branches:
-      - review/new-a3-production-readiness-2026-11-13
-    paths:
-      - .github/workflows/g1-review-tests.yml
-      - scripts/ccpc_new_a3_g1_*.py
-      - scripts/ccpc_new_a3_boot_r0_readonly.py
-      - scripts/ccpc-new-a3-g1-boot-gate.service
-      - tests/test_ccpc_new_a3_g1_*.py
   workflow_dispatch:
 
 permissions:
@@ -44,6 +37,8 @@ jobs:
           PY
       - name: G1 complete gate fixture suite
         run: python3 -B -m unittest discover -s tests -p test_ccpc_new_a3_g1_boot_gate.py -v
+      - name: G1 full-gate mocked execution and failure paths
+        run: python3 -B -m unittest discover -s tests -p test_ccpc_new_a3_g1_gate_flow.py -v
       - name: G1 Caddy / deadline safety suite
         run: python3 -B -m unittest discover -s tests -p test_ccpc_new_a3_g1_safety.py -v
       - name: G1 exact-ID policy planning suite
