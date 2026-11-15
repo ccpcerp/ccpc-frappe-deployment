@@ -172,3 +172,22 @@ Under the *already approved* strictly read-only NEW-host inspection scope, the o
 Expected *inventory* keys: `CADDY_ONLY_REVIEWED_TLS_DROPIN`, `CADDY_TLS_DROPIN_ROOT_PROTECTED`, `CADDY_TLS_DROPIN_REVIEW_TEMPLATE_MATCH`, `CADDY_EFFECTIVE_TLS_CREDENTIAL_DECLARED`, `CADDY_EFFECTIVE_TLS_ENV_NAMES_PRESENT`, `SOCKET_REVERSE_HAS_EXPECTED_RELAY`, `SOCKET_REVERSE_OTHER_UNITS_PRESENT`, and `CCPC_NEW_A3_G1_TLS_DROPIN_REVERSE_READONLY_INVENTORY_COMPLETE`. Failure marker: `CCPC_NEW_A3_G1_TLS_DROPIN_REVERSE_STOP_REVIEW_REQUIRED` (takes precedence over any partial printed flags). **Flags are observations, not blanket security PASS**; a mismatch could mean differing but valid installed configuration and requires review rather than modification.
 
 Still outstanding after this narrow inspection: unloaded/indirect boot triggers, effective loaded Caddy runtime routing/certificate trust, service-side filesystem credential ACL review, guest/WAN denial, auto-resuming backend write/job risks, contingency/backups, and supervised reboot. The immutable R0 manifest must never be recreated or exported. G1 activation is interlocked, G1 BLOCKED, employee production NO-GO.
+
+## November 15 — G1 Step 4 live TLS drop-in and socket reverse inventory COMPLETE
+
+The operator reported `CCPC_NEW_A3_G1_TLS_DROPIN_REVERSE_READONLY_INVENTORY_COMPLETE` (no STOP). The leading garbled terminal/paste echo is not a structured marker; only the following exact observations were used:
+
+```text
+CCPC_NEW_A3_G1_CADDY_ONLY_REVIEWED_TLS_DROPIN=YES
+CCPC_NEW_A3_G1_CADDY_TLS_DROPIN_ROOT_PROTECTED=YES
+CCPC_NEW_A3_G1_CADDY_TLS_DROPIN_REVIEW_TEMPLATE_MATCH=YES
+CCPC_NEW_A3_G1_CADDY_EFFECTIVE_TLS_CREDENTIAL_DECLARED=NO
+CCPC_NEW_A3_G1_CADDY_EFFECTIVE_TLS_ENV_NAMES_PRESENT=YES
+CCPC_NEW_A3_G1_SOCKET_REVERSE_HAS_EXPECTED_RELAY=YES
+CCPC_NEW_A3_G1_SOCKET_REVERSE_OTHER_UNITS_PRESENT=NO
+CCPC_NEW_A3_G1_TLS_DROPIN_REVERSE_READONLY_INVENTORY_COMPLETE
+```
+
+**Interpretation:** Caddy's only listed drop-in is protected and matches PR #28 review-template directives; the effective Caddy environment exposes the two expected TLS variable names; and the socket's loaded reverse edges contain the expected relay with no other observed unit. The `CADDY_EFFECTIVE_TLS_CREDENTIAL_DECLARED=NO` flag is a **single predicate failure**, specifically a literal `ccpc_tls_key:` substring not found in the `systemctl show` `LoadCredential` property. It is **not proof** that the credential was absent at service start: systemd has different directive/property formats and service runtime credential delivery may require independent metadata observation. Do not repair, restart or alter the already working HTTPS pilot on the basis of this flag alone.
+
+**Next under already approved passive inspection:** safe, credential-bytes-free metadata/representation probe of systemd service `LoadCredential`/`LoadCredentialEx` (without printing property values), source key file mode/existence via `lstat`, and *if host-visible* the runtime credential path under `/run/credentials/caddy.service/`, without reading credential bytes or private-key contents. Any runtime absence is inconclusive if systemd uses private mounts/namespaces. Inspect actual unit graph and backend auto-resume risks separately. No G1 installation, policy changes, Caddy reload or reboot. G1 BLOCKED and production cutover NO-GO.
