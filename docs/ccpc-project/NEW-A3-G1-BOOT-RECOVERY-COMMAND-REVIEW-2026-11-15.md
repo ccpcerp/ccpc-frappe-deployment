@@ -98,3 +98,19 @@ CCPC_NEW_A3_G1_POLICY_READONLY_CHECK_PASS
 On \`CCPC_NEW_A3_G1_POLICY_STOP_REVIEW_REQUIRED\`, exceptions, or any missing marker, **STOP** and review safely; do not modify policies or container state to force PASS. The script does not disclose the specific failed rule; its only conclusion is whether the exact baseline matched at the time checked. PASS does **not** prove backend auto-resume safety, installed Caddy security scope, unit graph, or boot resilience. **Next after verified PASS:** separately prepare the remaining Caddy/systemd checks inside the same read-only inspection approval, one reviewed step at a time.
 
 No running NEW, OLD PROD or DEV service was changed to prepare this inspection. Formal G1 remains BLOCKED and production cutover NO-GO.
+
+
+## November 15 — G1 Step 1 protected Docker restart-policy inspection — operator PASS
+
+The operator on NEW reported the four exact success markers from the scoped read-only policy audit:
+
+```text
+CCPC_NEW_A3_G1_PROTECTED_IDENTITIES_19_PASS
+CCPC_NEW_A3_G1_CANDIDATE_POLICY_NO_6_PASS
+CCPC_NEW_A3_G1_NONCANDIDATE_POLICY_NO_13_PASS
+CCPC_NEW_A3_G1_POLICY_READONLY_CHECK_PASS
+```
+
+**Result: G1 Step 1 PASS, at inspection time.** The 19 pinned identities, expected 18 running plus one preserved failed isolated backend, six candidate `RestartPolicy=no`, and thirteen noncandidate `RestartPolicy=no` met this script's checks. This is **operator-reported live evidence**, separate from seven offline synthetic tests. The script has no write actions. It does **not** prove a successful reboot, independent gateway boot ordering, Caddy's precise LAN-only security configuration, backend job safety, or that the values will remain unchanged.
+
+**Next within the existing approved read-only inspection:** a separate one-step NEW-host systemd unit-state and scoped TCP listener inspection; review actual Caddy configuration and unit/drop-in graph after that without disclosing credentials. Do not enable the gateway, alter Docker restart policies, re-create the protected R0 manifest, install the G1 draft or reboot. G1 still BLOCKED and employee production cutover NO-GO.
