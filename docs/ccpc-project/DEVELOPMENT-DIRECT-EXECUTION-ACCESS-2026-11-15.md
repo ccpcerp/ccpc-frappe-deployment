@@ -26,6 +26,16 @@ python3 -B -m unittest discover -s tests -p 'test_ccpc_dev_execution_boundary_re
 
 **Still individually controlled:** operations that touch non-synthetic persistent DEVELOPMENT data, migration, high-risk cleanup, service restarts affecting other containers, configuration of firewall/Docker daemon/host networking, credential changes, new CI paid runs, and integration with external production systems. User has not authorized a blanket shell root account. No NEW PROD access, OLD preserved data deletion, Docker socket mount to the agent, host-wide sudo, SSH material in agent workspaces, production DB credentials, NAS credentials, autonomous Codex publishing, or extra paid API access.
 
+## Owner-reported legacy-host Docker status — 2026-11-15
+
+The owner executed a **read-only** `docker ps -a` Compose-label inventory on the original legacy host and shared the sanitized states:
+
+- OLD PRODUCTION project `frappe_docker`: `frontend`, `backend`, `websocket`, `queue-short`, `queue-long`, `scheduler`, `configurator` are **exited** (7). `db`, `redis-cache`, and `redis-queue` remain **running** (3).
+- DEVELOPMENT project `frappe_docker_devcontainer`: `frappe`, `mariadb`, `redis-cache`, and `redis-queue` are **running** (4).
+- This **supports the owner's claim that the normal OLD web/backend/worker/scheduler application services were shut down**, but does **not** certify no other OLD external writer or retained production credentials. It also does not justify destroying the OLD MariaDB/Redis containers. No mutations were performed by this inspection.
+- In particular, the newly committed exact boundary script requires `OLD_PRODUCTION_COMPOSE_ACTIVE=0`; with this observed inventory it would **STOP** because three OLD project containers are still running. This STOP is expected and must **not** be bypassed by an automatic stop, blind code relaxation, or unauthorized Docker change.
+- Next one safe operator observation is a bounded **DEV container privilege/SSH/Docker-socket mount presence check only**, without printing mount source paths or secrets. Even if this narrow check is negative, it does not replace a complete credential isolation and external writer audit.
+
 ## Staged access implementation
 
 1. **GitHub baseline — DONE:** Added `scripts/development/operator/ccpc_dev_execution_boundary_readonly.py` and `tests/test_ccpc_dev_execution_boundary_readonly.py` on the `review/development-execution-access-2026-11-15` branch. The audit is read-only: exact operator/legacy host, old Compose project active count, pinned DEV container active/project, privileged flag, presence of credential mounts/Docker socket. It emits only YES/NO/count and PASS/STOP, not raw Docker inspect, mount paths, secrets or site data.
