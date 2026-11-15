@@ -109,7 +109,7 @@ class G1FixtureTests(unittest.TestCase):
             "partial policy": lambda s: s["containers"][MockR0.CANDIDATE[0]].update(restart="no"),
             "candidate wrong image": lambda s: s["containers"][f"{MockR0.PREFIX}-frontend-1"].update(image="sha256:" + "9" * 64),
             "volume missing": lambda s: s["containers"][f"{MockR0.PREFIX}-backend-1"]["dest_volumes"].pop(MockR0.BENCH_SITES),
-            "published": lambda s: s["containers"][MockR0.ORIGINAL[0]].update(published=True),
+            "candidate published": lambda s: s["containers"][MockR0.CANDIDATE[0]].update(published=True),
             "extra net member": lambda s: s["network"]["members"].append("x" * 64),
             "network changed": lambda s: s["network"].update(id="f" * 64),
             "network no longer internal": lambda s: s["network"].update(internal=False),
@@ -133,6 +133,21 @@ class G1FixtureTests(unittest.TestCase):
                 corrupt(s)
                 with self.assertRaises((g1.Stop, KeyError, ValueError, TypeError, MockR0.Stop)):
                     g1.evaluate(MockR0, self.m, s, profile="postchange")
+
+    def test_noncandidate_publication_not_promoted_or_changed_by_g1(self):
+        # Preserved rehearsal/restore containers are not candidates for G1
+        # gateway exposure. Candidate service host publication is still fatal.
+        m, s = fixture()
+        s["containers"][MockR0.ORIGINAL[0]]["published"] = True
+        self.assertTrue(g1.evaluate(MockR0, m, s, profile="postchange"))
+        s["containers"][MockR0.CANDIDATE[0]]["published"] = True
+        with self.assertRaises(g1.Stop):
+            g1.evaluate(MockR0, m, s, profile="postchange")
+
+    def test_pinned_safety_module_verified_and_interlock_locked(self):
+        helper = SCRIPT.with_name(g1.SAFETY_NAME)
+        self.assertEqual(hashlib.sha256(helper.read_bytes()).hexdigest(), g1.SAFETY_SHA256)
+        self.assertFalse(g1.G1_ACTIVATION_REVIEWED)
 
     def test_postchange_pilot_readonly_profile(self):
         m, s = fixture("postchange")
