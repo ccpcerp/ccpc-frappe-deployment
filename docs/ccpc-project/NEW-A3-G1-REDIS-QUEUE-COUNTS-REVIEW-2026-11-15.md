@@ -1,6 +1,6 @@
 # NEW A3 G1 — Read-only Redis queue counts: GitHub-only review
 
-**Date:** 2026-11-15 Asia/Manila. **Scope:** New source and offline synthetic tests only. **No deployment, NEW-host staging, execution, container/Redis operation, or G1 activation authorized by this commit.** Draft [PR #35](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/35) remains unmerged. `G1_ACTIVATION_REVIEWED=False`; employee production cutover **NO-GO**.
+**Date:** 2026-11-15 Asia/Manila. **Scope:** GitHub-reviewed source and isolated synthetic tests, followed by **one authorized, operator-reported NEW-host read-only Redis DB0 inspection**. This is not independent host verification or proof of queue/system quiescence. Draft [PR #35](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/35) remains unmerged. `G1_ACTIVATION_REVIEWED=False`; employee production cutover **NO-GO**.
 
 ## Baseline
 
@@ -27,10 +27,19 @@
 
 Nineteen unit tests cover positive queue/failed counts, registered-queue count greater than three (unknown queues), missing keys vs zero, wrong Redis key types, Redis NOAUTH/error redaction, INFO raw secret non-leakage, malformed protocol, socket refusal, operator/host/override mismatch, Docker identity and restart-policy drift, unexpected containers, private bridge IPv4 requirement, network ID mismatch, accidentally running drill backend, duplicate manifest IDs and absence of a false no-writes/recovery assertion.
 
-**No live result exists for this script.** Its checks are observational; empty or absent canonical queue keys cannot establish empty custom queues, an empty retry/delayed-work system, worker isolation, deployed app code-to-image mapping, or OLD/NEW single-writer safety.
+**One owner-authorized NEW-host result is now reported by the operator (details below).** Its checks are observational; zero DB0 keys does not establish zero keys in other Redis databases/instances, absence of future work, worker isolation, deployed app code-to-image mapping, or OLD/NEW single-writer safety.
 
 ## Next controlled step
 
-Complete code review and, **only with specific separate one-shot NEW read-only runtime approval**, deliver the exact pinned script using the existing Windows-to-NEW SCP workflow (the attempted NEW-to-private-GitHub SSH fetch failed public-key authentication previously). Verify the full SHA256 on Windows **and NEW** before execution. No use of raw Redis output, passwords, secrets, key names, job IDs or raw `docker inspect` in chat. Stop on any mismatch; do not repeat automatically.
+The one approved read-only NEW run is now complete; **do not rerun automatically**. Windows-to-NEW SCP using the existing operator SSH key succeeded, and the operator reported on-NEW SHA256 verification PASS before execution. No Redis server reconfiguration or worker start was reported. Next focus on GitHub-only deployed-image/source mapping and external-consumer/single-writer safety review, with separate authorization for any subsequent NEW inspection.
 
 The next business-safety tasks remain deployed image/source mapping, external queue-consumer ownership, and OLD/NEW single-writer/duplicate GL-stock-purchasing prevention. Even a clean Redis counts report **does not authorize** enabling `unless-stopped`, G1 service/boot recovery, reboot, startup migrations, employee cutover or unreviewed PROD writes.
+
+
+## 2026-11-15 — Operator-reported one-time NEW Redis inspection
+
+- Source pin: reviewed PR #35 script Git blob `f97b66f90926dfd741b626dc1fc32f41d5c53e14`, full UTF-8 SHA256 `47e0320dff5857e861a9af217363194b9d2afaa60681dab9e98d479d6307d74c`. Operator's Windows PowerShell SCP reported **9,355 bytes** sent to `ccpcadmin@ccpcerp-prod`, followed by NEW output `CCPC_NEW_A3_G1_REDIS_SCRIPT_VERIFIED_PASS` and `CCPC_NEW_A3_G1_REDIS_SCRIPT_NOT_EXECUTED` before the subsequently authorized one-time execution.
+- **Operator-reported stdout, not independently connected host evidence:** `REDIS_IDENTITIES_19_PASS`; `REDIS_PINNED_DB0_METADATA_PASS`; `REDIS_DB0_TOTAL_KEYS=0`; `REDIS_CONNECTED_CLIENTS_INCLUDING_AUDIT=4`; `REDIS_RQ_REGISTERED_QUEUE_NAMES_COUNT=ABSENT`. For **each** queue `DEFAULT`, `SHORT`, `LONG`, the `PENDING_LIST`, `FAILED_REGISTRY`, `DEFERRED_REGISTRY`, `SCHEDULED_REGISTRY`, `STARTED_WIP_REGISTRY` and `STARTED_ALT_REGISTRY` fields all reported `ABSENT`. Terminal marker: `CCPC_NEW_A3_G1_REDIS_READONLY_COUNTS_COMPLETE`.
+- Inspector also explicitly returned `CCPC_NEW_A3_G1_REDIS_UNKNOWN_QUEUES_NOT_INSPECTED=YES`, `CCPC_NEW_A3_G1_REDIS_OTHER_DATABASES_NOT_INSPECTED=YES`, `CCPC_NEW_A3_G1_REDIS_EXTERNAL_CONSUMERS_NOT_IDENTIFIED=YES`, `CCPC_NEW_A3_G1_REDIS_SNAPSHOT_ATOMIC=NO`.
+- **Interpretation:** at observation time, the pinned NEW redis-queue container's **DB0** held zero keys; canonical RQ queue and registry keys were absent (not present with zero length). The four Redis clients include the inspector and **were not identified**. No arbitrary queue data or payloads were read. **No assertion** about other databases, Redis instances, external consumers, future enqueues, automatic workers, pending side effects in other systems, or OLD/NEW business single-writer safety can be drawn. This does not change G1's BLOCKED gate.
+- **No further live execution authorized or planned from this observation.** Do not repeat the diagnostic or enable auto-restart, G1 unit, Caddy/boot recovery, reboot, migrate or cut over employees without a new scoped decision. Continue with source/image mapping and OLD/NEW business write isolation gates.
