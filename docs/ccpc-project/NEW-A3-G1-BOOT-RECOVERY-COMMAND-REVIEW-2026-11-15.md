@@ -76,3 +76,25 @@ Source and test files were exercised locally with `python -B -m unittest discove
 **Outstanding blockers before even removing the interlock:** verify on NEW with separate read-only permission (1) all 13 noncandidate restart policies and any indirect boot triggers; (2) installed Caddy configuration, HTTPS LAN bind/allowlist/certificate references and drift pinning, not merely its active systemd state; (3) exact upstream socket/Caddy/systemd dependency graph and any drop-ins or automatic activation paths; (4) explicit confirmation that auto-resuming backend cannot cause unauthorized writes/integrations despite muted email/paused scheduler; (5) unit/source on-host path/mode/source hash and rollback prerequisites, with any discoveries turned into reviewed source/test changes. The current G1 draft **does not yet attest Caddy config/port security at runtime**, and TCP-only websocket probing does not prove Engine.IO handshake. Do not interpret offline PASS as boot resilience.
 
 **No operator action now:** preserve the immutable R0 manifest; do not stage G1 on NEW, change any of the six Docker policies, enable services, reboot, merge PR #35, or cut over staff access. Future read-only dependency collection, installation/policy change, reboot test, and employee cutover each require separately reviewed and explicitly approved scopes.
+
+
+## November 15 — G1 read-only dependency inspection approval and first reviewed operator step
+
+The owner explicitly approved a **read-only NEW-host dependency inspection**, following the previous GitHub-only source/test milestone. This approval is **limited to passive observation**: no install/staging of G1 code, Docker policy changes, gateway service start/enable, unit-file writes, manifest recapture, restart, migration, production data edits, reboot, WAN exposure or employee cutover.
+
+**First step, pending operator execution:** inspect only the 19 protected Docker identities, statuses and current restart policies against the **existing immutable R0 root-only manifest**. GitHub review-only file [scripts/ccpc_new_a3_g1_dependency_policy_readonly.py](../../scripts/ccpc_new_a3_g1_dependency_policy_readonly.py), SHA256 \`5f32439574fb45f11d24686ae6c2c89bbbc87c5179b090c94d2730a69ad1359d\`, Git blob \`e9255dfbdafb61e195793f51112869b333463d09\`, on review branch PR #35. Seven independent synthetic/offline unittest methods PASS, including wrong host/operator, name/ID drift, candidate/noncandidate restart policy drift, and unexpectedly running preserved failed backend. Test Git blob \`53d45f511e2f92bf5b313827322bb68e3b251978\`. No NEW server accessed by offline testing.
+
+Operator should run the **exact audited Python source in memory** with \`sudo python3 -B -\` as a pasted here-document on \`ccpcadmin@ccpcerp-prod\`. Do not save/download/stage scripts or inspect/print manifest JSON. Script reads only root-only manifest metadata and issues \`docker ps -a --format\` and \`docker container inspect\` (captured internally, not printed), then prints only four PASS status markers or one STOP marker. It has no Docker update/start/stop, systemd, database/bench, network, file-write or HTTP call.
+
+Expected success markers:
+
+\`\`\`
+CCPC_NEW_A3_G1_PROTECTED_IDENTITIES_19_PASS
+CCPC_NEW_A3_G1_CANDIDATE_POLICY_NO_6_PASS
+CCPC_NEW_A3_G1_NONCANDIDATE_POLICY_NO_13_PASS
+CCPC_NEW_A3_G1_POLICY_READONLY_CHECK_PASS
+\`\`\`
+
+On \`CCPC_NEW_A3_G1_POLICY_STOP_REVIEW_REQUIRED\`, exceptions, or any missing marker, **STOP** and review safely; do not modify policies or container state to force PASS. The script does not disclose the specific failed rule; its only conclusion is whether the exact baseline matched at the time checked. PASS does **not** prove backend auto-resume safety, installed Caddy security scope, unit graph, or boot resilience. **Next after verified PASS:** separately prepare the remaining Caddy/systemd checks inside the same read-only inspection approval, one reviewed step at a time.
+
+No running NEW, OLD PROD or DEV service was changed to prepare this inspection. Formal G1 remains BLOCKED and production cutover NO-GO.
