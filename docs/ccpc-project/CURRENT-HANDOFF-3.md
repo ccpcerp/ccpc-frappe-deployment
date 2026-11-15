@@ -1,5 +1,13 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
+## 2026-11-15 — G1 Step 2 NEW A3 systemd/listener audit prepared (operator pending)
+
+- **G1 Step 1 operator-reported live PASS** recorded: pinned 19 protected Docker identities and preserved expected states, six candidate RestartPolicy=no and 13 noncandidate RestartPolicy=no. This was a read-only instant-in-time check, NOT a reboot test.
+- Under already approved read-only NEW dependency inspection, a second narrowly-scoped `sudo python3 -B -` in-memory script now exists on **draft PR #35**, not installed on server: [systemd/listener audit source](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/review/new-a3-production-readiness-2026-11-13/scripts/ccpc_new_a3_g1_unit_listener_readonly.py), Git blob `1cc2fb042fae6da2631c03911bfe0fc09b86d19d`, SHA256 `c56d441cba3ff4f813659933af261ba243d2942cfa0fa9868d8e79b79b5ad8fa`; [synthetic tests](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/review/new-a3-production-readiness-2026-11-13/tests/test_ccpc_new_a3_g1_unit_listener_readonly.py), Git blob `1c9b9fd0a5e5bcbdc4b31dc21414056d1e7d43a8`. Exact source and test blobs locally confirmed; **6/6 offline tests PASS**. Reviewed code and STOP rules documented at G1 review commit `64c4e691eb0d101b9af423e6916157e1d70f5179`.
+- **Next one operator step (not yet reported):** execute exact source in-memory as `ccpcadmin` on `ccpcerp-prod`. It reads `systemctl show` states and `ss -H -ltn` only; checks Docker+containerd active/enabled, Caddy and upstream socket active/disabled, relay active/static, Caddy API masked, draft G1 unit absent, TCP 443 LAN `192.168.50.186` only and TCP 8080 loopback only. Prints five PASS markers or `CCPC_NEW_A3_G1_SYSTEMD_LISTENERS_STOP_REVIEW_REQUIRED`. On STOP do not alter/retry; report sanitized markers.
+- Caveat: this is not a full Caddy config or complete systemd dependency/drop-in graph audit, and doesn't prove staff trust/WAN denial or boot readiness. Caddy effective configuration and boot graph remain next after Step 2 verified live PASS. G1_ACTIVATION_REVIEWED remains False, G1 BLOCKED and employee PRODUCTION NO-GO. No host/runtime change authorized.
+
+---
 ## 2026-11-15 — NEW A3 G1 Step 1 operator PASS (read-only, not recovery validation)
 
 - Operator reported four exact `CCPC_NEW_A3_G1_*_PASS` markers from the previously reviewed, root-only-manifest-pinned, read-only NEW host policy audit: `PROTECTED_IDENTITIES_19_PASS`, `CANDIDATE_POLICY_NO_6_PASS`, `NONCANDIDATE_POLICY_NO_13_PASS` and `POLICY_READONLY_CHECK_PASS`. This establishes the expected 19 protected IDs and states, all six original candidate and 13 noncandidate Docker RestartPolicy=no **at inspection time**; no live changes were requested.
