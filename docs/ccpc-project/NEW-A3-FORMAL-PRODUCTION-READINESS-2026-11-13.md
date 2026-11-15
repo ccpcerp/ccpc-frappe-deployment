@@ -5,6 +5,14 @@
 **Target:** dedicated NEW Ubuntu `ccpcerp-prod` (`192.168.50.186`), **actual candidate** `ccpc_prod_erpnext` / site `ccpcerp.local`, not the separately restored drill containers.
 **Purpose:** start read-only formal readiness verification in the latest actual operator/GitHub context. Owner's request to "proceed to a formal NEW A3 Production Readiness Check" grants read-only inventory/documentation, **not** release, cutover, restart, enabling services, data migration, DNS/router/CA/client-trust changes or production writes.
 
+## Current G1 GitHub checkpoint — 2026-11-15, no production change
+
+The owner's latest read-only terminal outputs on **NEW** confirm the six exact `ccpc_prod_erpnext` candidate containers are running with `RestartPolicy=no`; both `caddy.service` and `ccpc-erpnext-upstream.socket` are active but disabled at boot. This matches the known **pre-activation** baseline, **not** automatic recovery readiness. The owner subsequently approved **GitHub-only hardening and testing**, excluding host mutations.
+
+On open draft [PR #35](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/35) the exact-ID Docker policy transition has now been further locked: `G1_POLICY_MUTATION_REVIEWED=False` blocks `--apply` and `--compensate` before host/Docker calls, while `--check` remains read-only. Source commit `9756ee5`, test commit `0e2cfdb`, documentation commit `e14f220` are on the **review branch only**. Added two regression methods; **10/10 focused offline tests of the fetched `main()` excerpt passed**, but the updated full module test suite/actual host recovery were **not** run. Details: [G1 policy transition/cutover record](NEW-A3-G1-RECOVERY-POLICY-TRANSITION-CUTOVER-2026-11-15.md).
+
+**Current decision: G1 BLOCKED; employee cutover NO-GO.** Both activation interlocks remain false. Do not change restart policies, install/enable/start any G1 units, restart/reboot, promote gateway access or cut over until the actual deployed process/image provenance and single-writer/OLD-freeze risks, effective Caddy/boot graph, recovery compensation and separate owner approvals are settled. Immediate engineering follow-up: complete the full offline policy regression run under a trusted disposable runner, then close real-runtime single-writer/provenance evidence before proposing a narrowly scoped host operation.
+
 ## Scope and authoritative sources
 
 - Source-control policy: [GitHub-first development workflow](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/docs/ccpc-checkpoint-2026-10-10/docs/ccpc-project/GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md).
