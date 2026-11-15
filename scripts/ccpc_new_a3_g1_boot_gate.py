@@ -23,6 +23,9 @@ UNIT_PATH = Path("/etc/systemd/system/ccpc-new-a3-g1-boot-gate.service")
 # SHA256 of the draft unit file; this binds gate execution to the reviewed unit bytes.
 UNIT_SHA256 = "be8af72e5e05abe1cabe28cdedb184597db9e1510f91b21e4f48af51e85cd274"
 GATE_UNIT = "ccpc-new-a3-g1-boot-gate.service"
+# Deliberate interlock: activation awaits verified NEW-host Caddy bind/config,
+# systemd dependency graph, noncandidate policies, and explicit host consent.
+G1_ACTIVATION_REVIEWED = False
 PROBE_RESULT = b"CCPC_NEW_A3_G1_INTERNAL_PROBE_PASS\n"
 
 
@@ -259,7 +262,8 @@ def main(argv=None):
     args = p.parse_args(argv)
     try:
         require(not args.gate_once or
-                (args.profile == "postchange" and args.gateway_state == "cold"))
+                (G1_ACTIVATION_REVIEWED and args.profile == "postchange"
+                 and args.gateway_state == "cold"))
         offline = args.offline_fixture is not None
         r0 = get_r0(offline=offline)
         if offline:
