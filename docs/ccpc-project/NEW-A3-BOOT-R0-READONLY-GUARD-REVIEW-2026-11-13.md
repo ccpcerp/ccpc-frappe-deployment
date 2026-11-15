@@ -68,3 +68,17 @@ Until those are completed: **G1 NO-GO**, employee PRODUCTION cutover NO-GO, OLD 
 - Next operator action: **Windows PowerShell only**, download both source files from exact immutable GitHub commit into a previously absent uniquely named Downloads subdirectory, verify SHA256 using Windows built-ins and print sanitized PASS. Do not paste raw code, backup/config files or credentials into chat. On STOP, preserve state without blindly rerunning. This is local-only preparation, no NEW/OLD host changes. On PASS, prepare a protected SCP + no-overwrite root staging step, then one-time manifest creation and `--live-readonly` guard test; each operator result recorded before the next step.
 
 - An optional transfer-only ZIP was assembled locally from the two *exact* verified GitHub Python source blobs (no credentials or JSON identity manifest), plus a plain-text checksum note; archive SHA256 `59ac0cad5923d0abcd84af00a5d1d8f4252981b084182ce74963593615f06230`, 7,346 bytes, internal ZIP read-back and both source SHA256 checks PASS. Archive file is a chat-delivered convenience copy **not a GitHub commit or NEW-host installation**. Once downloaded, verify archive SHA256 before extraction; any mismatch is STOP with no retry/execute. Root-owned source staging and one-time manifest execution remain separate operator steps under the narrow existing approval.
+
+## November 15, 2026 — R0 two-script transfer and NEW-host SHA256 verification PASS
+
+- Operator reported Windows ZIP `CCPC_R0_SOURCE_ARCHIVE_SHA256_PASS`, extracted sources `CCPC_R0_TWO_SCRIPTS_SHA256_PASS` (both code SHA256 verified), private NEW-host transfer directory `/home/ccpcadmin/ccpc-new-a3-r0-transfer-20261115` created with `CCPC_NEW_A3_R0_TRANSFER_FOLDER_CREATED_PASS`, and SCP transfer via existing authorized `ccpcerp_prod_ed25519` SSH key finished 100% for both scripts. Initial plain SSH default-key auth denial resolved by using already-established SSH key procedure; **no SSH security policy changes**.
+- On the actual NEW Ubuntu shell `ccpcadmin@ccpcerp-prod`, operator then ran guarded read-only server-side SHA256 check and reported **exact**:
+
+```text
+R0_READONLY_SCRIPT_SHA256_PASS
+R0_MANIFEST_SCRIPT_SHA256_PASS
+CCPC_NEW_A3_R0_TRANSFER_VERIFICATION_COMPLETE
+```
+
+- Both transferred files were reported to match reviewed GitHub code source hashes: R0 `3f4e03d0e5f5d55bacfd16492fb021045eeb06b0199577a1612c9f18e0a3d72b` and once-only helper `2f0ddfd426b11831d03d05ef75b6ba7dc5999a7c81e42675319c1b14e12d9f73`. Verified files are presently **only** inside the owner's private transfer directory; neither script was run, no root-only manifest has been created, and no Docker/ERPNext/systemd/DB or business data changes are reported. Current boot/recovery G1 **BLOCKED**, overall PRODUCTION **NO-GO**.
+- **Next exact operator-only step under existing narrow approval:** root-stage both previously SHA-verified Python files into a unique previously absent root-only directory with mode0700 and files mode0600, rejecting any pre-existing destination and aborting on SHA mismatch. This is new operator-owned file creation only; do not execute either script in this step. Stop and preserve state on unexpected file ownership, existing path, or checksum mismatch; do not overwrite, delete or rerun blindly. Then separately verify staged SHA256 and execute a single guarded once-only capture + R0 check only after reviewing the first step.
