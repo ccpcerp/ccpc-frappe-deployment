@@ -114,3 +114,15 @@ The 29 new tests ran in a local Python test harness with repository-style `scrip
 | Real NEW boot/rollback/cutover | **NOT AUTHORIZED OR TESTED** | G1 remains blocked |
 
 **Next actionable testing route:** Run the complete 12+7+15+14 = **48 test methods** using a functioning isolated Python CI/runner, collect its exact pass/fail logs, and fix any errors on the review branch. Do not call them PASS until that execution is recorded. After that, collect separately approved sanitized NEW process/job safety evidence before any candidate policy update. Retain `G1_ACTIVATION_REVIEWED = False`; no unit/restart-policy/host change, no reboot, no employee cutover.
+
+---
+
+## November 15 — Verified full 48-method G1 offline suite PASS
+
+User separately approved the follow-up isolated test run. The **complete 48-test G1 suite executed PASS in isolated local Python 3.13.5** against byte-for-byte GitHub blob-verified gate source, helper, policy planner, oneshot unit, and four suites. Exact verification, snapshot hashes, command and outcome are in [NEW A3 G1 — Isolated Offline 48-Test Result](NEW-A3-G1-OFFLINE-48-TEST-RESULT-2026-11-15.md), created on draft PR #35 at commit `13ed820a1e3a94c0e9859b1b3b5588f1c4901401`.
+
+Result breakdown: original gate tests **12/12 PASS**, flow/failure-path tests **7/7 PASS**, Caddy/deadline safety **15/15 PASS**, pure exact-ID policy planning **14/14 PASS**. `python3 -B -m unittest discover -s tests -p 'test_ccpc_new_a3_g1_*.py' -v` reported `Ran 48 tests in 0.074s` / `OK`. No executable source change was needed to obtain the PASS.
+
+**Evidence correction:** previous paragraphs above explicitly marked 12+7 gate tests as *not run* at their prior checkpoint; that was true then but is now superseded by this dated execution evidence. The **GitHub Actions run remains a separate failed-before-any-step outcome** (runner unassigned; no tests executed). This local isolated PASS is **not** a GitHub Actions or CircleCI PASS, and does not substitute for live Docker/DB/systemd, TLS, auto-resume safety, power recovery or a supervised reboot.
+
+**Release status unchanged:** draft PR #35 still review-only. Keep `G1_ACTIVATION_REVIEWED = False` and original R0 source and root-only manifest preserved; no NEW or OLD PROD/DEV changes, Docker restart policy edits, actual policy executor, gateway activation, or reboot approved. P0 backend event/queue/integration side-effect risk persists. G1 **BLOCKED** and employee PRODUCTION **NO-GO**.
