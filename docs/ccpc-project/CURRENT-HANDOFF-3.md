@@ -1,5 +1,14 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
+## 2026-11-15 — NEW A3 G1 approved read-only dependency inspection (operator step pending)
+
+- Owner explicitly **approved passive NEW-host G1 dependency inspection only**, not implementation, installation/enablement, Docker policy changes, gateway mutations, reboot or cutover. Continue one safe verified command at a time on `ccpcadmin@ccpcerp-prod`. R0 one-time identity manifest remains root-owned/immutable; NEVER recapture, print, overwrite or upload.
+- First bounded operator check prepared and source-reviewed on deployment **draft PR #35** branch `review/new-a3-production-readiness-2026-11-13`: [G1 policy audit](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/review/new-a3-production-readiness-2026-11-13/scripts/ccpc_new_a3_g1_dependency_policy_readonly.py), SHA256 `5f32439574fb45f11d24686ae6c2c89bbbc87c5179b090c94d2730a69ad1359d`, Git blob `e9255dfbdafb61e195793f51112869b333463d09`; [7-test offline suite](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/review/new-a3-production-readiness-2026-11-13/tests/test_ccpc_new_a3_g1_dependency_policy_readonly.py), Git blob `53d45f511e2f92bf5b313827322bb68e3b251978`. **7/7 synthetic tests PASS** against exact source and test blob bytes; NOT a live inspection.
+- Method: operator executes exact reviewed source as in-memory `sudo python3 -B -` heredoc, no staging file or script transfer. It reads only protected R0 manifest internally and invokes read-only Docker `ps -a` and `container inspect`, validates exact 19 IDs, 18 Up + 1 intentionally failed status, and all six candidate plus thirteen protected noncandidate `RestartPolicy=no`. Prints only four PASS markers or `CCPC_NEW_A3_G1_POLICY_STOP_REVIEW_REQUIRED`. **No result from NEW has yet been reported.** On STOP, do not change policy to force success; preserve state for review.
+- Review documentation: [G1 command-level review](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/review/new-a3-production-readiness-2026-11-13/docs/ccpc-project/NEW-A3-G1-BOOT-RECOVERY-COMMAND-REVIEW-2026-11-15.md), review commit `be0259735d869e25905c1025f74aa028f17742c6`. Next after operator results: prepare separate sanitized read-only NEW installed Caddy/listener/systemd dependency inspections within this approved inspection scope; do not falsely claim these are already verified.
+- G1 activation remains **interlocked / BLOCKED** (`G1_ACTIVATION_REVIEWED = False`); PR #35 remains draft; **PRODUCTION CUTOVER NO-GO**. OLD PROD/DEV and all 19 NEW containers remain protected. No production runtime changes authorized or performed in this chat.
+
+---
 ## 2026-11-15 — NEW A3 G1 source milestone (GitHub-only; live G1 BLOCKED)
 
 - **Completed R0, not G1:** owner-reported one-time protected manifest capture and independent live read-only R0 PASS (four exact markers), preserved as immutable pre-change NEW-host identity evidence. Do not recreate or upload manifest. No reboot test.
