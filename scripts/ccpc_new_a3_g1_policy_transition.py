@@ -29,6 +29,10 @@ DRILL_RUNNING = tuple(f'{DRILL}-{role}-1' for role in
 DRILL_FAILED = f'{DRILL}-backend-1'
 EXPECTED = set(CANDIDATES + OTHER + DRILL_RUNNING + (DRILL_FAILED,))
 DOCKER = ('docker', '--host', 'unix:///var/run/docker.sock')
+# Fail closed until separate, exact NEW-only mutation approval and source review.
+# This is deliberately NOT a CLI flag or environment-variable override.
+# Offline tests may patch this constant in memory; live default stays False.
+G1_POLICY_MUTATION_REVIEWED = False
 HEX64 = re.compile(r'[0-9a-f]{64}\Z')
 SITES = '/home/frappe/frappe-bench/sites'
 LOGS = '/home/frappe/frappe-bench/logs'
@@ -183,6 +187,9 @@ def main(argv=None):
     args = parser.parse_args(argv)
     touched = False
     try:
+        # Reject --apply/--compensate before touching host state or even
+        # invoking Docker. --check remains a metadata-only inspection.
+        require(args.check or G1_POLICY_MUTATION_REVIEWED)
         operator()
         data = manifest()
         if args.check:
