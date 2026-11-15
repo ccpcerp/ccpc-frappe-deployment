@@ -87,6 +87,13 @@ class PlanTests(unittest.TestCase):
         m, s = fixture()
         with self.assertRaises(p.PlanStop): p.plan_partial_compensation(m, s, [p.CANDIDATE[0]])
 
+    def test_malformed_manifest_and_ledger_rejected_cleanly(self):
+        m, snap = fixture()
+        m['container_ids'][p.CANDIDATE[0]] = []
+        with self.assertRaises(p.PlanStop): p.plan_candidate_updates(m, snap)
+        m, snap = fixture()
+        with self.assertRaises(p.PlanStop): p.plan_partial_compensation(m, snap, [[p.CANDIDATE[0]]])
+
     def test_bad_manifest_duplicate_ids_rejected(self):
         m, s = fixture()
         m['container_ids'][p.CANDIDATE[1]]=m['container_ids'][p.CANDIDATE[0]]
