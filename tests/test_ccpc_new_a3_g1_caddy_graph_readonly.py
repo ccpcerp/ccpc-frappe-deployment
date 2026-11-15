@@ -39,8 +39,8 @@ class G1InventoryTests(unittest.TestCase):
                  include_exec=True):
         def fake_read(*args):
             if args[0] == "ss":
-                return ("UNCONN 0 0 127.0.0.1:5353 0.0.0.0:*\\n" +
-                        ("UNCONN 0 0 192.168.50.186:443 0.0.0.0:*\\n" if udp443 else ""))
+                return ("UNCONN 0 0 127.0.0.1:5353 0.0.0.0:*\n" +
+                        ("UNCONN 0 0 192.168.50.186:443 0.0.0.0:*\n" if udp443 else ""))
             if args[0] != "systemctl" or args[2] not in NAMES:
                 raise AssertionError("unanticipated command")
             unit = args[2]
@@ -53,7 +53,7 @@ class G1InventoryTests(unittest.TestCase):
             if unit == "ccpc-erpnext-upstream.service":
                 fields["Requires"] = "ccpc-erpnext-upstream.socket"
                 fields["After"] = "ccpc-erpnext-upstream.socket"
-            return "".join(f"{k}={v}\\n" for k, v in fields.items())
+            return "".join(f"{k}={v}\n" for k, v in fields.items())
         def fake_lstat(_):
             return SimpleNamespace(st_mode=stat.S_IFREG | 0o640,
                                    st_uid=123 if bad_owner else 0)
