@@ -1,5 +1,12 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
+## 2026-11-15 — NEW A3 G1 Step 2 operator PASS (systemd and LAN-only TCP listener inspection)
+
+- Owner reported all five exact expected `CCPC_NEW_A3_G1_*_PASS` markers from the audited read-only NEW-host Step 2. Docker/containerd active/enabled; Caddy + upstream socket active/disabled; relay active/static; Caddy API masked; G1 boot unit not installed; TCP port 443 listening only at `192.168.50.186` and TCP 8080 only at `127.0.0.1` **at inspection time**. No service changes. Step 1's exact 19 container/policy PASS remains valid as separate prior evidence.
+- Source branch `review/new-a3-production-readiness-2026-11-13`, draft deployment PR #35; review documentation commit `a114e4ea42ab00969c9ab798e36917a5ac63d26a`. This is **not** a boot test and does not prove Caddy runtime routing/TLS/trust, indirect boot systemd dependencies/drop-ins, UDP/IPv6 exposure, backend automatic-restart side-effect safety, or staff readiness.
+- Next within existing owner-approved passive inspection: sanitized read-only NEW-host Caddy loaded/service config and systemd graph verification, with no exposure of private certificate/key/environment/Caddyfile text. Source may be prepared/tested in GitHub; operator step only after its exact behavior is reviewed. No Docker policy changes, Caddy/socket enablement, G1 interlock removal, reboot, migration, or staff cutover. G1 BLOCKED; employee PRODUCTION NO-GO.
+
+---
 ## 2026-11-15 — G1 Step 2 NEW A3 systemd/listener audit prepared (operator pending)
 
 - **G1 Step 1 operator-reported live PASS** recorded: pinned 19 protected Docker identities and preserved expected states, six candidate RestartPolicy=no and 13 noncandidate RestartPolicy=no. This was a read-only instant-in-time check, NOT a reboot test.
