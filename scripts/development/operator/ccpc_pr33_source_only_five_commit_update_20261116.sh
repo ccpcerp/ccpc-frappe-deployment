@@ -24,12 +24,14 @@ done
 printf 'PROTECTED_BACKUP_LOCATIONS=PASS (SHA256 independently operator-verified)\n'
 
 DEV='frappe_docker_devcontainer-frappe-1'
-[[ "$(docker inspect --format '{{.State.Running}}' "$DEV")" == 'true' ]] || stop 'DEV container not running'
-[[ "$(docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}}' "$DEV")" == 'frappe_docker_devcontainer' ]] || stop 'unexpected Compose project'
+# Host operator's existing Docker access is via sudo; retain nonroot operator identity.
+# sudo is confined to read-only Docker metadata and exact named-container exec.
+[[ "$(sudo docker inspect --format '{{.State.Running}}' "$DEV")" == 'true' ]] || stop 'DEV container not running'
+[[ "$(sudo docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}}' "$DEV")" == 'frappe_docker_devcontainer' ]] || stop 'unexpected Compose project'
 
 # The existing DEV container has a historical SSH bind mount. This bounded
 # supervised operator command uses the GitHub origin only, no unrestricted agent.
-docker exec -i --user frappe "$DEV" bash -s <<'CCPC_DEV_SOURCE_ONLY'
+sudo docker exec -i --user frappe "$DEV" bash -s <<'CCPC_DEV_SOURCE_ONLY'
 set -euo pipefail
 umask 077
 export GIT_TERMINAL_PROMPT=0
