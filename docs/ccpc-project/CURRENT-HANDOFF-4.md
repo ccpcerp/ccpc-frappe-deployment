@@ -1,5 +1,15 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 16, 2026 — owner approved separate Codex worker; offline setup prepared (NOT EXECUTED)
+
+Owner explicitly approved setting up a **new, isolated DEVELOPMENT-only Codex worker** after confirming `codex-cli 0.161.0` inside the legacy SSH-mounted DEV container. The team **must not run Codex in that existing container** or under host `gani` (who has `sudo`/`docker`/`lxd`). The new worker setup is implemented **in GitHub only** on [draft docs PR #36](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/36), branch `review/development-execution-access-2026-11-15`, recorded branch commit `a8803ee3e3c11124ecd851b4aabf30381178eb2f`.
+
+**Prepared new files:** `scripts/development/codex-isolated/Dockerfile` (clean nonroot image, Codex CLI pinned at 0.161.0); `scripts/development/codex-isolated/ccpc_codex_stage_offline_worker_20261116.sh` (owner-run, exact host Docker/OLD/DEV gate, build only new image, create new `--network none`/no-mount/no-root/no-socket probe, check CLI version, leave container stopped); `tests/test_ccpc_codex_isolated_offline_worker_static.py`; `scripts/development/codex-isolated/README.md`; and updated `docs/ccpc-project/DEVELOPMENT-DIRECT-EXECUTION-ACCESS-2026-11-15.md`.
+
+**Why Stage A is offline:** The host operator can build a clean Node/Codex image with npm public package traffic, but the resulting runtime has `--network none`, so it **cannot yet run model inference, log in or investigate DEVELOPMENT autonomously**. Its only task is a reviewed `codex --version` isolation smoke. Do not copy any old `.codex` auth, SSH folders, GitHub tokens or DEV/PROD configuration into it. Before opening model egress, a separately reviewed network/credential boundary that blocks private LAN, OLD/NEW PROD, Docker daemon and all unrelated networks is required, along with sanitized read-only source/diagnostic delivery. No paid API or automatic reporter authorized.
+
+**Status:** setup script committed to GitHub, **NOT executed** by ChatGPT or the operator as of this checkpoint. No new image/container/secret mount, site DB change, service restart, deployment, network/firewall change, old PROD data change or CI run observed. Next one operator step is exact GitHub commit/blob-pinned delivery of the Stage A script, static `bash -n`/unit tests, and supervised host execution; STOP on mismatch, no automatic retry. The Codex Cloud report plus consolidated MAIN/Integration2 read-only operator diagnostic remains the fast acceptance alternative.
+
 ## November 16, 2026 — Codex CLI present in legacy DEV container, execution still restricted
 
 The owner ran a bounded no-agent invocation of the exact named DEVELOPMENT container and reported:
