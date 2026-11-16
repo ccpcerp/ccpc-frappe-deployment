@@ -1,5 +1,24 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 16, 2026 — owner-reported read-only DEVELOPMENT Git/site preflight PASS
+
+**Verified from exact operator output**, not from a direct ChatGPT host connection:
+
+```text
+DEV_HEAD=9f174bb9ce9b9ae103bf968c87c0d703aa039c34
+DEV_BRANCH=DETACHED
+DEV_WORKTREE=PROTECTED_AGENTS_ONLY
+SITE_PRESENT=development.localhost
+SITE_PRESENT=ccpc-integration2.localhost
+SITE_PRESENT=ccpc-integration.localhost
+```
+
+Interpretation: running named DEV container's app checkout at `9f174bb9...` and clean tracked worktree, **only** protected untracked `AGENTS.md`, three known site configuration filenames. GitHub independently confirms app PR #33 remains open/draft at `1bde04bf6d51d2c1b3197ef41696e8b6df7b0ecc`; ancestry compare from live DEV SHA gives **five commits ahead, zero behind, only two modified files**: `intercompany_material_billing_batch.py` and `test_intercompany_material_billing_batch.py`. Latest head has successful `python-syntax`, manual approval and isolated billing-integration CircleCI statuses. A successful status does not by itself establish actual DEV runtime/metadata acceptance.
+
+**This resolves the prior ambiguous checkout SHA:** don't cite `e1d67f2` as still installed. It does **not** verify migrations, roles, site DB health, third-site scheduler safety, recovery backups, host mounts/SSH exposure or current process state. No checkout/pull/migration/permissions changes made.
+
+**Next one read-only Gate A check:** exact DEV-container privileged/SSH-key/Docker-socket mount flags plus existence (not contents) of approved protected recovery manifests/NAS mount. If credential bind mount persists, **do not run Codex or unattended agent inside this existing container**. Only after worktree, backups and environment gate match can a fresh, narrowly scoped source-only update to the five-commit-later PR #33 head be proposed for separate approval. No broad bench startup while broken third DEV site remains in scheduler scope.
+
 ## Newest checkpoint — 2026-11-16: PR #33 billing acceptance preparation (GitHub-only)
 
 Owner approved resuming application development pending work, reviewing latest billing changes/migration and permissions, and preparing a safe persistent DEVELOPMENT acceptance path. **No** host/DEV checkout change, migration, permission assignment, CI provider execution, PR merge or OLD/NEW PRODUCTION action occurred during this checkpoint.
