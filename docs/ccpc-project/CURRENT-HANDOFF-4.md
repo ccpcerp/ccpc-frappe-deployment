@@ -1,5 +1,19 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 16, 2026 — Codex CLI present in legacy DEV container, execution still restricted
+
+The owner ran a bounded no-agent invocation of the exact named DEVELOPMENT container and reported:
+
+```text
+CONTAINER_USER=frappe
+CONTAINER_CODEX=FOUND
+codex-cli 0.161.0
+```
+
+This **locates Codex CLI v0.161.0 inside** `frappe_docker_devcontainer-frappe-1`, not in the normal host `gani` shell's PATH. The command was a read-only executable/version check, **not** an agent investigation or authorization to give Codex database/Docker/production access. The container's previously verified `ssh_mount=true` at `/home/frappe/.ssh` remains a blocking security condition for agentic execution; its `privileged=false` and `docker_socket=false` results are not enough to neutralize credential exposure.
+
+**Shortest safe approach:** use the already verified source-only Codex Cloud report plus owner-executed consolidated **read-only** two-site diagnostic to obtain real DEV evidence. For an on-host Codex runtime, review and separately approve a dedicated new isolated unprivileged worker (no shared host or DEV container user, no credential mounts/production configs, no sudo/Docker socket, no unrestricted network/host filesystem and no extra API billing); do **not** use `docker exec ... codex` inside the legacy DEV container, `sudo codex` as `gani`, or duplicate old autonomous Codex reporting. No worker was created or run.
+
 ## November 16, 2026 — host Codex CLI PATH / isolation availability reported
 
 Owner ran the proposed read-only host identity and tool lookup on `gani@ccpcerpserver`; exact summarized output: `USER=gani`; groups `gani adm cdrom sudo dip plugdev users lxd docker`; `codex: not installed`, `bwrap: not installed`, `podman: not installed` (the command names were **not resolved by the current shell's PATH**, not proof of absence elsewhere). This does **not** mean that Codex isn't installed in the existing DEV container or a non-PATH directory.
