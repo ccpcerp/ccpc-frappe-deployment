@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 16, 2026 — host Codex CLI PATH / isolation availability reported
+
+Owner ran the proposed read-only host identity and tool lookup on `gani@ccpcerpserver`; exact summarized output: `USER=gani`; groups `gani adm cdrom sudo dip plugdev users lxd docker`; `codex: not installed`, `bwrap: not installed`, `podman: not installed` (the command names were **not resolved by the current shell's PATH**, not proof of absence elsewhere). This does **not** mean that Codex isn't installed in the existing DEV container or a non-PATH directory.
+
+**Security decision:** `gani` has `sudo`, `docker` and `lxd` memberships, each potentially privileged. Do not start unrestricted Codex on the host under this identity, run it as root, or reuse the existing `frappe_docker_devcontainer-frappe-1` container with its verified `/home/frappe/.ssh` mount. `codex --sandbox read-only` alone would not hide host-readable credentials or PRODUCTION resources.
+
+**Single safe next operator action:** check whether a `codex` executable is discoverable in the named DEV container's default PATH or a small allowlist of executable paths using bounded `sudo docker exec --user frappe ... bash -c` identity/version inspection **without launching any agent**, opening configurations/auth files, exposing keys, inspecting sensitive mounts, or writing data. After locating the binary, design/reuse a dedicated new no-credential/no-sudo/no-Docker-socket isolated worker via reviewed PR #36 rather than enabling autonomous agents in the legacy DEV container. The consolidated read-only DEV diagnostic and cloud Codex report remain the practical alternate route pending that isolation.
+
 ## November 16, 2026 — broad Codex report received; local server Codex evaluated
 
 Owner provided a one-pass Codex report for app SHA `1bde04bf6d51d2c1b3197ef41696e8b6df7b0ecc` and docs commit `c1692157f8a6a5fa1f07717a2b9b59da7879bcbb`. The report states **57 static/isolated tests PASS** (46 policy/allocation/source; eight billing CI guards; three disposable site guards), 155 application Python files parse, but this was under Python **3.12.14** versus project requirement >=3.14, **not** actual supported-runtime/MariaDB acceptance. The supplied report is **not** an independently re-run Codex session in ChatGPT; no live host access, DEV database writes, provider CI run, deployment or commit was reported.
