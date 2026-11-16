@@ -1,5 +1,23 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 16, 2026 — PR #33 source-only checkout completed in DEVELOPMENT (owner-reported PASS)
+
+**Owner-supplied exact output from the approved pinned one-use operator script:**
+
+```text
+REMOTE_EXACT_PR33_HEAD=PASS
+DEV_SOURCE_UPDATE=PASS
+DEV_SOURCE_HEAD=1bde04bf6d51d2c1b3197ef41696e8b6df7b0ecc
+PROTECTED_AGENTS_ONLY=PASS
+NOT_RUN=bench_migrate,benches,services,schedulers,user_grants,PRODUCTION
+```
+
+**Scope and evidence:** The original named DEVELOPMENT container checkout was moved from `9f174bb9ce9b9ae103bf968c87c0d703aa039c34` to the exact newer PR #33 head `1bde04bf6d51d2c1b3197ef41696e8b6df7b0ecc`; the operator script checked the private GitHub review ref, five-commit ancestry and two-file change allowlist, and preserved the sole protected untracked `AGENTS.md`. The operation was supervised by the owner, not performed through a ChatGPT terminal. GitHub PR #33 was rechecked and remains open/draft at exactly that SHA. **No migration, service/worker/scheduler restart, real-user grant or PRODUCTION change occurred in this operation** (not evidence about other historical changes).
+
+**Important supersession:** Previous sections referring to an incomplete pending checkout are historical; **this source-only milestone is complete**. The Nov 4 two-site and MAIN billing Synology backups passed 8/8 + 4/4 SHA-256 earlier today, but were not refreshed or restore-tested on Nov 16. The existing DEV container still has an SSH bind mount (`privileged=false ssh_mount=true docker_socket=false`), so no unrestricted Codex/agent runs in it.
+
+**Next one read-only MAIN DEV gate:** verify actual `development.localhost` DocType and SQL-table presence for `Intercompany Material Billing Batch` and `CCPC Intercompany Billing Correction`, and Role presence for `CCPC Billing Preparer` and `Finance Controller`, under a read-only Frappe database transaction, after guarding the new exact HEAD and preserved worktree. There were Nov 4 DEV-specific scripts for named synthetic billing actors, so do not rely on older Nov 3 role-absence inventory as current. The five-commit delta has **no DocType schema / hook / setup file changes**, and a new migration is **not presumed necessary**; decide only after actual metadata evidence. No blanket `bench migrate`, schema updates, user-role changes, CI reruns, scheduler starts, or production changes are authorized.
+
 ## November 16, 2026 — operator script host Docker invocation adjusted, NOT EXECUTED
 
 The approved exact-scope PR #33 source-only operator script now uses the existing **`sudo docker inspect` / `sudo docker exec --user frappe`** access pattern from owner-provided host diagnostics. This is because the normal operator `gani` may not be in the Docker group; running the entire script as root would fail the required `gani` identity guard and weaken safeguards. **No other Git/source target, test, or DB behavior changed.** Exact source file: `scripts/development/operator/ccpc_pr33_source_only_five_commit_update_20261116.sh`, Git blob SHA **`076b94ada18ccd59247b05012cb7b8da649e5de7`**, reviewed script update commit `19a7beb53d77016452eed3268bc69e11ff4a697e`. Previous script blob `ee5e...` is superseded by this operator-only improvement.
