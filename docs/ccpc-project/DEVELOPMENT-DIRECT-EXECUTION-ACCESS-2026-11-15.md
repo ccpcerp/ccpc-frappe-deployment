@@ -1,5 +1,28 @@
 # CCPC ERPNext — controlled DEVELOPMENT execution access
 
+## 2026-11-17 — offline Codex worker Stage A PASS (owner-reported)
+
+The operator ran the exact guarded setup from this PR's reviewed source and reported:
+
+```text
+ISOLATED_PROBE_CONFIG=PASS
+WARNING: proceeding, even though we could not create PATH aliases: Read-only file system (os error 30)
+ISOLATED_CODEX_CLI_VERSION=0.161.0
+OFFLINE_WORKER_STAGE=PASS
+PROBE_STOPPED=YES
+NETWORK=NONE
+NO_MODEL_AUTH_OR_AGENT_RUN=PASS
+CURRENT_DEV_AND_PRODUCTION_UNCHANGED_BY_THIS_SETUP=YES
+```
+
+**Evidence classification:** owner-reported *successful host execution* of the Stage A one-use script, not direct ChatGPT Docker access or an independent adversarial isolation test. The script guards check nonroot identity, no volumes, no network, capability drop, read-only root, no-new-privileges, version and stopped probe. The CLI's PATH-alias warning is consistent with a read-only filesystem; it did **not** prevent the exact CLI version smoke PASS. Do not loosen read-only flags, copy existing SSH/Codex credentials or rerun/recreate the one-use setup just to eliminate this nonfatal warning.
+
+**New local artifacts:** a clean `ccpc-codex-isolated:0.161.0-offline` image and a stopped `ccpc-codex-isolated-offline-probe-20261116` are reported as successfully created; neither serves a model session. Existing DEV/OLD PRODUCTION resources and credentials were not modified by the reviewed operator script. The build's public base/npm package retrieval was an explicit approved part of Stage A. No PRODUCTION change, database write, scheduler restart, CI provider invocation, GitHub runner, external API billing or automatic Codex report flow was authorized or performed.
+
+**Stage B, not yet operational or approved to change infrastructure:** An actual Codex agent requires a writable *ephemeral* authenticated home and selectively allowed outbound model/auth connectivity. `--network none` precludes both remote model traffic and ordinary OAuth connectivity. A default Docker bridge, host network or generic unrestricted HTTP proxy would **not** safely constrain a shared host with OLD and NEW PROD networks. Design and separately review a fail-closed egress control that blocks RFC1918/link-local/host/Docker gateway/production routes and permits only verified Codex service/auth endpoints, with no DNS bypass and no unrestricted CONNECT. Avoid credentials copied from old `/home/frappe/.ssh`, host `~/.codex`, or service accounts; prefer a fresh owner-initiated interactive login inside a dedicated isolated boundary, with tokens protected from application source and operator logs. No runtime secrets stored in GitHub. Only a sanitized approved GitHub source snapshot and aggregate-only DEV diagnostic results may be presented; no production Docker, live DB, NAS, SSH or host filesystem mounts. Do not enable self-hosted auto-runners or publish reports automatically.
+
+**Shortest safe interim DEVELOPMENT deliverable:** run the already-reviewed [consolidated two-site read-only diagnostic](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/review/pr33-dev-acceptance-2026-11-16/scripts/development/operator/ccpc_pr33_consolidated_readonly_dev_inventory_20261116.sh) once, retain only summary flags/counts, and combine that with the completed Codex Cloud source report. This advances real acceptance while Stage B network/auth security is designed. The offline probe can remain stopped; no repeat setup necessary.
+
 ## 2026-11-16 — owner-approved Codex worker setup, Stage A prepared in GitHub
 
 Owner explicitly approved setting up a **new isolated DEVELOPMENT-only Codex worker** after confirming `codex-cli 0.161.0` in existing `frappe_docker_devcontainer-frappe-1` and observing that normal host `gani` has `sudo`, `docker`, `lxd` groups. This authorization is limited to the *new worker*, not to running agents in the existing SSH-exposed container or giving root/host access to Codex.
