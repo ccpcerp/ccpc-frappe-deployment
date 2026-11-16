@@ -60,8 +60,7 @@ print("PINNED_SOURCE_AND_PROTECTED_WORKTREE=PASS")
 
 for name in ("development.localhost", "ccpc-integration2.localhost",
              "ccpc-integration.localhost"):
-    guard(Path("sites-does-not-exist").exists() if False else
-          Path(name, "site_config.json").is_file(), "site configuration missing")
+    guard(Path(name, "site_config.json").is_file(), "site configuration missing")
 print("THREE_SITE_CONFIGS=PRESENT")
 print("BROKEN_THIRD_SITE=NOT_CONNECTED")
 
