@@ -102,8 +102,8 @@ value() { "${DOCKER[@]}" container inspect --format "$1" "$PROBE"; }
 echo "ISOLATED_PROBE_CONFIG=PASS"
 
 # Starts only 'codex --version', NOT a Codex model or analysis session.
-version="$("${DOCKER[@]}" container start --attach "$PROBE")" ||
-  stop "CLI smoke failed"
+version="$(timeout --foreground 60s "${DOCKER[@]}" container start --attach "$PROBE")" ||
+  stop "CLI smoke failed or exceeded bounded probe time; inspect retained probe"
 [[ "$version" == "codex-cli 0.161.0" ]] || stop "Codex CLI version mismatch"
 [[ "$(value '{{.State.Running}}')" == false ]] || stop "probe still running"
 [[ "$(value '{{.State.ExitCode}}')" == 0 ]] || stop "probe exit not zero"
