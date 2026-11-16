@@ -1,5 +1,11 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 16, 2026 — operator script host Docker invocation adjusted, NOT EXECUTED
+
+The approved exact-scope PR #33 source-only operator script now uses the existing **`sudo docker inspect` / `sudo docker exec --user frappe`** access pattern from owner-provided host diagnostics. This is because the normal operator `gani` may not be in the Docker group; running the entire script as root would fail the required `gani` identity guard and weaken safeguards. **No other Git/source target, test, or DB behavior changed.** Exact source file: `scripts/development/operator/ccpc_pr33_source_only_five_commit_update_20261116.sh`, Git blob SHA **`076b94ada18ccd59247b05012cb7b8da649e5de7`**, reviewed script update commit `19a7beb53d77016452eed3268bc69e11ff4a697e`. Previous script blob `ee5e...` is superseded by this operator-only improvement.
+
+The owner had explicitly approved this **source-only operation**, including the reviewed fail-closed procedure. It still must be executed **by the owner**, not by this GitHub-only chat. The procedure should be obtained from the GitHub branch, exact revision/blob verified and `bash -n` passed before `CCPC_APPROVE_PR33_SOURCE_ONLY=YES bash ...`. It does not authorize migrations, service starts, real users, backups/restores, Codex in SSH-mounted container or PROD. Collect outcome `DEV_SOURCE_UPDATE=PASS` and exact target HEAD; on STOP do not automatically retry.
+
 ## November 16, 2026 — owner approved supervised source-only update; execution pending
 
 The owner explicitly approved running the previously prepared, GitHub-pinned **five-commit DEVELOPMENT source-only** procedure. **Authorization covers only** detached source checkout `9f174bb9ce9b9ae103bf968c87c0d703aa039c34` → `1bde04bf6d51d2c1b3197ef41696e8b6df7b0ecc` on named legacy DEVELOPMENT host/container, after its fail-closed safeguards. The script is `scripts/development/operator/ccpc_pr33_source_only_five_commit_update_20261116.sh`, blob SHA `ee5e3608b84cd93d3cfab0e45fca8ab3179ff3c7`. Documentation review branch commit prior to this handoff edit: `712ee9054268e5ca77ec07da7840a35deb440c5f`.
