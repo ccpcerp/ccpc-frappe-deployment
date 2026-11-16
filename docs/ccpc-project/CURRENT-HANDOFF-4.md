@@ -1,5 +1,23 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 16, 2026 — MAIN DEVELOPMENT PR #33 schema/role presence PASS (owner read-only)
+
+Owner executed the approved exact-HEAD + protected-worktree, MAIN `development.localhost`, Frappe `START TRANSACTION READ ONLY` inventory, explicitly rolled back and destroyed the session. **Exact reported output:**
+
+```text
+BILLING_BATCH_DOCTYPE=PRESENT
+BILLING_BATCH_TABLE=PRESENT
+BILLING_CORRECTION_DOCTYPE=PRESENT
+BILLING_CORRECTION_TABLE=PRESENT
+BILLING_PREPARER_ROLE=PRESENT
+FINANCE_CONTROLLER_ROLE=PRESENT
+BILLING_METADATA_INSPECTION=COMPLETE
+```
+
+Interpretation: The installed Frappe metadata and underlying SQL tables for the Intercompany Material Billing Batch and new CCPC Intercompany Billing Correction are both present on MAIN; named `CCPC Billing Preparer` and `Finance Controller` role definitions exist. This supersedes the Nov 3 **absent correction/role** inventory, which was before the Nov 4 persistent DEV work. The five Nov 4→Nov 16 GitHub changes affect **only** the existing billing Python controller and test module, not DocType JSON, hooks, setup or schema. Accordingly, **do not rerun `bench migrate` merely for the Nov 16 source-only update**. However, presence alone does not establish complete field schema alignment, actual `Has Role` assignments, Company User Permissions, ledger/report correctness or successful real-user acceptance.
+
+Next safe read-only step: verify the owner-nominated **existing synthetic DEV billing maker/checker** (`ccpc-billing-preparer-dev@testing.invalid` and `ccpc-billing-checker-dev@testing.invalid`, sourced from the Nov 4 reviewed operator scripts) are still enabled named System Users with exact expected roles, precisely scoped Company grants for Cagayan Corn Products Corporation and Ricor Mills Corporation, and review the status/invoice-link presence of existing CCPC→Ricor billing batches. Do **not** commit, finalize or approve financial transactions, create users/grants, run old SHA-pinned Nov 4 scripts (they intentionally reject current `1bde04bf...`), start bench or touch PRODUCTION. If synthetic acceptance records exist, read-only evidence comes first. Source-only checkout, protected backups 12/12 integrity and SSH-mount/agent restriction remain in force.
+
 ## November 16, 2026 — PR #33 source-only checkout completed in DEVELOPMENT (owner-reported PASS)
 
 **Owner-supplied exact output from the approved pinned one-use operator script:**
