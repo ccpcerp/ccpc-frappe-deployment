@@ -1,5 +1,17 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 16, 2026 — DEV container security flags observed (owner read-only output)
+
+The operator inspected **only** `frappe_docker_devcontainer-frappe-1` using a metadata-only `sudo docker inspect --format` command and reported:
+
+```text
+privileged=false ssh_mount=true docker_socket=false
+```
+
+**Interpretation:** DEV container is nonprivileged and lacks the usual Docker socket mount, but **still has an SSH-directory bind mount at `/home/frappe/.ssh`**. This is consistent with the earlier October 10 direct observation of readable SSH material, although this latest three-flag check did **not** re-read key files or verify other mounts. Do not execute unrestricted/unattended Codex or another automated agent in this existing container. Neither deleting OLD PRODUCTION data nor granting Docker privileges would fix this mount exposure. It does **not** prevent supervised, bounded operator-driven diagnostics/source verification when reviewed for host side effects; no SSH-key contents were collected.
+
+**Next DEV acceptance Gate A:** read-only check of the exact protected local and Synology backup manifest locations using the November 4 operator runbooks, without reading/deleting protected data or executing older one-use backup scripts. Verify source checkout remains pinned before any later source update. Full backup integrity/freshness and rollback readiness are **still unverified**; existence alone is not enough to approve checkout/migration. GitHub remains authoritative for tracked source changes. PR #33 draft head is five commits ahead of owner-confirmed installed `9f174bb9...`.
+
 ## November 16, 2026 — owner-reported read-only DEVELOPMENT Git/site preflight PASS
 
 **Verified from exact operator output**, not from a direct ChatGPT host connection:
