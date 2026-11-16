@@ -13,6 +13,13 @@ stop() { printf 'STOP: %s\n' "$1" >&2; exit 1; }
 DOCKER=(sudo docker --host unix:///var/run/docker.sock)
 [[ -S /var/run/docker.sock ]] || stop "expected Docker socket absent"
 [[ "$("${DOCKER[@]}" info --format '{{.Name}}')" == "ccpcerpserver" ]] || stop "Docker daemon differs"
+# This setup pulls a base image and installs the pinned npm CLI. Stop if the
+# daemon's own Docker storage partition has insufficient free capacity.
+DOCKER_ROOT="$("${DOCKER[@]}" info --format '{{.DockerRootDir}}')"
+[[ "$DOCKER_ROOT" == /* ]] || stop "unexpected Docker storage root"
+AVAILABLE="$(sudo df -PB1 "$DOCKER_ROOT" | awk 'NR==2 {print $4}')"
+[[ "$AVAILABLE" =~ ^[0-9]+$ ]] || stop "Docker storage capacity unavailable"
+[[ "$AVAILABLE" -ge 4294967296 ]] || stop "less than 4 GiB free on Docker storage filesystem"
 
 # Check known OLD PROD app workers are stopped. Retained OLD MariaDB/Redis
 # are allowed. Do not start, stop, remove, inspect data from, or modify them.
@@ -72,6 +79,8 @@ echo "BUILDING_NEW_CLEAN_CODEX_IMAGE=START"
   --tag "$IMAGE" \
   --label 'ccpc.scope=isolated-dev-codex-offline-setup' \
   "$SCRIPT_DIR" || stop "image build failed; no automatic retry"
+IMAGE_ID="$("${DOCKER[@]}" image inspect --format '{{.Id}}' "$IMAGE")"
+[[ "$IMAGE_ID" == sha256:* ]] || stop "built image identity not verified"
 
 # Creates only a new stopped probe with NO mounts, no network, no host PID,
 # no socket, no secrets, no privileges and no auto-restart.
@@ -79,7 +88,7 @@ echo "BUILDING_NEW_CLEAN_CODEX_IMAGE=START"
   --network none --read-only --user 14532:14532 \
   --cap-drop ALL --security-opt no-new-privileges \
   --pids-limit 64 --memory 768m --cpus 1 --restart no \
-  "$IMAGE" --version >/dev/null || stop "probe create failed"
+  "$IMAGE_ID" --version >/dev/null || stop "probe create failed"
 value() { "${DOCKER[@]}" container inspect --format "$1" "$PROBE"; }
 [[ "$(value '{{.HostConfig.NetworkMode}}')" == none ]] || stop "network isolation failed"
 [[ "$(value '{{.HostConfig.ReadonlyRootfs}}')" == true ]] || stop "writable root"
