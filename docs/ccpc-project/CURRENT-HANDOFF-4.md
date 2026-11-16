@@ -1,5 +1,25 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — separate Codex Stage A offline worker complete; Stage B gated
+
+The owner reported successful execution of the approved, exact-source PR #36 `ccpc_codex_stage_offline_worker_20261116.sh` setup. Key output:
+
+```text
+ISOLATED_PROBE_CONFIG=PASS
+ISOLATED_CODEX_CLI_VERSION=0.161.0
+OFFLINE_WORKER_STAGE=PASS
+PROBE_STOPPED=YES
+NETWORK=NONE
+NO_MODEL_AUTH_OR_AGENT_RUN=PASS
+CURRENT_DEV_AND_PRODUCTION_UNCHANGED_BY_THIS_SETUP=YES
+```
+
+The Codex CLI printed one nonfatal warning that PATH aliases could not be created on the deliberately **read-only root filesystem** (`os error 30`). CLI version check nonetheless succeeded. **Do not turn off root read-only, retry the consumed one-shot setup or modify credentials** to quiet the warning.
+
+**Verification level:** operator-reported guarded image build/container config and CLI-version smoke; not independent ChatGPT remote Docker inspection. The new `ccpc-codex-isolated:0.161.0-offline` image and stopped `ccpc-codex-isolated-offline-probe-20261116` now reportedly exist. No agent inference, login, model network access, host source mounts, DEV SQL mutations, services, or PROD changes occurred in Stage A. PR #36 handoff recorded this at commit `fea7cd81ce891da8cf37df9866d50ed8b4b13fdf`.
+
+**Important NEXT GATE:** `--network none` means Stage A is not a functioning Codex research worker. Stage B must establish *credential-safe, outbound-only* model/auth access with verified private-LAN/PROD/host/metadata denial, and transient writable home for login without copying any existing authenticated Codex/SSH state. Generic Docker bridge or host network is **not** accepted as sufficient isolation. No agent run/CI billing/network/firewall modification has been authorized beyond Stage A. Review Stage B independently. Meanwhile, speed up actual ERPNext acceptance using the already prepared one consolidated read-only MAIN/Integration2 diagnostic combined with the supplied broad isolated Codex Cloud report; PR #33 remains draft/unmerged and PRODUCTION NO-GO.
+
 ## November 16, 2026 — owner approved separate Codex worker; offline setup prepared (NOT EXECUTED)
 
 Owner explicitly approved setting up a **new, isolated DEVELOPMENT-only Codex worker** after confirming `codex-cli 0.161.0` inside the legacy SSH-mounted DEV container. The team **must not run Codex in that existing container** or under host `gani` (who has `sudo`/`docker`/`lxd`). The new worker setup is implemented **in GitHub only** on [draft docs PR #36](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/36), branch `review/development-execution-access-2026-11-15`, verified latest setup branch commit `dc32050fabf87edab83edd3785646c1ef6b321fb` (offline setup script blob `801d42c46168fc23d72a29655b07c72f7e0520cf`).
