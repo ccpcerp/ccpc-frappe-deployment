@@ -1,5 +1,18 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 16, 2026 — protected NAS backup manifest presence confirmed (operator read-only)
+
+The operator ran the reviewed exact-host/NAS mount/manifests guard and reported `PROTECTED_DEV_BACKUP_MANIFESTS=PRESENT`. The check required:
+
+- Host shortname `ccpcerpserver`.
+- NAS `/mnt/erpnext_backups` mounted from the exact expected CIFS source `//192.168.50.132/erpnext_backups`.
+- Existing global `SHA256SUMS` under `ccpc-development-pr33-20261104T010408Z-82316b860fe951ad` (two-site recovery set).
+- Existing global `SHA256SUMS` under `ccpc-development-pr33-billing-preacceptance-20261104T082044Z-4231b0c38ab77bf0` (MAIN pre-billing-acceptance set).
+
+**Evidence level:** manifest locations PRESENT, not actual contents/checksums reverified. These are Nov 4, not necessarily current DB/file recovery points. Do not infer latest transactional data, restore success or safe migration solely from file existence.
+
+**Next approved read-only integrity check:** use `sha256sum --status --check SHA256SUMS` in each guarded NAS set with expected global manifest line counts **8 and 4** respectively, no filenames/data printed. Stop on checksum, NAS identity, path type or count mismatch. This reads NAS backup bytes but makes no changes to backup, database, Docker, service, Git, or PRODUCTION. It does not establish backup currency; before any approved persistent DEV data migration obtain a fresh scoped four-artifact snapshot and recovery check. The source-only checkout change is also separately approval-gated.
+
 ## November 16, 2026 — DEV container security flags observed (owner read-only output)
 
 The operator inspected **only** `frappe_docker_devcontainer-frappe-1` using a metadata-only `sudo docker inspect --format` command and reported:
