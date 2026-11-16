@@ -1,5 +1,21 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 16, 2026 — 12/12 protected NAS checksums PASS; source-only PR33 update prepared
+
+Owner ran the reviewed read-only `sha256sum --status --check SHA256SUMS` procedure on the exact protected Nov 4 Synology recovery sets, with host, NAS mount and per-manifest count checks. Reported complete output:
+
+```text
+BACKUP_8_FILES_CHECKSUM=PASS
+BACKUP_4_FILES_CHECKSUM=PASS
+PROTECTED_DEV_BACKUP_INTEGRITY=PASS
+```
+
+**Evidence:** All **12/12 backup archive/config/data file SHA-256 hashes** match each global manifest: eight entries in `ccpc-development-pr33-20261104T010408Z-82316b860fe951ad` and four in `ccpc-development-pr33-billing-preacceptance-20261104T082044Z-4231b0c38ab77bf0`. This establishes read integrity, **not** freshness as of Nov 16, database transaction currency, recovery drill success, or readiness to migrate. Do not replace/delete these recovery artifacts.
+
+**Prepared GitHub-only script, NOT EXECUTED:** [`scripts/development/operator/ccpc_pr33_source_only_five_commit_update_20261116.sh`](../../scripts/development/operator/ccpc_pr33_source_only_five_commit_update_20261116.sh) on this docs review branch. It is pinned to the owner-confirmed DEV HEAD `9f174bb9ce9b9ae103bf968c87c0d703aa039c34` and GitHub PR #33 `1bde04bf6d51d2c1b3197ef41696e8b6df7b0ecc`; requires an additional explicit one-use source-only execution authorization, exact normal host/operator and named DEV container/Compose project, backup locations, protected sole untracked `AGENTS.md`, detached clean tracked checkout, allowlisted GitHub origin, exact remote branch SHA, five-commit ancestry and exactly two changed billing Python files. It fetches just the review ref and performs a **detached source-only `git switch`**, then verifies exact target and worktree. No reset, clean, stash, merge, database/migration, services, scheduled jobs, user-role changes, backups, or PRODUCTION operation.
+
+**Next decisive action:** owner separately approves or declines executing the pinned DEV **source-only** update. If approved, first ensure the operator can obtain and independently review the **exact checked-in script bytes** (GitHub private repository; never run an unreviewed downloaded script). Use existing supervised operator workflow, not Codex in SSH-mounted DEV. STOP on any failed guard or unexpected Git result; do not auto-retry. **Migrations require a new fresh scoped backup/recovery review and separate authorization**; even source-only update is not permission to migrate.
+
 ## November 16, 2026 — protected NAS backup manifest presence confirmed (operator read-only)
 
 The operator ran the reviewed exact-host/NAS mount/manifests guard and reported `PROTECTED_DEV_BACKUP_MANIFESTS=PRESENT`. The check required:
