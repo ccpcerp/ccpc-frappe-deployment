@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 16, 2026 — owner approved supervised source-only update; execution pending
+
+The owner explicitly approved running the previously prepared, GitHub-pinned **five-commit DEVELOPMENT source-only** procedure. **Authorization covers only** detached source checkout `9f174bb9ce9b9ae103bf968c87c0d703aa039c34` → `1bde04bf6d51d2c1b3197ef41696e8b6df7b0ecc` on named legacy DEVELOPMENT host/container, after its fail-closed safeguards. The script is `scripts/development/operator/ccpc_pr33_source_only_five_commit_update_20261116.sh`, blob SHA `ee5e3608b84cd93d3cfab0e45fca8ab3179ff3c7`. Documentation review branch commit prior to this handoff edit: `712ee9054268e5ca77ec07da7840a35deb440c5f`.
+
+GitHub was rechecked: app PR #33 still draft/open at target SHA, five commits ahead/zero behind installed revision, exactly two billing Python files differ. Private repository script contents were refetched and confirmed. **The ChatGPT session has no remote terminal/SSH execution tool, so the operator has to execute the approved procedure; this approval is NOT proof it ran.** Do not claim a completed checkout until owner reports `DEV_SOURCE_UPDATE=PASS` and target SHA, and independently revalidate status. The original `gani` account may need Docker permission; if host Docker invocation is denied, STOP and revise the reviewed procedure rather than run the entire script as root.
+
+No migrations, database writes, backups/restores, service/worker/scheduler start, credentials exposure to Codex, user grants, PR merge, or OLD/NEW PRODUCTION action are included in this approval. Next after confirmed source checkout: fresh scoped backup/rollback and **separate migration authorization**; known broken third DEV site remains excluded.
+
 ## November 16, 2026 — 12/12 protected NAS checksums PASS; source-only PR33 update prepared
 
 Owner ran the reviewed read-only `sha256sum --status --check SHA256SUMS` procedure on the exact protected Nov 4 Synology recovery sets, with host, NAS mount and per-manifest count checks. Reported complete output:
