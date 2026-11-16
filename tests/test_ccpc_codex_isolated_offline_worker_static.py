@@ -37,6 +37,12 @@ class OfflineWorkerStaticTests(unittest.TestCase):
                          "OLD_EXPECTED", "SHARED_HOST_SCOPE=PASS"):
             self.assertIn(expected, self.script)
 
+    def test_resource_guard_and_immutable_image_identity(self):
+        self.assertIn("DockerRootDir", self.script)
+        self.assertIn("4294967296", self.script)
+        self.assertIn('IMAGE_ID=', self.script)
+        self.assertIn('"$IMAGE_ID" --version', self.script)
+
     def test_runtime_restricted_offline_probe_only(self):
         for expected in ("--network none", "--read-only", "--user 14532:14532",
                          "--cap-drop ALL", "--security-opt no-new-privileges",
