@@ -1,5 +1,21 @@
 # CCPC ERPNext — controlled DEVELOPMENT execution access
 
+## 2026-11-16 — owner-approved Codex worker setup, Stage A prepared in GitHub
+
+Owner explicitly approved setting up a **new isolated DEVELOPMENT-only Codex worker** after confirming `codex-cli 0.161.0` in existing `frappe_docker_devcontainer-frappe-1` and observing that normal host `gani` has `sudo`, `docker`, `lxd` groups. This authorization is limited to the *new worker*, not to running agents in the existing SSH-exposed container or giving root/host access to Codex.
+
+**New guarded artifacts on this review branch:**
+- [`scripts/development/codex-isolated/Dockerfile`](../../scripts/development/codex-isolated/Dockerfile) — clean `node:24-bookworm-slim` image, exact `@openai/codex@0.161.0`, fixed nonroot UID; no credential or CCPC file copies.
+- [`scripts/development/codex-isolated/ccpc_codex_stage_offline_worker_20261116.sh`](../../scripts/development/codex-isolated/ccpc_codex_stage_offline_worker_20261116.sh) — exact host/OLD project/DEV guard, new image build + network-none immutable/no-mount/no-capabilities new Docker probe; CLI version only, left stopped.
+- [`tests/test_ccpc_codex_isolated_offline_worker_static.py`](../../tests/test_ccpc_codex_isolated_offline_worker_static.py) — Bash syntax + source boundary checks.
+- [`scripts/development/codex-isolated/README.md`](../../scripts/development/codex-isolated/README.md) — scope/limitations and staged execution.
+
+**Status at GitHub commit creation:** files committed and refetch/owner delivery checks pending; **NO host execution, image pull/build, image/container creation, Codex authentication, model task, network/firewall changes, DEV/PROD write or CI run has occurred in ChatGPT.** This is an offline worker stage; `--network none` makes it impossible to contact OpenAI model endpoints. A separate reviewed outbound-only egress/auth route and sanitized source/report workspace are necessary before it becomes an interactive agent. Existing creds from `frappe` or `gani` cannot be copied. Stage A may download public Node/npm packages at build time, without token/API expenses; keep resource/supply-chain limits explicit.
+
+**Next operator milestone:** fetch this exact GitHub review branch with pinned commit/blob verification, run `bash -n` + static tests, then run only the approved Stage-A script as `gani`; report `OFFLINE_WORKER_STAGE=PASS` or STOP. No retries/cleanup on error. The owner retains control of host execution. The review branch is not merged.
+
+
+
 **Date:** 2026-11-15 (Asia/Manila). **Status:** GitHub-only review implementation. **User authorization:** broaden DEV investigation/test access and set up an auditable, restricted DEV connection; **not** permission to access NEW PRODUCTION, restart any shared host, remove credentials, run unattended Codex, change DNS/firewall, or publish/rotate secrets. No host access has been configured or tested in this milestone.
 
 ## Exact-source offline test evidence
