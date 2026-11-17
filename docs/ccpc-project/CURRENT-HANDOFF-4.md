@@ -1,5 +1,15 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — operator attempted second `bench start`; Socket.IO port 9000 collision, transient scheduler/worker launch
+
+Owner attempted to bring up DEVELOPMENT from an interactive shell in `frappe_docker_devcontainer-frappe-1` under `/workspace/development/frappe-bench`. **Prior to starting**, `pgrep -af 'honcho start'` found an existing Honcho supervisor running `honcho start web socketio` (at inspection time PID `543180`), consistent with the earlier read-only process inventories.
+
+The new **unrestricted `bench start`** began a *second* Honcho stack with `web.1`, `socketio.1`, `watch.1`, `schedule.1`, and `worker.1`, then the new Socket.IO immediately failed with `EADDRINUSE` on port **9000**. The second supervisor sent SIGTERM to its just-started web/watch/schedule/worker children and logged them as stopped (`rc=-15`); the second Socket.IO exited `rc=1`. Command returned to the shell. This is **not evidence of an underlying database failure or source-code defect**; it is consistent with conflict with the already-running Socket.IO listener.
+
+**Safety implication:** A scheduler and worker were briefly spawned by the failed second `bench start`, despite the known broken third-site scheduler-enumeration risk; they were reported terminated. **Do not assume zero residual scheduler processes until a fresh read-only check**. No evidence in this transcript of an invoice/GL/data mutation, but no database audit was performed. Do not kill the original Honcho, reboot Compose, restart workers, run `bench start` again, or delete/migrate the third site's config. Running app security fix may still be served by a reloaded Werkzeug child (web-child chronology was mixed BEFORE/AFTER gateway source modification); live authenticated HTTP behavior has not yet been proven.
+
+**Next one safe diagnostic:** from existing container, use short read-only loopback HTTP check to `127.0.0.1:8000` with `Host: development.localhost` and count allowlisted scheduler process candidates, showing neither raw args nor HTTP body. If web is reachable, use already-running server for DEV testing. If unreachable, review supervised port/listener state before any separate approval for a web-only change. PRODUCTION and GitHub source remain unchanged by the attempted command.
+
 ## November 17, 2026 — web child started after gateway source update; live HTTP acceptance next
 
 Owner executed read-only process/gateway file-start chronology on original DEV host; output:
