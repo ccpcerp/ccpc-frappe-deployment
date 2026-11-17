@@ -1,5 +1,20 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — named Finance Controller native batch read/write permission PASS; owner identity nomination STILL PENDING
+
+Owner ran the requested one-step MAIN DEVELOPMENT native Frappe document permission check in the correct bench `sites` working directory, explicitly targeting app PR33 SHA `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`, site `development.localhost`, one still-`Under Review` CCPC→Ricor batch with no approval/invoice fields, and session user `finance_controller@ccpc.com`. The separate transaction used `START TRANSACTION READ ONLY`, `batch.check_permission("read")` and `batch.check_permission("write")`, followed by `frappe.db.rollback()`. Exact operator-provided output:
+
+```text
+NATIVE_BATCH_READ_PERMISSION=PASS
+NATIVE_BATCH_WRITE_PERMISSION=PASS
+FINANCE_CHECKER= finance_controller@ccpc.com
+READ_ONLY_PERMISSION_CHECK=PASS
+```
+
+**Evidence level:** On the named existing non-synthetic Finance Controller, the native *actual batch document* read and write permissions passed, complementing the previous census: enabled `System User`, proper persisted `Finance Controller` role, both strict CCPC/Ricor Company `User Permission` grants, not Stockroom Personnel, distinct from original maker. **No invoice approval controller was called**, no user roles or Company permissions were granted or changed, no Draft SI/PI persisted, no `frappe.db.commit()` was requested by this check. This establishes the native document-level permission gate for that user **at check time**, but not the business owner's nomination of that account as the permanent `approved_by` actor.
+
+**Outstanding single decision:** Explicitly ask the owner whether **`finance_controller@ccpc.com` should be used as the permanent `approved_by` identity** for the one approved MAIN DEVELOPMENT persistent Draft SI/PI transaction. Do not assume the account represents a real authorized individual merely from its email-like username or a role grant. If confirmed, prepare the guarded one-use persistent write operator, reverify exact source, original batch and actor state and fresh Synology recovery integrity immediately before commit, preserve audit/concurrency controls, then independent persisted read-only verification; no invoice submission/GL posting, user grants, service/scheduler restart or PRODUCTION. The fresh local and off-host backups were four-part/SHA256-PASS (NAS folder `ccpc-development-pr33-main-precommit-20261117T044035Z-591a9f7e2b035cae`) but **not restore-tested**. One-time V1/V2/backup/NAS markers all remain consumed and must not be touched. **Persistent invoice commit remains ON HOLD until identity decision and final reviewed one-shot procedure.**
+
 ## November 17, 2026 — corrected read-only MAIN Finance Controller eligibility census PASS; ONE NONSYNTHETIC CANDIDATE
 
 Owner executed the corrected no-write census from `/workspace/development/frappe-bench/sites`, with `FRAPPE_STREAM_LOGGING=1`, `frappe.init(site="development.localhost", sites_path=".")` and `START TRANSACTION READ ONLY`. Complete output:
