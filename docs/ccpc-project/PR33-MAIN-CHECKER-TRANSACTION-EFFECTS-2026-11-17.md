@@ -1,5 +1,24 @@
 # CCPC ERPNext — PR #33 MAIN DEVELOPMENT Finance Checker transaction-effects review
 
+## November 17, 2026 — new MAIN local precommit backup verified by operator; NAS protection pending
+
+Owner successfully ran new current-head exact-source MAIN backup `scripts/development/operator/ccpc_pr33_precommit_main_backup_20261117.sh`, creating **four new local backup artifacts** (database, site config, public/private archives) and private SHA256 manifest. Original host/output:
+
+```text
+DEVELOPMENT SNAPSHOT PRECHECK: PASS
+MAIN_UNDER_REVIEW_BATCH_AND_ZERO_DRAFT_PAIRS: PASS
+DATABASE BACKUP: PASS
+SITE CONFIG BACKUP: PASS
+PUBLIC FILES BACKUP: PASS
+PRIVATE FILES BACKUP: PASS
+SHA256 MANIFEST: PASS
+BACKUP DIRECTORY: /workspace/development/frappe-bench/.ccpc-pr32-snapshots/development.localhost-20261117T043152Z-1582f342f870
+FRESH_PRECOMMIT_MAIN_DEV_BACKUP: PASS
+NO_INVOICE_ACTIONS_OR_COMMIT: PASS
+```
+
+The immutable new local snapshot's basename is `development.localhost-20261117T043152Z-1582f342f870`. The exact original `Under Review` financial batch remained unapproved with no linked or same-remark invoices as tested at preflight; no invoice action or commit occurred. This is a **local backup plus integrity check**, not yet a verified off-host recovery copy or restore test. Do not reuse its one-shot marker or overwrite previous backup archives. One-time current-head NAS copy script at `scripts/development/operator/ccpc_pr33_precommit_main_nas_copy_20261117.sh`, exact Git blob `19925587a894aef10fbd4df99776b612120c907d`, must copy **this exact basename** and verify all four copied hashes on Synology before the persistent finance write gate. No persistent checker approval until both fresh off-host backup status and accountable named Checker rights are revalidated.
+
 ## November 17, 2026 — OWNER APPROVED first persistent MAIN DEV Draft SI/PI pair, contingent on verified backup and actor
 
 Owner explicitly approved progressing beyond the successful rollback-only rehearsal to **exactly one persistent linked Draft invoice pair** (CCPC SI + Ricor PI) via the checked-in Finance Controller `approve_and_create_invoices()` method on MAIN DEVELOPMENT. This permission is **conditional**, not a request to skip previously stated requirements: fresh scoped recoverable backup, intended named Finance Controller/Company permissions, unchanged `Under Review` finalized single-line batch with no invoice links, precise one-shot transaction and post-commit audit. **No persistent controller action has executed under this approval.** Use of the existing synthetic `ccpc-billing-checker-dev@testing.invalid` for an auditable committed invoice is **not presumed approved**; explicit checker identity and native permissions must be decided without automatically assigning rights. No `submit`, `cancel`, GL posting, PRODUCTION, migration, service restart or old test marker reuse.
