@@ -1,5 +1,17 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 18, 2026 — Codex engineering authority expanded; launch still requires owner's Codex Cloud action
+
+Owner, under December 17 urgency, **explicitly grants Codex full autonomous Phase 1 DEVELOPMENT engineering authority**, rather than a succession of narrow source reviews. This includes implementation/refactoring, installing dependencies, provisioning/migrating/tearing down **synthetic isolated test databases**, executing real Frappe/ERPNext stock/GL/report tests, repeated debugging/fixes, and pushing proposed commits/PRs to **unprotected task branches**, with no per-command chat approval inside that environment. App source is still controlled by GitHub, and approval for releasing to protected branch, any real MAIN DEV write/migration and PRODUCTION deployment stays separate. The pre-existing DEVELOPMENT container **still exposes a host SSH mount**; do not run unrestricted Codex there. New production host physical separation does not independently prove old legacy production cutover; avoid host credentials, persistent data, backup/NAS, host Docker socket or shared host network access.
+
+**Verified active GitHub writes on application branch** `release/withdrawal-department-phase1-2026-11-17`:
+- Root `AGENTS.md` updated with explicit full DEVELOPMENT engineering delegation and technical boundaries, commit `be179903d027dd2e198cfe2601446b98ad04f484`.
+- `CODEX-PHASE1-DEVELOPMENT-TASK.md` converted to an execution-first mandate focused on real Withdrawal/SLE/GL/Department acceptance rather than audits, commit `ecf2cdff4e59f29d58433ce779d1ced61a364fd1`.
+- Existing issue [#36](https://github.com/ccpcerp/ccpcerp/issues/36) updated with the starter prompt, exact release branch and permission scope; it does not trigger a Codex agent. App [PR #35](https://github.com/ccpcerp/ccpcerp/pull/35) is still DRAFT and unmerged. No real DB integration tests, new Codex task, persistent DEV or PROD operation was launched by these docs changes.
+
+**Only one phone action remains to start actual engineering work:** Open [Codex Cloud](https://chatgpt.com/codex), connect the existing private `ccpcerp/ccpcerp` repo, select `release/withdrawal-department-phase1-2026-11-17` and submit issue #36's kickoff prompt. Codex Cloud setup/environment may require desktop or web once; do not claim it is set up. Once Codex produces an implementation PR, ChatGPT can inspect it with the GitHub connector and move quickly to isolated tests and guarded MAIN DEV UAT. If GitHub Actions private runner continues to show zero-step failure, don't block code development on it.
+
+
 ## November 17, 2026 — Codex phone-first executable task now committed; historical server blocker recovered
 
 Owner explicitly authorizes a faster **Codex autonomous implementation/debug/test loop within an isolated disposable DEVELOPMENT environment** after expressing frustration over repeated conservative dead ends. Immediate user goal is use from **phone** with source-of-truth GitHub and real release value, especially same-Company custom Withdrawal→Stock Ledger/Expense GL→original Department report. This does **not** grant root, MAIN DEVELOPMENT financial/master-data changes, PRODUCTION access, paid Codex API integrations, background publisher or broad SSH rights.
