@@ -193,11 +193,17 @@ try:
                 result = original_sql(query, *args, **kwargs)
                 new_transaction_after_commit += 1
                 return result
-            if head.startswith((
-                "COMMIT ", "START TRANSACTION ", "SET AUTOCOMMIT",
-                "ALTER ", "CREATE ", "DROP ", "TRUNCATE "
-            )):
-                raise RuntimeError("STOP: FORBIDDEN_SQL_TRANSACTION_CONTROL")
+            if (head.startswith(("COMMIT", "START TRANSACTION", "SET AUTOCOMMIT"))
+                    or head in ("BEGIN", "ROLLBACK", "LOCK TABLES", "UNLOCK TABLES")
+                    or head.startswith((
+                        "BEGIN ", "ROLLBACK ", "LOCK TABLES ",
+                        "UNLOCK TABLES ", "ALTER ", "CREATE ", "DROP ",
+                        "TRUNCATE ", "RENAME "
+                    ))):
+                # ROLLBACK TO SAVEPOINT is used by the real controller's
+                # compensating path and never performs a persistent commit.
+                if not head.startswith("ROLLBACK TO SAVEPOINT "):
+                    raise RuntimeError("STOP: FORBIDDEN_SQL_TRANSACTION_CONTROL")
         return original_sql(query, *args, **kwargs)
 
     frappe.db.sql = sql_guard
@@ -266,6 +272,9 @@ try:
         pluck="name", limit_page_length=3,
     )
     must(len(names) == 1, "EXPECTED_ONE_ORIGINAL_UNDER_REVIEW_BATCH")
+    must(frappe.db.count("Intercompany Material Billing Batch",
+            {"issuing_company": ISSUER, "requesting_company": BUYER}) == 1,
+         "EXPECTED_ONE_TOTAL_ISSUER_BUYER_BATCH")
     original = frappe.get_doc("Intercompany Material Billing Batch", names[0])
     original_name = original.name
     must(
@@ -281,6 +290,12 @@ try:
     )
     must(len(original.items) == 1 and bool(original.items[0].stock_entry_detail),
          "ORIGINAL_SOURCE_LINE_CHANGED")
+    source_marker = "Intercompany material billing batch " + original.name
+    must(
+        frappe.db.count("Sales Invoice", {"remarks": source_marker}) == 0
+        and frappe.db.count("Purchase Invoice", {"remarks": source_marker}) == 0,
+        "RELATED_INVOICE_PAIR_ALREADY_EXISTS",
+    )
     source = original.items[0]
     detail = frappe.db.get_value(
         "Stock Entry Detail", source.stock_entry_detail,
