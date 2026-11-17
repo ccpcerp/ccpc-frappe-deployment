@@ -1,5 +1,38 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — EXACT RICOR PI EXPENSE MISMATCH ISOLATED TO NATIVE STOCK RECEIVED NOT BILLED (no posting)
+
+Owner executed prior GitHub-pinned exact-account read-only diagnostic on MAIN and reported:
+
+```text
+PINNED_MAIN_DEV_SOURCE=PASS
+DRAFT_PAIR_NO_POSTING=PASS
+CCPC_RECEIVABLE_EXACT_NAME=MATCH
+CCPC_INCOME_EXACT_NAME=MATCH
+RICOR_EXPENSE_EXACT_NAME=MISMATCH
+RICOR_EXPENSE_EXPECTED=5150 - Intercompany Materials Expense - RMC
+RICOR_EXPENSE_ACTUAL=2301 - Stock Received But Not Billed - RMC
+RICOR_EXPENSE_ACTUAL_ACCOUNT=INVALID_FOR_ROLE
+RICOR_EXPENSE_ACTUAL_COMPANY=Ricor Mills Corporation
+RICOR_EXPENSE_ACTUAL_ROOT=Liability
+RICOR_EXPENSE_ACTUAL_TYPE=Stock Received But Not Billed
+RICOR_EXPENSE_EXPECTED_ACCOUNT=VALID_FOR_ROLE
+RICOR_EXPENSE_EXPECTED_COMPANY=Ricor Mills Corporation
+RICOR_EXPENSE_EXPECTED_ROOT=Expense
+RICOR_PAYABLE_EXACT_NAME=MATCH
+EXACT_ACCOUNT_NAMES_MATCHED=3/4
+DIAGNOSTIC_ONLY_NO_ACCOUNT_CHANGES=PASS
+READ_ONLY_NO_COMMIT_OR_SUBMIT=PASS
+```
+
+This **proves a specific saved Ricor PI item account discrepancy**, not an assumed configuration defect or an authorized reason to bypass native safeguards. CCPC SI `1312`/ `6050` and Ricor PI `2121` were exact valid matches; Ricor PI item `expense_account` was silently persisted as `2301 - Stock Received But Not Billed - RMC` **liability** rather than intended `5150 - Intercompany Materials Expense - RMC` **expense**, both accounts otherwise exist/valid for their own ledger types. A direct PI submit now risks debiting a clearing liability instead of expensing Ricor's materials; no related GL/SLE has been posted yet.
+
+**New verified source explanation:** Public upstream ERPNext `version-16` native `PurchaseInvoice.validate` calls `set_expense_account(for_validate=True)`; `set_expense_account` overwrites an item `expense_account` with Company `stock_received_but_not_billed` if perpetual inventory applies to a stock item without a qualifying Purchase Receipt, even with `update_stock=0` (source blob `6df4481aef271fbae0187de71de78ca9f7ae83e2`). App PR33 custom controller explicitly supplied `5150` when building the Draft PI (blob `a9a6e609759e77948d40d31bdbd342f727b208a9`). **The installed ERPNext code and actual site Item/perpetual/PR flags have not yet been independently checked**, so treat as strongest hypothesis, not completed root-cause proof.
+
+**Next ONE safe step:** New GitHub-only read-only MAIN diagnostic `scripts/development/operator/ccpc_pr33_ricor_native_srb_rule_readonly_20261117.sh` checks pinned app/site, original exact unposted Draft pair, Ricor Item `is_stock_item`, perpetual inventory, `is_opening`, fixed asset/drop-ship/Purchase Receipt flags and installed `PurchaseInvoice.set_expense_account` rule via `inspect.getsource` without revalidating/submitting; reports `NATIVE_NO_RECEIPT_CLEARING_RULE_APPLIES` and `SAVED_PI_MATCHES_NATIVE_CLEARING`. Before owner execution, pin exact docs branch commit and script Git blob, run `bash -n` and embedded Python AST. **Status: only GitHub script prepared, not host-run yet**. Detailed diagnosis/Accounting choices recorded in `docs/ccpc-project/PR33-NATIVE-INVOICE-POSTING-READINESS-2026-11-17.md`. No API/controller/app-code change, invoice mutation, PR merge, service restart or PRODUCTION.
+
+**Hold policy:** Do not change saved Draft invoice, live Item stock flag, invoice's GL account, Purchase Receipt, or finance grants until business chooses whether Ricor should book **inventory receipt + subsequent consumption** or **direct expensed material transfer/charge with nonstock billing representation**. Avoid `is_opening`/SQL overrides/fake Purchase Receipts. Existing backups precede persistent Draft pair; new fresh post-Draft local+NAS recovery must precede any eventual separately approved posting. Consume no old one-time markers. Both invoices currently Draft and zero related GL/SLE per reported read-only checks. Require subsequent explicit financial write authorization after design, tests and recovery.
+
 ## November 17, 2026 — PR33 native accounting read-only preflight STOP: INVOICE_ACCOUNT_MISMATCH; no submit or GL
 
 Owner ran the new exact-source **read-only** MAIN `ccpc_pr33_main_draft_pair_readonly_posting_preflight_20261117.sh` (blob `d18feaba3c4dea7c7345bb703b296dcb5c6bec16`) and reported:
