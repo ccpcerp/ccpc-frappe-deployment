@@ -1,5 +1,33 @@
 # CCPC ERPNext — PR #33 MAIN DEVELOPMENT Finance Checker transaction-effects review
 
+## November 17, 2026 — PR33 V2 MAIN live rollback-only checker acceptance PASS (one-line draft SI/PI)
+
+The owner executed the single separately approved V2 script at docs PR37 blob `b95a07bc15c9a70539864f5b36ab9ab034444093`, against the protected DEVELOPMENT app checkout exactly pinned to PR33 head `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`. **Actual owner-supplied terminal result**:
+
+```text
+PINNED_DEV_APP_AND_WORKTREE=PASS
+INSTALLED_FRAPPE_UI_NOTIFICATION_PREFLIGHT=PASS
+DB_COMMIT_AND_SQL_CONTROL_GUARDS=PASS
+SELECTIVE_REALTIME_AND_OUTBOUND_API_GUARDS_ACTIVE=PASS
+UNDER_REVIEW_SOURCE_AND_ACTORS=PASS
+CROSS_LINKED_DRAFT_SI_PI_IN_TRANSACTION=PASS
+ONLY_TWO_DRAFT_INVOICES_CREATED=PASS
+GL_AND_STOCK_ROW_COUNTS_UNCHANGED=PASS
+DEFERRED_UI_NOTIFICATIONS_SUPPRESSED_COUNT=12
+ROLLBACK_ONLY_IN_TRANSACTION_CHECKS=PASS
+REHEARSAL_DB_TRANSACTION=ROLLED_BACK
+POST_ROLLBACK_BATCH_AND_COUNTS=PASS
+PRODUCTION_NOT_TARGETED=PASS
+REHEARSAL_RESULT=PASS_ALL_CHECKS_ROLLED_BACK
+NO_INVOICE_COMMIT_REQUESTED=PASS
+```
+
+**Acceptance interpretation:** This is a PASS for the bounded **real MAIN DEVELOPMENT Frappe/MariaDB controller integration** using the already-scoped **synthetic Finance Checker**, not merely mocked Python tests. In the uncommitted transaction the original one-line finalized CCPC→Ricor batch successfully generated exactly one linked **Draft** CCPC SI and one linked **Draft** Ricor PI; verified both companies, native internal parties, billing month-end date, amounts, frozen item and qty/rate, no tax or stock update; persisted in-session batch had `Approved` status and audit/checker/reciprocal links; SI/PI rows increased by one each while GL/SLE row counts remained unchanged. The V2 API interceptor suppressed **12** allowed *deferred UI realtime notifications* (`doc_update`/`list_update`), which is consistent with normal save notifications causing the V1 false safety abort. No other blocked outbound API was called in this execution. The controller transaction was explicitly rolled back, and a **fresh read-only transaction** verified batch reverted to `Under Review` without approved actor/invoice links or same-remark invoice rows and original SI/PI/GL/SLE counts. No lasting SI/PI pair or GL/SLE postings were requested.
+
+**Limits and follow-up:** This proves exactly one guarded one-line success+rollback, not concurrent approvers, secondary retries/replay, native `submit`/cancel, actual GL/stock reconciliation, real named accounting user rights, HTTP/CSRF, multi-line, external mail/network risk from arbitrary hooks, fresh restore-tested backups, or PRODUCTION readiness. The host's V1 and V2 private one-use markers are both consumed; never clear/reuse. The previous historical NAS manifests are **not** a fresh pre-committed approval backup.
+
+**Next gate:** separately approve and prepare one **persisted** Draft SI/PI checker approval on MAIN DEVELOPMENT only after a **fresh independently verified scoped backup**, exact named human Finance Controller decision (or explicit policy acceptance of synthetic test actor), strict Company User Permissions, source/role/account master data reconfirmation, and review of automatic hooks. One commit should create precisely one Draft pair and mark batch Approved; no immediate invoice `submit()` or GL posting, no production deployment. Then run native lifecycle and reconciliation under separate authorization. Do not turn this rehearsal PASS into permission for an actual financial commit.
+
 ## November 17, 2026 — V2 single-run MAIN rollback rehearsal EXPLICITLY APPROVED; execution PENDING
 
 The project owner responded **APPROVED** to the separately requested V2 test: one **MAIN `development.localhost` DEVELOPMENT** rehearsal calling the real Finance Checker `approve_and_create_invoices()` controller in an outer SQL transaction and rolling it back, using existing synthetic users. This permission is **not** a permanent invoice approval, real-user permissions change, production deployment or a repeat of consumed V1. Original V1 marker stays intact.
