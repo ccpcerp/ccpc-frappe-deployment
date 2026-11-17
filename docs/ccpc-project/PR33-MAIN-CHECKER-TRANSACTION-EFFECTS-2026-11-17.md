@@ -1,5 +1,11 @@
 # CCPC ERPNext — PR #33 MAIN DEVELOPMENT Finance Checker transaction-effects review
 
+## November 17, 2026 — source-based likely cause of generic outbound guard error
+
+Independent read-only inspection of official `frappe/frappe` `version-16` `frappe/model/document.py` (blob `4e7ead9ef1c09c0a4fb7dc37d9198a9b2f87531b`) shows `Document.run_post_save_methods()` normally calls `self.notify_update()` after a document INSERT/UPDATE and `notify_update()` calls `frappe.publish_realtime("doc_update", ..., after_commit=True)` and often `"list_update"`. The one-shot harness blocks `frappe.publish_realtime` with the same `FORBIDDEN_OUTBOUND_SIDE_EFFECT` error as its email, queue, HTTP and SMTP blockers. This is a **plausible explanation** of the failure at `CONTROLLER_APPROVE_AND_CREATE` and may reflect a **normal Frappe save notification**, not application financial logic error. Exact DEV version/call path was not independently inspected. No conclusion about actual external delivery follows.
+
+A new **separately approved** rehearsal, if needed, should identify each guard by precise name, selectively suppress only verified `after_commit=True` `doc_update`/`list_update` notifications, block all other outbound side-effect attempts, and perform the persisted-state read-only postcheck whether the in-transaction assertions passed or an exception occurred. Original one-use marker and script are consumed: **do not rerun**. A disposable isolated site is preferable if network/hooks cannot be comprehensively constrained.
+
 ## November 17, 2026 — owner-confirmed post-abort MAIN database check PASS
 
 Owner completed a *separate read-only transaction*, following the abort of the single approved one-shot rehearsal:
