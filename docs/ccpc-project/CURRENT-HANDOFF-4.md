@@ -1,5 +1,19 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — running Honcho explicitly selected web/socketio, scheduler candidate count 0
+
+Owner ran the bounded read-only `/proc` scheduler/Honcho command classifier on original DEV host. Full output (excluding the normal sudo prompt):
+
+```text
+HONCHO_EXPLICIT_SERVICE_TOKENS=socketio,web
+SCHEDULER_CANDIDATE_COUNT=0
+ACTIVE_SCHEDULER_DIAGNOSTIC=COMPLETE
+```
+
+**Interpretation:** The live Honcho launcher was passed an explicit service subset containing **web and socketio**, even though the DEV `Procfile` declares `schedule`, and the command-line-based scan found **zero scheduler process candidates**. This materially lowers the risk of a running Honcho-managed scheduler, but the scan is a heuristic rather than a proof that *all* Frappe scheduling paths are disabled. **Do not run `honcho start` without the exact service subset; do not restart the whole Honcho/Compose container** merely to activate this one Python security patch. The prior source-only DEV checkout and protected `AGENTS.md` verification remains `PASS` at `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`, but active web-worker code activation is unverified.
+
+**Next focused, no-write runtime discriminator:** examine on-disk executive gateway file mtime and start times of the *existing Honcho web-subtree* processes plus allowlisted `werkzeug`/gunicorn/reloader signatures. Do not print raw process command lines, environments or Procfile commands, nor rely on old PIDs as stable identities. If existing web children started after the source switch, the patch may already be loaded; if older, a separately approved and reviewed web-only reload plan is needed. Even a post-switch process start is not itself proof of authenticated HTTP boundary enforcement; perform DEV HTTP acceptance after activation. No restart, user grant, DB write, billing approval, scheduler or PROD change was part of this diagnostic.
+
 ## November 17, 2026 — DEVELOPMENT Procfile service declaration inventory COMPLETE; scheduler is CONFIGURED
 
 Owner ran read-only Procfile service-name inventory and reported:
