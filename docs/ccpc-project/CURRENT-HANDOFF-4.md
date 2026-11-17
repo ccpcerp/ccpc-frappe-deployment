@@ -1,5 +1,46 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — FIRST PERSISTENT MAIN DEV CCPC→RICOR DRAFT SI/PI PAIR COMMITTED + POSTCHECK PASS (owner-operated; independent audit PENDING)
+
+**Major DEVELOPMENT acceptance milestone:** Owner has now executed **exactly one** of the reviewed, SHA-pinned, one-time `scripts/development/operator/ccpc_pr33_main_checker_persist_draft_pair_once_20261117.sh` procedures against MAIN `development.localhost`. The script Git blob remains `b20edd9762fb3497eb5d866e51100bb337eff25b`, pinned app PR33 head `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`; checked GitHub app PR33 and docs PR37 remained open drafts when recording. The owner previously nominated `finance_controller@ccpc.com` as the persistent `approved_by` user and approved **one** committed Draft pair, not submit/GL posting/PRODUCTION.
+
+**Exact complete operator-provided terminal result:**
+
+```text
+FINAL_EXECUTION_SOURCE_CHECK=PASS
+PINNED_FRESH_MAIN_OFF_HOST_RECOVERY_SHA256_4_OF_4=PASS
+[sudo: authenticate] Password:
+PINNED_DEV_APP_AND_WORKTREE=PASS
+INSTALLED_FRAPPE_UI_NOTIFICATION_PREFLIGHT=PASS
+SINGLE_COMMIT_AND_SQL_CONTROL_GUARDS=PASS
+SELECTIVE_REALTIME_AND_OUTBOUND_API_GUARDS_ACTIVE=PASS
+UNDER_REVIEW_SOURCE_AND_ACTORS=PASS
+NAMED_CHECKER_NATIVE_BATCH_PERMISSIONS=PASS
+CROSS_LINKED_DRAFT_SI_PI_IN_TRANSACTION=PASS
+ONLY_TWO_DRAFT_INVOICES_CREATED=PASS
+GL_AND_STOCK_ROW_COUNTS_UNCHANGED=PASS
+DEFERRED_UI_NOTIFICATIONS_SUPPRESSED_COUNT=12
+PRECOMMIT_DRAFT_PAIR_AND_ZERO_GL_SLE=PASS
+SINGLE_EXPLICIT_DB_COMMIT=PASS
+ACTIVE_TRANSACTION_CLEANUP=PASS
+PERSISTED_DRAFT_PAIR_AND_COUNTS_POSTCHECK=PASS
+PERSISTED_SALES_INVOICE_NAME=ACC-SINV-2026-00001
+PERSISTED_PURCHASE_INVOICE_NAME=ACC-PINV-2026-00005
+COMMIT_SQL_COMPLETED=True
+COMMIT_CALL_COMPLETED=True
+POSTCOMMIT_READ_ONLY_VALIDATED=True
+PRODUCTION_NOT_TARGETED=PASS
+PERSISTENT_DRAFT_PAIR_APPROVAL=PASS
+INVOICE_SUBMISSION_NOT_REQUESTED=PASS
+DO_NOT_REPEAT_THIS_ONE_SHOT=PASS
+```
+
+**What is now confirmed by the execution script:** Its **real ERPNext/Frappe/MariaDB** controller ran under the CLI-scoped named `frappe.session.user=finance_controller@ccpc.com`, passed both actor and native DocPerm checks, created exactly one reciprocally linked, one-line **Draft CCPC Sales Invoice `ACC-SINV-2026-00001`** and **Draft Ricor Purchase Invoice `ACC-PINV-2026-00005`** in the guarded write transaction, validated frozen source, correct Companies/internal parties, month-end posting date, totals, `docstatus=0`, no tax or stock update, and row count deltas SI +1 / PI +1 / GL Entry +0 / Stock Ledger Entry +0. After the single explicit `frappe.db.commit()` completed, the script's **separate read-only transaction** confirmed persisted batch `Approved`, named `approved_by`, exactly these two Draft invoices and reciprocal references, no other matching-remarks invoices and no GL/SLE count delta. The script suppressed 12 allowlisted deferred native UI notifications and saw no other blocked common outbound call. **There is no automatic rollback after successful SQL commit**; these records are now persistent, unlike the V1/V2 rollback tests. The one-time marker `~/.ccpc-pr33-main-persist-draft-pair-once-20261117` is consumed — **never clear/replay**.
+
+**Next best safe step:** Run a **separately authored independent read-only MAIN persisted-state audit** not reusing the committing script, under the correct DEV site/bench CWD and `START TRANSACTION READ ONLY`. Verify the batch has both exact links/`Approved`/`approved_by`, each exact invoice is `docstatus=0` with correct Company, reciprocal references, frozen source rate+qty and month-end date/amounts, same-remarks singleton counts, no related GL or stock ledger postings, no unexpected duplicate pairing and no modifying action. Audit may require carefully scoped queries because other unrelated GL/SLE entries could exist; report only nonsecret PASS/STOP and exact invoice IDs already known. Preserve app/backup artifacts, zero destructive operations. This is still operator-controlled CLI `frappe.set_user()`, **not a real human authenticated Finance Controller UI click**; the batch maker is still a synthetic DEV preparer. Do not describe this as live human approval, a posted accounting entry, or production-ready. Backup local `development.localhost-20261117T043152Z-1582f342f870` and matching Synology copy `ccpc-development-pr33-main-precommit-20261117T044035Z-591a9f7e2b035cae` are SHA256 PASS but **not restore-tested**.
+
+**Next release gates NOT YET PASS:** independent postcommit read-only audit, native ERPNext invoice submission/GL posting and reconciliation, correction/cancel and concurrency acceptance under separate authorization, HTTP/CSRF authenticated-user flow, backup restore isolation and PRODUCTION deployment approval. PR33 remains draft. No new app-code changes, user-role changes, service restarts, migrations, PRODUCTION operations or invoice submits were performed by the assistant or this documentation update.
+
 ## November 17, 2026 — pinned MAIN persistent Draft-pair one-shot Bash+Python static preflight PASS (owner operated); one-time financial execution NEXT
 
 Owner ran the previously supplied **STATIC ONLY** on-host verification of the exact GitHub PR37 script `scripts/development/operator/ccpc_pr33_main_checker_persist_draft_pair_once_20261117.sh` with Git blob `b20edd9762fb3497eb5d866e51100bb337eff25b`, using the script's previous pinned docs commit `7662d6ae9ccc61c9f16728e6e3cd5ef6efb75a00`. Exact owner-returned success markers:
