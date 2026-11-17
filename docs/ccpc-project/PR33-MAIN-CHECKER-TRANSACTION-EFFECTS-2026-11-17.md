@@ -1,5 +1,21 @@
 # CCPC ERPNext — PR #33 MAIN DEVELOPMENT Finance Checker transaction-effects review
 
+## November 17, 2026 — INDEPENDENT POSTCOMMIT READ-ONLY MAIN DEVELOPMENT DRAFT SI/PI ACCEPTANCE PASS
+
+After the owner-operated one-time permanent Draft CCPC SI `ACC-SINV-2026-00001` and Ricor PI `ACC-PINV-2026-00005` creation/SQL commit PASS, the owner separately executed the **newly supplied independent read-only Frappe/MariaDB audit** from bench `sites` on `development.localhost`. Complete operator output:
+
+```text
+INDEPENDENT_APPROVED_BATCH=PASS
+INDEPENDENT_DRAFT_PAIR=PASS
+NO_RELATED_GL_OR_STOCK_POSTINGS=PASS
+INDEPENDENT_PERSISTED_AUDIT=PASS
+READ_ONLY_NO_COMMIT=PASS
+```
+
+**Scope of independently corroborated database state:** The one CCPC → Ricor batch exists as `Approved`, `docstatus=0`, `approved_by=finance_controller@ccpc.com`, with original approval timestamp, and its two invoice reference fields equal the exact SI/PI IDs. Independently fetched invoices are both **Draft** (`docstatus=0`), with correct Companies and reciprocal intercompany references, no stock update or tax rows, exactly one matching frozen original billing line (item code, quantity, rate), matching month-end posting date and amount within 0.01, exact batch-identifying remarks and **one** matching-remarks record of each invoice type. The distinct audit checked zero `GL Entry` and `Stock Ledger Entry` rows **per exact invoice voucher type/name pair**. Its transaction was `START TRANSACTION READ ONLY` and closed with rollback in `finally`; **no new writes/approval/submission**. This confirms the committed state outside the original committing process. It does not prove wider GL/SLE database-wide changes are zero or that any posted accounting reconciliation has passed.
+
+**Accepted milestone:** Main DEVELOPMENT first persistent **Draft-only** invoice-pair acceptance **PASS, including independent postcommit read-only audit**. Application draft PR33 remains open/unmerged; not production-ready. Preserve all one-time markers, new invoices, and local/off-host SHA256 backup sets (backup restore NOT independently tested). No native invoice submission, GL/SLE posting, cancellation, repeat approval, real authenticated web Finance approval, concurrency stress, or PRODUCTION deployment authorized. The existing operator-driven `frappe.set_user()` attribution and synthetic DEV maker remain audit caveats. Next review only: plan ERPNext native SI/PI submission and ledger accounting reconciliation, separate authorization for any financial posting, plus concurrency/replay and recovery acceptance.
+
 ## November 17, 2026 — FIRST MAIN DEVELOPMENT PERSISTENT DRAFT SI/PI PAIR COMMIT + SCRIPT POSTCOMMIT CHECK PASS
 
 After explicit owner authorization for one DEV-only persistent pair and nomination of `finance_controller@ccpc.com`, the owner executed the previously exact-source static-validated one-time script `scripts/development/operator/ccpc_pr33_main_checker_persist_draft_pair_once_20261117.sh` from docs PR37 (Git blob `b20edd9762fb3497eb5d866e51100bb337eff25b`). App PR33 pinned at `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`. The precommit off-host backup rehash, source/permissions/source-item guards, single controller/commit, exact one Draft pair, zero GL/SLE delta, and new READ ONLY persisted-state postcheck all returned PASS. Full operator stdout:
