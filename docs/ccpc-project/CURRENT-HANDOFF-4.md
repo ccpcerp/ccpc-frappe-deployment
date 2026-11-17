@@ -1,5 +1,22 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — exact-source Frappe 16 gateway regressions PASS (owner evidence)
+
+The owner ran the operator-delivered in-memory supported-Frappe runtime verification for app review PR #33 SHA `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`, against the still-pinned MAIN DEVELOPMENT app checkout `1bde04bf6d51d2c1b3197ef41696e8b6df7b0ecc`. The owner provided the terminal's concluding lines:
+
+```text
+OK
+PR33_EXACT_FRAPPE_REGRESSIONS=PASS
+PR33_SUPPORTED_RUNTIME_SOURCE_ONLY_TEST=COMPLETE
+PR33_OPERATOR_RUNTIME_VERIFICATION=COMPLETE
+```
+
+**Interpretation:** The source-pinned wrapper loads the exact new executive gateway and test module **in-memory**, requires **exactly 15** unittest methods and `result.wasSuccessful()`, uses actual Frappe v16/Python >=3.14 runtime context, wraps MAIN database session in `START TRANSACTION READ ONLY` with `rollback()`, and does not alter the protected app checkout. The PASS/COMPLETE markers establish the scripted **15/15 Frappe-unit-regression gate succeeded, as reported by the operator**, including cross-Company equipment-code confidentiality denial. This is stronger than manually reconstructed standalone smoke tests but still primarily mocked source/authorization fixtures, **not** live executive browser/CSRF permissions or business database/report integration, not a general invoice/GL certification. The operator shared only final result lines; full test transcript was not supplied, and ChatGPT did not run remote commands itself.
+
+**GitHub verification:** new app PR #33 remains open/draft at `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`. Docs PR #37 previously contained the exact driver/wrapper source at `3f44dd8bb4db9ceb76e0e78c399efb1f056c7ba3`. **No new DEV source update, persistent DB write, migration, service restart, invoice approval, PRODUCTION change or paid CI run is recorded.**
+
+**Next gated action:** separately authorize protected **source-only DEVELOPMENT checkout update** from `1bde04bf...` to exact PR #33 `25a7b6be...`, after confirming no unexpected worktree changes (only protected untracked `AGENTS.md`), remote exact SHA and four-commit/two-file diff. Preserve the source and snapshot checkpoints. Do NOT use blind `git pull`, `git clean/reset --hard`, `bench migrate`, worker restarts or blanket site operations. After an approved source update, conduct read-only active-gateway verification; separate risk review and operator authorization are still needed for persistent Finance checker approval and invoice drafts. PRODUCTION remains NO-GO.
+
 ## November 17, 2026 — exact-source Frappe 16 gateway regression runner PREPARED (NOT EXECUTED)
 
 Owner approved continuation to validate app [PR #33](https://github.com/ccpcerp/ccpcerp/pull/33) **new** head `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87` in a supported Frappe environment **before a separately authorized source-only DEVELOPMENT update**. No paid CircleCI run, shared service restart, migration or financial transaction was approved by this instruction. Current main DEV app is still pinned at `1bde04bf6d51d2c1b3197ef41696e8b6df7b0ecc`.
