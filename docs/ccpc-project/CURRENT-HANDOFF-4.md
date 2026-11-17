@@ -1,5 +1,29 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — PR33 MAIN Finance Checker rollback rehearsal STOPPED by outbound side-effect guard; SQL rollback reported
+
+Owner executed the **single approved one-time** `ccpc_pr33_main_checker_rollback_once_20261117.sh` on original DEVELOPMENT and returned this exact result:
+
+```text
+PINNED_DEV_APP_AND_WORKTREE=PASS
+DB_COMMIT_AND_SQL_CONTROL_GUARDS=PASS
+OUTBOUND_COMMON_API_GUARDS_ACTIVE=PASS
+UNDER_REVIEW_SOURCE_AND_ACTORS=PASS
+REHEARSAL_DB_TRANSACTION=ROLLED_BACK
+REHEARSAL_FAILURE_PHASE=CONTROLLER_APPROVE_AND_CREATE
+REHEARSAL_FAILURE_CLASS=RuntimeError
+REHEARSAL_FAILURE_LABEL=FORBIDDEN_OUTBOUND_SIDE_EFFECT
+PRODUCTION_NOT_TARGETED=PASS
+REHEARSAL_RESULT=STOPPED_AND_ROLLED_BACK
+DO_NOT_AUTOMATICALLY_RETRY=PASS
+```
+
+**Interpretation:** The preflight, exact app checkout, locked-down transaction, common outbound hooks guard and existing Under Review source/actor checks passed. When the actual `approve_and_create_invoices()` controller ran, a call to **one of the guarded outbound APIs** raised the deliberate `STOP: FORBIDDEN_OUTBOUND_SIDE_EFFECT` exception. All patched outbound APIs share the *same* error label; the exact triggering function (mail, queue, realtime, HTTP/requests, SMTP) **cannot be determined from these logs**. This is a **test harness safety stop**, **not proof of a production billing defect**. The script called outer `frappe.db.rollback()` and printed `REHEARSAL_DB_TRANSACTION=ROLLED_BACK`. It did **not** print `ROLLBACK_ONLY_IN_TRANSACTION_CHECKS=PASS`, `POST_ROLLBACK_BATCH_AND_COUNTS=PASS`, `REHEARSAL_RESULT=PASS_ALL_CHECKS_ROLLED_BACK`, or `NO_INVOICE_COMMIT_REQUESTED=PASS`. **Do not certify paired Draft invoice creation or post-rollback database state from this run.**
+
+**One-shot consumed:** The script's private `$HOME/.ccpc-pr33-main-checker-rollback-once-20261117` marker is expected to exist. **Do not delete marker, rerun script, bypass outbound guard, or trigger a fresh write-capable rehearsal under this already consumed approval.** Preserve logs, source, backups, DEV/PROD isolation. No confirmed invoice pair, no confirmed financial source modification or new PR33 app code defect. PROD not targeted by the script, though no independent PROD-state check occurred.
+
+**Immediate next gate (NO WRITES):** one short, bounded read-only MAIN `START TRANSACTION READ ONLY` database integrity check: exactly one CCPC → Ricor batch, status `Under Review`, docstatus 0, no approval or SI/PI links, and **zero SI/PI rows whose native `remarks` match the exact batch**. This compensates for the previously skipped post-rollback block but cannot prove total DB/GL/SLE invariants without historical baseline counts. On mismatch STOP, no retry. Then inspect GitHub/Frappe source to identify which expected side-effect API gets hit before designing a new isolated sandbox/rehearsal. Any renewed transient write test requires **distinct authorization**, not the consumed one-shot. Production, scheduler, actual invoices and user grants remain excluded.
+
 ## November 17, 2026 — one-time PR33 MAIN Checker rollback-only rehearsal APPROVED; script committed, NOT RUN
 
 After receiving the detailed PR33 financial-transaction review, the owner explicitly **approved one rollback-only MAIN DEVELOPMENT Finance Checker rehearsal** of the real `approve_and_create_invoices()` method. This **authorizes only transient DB writes inside one supervised transaction that is rolled back**, not a committed billing approval, persistent Draft SI/PI creation, real-accounting user/Company grants, native submit/posting, migrations, worker/scheduler restart, paid CI, Git merge, or PRODUCTION operations.
