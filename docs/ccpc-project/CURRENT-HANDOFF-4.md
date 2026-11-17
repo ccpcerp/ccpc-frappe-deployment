@@ -1,5 +1,27 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — FRESH MAIN PRECOMMIT SYNLOGY OFFSITE COPY 4/4 SHA256 PASS; actor authorization next
+
+Owner executed the separately verified single-use `ccpc_pr33_precommit_main_nas_copy_20261117.sh`, using only the fresh MAIN snapshot basename `development.localhost-20261117T043152Z-1582f342f870`. Complete operator-provided result:
+
+```text
+NAS_COPY_SCRIPT_VERIFIED=PASS
+NEW_MAIN_BACKUP_AGE_WINDOW=PASS
+NAS MOUNT: PASS
+FRESH_MAIN_SOURCE_MANIFEST: 4/4 PASS
+NEW NAS STAGING DIRECTORY: CREATED
+development.localhost: 4/4 SHA256 PASS
+NAS BACKUP CHECKSUMS: 4/4 PASS
+FINAL NAS DIRECTORY: /mnt/erpnext_backups/ccpc-development-pr33-main-precommit-20261117T044035Z-591a9f7e2b035cae
+FRESH_PRECOMMIT_MAIN_DEV_OFF_HOST_BACKUP: PASS
+```
+
+**Verified by reported script output:** Protected Synology CIFS mount matched expected source and local/remote SHA256 manifests verified all four individual artifacts (database `.sql.gz`, site config JSON, public/private file archives) and copied manifest. Exact offsite recovery root: `/mnt/erpnext_backups/ccpc-development-pr33-main-precommit-20261117T044035Z-591a9f7e2b035cae`, containing `development.localhost-20261117T043152Z-1582f342f870/` and a top-level `SHA256SUMS`. Prior local four-part backup and source-state preflight already PASS. This fulfills the **fresh local + off-host SHA256 backup integrity precommit gate**, but NOT an actual restore rehearsal, verified runtime isolation or a proof of a multi-table transactionally consistent backup under concurrent workload. Preserve all artifacts and the one-time NAS-copy marker `~/.ccpc-pr33-main-precommit-nas-copy-once-20261117`; no retry/copy/overwrite required.
+
+**Approval status:** Owner previously approved *progress toward* one committed MAIN DEVELOPMENT Draft CCPC SI/Ricor PI pair conditional on fresh backup, separately verified **named Finance Controller** with both CCPC+Ricor exact Company grants, a fresh unchanged Under Review batch/source, and one guarded one-time transaction with persisted immediate postcheck. Backup local+NAS **PASS**; remaining actor identity/permission choice and final one-time code/operational preflight are **NOT YET PASSED**. Last successful rollback-only V2 tested synthetic `ccpc-billing-checker-dev@testing.invalid` only; it must **not** be used for a persistent `approved_by` trail without explicit identity approval. The checked-in authority enforces actual `Has Role` Finance Controller, enabled named user, prohibits Administrator/Guest/Stockroom Personnel and demands a generic `User Permission` for BOTH issuing/requesting Companies (`apply_to_all_doctypes=1` and empty `applicable_for`). The Controller also demands different checker vs finalizer. No new real user rights should be created just to make test pass.
+
+**Next one safe step:** read-only MAIN `START TRANSACTION READ ONLY` census of eligible, enabled *existing* Finance Controllers, including actual required Company grants and distinction from the batch's `finalized_by`. Only share candidate identities/eligibility flags; no business amounts, records or secrets. After a chosen named checker (not synthetic) is confirmed and native effective DocPerm validated, separately prepare exactly one guarded persistent checker controller call and postcommit verification. No invoice commit yet. Native invoice `submit`/GL posting remains a separate future gate. No PRODUCTION service or data activity.
+
 ## November 17, 2026 — FRESH MAIN DEVELOPMENT precommit LOCAL FOUR-PART RECOVERY PASS; Synology offsite copy NEXT
 
 Owner executed the newly created **one-shot exact-PR33-SHA local precommit backup** `scripts/development/operator/ccpc_pr33_precommit_main_backup_20261117.sh` on original host. Complete owner-provided success output:
