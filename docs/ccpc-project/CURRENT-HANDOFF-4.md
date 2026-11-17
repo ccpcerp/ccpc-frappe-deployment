@@ -1,5 +1,22 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — original DEV Frappe document notification source confirmed; V2 rehearsal script PREPARED ONLY
+
+Owner ran the **requested read-only in-container Python AST source inspection** of `/workspace/development/frappe-bench/apps/frappe/frappe/model/document.py`. Exact output:
+
+```text
+POST_SAVE_CALLS_NOTIFY= True
+NOTIFY_CALLS_REALTIME= True
+REALTIME_AFTER_COMMIT= True
+FRAPPE_SOURCE_CHECK=COMPLETE
+```
+
+This confirms the **installed DEVELOPMENT Frappe source** contains `Document.run_post_save_methods() → self.notify_update() → frappe.publish_realtime(..., after_commit=True)`; earlier source review of upstream version-16 showed the normal `doc_update`/`list_update` event types. **It remains a hypothesis**, not a recorded stack trace, that these native notifications were precisely the first blocked API in the consumed V1 rehearsal; other guarded APIs shared its error label. The separate MAIN read-only check still confirmed one `Under Review` CCPC→Ricor batch, no approval fields/links, and no related SI or PI (`POST_FAILURE_DB_CHECK= PASS`).
+
+**GitHub-first proposed fix to the test harness, NOT to financial application code:** created new `scripts/development/operator/ccpc_pr33_main_checker_rollback_v2_review_20261117.sh` on docs PR37, retaining exact checked-in application SHA `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`, same actor/company/source/one-batch guards, output safeguards, separate one-time V2 marker and a **new** `CCPC_APPROVE_PR33_CHECKER_REHEARSAL_V2=YES` gate. V2 uses a runtime `Document` source signature preflight and selectively suppresses **only** deferred (`after_commit=True`) `doc_update`/`list_update` realtime UI messages in the rollback-only test process, counting them. Every other realtime event or nondeferred event raises a labeled STOP; email, queues, HTTP `requests` and SMTP still raise **distinct API-specific STOP labels**. It adds post-rollback read-only batch/invoice/GL/SLE count checks **even on guarded aborts**, once original baseline and batch ID were acquired. Frappe/ERPNext native hooks outside these common APIs and raw socket/network are **not comprehensively sandboxed**, and no script has run.
+
+**Approval boundary:** The owner approved and consumed a single V1 transient-write rehearsal. A V2 run would be **a new write-capable test**, needs an entirely **new owner authorization**, and must not be executed based on past approval. Do not delete or rerun the V1 marker/script; do not send an execution command for V2 until separately authorized and static syntax checked. Historical NAS manifest presence is not a fresh recoverable snapshot. Current PR33 app source, MAIN DB, PRODUCTION, service processes, users and scheduler were **not changed** by this GitHub-only preparation.
+
 ## November 17, 2026 — likely native Frappe realtime notification explains guarded rehearsal abort (SOURCE HYPOTHESIS)
 
 Read-only connected-GitHub inspection of upstream **frappe/frappe `version-16`** `frappe/model/document.py` at blob `4e7ead9ef1c09c0a4fb7dc37d9198a9b2f87531b` identified the standard native call path: `Document.run_post_save_methods()` calls `self.notify_update()` (unless `flags.notify_update=False`); `Document.notify_update()`, when not importing/migrating/installing, calls `frappe.publish_realtime("doc_update", ..., after_commit=True)` and, for nonread-only/non-Single/nonchild documents, `frappe.publish_realtime("list_update", ..., after_commit=True)`. Original one-time checker script in docs PR37 at blob `eea1700c9b2992ec798b5aa6a8da44d59ad38bc6` monkeypatched `frappe.publish_realtime` to **raise the same generic `FORBIDDEN_OUTBOUND_SIDE_EFFECT` error** as several other outbound APIs. Therefore a **routine on-save Frappe notification** is a strong, documented **potential cause** of the observed guard-triggered stop upon Draft SI insert or batch save.
