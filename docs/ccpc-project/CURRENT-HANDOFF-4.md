@@ -1,5 +1,28 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — FRESH MAIN DEVELOPMENT precommit LOCAL FOUR-PART RECOVERY PASS; Synology offsite copy NEXT
+
+Owner executed the newly created **one-shot exact-PR33-SHA local precommit backup** `scripts/development/operator/ccpc_pr33_precommit_main_backup_20261117.sh` on original host. Complete owner-provided success output:
+
+```text
+DEVELOPMENT SNAPSHOT PRECHECK: PASS
+MAIN_UNDER_REVIEW_BATCH_AND_ZERO_DRAFT_PAIRS: PASS
+DATABASE BACKUP: PASS
+SITE CONFIG BACKUP: PASS
+PUBLIC FILES BACKUP: PASS
+PRIVATE FILES BACKUP: PASS
+SHA256 MANIFEST: PASS
+BACKUP DIRECTORY: /workspace/development/frappe-bench/.ccpc-pr32-snapshots/development.localhost-20261117T043152Z-1582f342f870
+FRESH_PRECOMMIT_MAIN_DEV_BACKUP: PASS
+NO_INVOICE_ACTIONS_OR_COMMIT: PASS
+```
+
+**Exact new local snapshot basename:** `development.localhost-20261117T043152Z-1582f342f870`. This is a **fresh MAIN local four-artifact** (DB `.sql.gz`, site config JSON, public and private archives) checksum/format-validated recovery set produced after the one-line batch state check. The original batch was `Under Review` with zero invoice references and no same-remark draft pair at backup preflight. The script did **not** approve or commit invoices. The one-use local backup marker `~/.ccpc-pr33-main-precommit-fresh-backup-once-20261117` has been consumed; do not delete, overwrite, run again or discard the backup.
+
+**Offsite step not yet run:** Use the separately prepared operator `scripts/development/operator/ccpc_pr33_precommit_main_nas_copy_20261117.sh` (Git blob `19925587a894aef10fbd4df99776b612120c907d`) on original `ccpcerpserver` host with ONLY the exact basename above. It requires the existing Synology CIFS source identity, a fresh creation timestamp, one-time NAS copy marker, exact five local files and four valid SHA256 checksums, exclusive new remote directories and 4/4 identical copied hashes plus new global manifest. The script has not run and **no off-host current backup has yet been confirmed**. Previous November 4 backups remain available but are stale for the pending persistent financial commit. Host source path expected `/home/gani/deployments/frappe_docker/development/frappe-bench/.ccpc-pr32-snapshots/<basename>`; container `/workspace/development/frappe-bench/.ccpc-pr32-snapshots/<basename>`; the NAS script fails closed if host bind mount path is absent or differs.
+
+**After offsite PASS:** Decide/verify the **exact named Finance Controller account** for a committed audit trail (the `@testing.invalid` synthetic rehearsal identity must not be silently accepted), read-only verify Company grants / real user rights, and review recoverability/notifications before generating one new guarded one-shot persistent Draft SI/PI approval. No invoice commit, submit, GL or Stock Ledger posting, PRODUCTION operation, scheduler or services changes authorized/occurred during backup.
+
 ## November 17, 2026 — owner approved progression to FIRST PERSISTENT MAIN DEVELOPMENT Draft SI/PI pair; mandatory precommit gates NOT YET PASSED
 
 After successful one-shot V2 rollback-only Finance Checker acceptance, the owner replied **APPROVED** to advancing to the **first persistent Draft Sales Invoice / Draft Purchase Invoice pair** in MAIN `development.localhost` DEVELOPMENT, conditioned on the four explicitly proposed prerequisites: (1) fresh independently verified scoped recovery set, (2) intended Finance Controller identity and exact Company User Permissions, (3) fresh eligible single `Under Review` CCPC→Ricor batch check with zero links/pairs, (4) one guarded one-shot controller call and immediate post-commit read-only validation. This authorizes the development milestone, **not** an unchecked automatic commit or a synthetic `@testing.invalid` checker identity by assumption. No real user grants, native invoice submit/cancel/ledger posting, production operation, migration, restart or PR merge are included. The previous synthetic Finance Checker was appropriate for rolled-back tests, but **must not be used for a lasting approval audit record without the owner's explicit identity decision**.
