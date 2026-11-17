@@ -1,5 +1,16 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-17 — Owner approved private phone-first Actions for PR35; trigger connected, runner failed before tests
+
+**Owner goal:** continue GitHub code and tests from phone at home, without laptop or server CLI. **Approval:** prepare low-cost, private GitHub Actions testing workflow for app [PR #35](https://github.com/ccpcerp/ccpcerp/pull/35); optionally design a sanitized public CI export later, **do not expose either private source repository or auto-publish.**
+
+**Implemented on app release branch** `release/withdrawal-department-phase1-2026-11-17`: added 4 offline AST server-wiring tests in `ccpcerp/ccpc_erp/test_phase1_release_wiring_static.py` (commit `59088f708a378eca847c63ab953135cef57b9676`), and `.github/workflows/phase1-phone-first-fast.yml` (commit `9c7d1113f55b2cf80712396c3f874fa7e8015499`). Restricts push trigger to exact release branch+specific paths, private standard GitHub runner max 6 min, no secrets/deployment/DB, Python compilation + 5 pure Phase 1 policy tests + 4 static AST tests, cancel-in-progress, read-only token. PR remains DRAFT; 3 installed-Frappe route tests and current SQL/GL integration **NOT RUN**.
+
+**First actual GitHub Actions execution:** [run #44086363890](https://github.com/ccpcerp/ccpcerp/actions/runs/44086363890) appeared for exact commit `9c7d1113...`, but status **failure before any job steps were assigned**. No runner ID/name, zero test steps, GitHub timing API `UBUNTU.total_ms=0`; job-log download `BlobNotFound`. Root cause **UNKNOWN** from connector data; cannot conclude quota exhaustion, script bug or runner policy. Absolutely **do not claim 9/9 PASS, actual Python test execution, or paid usage**. No repeat run triggered.
+
+**Next one phone-only action:** owner opens run URL and reports any UI banner/notice or billing/runners settings error (not credentials); diagnose before rerunning. No automatic retry, public conversion, migration, CircleCI billed run or production changes. Once resolved, verify a single successful protected private Actions checkout/test run, then plan separately authorized disposable Frappe/MariaDB and DEVELOPMENT acceptance. Complete dated tracker: [FIRST-RELEASE-30-DAY-EXECUTION-TRACKER-2026-11-17.md](FIRST-RELEASE-30-DAY-EXECUTION-TRACKER-2026-11-17.md) docs commit `036afbf4a8de2b53d3d869a48da11eb502a726f1`.
+
+
 ## November 17, 2026 — Owner targets first live Withdrawal/Department release before December 17; actual Phase 1 GitHub code + PR35 created
 
 Owner directive: **make the existing tested CCPC Withdrawal Slip → native Material Issue/SLE/Expense GL → Department Material Consumption report usable in less than one month**, keep the rest primarily standard ERPNext and **defer** any new cross-Company material issues/intercompany SI/PI automation. The earlier native-only first release is superseded: do NOT replace already tested CCPC Withdrawal with manual Material Request. Keep earlier owner-approved same-Company restriction. Calendar target is **2026-12-17**, conditional on finance mapping/real role signoff, current-source acceptance, genuine DEVELOPMENT UAT, secure/recoverable PRODUCTION access and separate explicit release authorization; **NOT a commitment to circumvent an accounting or restore gate**.
