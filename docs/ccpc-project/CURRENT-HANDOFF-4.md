@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — likely native Frappe realtime notification explains guarded rehearsal abort (SOURCE HYPOTHESIS)
+
+Read-only connected-GitHub inspection of upstream **frappe/frappe `version-16`** `frappe/model/document.py` at blob `4e7ead9ef1c09c0a4fb7dc37d9198a9b2f87531b` identified the standard native call path: `Document.run_post_save_methods()` calls `self.notify_update()` (unless `flags.notify_update=False`); `Document.notify_update()`, when not importing/migrating/installing, calls `frappe.publish_realtime("doc_update", ..., after_commit=True)` and, for nonread-only/non-Single/nonchild documents, `frappe.publish_realtime("list_update", ..., after_commit=True)`. Original one-time checker script in docs PR37 at blob `eea1700c9b2992ec798b5aa6a8da44d59ad38bc6` monkeypatched `frappe.publish_realtime` to **raise the same generic `FORBIDDEN_OUTBOUND_SIDE_EFFECT` error** as several other outbound APIs. Therefore a **routine on-save Frappe notification** is a strong, documented **potential cause** of the observed guard-triggered stop upon Draft SI insert or batch save.
+
+**Unproven:** Installed DEV Frappe source/version and live call stack were not captured. The original generic guard label does not prove which API was called. The upstream `after_commit=True` parameter means intent to defer notification until commit in this source, not proof that any mail/realtime effect actually occurred. Do not describe the abort as a billing-controller bug or as evidence of outbound message delivery. Do not rerun consumed one-shot.
+
+**Fast path:** use the upstream behavior to design a revised, separately authorized isolated rehearsal that distinguishes exact API names and would *safely swallow only allowlisted after-commit Frappe `doc_update`/`list_update` realtime events*, while retaining FAIL-CLOSED on actual emails, jobs, network calls or unrecognized realtime events. Ensure read-only post-rollback checks also run after an intercepted failure. Before execution verify DEV-installed Frappe `Document` implementation by **read-only local source inspection**; no backend code changes or PRODUCTION access under this source review. The independently verified MAIN persisted-state result immediately below is PASS.
+
 ## November 17, 2026 — post-failure MAIN read-only persisted-state verification PASS
 
 After the bounded Finance Checker rehearsal stopped at `FORBIDDEN_OUTBOUND_SIDE_EFFECT` and reported `REHEARSAL_DB_TRANSACTION=ROLLED_BACK`, owner ran a **separate** MAIN `development.localhost` read-only transaction check (no new rehearsal or write). Owner-returned complete output:
