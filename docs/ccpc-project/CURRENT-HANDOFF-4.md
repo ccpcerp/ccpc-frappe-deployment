@@ -1,5 +1,17 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — owner approved protected PR33 source-only DEVELOPMENT update (PREPARED, NOT EXECUTED)
+
+Owner explicitly **approved** moving only the existing detached MAIN/Integration2-shared DEVELOPMENT application checkout from source commit `1bde04bf6d51d2c1b3197ef41696e8b6df7b0ecc` to exact GitHub-reviewed and 15/15 Frappe-regression-tested PR #33 commit `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`. No permission for `bench migrate`, service/scheduler restart, Finance record writes, PROD operations, Git history rewriting, automatic Codex agent or paid provider CI.
+
+**Reviewed GitHub branch state:** app draft PR #33 `review/billing-authorization-correction-2026-11-03` remains exact `25a7b6be...` with four ancestral commits from `1bde04bf...`, **only two modified files** (`ccpcerp/ccpc_erp/executive_reporting.py`, `ccpcerp/ccpc_erp/test_executive_reporting.py`), no DocType schema or patch changes.
+
+**Operator script committed on docs PR #37 review branch:** `scripts/development/operator/ccpc_pr33_security_source_only_four_commit_update_20261117.sh`. Adapted from the **previous successful** one-use Nov 16 source-only update. It checks exact host/operator, preserved NAS mount and two protected backup manifests, active named DEV Compose project, detached Git HEAD/worktree-only `?? AGENTS.md`, before/after SHA256 of protected untracked `AGENTS.md`, allowlisted GitHub origin, remote exact branch SHA, four-commit ancestry, exact two-path changed-file allowlist, `git diff --check`, and source-only `git switch --detach` to the pinned target. All operations are supervised deterministic `git` and Docker exec commands; **no AI agents in the historical SSH-mounted DEV container**. No reset/clean/stash/pull/merge, no DB, no service manipulation. `CCPC_APPROVE_PR33_SOURCE_ONLY=YES` required for the approved one-time operation.
+
+**Execution/evidence state:** This conversation can commit to GitHub but does **not** have a direct SSH connection to `ccpcerpserver`. Script is **PREPARED, not run**. Do not claim the DEV source moved until the operator returns explicit `DEV_SOURCE_UPDATE=PASS`, `DEV_SOURCE_HEAD=25a7...`, and `PROTECTED_AGENTS_ONLY=PASS` plus no STOP error. Existing protected recovery manifests were historically checksum-verified, but a fresh backup/restore has not been independently verified; this is a two-Python-file source-only operation, not an accounting-data migration. The Git checkout can be returned to the prior commit under a *separately reviewed*, guarded source-only rollback if necessary; no automated rollback is included.
+
+**After source-update evidence:** verify GitHub PR #33 head, run read-only active gateway verification and report execution/role checks on MAIN/Integration2 as appropriate. Running browser/real-accounting acceptance, posting paired invoices, creating correction records or starting bench-wide scheduler still requires distinct explicit control. PRODUCTION remains NO-GO.
+
 ## November 17, 2026 — exact-source Frappe 16 gateway regressions PASS (owner evidence)
 
 The owner ran the operator-delivered in-memory supported-Frappe runtime verification for app review PR #33 SHA `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`, against the still-pinned MAIN DEVELOPMENT app checkout `1bde04bf6d51d2c1b3197ef41696e8b6df7b0ecc`. The owner provided the terminal's concluding lines:
