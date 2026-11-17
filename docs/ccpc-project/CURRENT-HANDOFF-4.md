@@ -1,5 +1,22 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — corrected read-only MAIN Finance Controller eligibility census PASS; ONE NONSYNTHETIC CANDIDATE
+
+Owner executed the corrected no-write census from `/workspace/development/frappe-bench/sites`, with `FRAPPE_STREAM_LOGGING=1`, `frappe.init(site="development.localhost", sites_path=".")` and `START TRANSACTION READ ONLY`. Complete output:
+
+```text
+ENABLED_FINANCE_CONTROLLERS= 2
+ELIGIBLE_NAMED_CHECKER= finance_controller@ccpc.com
+ELIGIBLE_NAMED_CHECKER_COUNT= 1
+READ_ONLY_CHECK=COMPLETE
+```
+
+The exactly-one `Under Review` CCPC→Ricor batch check passed. Of two enabled named users holding persisted `Finance Controller` role, exactly **one** met the census filter: non-synthetic `finance_controller@ccpc.com`, enabled `System User`, not the stored batch `finalized_by`, without `Stockroom Personnel` and with generic `tabUser Permission` grants for **both** required Companies applying to all DocTypes (empty `applicable_for`). Another enabled controller was not eligible under these same filters; no further identity data was printed. **No role, Company scope, invoice, or batch record was modified by the read-only check.**
+
+**Precise remaining gate:** App PR33 reviewed source `intercompany_material_billing_batch.py` at blob `a9a6e609759e77948d40d31bdbd342f727b208a9`, `_require_finance_approver()` calls **`self.check_permission("write")`** on the *actual batch document* first, then `require_billing_actor("Finance Controller", issuer, buyer)` and distinct-maker check. Batch DocType JSON blob `461671fd6e33a8074ef2a80fe77bff94231cc03c` grants Finance Controller `read=1, write=1`, but that metadata does not establish **effective per-document permission** in this site for the selected user. Use a separately bounded **read-only** MAIN transaction to `frappe.set_user("finance_controller@ccpc.com")`, obtain exactly the stored Under Review batch, call `batch.check_permission("write")` and report PASS/STOP. Do not call the mutating approval controller. Verify that owner intends this exact named user for the persistent `approved_by` audit record **before** generating/executing one-time committed approval. No implicit designation of the user by a SQL candidate count.
+
+**Recovery remains PASS:** fresh local MAIN four-artifact backup `development.localhost-20261117T043152Z-1582f342f870` and hashed Synology copy `ccpc-development-pr33-main-precommit-20261117T044035Z-591a9f7e2b035cae`; not restore tested. App PR33 head `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`. No persistent Draft invoices, production changes, migration or service restart. Original V1, V2, backup and NAS one-shot markers consumed and preserved.
+
 ## November 17, 2026 — MAIN named Finance Controller census first attempt stopped BEFORE DB connection (logger cwd); corrected read-only retry pending
 
 Owner attempted the **read-only** census of existing named Finance Controller users and exact CCPC+Ricor Company permissions. The prior ad-hoc `docker exec -i --user frappe .../env/bin/python -` command failed during `frappe.connect()` **before connecting to MariaDB**, raising `FileNotFoundError: /workspace/development/development.localhost/logs/database.log` from `frappe.logger("database")` / `RotatingFileHandler`. No SQL queries in the census executed, no checker names or eligibility counts were produced, and **no invoice action/commit was attempted**. This error is consistent with invoking Frappe Python without first changing to the installed bench's `/workspace/development/frappe-bench/sites` directory. Do **not** create the mistaken `/workspace/development/development.localhost/logs` directory, change filesystem permissions or restart Frappe to work around it.
