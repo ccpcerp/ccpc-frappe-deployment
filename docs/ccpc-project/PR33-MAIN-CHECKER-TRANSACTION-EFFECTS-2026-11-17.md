@@ -1,5 +1,18 @@
 # CCPC ERPNext — PR #33 MAIN DEVELOPMENT Finance Checker transaction-effects review
 
+## November 17, 2026 — one eligible nonsynthetic checker from MAIN read-only role/Company census; native DocPerm pending
+
+The corrected owner-operated MAIN `START TRANSACTION READ ONLY` census ran from bench `sites` without the previous logger/cwd error:
+
+```text
+ENABLED_FINANCE_CONTROLLERS= 2
+ELIGIBLE_NAMED_CHECKER= finance_controller@ccpc.com
+ELIGIBLE_NAMED_CHECKER_COUNT= 1
+READ_ONLY_CHECK=COMPLETE
+```
+
+The one eligible checker `finance_controller@ccpc.com` meets the queried **persisted named role**, enabled `System User`, both issuing/requesting Company `User Permission` grants with global scope, not forbidden Stockroom role, not same as batch `finalized_by`, and non-`@testing.invalid` identity requirements. Counts: two enabled Finance Controller users, one matches all filters. This is **not** a policy nomination by the owner and **not** an actual approval. App controller additionally uses `IntercompanyMaterialBillingBatch._require_finance_approver()` → `batch.check_permission("write")` before its enforced actor/Company/maker checks. The checked-in DocType JSON grants Finance Controller native `read`/`write`, but **effective instance-level permission for this user still requires read-only validation on MAIN**. Proposed next one step: with correct bench `sites` cwd, `frappe.init(...)`, connect, `START TRANSACTION READ ONLY`, query exactly one still-Under Review CCPC→Ricor batch, `frappe.set_user("finance_controller@ccpc.com")`, `batch.check_permission("write")`, report PASS, rollback and destroy. No native controller approval call, no invoice inserts or commit, and do not change user permissions. Separately confirm this real checker is the intended permanent `approved_by` audit identity before using the earlier conditional owner approval for one persistent Draft pair. Local+Synology backup integrity gate PASS, not restore-tested. PRODUCTION excluded.
+
 ## November 17, 2026 — MAIN fresh precommit Synology NAS 4/4 SHA256 verified; identity gate outstanding
 
 Operator executed the separately reviewed NAS-transfer `scripts/development/operator/ccpc_pr33_precommit_main_nas_copy_20261117.sh` using the exact fresh local backup `development.localhost-20261117T043152Z-1582f342f870`. Output:
