@@ -1,5 +1,11 @@
 # CCPC ERPNext — PR #33 MAIN DEVELOPMENT Finance Checker transaction-effects review
 
+## November 17, 2026 — V2 single-run MAIN rollback rehearsal EXPLICITLY APPROVED; execution PENDING
+
+The project owner responded **APPROVED** to the separately requested V2 test: one **MAIN `development.localhost` DEVELOPMENT** rehearsal calling the real Finance Checker `approve_and_create_invoices()` controller in an outer SQL transaction and rolling it back, using existing synthetic users. This permission is **not** a permanent invoice approval, real-user permissions change, production deployment or a repeat of consumed V1. Original V1 marker stays intact.
+
+Use only the new `scripts/development/operator/ccpc_pr33_main_checker_rollback_v2_review_20261117.sh` Git blob `b95a07bc15c9a70539864f5b36ab9ab034444093`, exact application commit `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`, V2-specific operator gate and one-shot marker. Before a single invocation, verify GitHub docs commit and blob on the host, run `bash -n` and `ast.parse` of embedded Python without executing it. Test fails closed on unusual realtime events, mail/queues/requests/SMTP, and verifies post-rollback persisted batch/related invoices plus SI/PI/GL/SLE counts if baseline was captured. Any blocked API or postcheck mismatch means STOP, **no replay**. No host rehearsal has yet been reported; do not describe this as a successful financial integration test.
+
 ## November 17, 2026 — confirmed installed Frappe native notification path; safer V2 plan staged
 
 Owner returned a read-only installed DEV `frappe/model/document.py` AST check:
