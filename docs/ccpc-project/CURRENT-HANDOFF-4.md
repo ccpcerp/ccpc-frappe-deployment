@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — DEVELOPMENT process inventory reveals active Honcho, service roles still unresolved
+
+The owner performed **read-only Docker process inspection** after the successful source-only update. The DEV Compose filter showed four running containers: `frappe_docker_devcontainer-frappe-1`, `frappe_docker_devcontainer-mariadb-1`, `frappe_docker_devcontainer-redis-cache-1`, `frappe_docker_devcontainer-redis-queue-1`. The first `docker top -eo comm` failed with Docker's `Couldn't find PID field in ps output` (diagnostic formatting requirement, **not** a verified Frappe service failure); corrected `docker top -eo pid,comm` succeeded.
+
+The app container process names include **`honcho`**, five `python3.14` entries, several `python` and `MainThread` entries, `sh`/`bash`/`sleep`, and `copilot-runtime`; numbers vary and were not recorded in the handoff. This demonstrates a running Honcho supervisor / Python processes, **not** which precise Frappe web, workers or scheduler are live, nor whether the updated gateway is loaded in HTTP workers. `copilot-runtime` should not be conflated with the separately isolated stopped no-network Codex probe; do not launch unrestricted agents in the SSH-mounted legacy DEV container.
+
+**Immediate next step:** one bounded **read-only** in-container process classification reading `/proc/<pid>/comm`, `status`, and `cmdline` but printing **only PID/PPID, executable category and allowlisted service role**, never raw argv, credentials, env, Procfiles or mount locations. The current `honcho` situation makes broad `bench start`, `bench schedule`, Compose restart, `kill` or Honcho restart unsafe without separate DEV service-boundary review, particularly given the known broken third site `ccpc-integration.localhost`. No restarts were performed in this checkpoint. The code checkout remains owner-verified at `25a7b6be...` but live process activation is still **UNVERIFIED**.
+
 ## November 17, 2026 — PR33 executive gateway security source-only update PASS in DEVELOPMENT (owner reported)
 
 The owner executed the GitHub-reviewed and blob-pinned `scripts/development/operator/ccpc_pr33_security_source_only_four_commit_update_20261117.sh` from docs PR #37, under the exact guarded approval `CCPC_APPROVE_PR33_SOURCE_ONLY=YES`. **Operator terminal result:**
