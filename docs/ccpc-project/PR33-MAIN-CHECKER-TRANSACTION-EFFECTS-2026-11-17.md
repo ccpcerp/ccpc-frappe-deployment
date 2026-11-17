@@ -1,5 +1,20 @@
 # CCPC ERPNext — PR #33 MAIN DEVELOPMENT Finance Checker transaction-effects review
 
+## November 17, 2026 — existing named Finance Controller native batch DocPerm PASS; awaiting exact approved_by identity selection
+
+Owner ran the separately bounded, no-write MAIN DEVELOPMENT actual DocType/document permission check as `finance_controller@ccpc.com`:
+
+```text
+NATIVE_BATCH_READ_PERMISSION=PASS
+NATIVE_BATCH_WRITE_PERMISSION=PASS
+FINANCE_CHECKER= finance_controller@ccpc.com
+READ_ONLY_PERMISSION_CHECK=PASS
+```
+
+The test pinned PR33 app code `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`, used correct `frappe-bench/sites` CWD, checked exactly one original CCPC→Ricor `Under Review` unapproved batch with no invoice links, called `frappe.set_user("finance_controller@ccpc.com")`, then native `batch.check_permission("read")` and `batch.check_permission("write")` inside `START TRANSACTION READ ONLY`; rollback in `finally`. This is a successful site-level effective document read/write authorization check, supplementing the earlier role/Company/maker-separation census. It does not prove the account has been personally nominated as an accountable Finance Controller for a lasting `approved_by` entry. **No accounting/invoice mutation or persistent Finance approval was executed**.
+
+The one-time persisted Draft pair authorization is conditional: before constructing/invoking the committed controller, the owner must identify this specific real account as the intended audit actor, and the guarded one-time code must reverify recoverability, exact actor/batch/source state and once-only postcommit invariants. Historical local and Synology four-part SHA256 PASS backups remain protected, not restore-tested. No automatic use of synthetic checker, no user grants, invoice submit, GL/SLE posting, PRODUCTION or scheduler operations.
+
 ## November 17, 2026 — one eligible nonsynthetic checker from MAIN read-only role/Company census; native DocPerm pending
 
 The corrected owner-operated MAIN `START TRANSACTION READ ONLY` census ran from bench `sites` without the previous logger/cwd error:
