@@ -1,5 +1,22 @@
 # CCPC ERPNext — PR #33 MAIN DEVELOPMENT Finance Checker transaction-effects review
 
+## November 17, 2026 — confirmed installed Frappe native notification path; safer V2 plan staged
+
+Owner returned a read-only installed DEV `frappe/model/document.py` AST check:
+
+```text
+POST_SAVE_CALLS_NOTIFY= True
+NOTIFY_CALLS_REALTIME= True
+REALTIME_AFTER_COMMIT= True
+FRAPPE_SOURCE_CHECK=COMPLETE
+```
+
+This independently confirms the **installed** `Document.run_post_save_methods() → notify_update() → publish_realtime(..., after_commit=True)` source path (upstream version-16 review further shows event names `doc_update`/`list_update`). A regular document-save notification can therefore naturally trigger the original rehearsal's generic realtime-blocking guard. The original log did not capture a per-API stack or source, so this remains a strong likely cause, **not definitive runtime attribution**. The separate post-failure MAIN DB integrity check already PASS and stays accepted.
+
+**V2 GitHub-only preparation:** `scripts/development/operator/ccpc_pr33_main_checker_rollback_v2_review_20261117.sh` committed to docs PR37, a **distinct** proposed one-time rehearsal, pinned to app PR33 exact SHA and exact billing controller/authority blobs. It checks installed Frappe source, suppresses only `after_commit=True` `doc_update`/`list_update` UI notification events (no messages sent, counted), rejects non-allowlisted/nondeferred realtime events, and assigns distinctive guard codes to `frappe.enqueue`, `frappe.sendmail`, background-job enqueue, requests, SMTP/SSL. The original source/actor/Company/one-batch, role/DocPerm, SQL rollback, no-commit, invoice pair/ledger invariants remain. A newly added separate read-only post-rollback check compares baseline SI/PI/GL/SLE counts and the batch state/linked invoices **even if** the controller previously hit a guard or validation error, provided the baseline had been captured.
+
+**NOT EXECUTED.** Existing V1 one-shot marker must remain. The prior authorization was consumed and **does not authorize** a V2 transient database write. A fresh explicit owner-approved scope, script static `bash -n`/`ast.parse` validation, and read-only identity/recovery guard must precede any one-time run. Outbound monkeypatches are not a true process/network sandbox of all possible third-party hooks; use disposable isolated test if untrusted hooks or network risk remains. No persistent invoices, GL/SLE posting, user grants, scheduler/service changes or production effects have been created in this preparation.
+
 ## November 17, 2026 — source-based likely cause of generic outbound guard error
 
 Independent read-only inspection of official `frappe/frappe` `version-16` `frappe/model/document.py` (blob `4e7ead9ef1c09c0a4fb7dc37d9198a9b2f87531b`) shows `Document.run_post_save_methods()` normally calls `self.notify_update()` after a document INSERT/UPDATE and `notify_update()` calls `frappe.publish_realtime("doc_update", ..., after_commit=True)` and often `"list_update"`. The one-shot harness blocks `frappe.publish_realtime` with the same `FORBIDDEN_OUTBOUND_SIDE_EFFECT` error as its email, queue, HTTP and SMTP blockers. This is a **plausible explanation** of the failure at `CONTROLLER_APPROVE_AND_CREATE` and may reflect a **normal Frappe save notification**, not application financial logic error. Exact DEV version/call path was not independently inspected. No conclusion about actual external delivery follows.
