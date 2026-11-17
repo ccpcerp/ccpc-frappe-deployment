@@ -1,5 +1,40 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — Ricor direct-expense dependency inventory PASS; NO signed Expense/Center mappings, existing nonstock Item unverified
+
+Owner ran the previously staged **read-only** `ccpc_pr33_direct_consumption_readonly_dependencies_20261117.sh` against pinned MAIN `development.localhost`. Full reported output:
+
+```text
+PINNED_MAIN_DEV_SOURCE=PASS
+PRESERVED_DRAFT_PAIR_UNPOSTED=PASS
+SOURCE_STOCK_ITEM=ITEM-00010
+SOURCE_CURRENT_ITEM_GROUP=Bearings
+SOURCE_FROZEN_UOM=Nos
+ITEM_GROUP_HISTORICAL_PROVENANCE=NOT_FROZEN_IN_BATCH
+AVAILABLE_NONSTOCK_SAME_UOM_ITEM_COUNT=1
+NONSTOCK_ITEM_ACCOUNTING_APPROVAL=NOT_INFERRED_FROM_COUNT
+SOURCE_REQUESTING_DEPARTMENT_COMPANY=Ricor Mills Corporation
+SOURCE_WORKFOR_DEPARTMENT_COMPANY=Ricor Mills Corporation
+BENEFICIARY_ISSUE_TIME_PROVENANCE=NOT_CERTIFIED_BY_BILLING_SNAPSHOT
+RICOR_SOURCE_ITEM_GROUP_EXPENSE_SCOPES_COUNT=0
+RICOR_APPROVED_EXPENSE_REVISIONS_COUNT=0
+RICOR_REVISIONS_MAPPED_TO_5150_COUNT=0
+SIGNED_MAPPING_EFFECTIVE_DATES_AND_USE=NOT_EVALUATED
+RICOR_BENEFICIARY_CENTER_SCOPES_COUNT=0
+RICOR_BENEFICIARY_APPROVED_CENTER_REVISIONS_COUNT=0
+RICOR_BENEFICIARY_VALIDATION=NOT_ESTABLISHED_BY_COUNT
+DIRECT_EXPENSE_DEPENDENCIES_READ_ONLY=PASS
+NO_MASTER_INVOICE_GL_OR_STOCK_CHANGES=PASS
+```
+
+**Result:** One non-stock `Nos` Item exists, but nobody has established that its identity, purchase eligibility, Item Group/UOM semantics or deferred-expense flags make it suitable as the Ricor materials *billing representation*. The source Item `ITEM-00010` currently belongs to Item Group `Bearings`, but source Item Group was **NOT frozen at original issue time**. Requesting/Work-for Departments now belong to Ricor, not necessarily original beneficiary certified at issue. Both required Ricor mapping sets are ABSENT: `Company=Ricor Mills Corporation` + `Item Group=Bearings` Expense Scope and any signed `5150 - Intercompany Materials Expense - RMC` revision; selected beneficiary Department Center scope and signed revision. The existing Draft SI `ACC-SINV-2026-00001` and Draft PI `ACC-PINV-2026-00005` remain unposted and unchanged; no financial writes occurred.
+
+**Reviewed mapping workflow (app PR33 exact SHA `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`):** `ccpcerp/ccpc_erp/bc_mapping_workflow.py` implements server-scoped `propose_mapping`/`get_mapping_review`/`approve_mapping` requiring actual named `CCPC Mapping Preparer` and distinct `CCPC Accounting Mapping Approver`, Ricor Company User Permission, signed `CCPC Accounting Mapping Decision`, row locking, immutable audit and effective-time control. Although ordinary revision DocTypes reject direct `Approved` saves, the dedicated controlled approval path exists; no specific actors are nominated and no MAIN mapping approval has been performed. **Critical: approval becomes effective no earlier than the server-owned approval instant.** New approvals cannot retroactively authorize the existing Drafts' original historical period-end posting date. Finance must decide and document an explicit historical correction policy or obtain separate authority for any changed accounting date; do not backdate approvals or shift invoice dates.
+
+**Next ONE non-mutating dependency check prepared in GitHub:** `scripts/development/operator/ccpc_pr33_direct_expense_candidate_and_authority_readonly_20261117.sh`, immutable blob `6233d456a20b65bbdc6053c77d49e0baea6b6cac`, **not executed**. It prints the unique currently enabled non-stock `Nos` Item identity and status, `Bearings` Item Group leaf status, Ricor requester/work-for Department identities/status and original Stock Entry Detail Department (when field exists), plus counts of eligible named Ricor Company Mapping Preparer/Approver roles — *not* audit authorization or signed approvals. The script pins exact MAIN host/site/DEV app detached worktree with `AGENTS.md`, checks exact unposted Draft SI/PI pair, executes `START TRANSACTION READ ONLY`, never calls `.submit()`/`.save()`/`commit()`, rolls back; static Bash syntax and embedded Python AST **still need host checks**. Do not create Item/Expense/Center mapping or modify Drafts until distinct owner authorization after dedicated historical-correction and recoverability review.
+
+**Standing financial holds:** Preserve approved batch, both Drafts, original submitted CCPC Material Issue and all consumed one-shot markers. The prior SHA256 local+Synology backup predates the Drafts; do not restore it over MAIN. New post-Draft backup and off-host verified copy, disposable MariaDB correction tests, eligible real maker/checker, signed Ricor account/Center policy and explicit DEV write approval required before any correction or GL posting. App PR33 still Draft/unmerged; PRODUCTION NO-GO.
+
 ## November 17, 2026 — OWNER CONFIRMS RICOR DIRECT DEPARTMENT/EQUIPMENT CONSUMPTION; design and read-only dependency inventory STAGED, no financial writes
 
 Owner explicitly selected: **"Ricor materials are directly consumed by departments/equipment. Proceed with the safe direct-expense accounting correction design, GitHub-first, without modifying DEVELOPMENT financial records yet."** This settles the business material-flow classification: **NO Ricor warehouse receipt or inventory-receipt accounting** for this flow. It is *not* approval to change existing Draft invoices, item masters, Company mappings, GL/SLE, schema, users, DEV services or PRODUCTION. Preserve the original CCPC submitted Material Issue, the already Approved CCPC→Ricor batch, Draft SI `ACC-SINV-2026-00001` and Draft PI `ACC-PINV-2026-00005`, their cross-links and all consumed one-time markers.
