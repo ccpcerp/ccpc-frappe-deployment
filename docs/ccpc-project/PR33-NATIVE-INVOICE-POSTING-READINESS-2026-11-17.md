@@ -2,6 +2,41 @@
 
 **Prepared:** 2026-11-17 Asia/Manila. **Approval scope:** Owner answered **"Approved, continue"** after first permanent Draft CCPC SI / Ricor PI pair plus distinct read-only persistence audit both PASSED. Interpret as authorization to **review and prepare** the next DEVELOPMENT accounting-posting milestone. **No native invoice `submit()`, journal/GL/stock posting, cancel, payment, privilege grant, migration, restart, PR merge or PRODUCTION operation is authorized/executed by this preparation.** Any subsequent financial posting requires the exact documents, expected financial effects and separate explicit approval.
 
+## November 17, 2026 — MAIN installed native Ricor SRBNB override ROOT CAUSE CONFIRMED (read-only, no posting)
+
+The owner ran the exact GitHub-pinned `scripts/development/operator/ccpc_pr33_ricor_native_srb_rule_readonly_20261117.sh` diagnostic in a fresh MAIN `development.localhost` read-only transaction; actual returned output:
+
+```text
+PINNED_MAIN_DEV_SOURCE=PASS
+EXACT_DRAFT_PAIR_UNPOSTED=PASS
+INSTALLED_NATIVE_PI_STOCK_CLEARING_RULE=FOUND
+RICOR_PERPETUAL_INVENTORY=YES
+ITEM_IS_STOCK_ITEM=YES
+PI_IS_OPENING_NO=YES
+ITEM_IS_FIXED_ASSET=NO
+PI_ITEM_HAS_PURCHASE_RECEIPT=NO
+PI_ITEM_HAS_PO_DETAIL=NO
+PI_ITEM_DROPSHIP=NO
+PI_UPDATE_STOCK=NO
+RICOR_COMPANY_STOCK_RECEIVED_NOT_BILLED=2301 - Stock Received But Not Billed - RMC
+SAVED_PI_LINE_ACCOUNT=2301 - Stock Received But Not Billed - RMC
+INTENDED_RICOR_EXPENSE_ACCOUNT=5150 - Intercompany Materials Expense - RMC
+NATIVE_NO_RECEIPT_CLEARING_RULE_APPLIES=YES
+SAVED_PI_MATCHES_NATIVE_CLEARING=YES
+NO_PI_REVALIDATION_OR_POSTING_PERFORMED=PASS
+READ_ONLY_SRB_DIAGNOSTIC=PASS
+```
+
+**Validated cause:** Installed `PurchaseInvoice.set_expense_account` contains the stock item + perpetual inventory + unreceived Purchase Invoice clearing rule; every relevant actual site and Draft PI flag meets its predicate. The CCPC app initially specifies `5150 - Intercompany Materials Expense - RMC`, but native Purchase Invoice `validate()` overrides that line's `expense_account` to the valid **liability** `2301 - Stock Received But Not Billed - RMC`. The fact that `update_stock=0` does not bypass the rule. Source account mismatch is **not a configuration typo or nonexistent ledger**; it is standard native logic for the supplied stock-item/receipt state. Therefore simply changing line `expense_account` to 5150, editing Account master, toggling perpetual inventory, or invoking invoice submit would not be a verified safe correction.
+
+**Accounting significance / decision:** The validated site facts establish Ricor has *no linked Purchase Receipt* for the stock item; they do **not**, by themselves, establish whether Ricor's legitimate business intention is **receiving stock into Ricor inventory** or **immediately consuming/expensing material**. CCPC's source Stock Entry is a submitted **Material Issue** associated with an intercompany Withdrawal Slip, and the existing batch retains exact stock-item evidence. It is a separate CCPC-side stock movement; do not conflate with Ricor's receipt. Choose/account-approve intended flow before implementing.
+
+**Preferred design if department consumption is confirmed:** Keep immutable material stock source trace, original quantity/frozen rate/department/equipment and CCPC side unaffected; use an appropriately governed **non-stock intercompany billing/charge item** in Ricor invoice line, deliberately mapped to the Ricor `5150` expense account and Ricor cost center/dimensions, with explicit source-to-billing-item audit relationship, unique one-time source claim, both invoice totals and cross-links reconciled. Never globally convert the original inventory Item to non-stock or relax source validation. The existing `Approved` batch and its already committed linked **Draft** SI/PI need a carefully authorized **draft correction** lifecycle; the current controller's canned cancelled-invoice correction is for **fully cancelled invoices** and does not automatically solve existing Drafts. Do not delete/reset drafts, manufacture a Purchase Receipt, change frozen source facts, run ad hoc SQL, override GL entries, or regenerate invoices outside a reviewed, concurrency-safe, auditable workflow.
+
+**Alternative if Ricor genuinely receives stock:** Design Ricor's real Purchase Receipt / inventory valuation, intercompany sale-to-purchase reconciliation, explicit posting to and clearing of `2301`, subsequent internal Material Issue/consumption on Ricor as appropriate; require physical warehouse evidence and prevent duplicate cost recognition across CCPC/Ricor. Do not fake receipts to manipulate the account.
+
+**State:** MAIN Draft pair `ACC-SINV-2026-00001` + `ACC-PINV-2026-00005` remains unsubmitted and linked to one Approved batch; zero related GL/SLE confirmed in latest read-only diagnostic. No account changes, no user grants, no app branch change, no migration, no restarts, no PRODUCTION. The local and NAS backup remain **pre-Draft**; a fresh post-Draft backup is mandatory before any prospective record mutation. Next action is explicit business accounting treatment decision (consume/expense vs receive/warehouse) and source-reviewed implementation plan, not another invoice submission attempt. PR33 remains draft.
+
 ## November 17, 2026 — EXACT READ-ONLY ACCOUNT DIAGNOSIS 3/4: RICOR expense overwritten by native perpetual stock-clearing rule (site confirmation pending)
 
 Owner executed `ccpc_pr33_main_readonly_invoice_account_diagnostic_20261117.sh` under MAIN `development.localhost` `START TRANSACTION READ ONLY`, with no invoice submit or commit. Returned `PINNED_MAIN_DEV_SOURCE=PASS`, `DRAFT_PAIR_NO_POSTING=PASS`, `DIAGNOSTIC_ONLY_NO_ACCOUNT_CHANGES=PASS`, `READ_ONLY_NO_COMMIT_OR_SUBMIT=PASS`; **`EXACT_ACCOUNT_NAMES_MATCHED=3/4`**.
