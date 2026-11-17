@@ -47,6 +47,7 @@ import traceback
 import smtplib
 from contextlib import ExitStack
 from unittest.mock import patch
+from pathlib import Path
 
 import requests
 
@@ -91,6 +92,7 @@ def check_actor(user, roles):
 
 connected = False
 original_commit = None
+original_sql = None
 phase = "INITIAL_GUARDS"
 completed_checks = False
 failure = None
@@ -104,6 +106,9 @@ try:
     must(git("rev-parse", "HEAD") == SHA, "APP_SHA_CHANGED")
     must(git("rev-parse", "--abbrev-ref", "HEAD") == "HEAD", "APP_NOT_DETACHED")
     must(git("status", "--porcelain=v1", "--untracked-files=all") == "?? AGENTS.md", "APP_WORKTREE_CHANGED")
+    protected = Path(APP) / "AGENTS.md"
+    must(protected.is_file() and not protected.is_symlink(),
+         "PROTECTED_AGENTS_FILE_CHANGED")
     must(git("ls-tree", "-r", "--name-only", "HEAD", "--", "AGENTS.md") == "",
          "PROTECTED_FILE_TRACKED")
     must(git("hash-object",
@@ -128,7 +133,20 @@ try:
 
     # Fail closed if a hook tries a direct frappe.db.commit().
     frappe.db.commit = block_commit
-    print("DB_COMMIT_GUARD_ACTIVE=PASS", flush=True)
+    original_sql = frappe.db.sql
+
+    def sql_guard(query, *args, **kwargs):
+        if isinstance(query, str):
+            head = query.lstrip().upper()
+            if head.startswith((
+                "COMMIT", "START TRANSACTION", "SET AUTOCOMMIT",
+                "ALTER ", "CREATE ", "DROP ", "TRUNCATE "
+            )):
+                raise RuntimeError("STOP: FORBIDDEN_SQL_TRANSACTION_CONTROL")
+        return original_sql(query, *args, **kwargs)
+
+    frappe.db.sql = sql_guard
+    print("DB_COMMIT_AND_SQL_CONTROL_GUARDS=PASS", flush=True)
 
     # Frappe/ERPNext invoice hooks may send emails, publish realtime events,
     # enqueue background jobs, make HTTP requests, or attempt SMTP. Fail closed
@@ -324,6 +342,8 @@ finally:
     if connected:
         try:
             # Restore method solely for connection cleanup; never invoke commit.
+            if original_sql is not None:
+                frappe.db.sql = original_sql
             if original_commit is not None:
                 frappe.db.commit = original_commit
             frappe.db.rollback()
@@ -364,6 +384,10 @@ finally:
                   + type(rollback_exc).__name__,
                   file=sys.stderr, flush=True)
             try:
+                if original_sql is not None:
+                    frappe.db.sql = original_sql
+                if original_commit is not None:
+                    frappe.db.commit = original_commit
                 frappe.db.rollback()
             except Exception:
                 print("STOP: SECOND_ROLLBACK_FAILED", file=sys.stderr, flush=True)
