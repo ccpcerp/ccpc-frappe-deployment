@@ -8,6 +8,7 @@ stop() { echo "STOP: $1" >&2; exit 1; }
 [[ "$(id -un)" = "gani" ]] || stop "wrong operator"
 [[ -z "${DOCKER_HOST:-}${DOCKER_CONTEXT:-}${DOCKER_CONFIG:-}" ]] || stop "Docker override present"
 [[ -z "${GIT_CONFIG_GLOBAL:-}${GIT_CONFIG_SYSTEM:-}" ]] || stop "Git config override present"
+sudo -v || stop "operator sudo authentication unavailable"
 
 APP_REPO='git@github.com:ccpcerp/ccpcerp.git'
 BRANCH='review/billing-authorization-correction-2026-11-03'
@@ -22,9 +23,9 @@ DRIVER="$SCRIPT_DIR/ccpc_pr33_exact_gateway_frappe_test_driver_20261117.py"
 [[ "$(git hash-object "$DRIVER")" = 'e02928e8caa31464e07253cc61f1db0c2b5dfa12' ]] ||
   stop "reviewed driver blob mismatch"
 
-[[ "$(sudo docker inspect --format '{{.State.Running}}' "$DEV")" = true ]] ||
+[[ "$(sudo -n docker inspect --format '{{.State.Running}}' "$DEV")" = true ]] ||
   stop "DEV container not running"
-[[ "$(sudo docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}}' "$DEV")" = frappe_docker_devcontainer ]] ||
+[[ "$(sudo -n docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}}' "$DEV")" = frappe_docker_devcontainer ]] ||
   stop "wrong DEV Docker project"
 
 # Fetch distinct temporary SOURCE-ONLY checkout on host; never change the
@@ -76,7 +77,7 @@ exec(compile(driver, driver_name, "exec"), namespace, namespace)
 tar -cf - \
   -C "$SOURCE_DIR/app" "$GATEWAY" "$TEST" \
   -C "$SCRIPT_DIR" 'ccpc_pr33_exact_gateway_frappe_test_driver_20261117.py' |
-  sudo docker exec -i --user frappe "$DEV" bash -c \
+  sudo -n docker exec -i --user frappe "$DEV" bash -c \
   'set -euo pipefail; cd /workspace/development/frappe-bench/sites; FRAPPE_STREAM_LOGGING=1 exec /workspace/development/frappe-bench/env/bin/python -c "$1"' \
   -- "$BOOTSTRAP"
 echo 'PR33_OPERATOR_RUNTIME_VERIFICATION=COMPLETE'
