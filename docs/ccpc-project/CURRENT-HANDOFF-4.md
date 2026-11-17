@@ -1,5 +1,20 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — web child started after gateway source update; live HTTP acceptance next
+
+Owner executed read-only process/gateway file-start chronology on original DEV host; output:
+
+```text
+WEB_PID=543398 STARTED_BEFORE_GATEWAY_FILE
+WEB_PID=544672 STARTED_AFTER_GATEWAY_FILE
+WEB_CANDIDATE_COUNT=2
+DEV_WEB_START_TIME_CHECK=COMPLETE
+```
+
+**Meaning and limit:** Honcho's candidate web parent `543398` predates the updated gateway file while candidate child `544672` started after its modification time. A source file change may already have caused Frappe/Werkzeug reloader to respawn a serving child; **process chronology alone cannot establish** that the newer PID is the HTTP-serving child, that it imports the new code or that the Company boundary rejects a cross-Company code in an authenticated response. Current PR33 DEV checkout remains operator-verified at `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`, and previous exact-source 15/15 Frappe unit tests passed. No further write, restart or migration occurred.
+
+**Decision:** do **not** restart services merely because a parent process predates the source file. Honcho was explicitly launched with `web socketio` and no scheduler process candidate was seen, even though `schedule` is declared in the Procfile. Avoid broad `honcho start`, Docker Compose/worker restarts, scheduler activation and broken third-site enumeration. Next pursue **live DEV loopback HTTP gateway permission smoke**, then authorized account and report-boundary acceptance; a guest denial and a successful HTTP route check alone prove reachability/denial, not the new cross-Company second-identifier rule. If an old module is demonstrated on live requests, separately review a web-only reload and secure rollback with explicit owner approval. PRODUCTION remains NO-GO.
+
 ## November 17, 2026 — running Honcho explicitly selected web/socketio, scheduler candidate count 0
 
 Owner ran the bounded read-only `/proc` scheduler/Honcho command classifier on original DEV host. Full output (excluding the normal sudo prompt):
