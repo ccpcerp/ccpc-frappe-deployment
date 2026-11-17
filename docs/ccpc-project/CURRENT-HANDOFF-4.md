@@ -1,5 +1,22 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — PR33 native accounting read-only preflight STOP: INVOICE_ACCOUNT_MISMATCH; no submit or GL
+
+Owner ran the new exact-source **read-only** MAIN `ccpc_pr33_main_draft_pair_readonly_posting_preflight_20261117.sh` (blob `d18feaba3c4dea7c7345bb703b296dcb5c6bec16`) and reported:
+
+```text
+READ_ONLY_SCRIPT_SOURCE_AND_SYNTAX=PASS
+PINNED_DEVELOPMENT_READ_ONLY_SOURCE=PASS
+EXACT_PERSISTED_DRAFT_PAIR_NO_LEDGER=PASS
+RuntimeError: STOP: INVOICE_ACCOUNT_MISMATCH
+```
+
+This script first verified original exact `Approved` batch, Draft CCPC SI `ACC-SINV-2026-00001`, Draft Ricor PI `ACC-PINV-2026-00005`, and zero `GL Entry`/`Stock Ledger Entry` rows for both voucher IDs. It passed before failure through Company currency, FX conversion-rate and invoice base-total equality guards. It then found **at least one** difference between an actual saved invoice account field and the custom controller's expected exact `1312/6050/5150/2121` account name assembled from Company abbreviations. We do **not** yet know which name differs or if the alternate account is an otherwise valid Company account. It stopped before native `submit` DocPerm checks or account metadata/Cost Center checks. **No submit, no GL, no permission change, no DB write or invoice mutation happened.** Existing Draft records and backups are preserved.
+
+**Next one safe step:** Inspect four exact saved invoice account fields and their expected controller names in **another GitHub-staged read-only diagnostic** `scripts/development/operator/ccpc_pr33_main_readonly_invoice_account_diagnostic_20261117.sh`. Pin exact docs review branch HEAD and diagnostic Git blob, validate `bash -n` and embedded Python `ast.parse`, then run on `gani@ccpcerpserver` against `development.localhost`; it prints per-field MATCH/MISMATCH and actual/expected Account Company, Root Type and Account Type validity. No file/account edits, no post/submission, no production or grants. Do not assume the mismatch's cause until output inspected. Record the observed difference and determine whether an ERPNext native default overwrote a value or the strict expectation is wrong, before offering corrective code or data changes.
+
+**Standing guard:** Parent native posting milestone remains at review/preflight stage; no permission to call `submit()`, post GL, or use `ignore_permissions=True`. The prior SHA256 off-host backup **predates the persistent Draft invoice pair**; a new protected post-Draft backup is required before any separately authorized financial posting. The original one-shot financial approval marker is permanently consumed; never replay it. App PR33 remains draft and exact code HEAD `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`. PRODUCTION not targeted.
+
 ## November 17, 2026 — owner APPROVED continuing next native SI/PI accounting review; NO SUBMIT authorized/performed
 
 The owner answered **"Approved, continue"** after PR33's separate independent postcommit read-only Draft-pair acceptance PASS. Continue the named milestone of **reviewing expected native ERPNext invoice submission GL effects, applicable permissions, and a guarded DEVELOPMENT testing/recovery plan**, but **do not interpret this broad continuation as explicit authorization to submit either saved Draft invoice or post financial ledgers**. These would be the *next separately approved* financial operation. Existing source/host facts unchanged: original `Approved` CCPC→Ricor one-line batch, Draft CCPC SI `ACC-SINV-2026-00001`, Draft Ricor PI `ACC-PINV-2026-00005`, `approved_by=finance_controller@ccpc.com`; both vouchers have no GL or Stock Ledger rows in independent read-only test. Preserve both Drafts, all previous one-time markers, local pre-Draft snapshot `development.localhost-20261117T043152Z-1582f342f870` and offsite copy `ccpc-development-pr33-main-precommit-20261117T044035Z-591a9f7e2b035cae`.
