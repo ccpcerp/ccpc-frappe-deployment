@@ -1,5 +1,14 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — CircleCI exact-SHA variable owner-reported saved; next trigger remains manual
+
+Owner reports **`CCPC_RICOR_APPROVED_SHA` saved** in the CircleCI project environment, per the preceding exact SHA `4744577c86f5ba8d6e7e148ca5cb84d0da7857f7`. This is **owner-reported configuration**, not independently verified by a CircleCI connection (no CircleCI app available). GitHub commit API still shows the exact app branch tip `4744577c86f5ba8d6e7e148ca5cb84d0da7857f7`; GitHub check-runs API returned `total_count=0` for that SHA. Therefore do **not** claim the variable is correctly effective, the test pipeline ran, or its three real SQL tests passed.
+
+Next step in the **same Ricor billing task**: open CircleCI project's Trigger Pipeline interface on branch `review/ricor-direct-consumption-billing-item-2026-11-17`, enable only `run_ricor_direct=true`, leave all other opt-in expensive params false, start one manual pipeline after checking available CI allowance and stop controls. Review config validation and the held `ricor-direct-manual-approval` job before clicking Approve. Any inability to load/parse the job or SHA mismatch is a STOP, not a reason to disable safeguards.
+
+**Owner-requested rough schedule planning** at current chat/operator cadence: ~6–12 weeks to full DEVELOPMENT acceptance *if* all financial approval/data prerequisites clear; ~4–8 months to defensible PRODUCTION release readiness (March–July 2027), optimistic ~2–3 months if no blockers and frequent sessions, longer if legacy missing provenance, permissions, four reports, dedicated host TLS, restore/rollback or manual approvals delay. Time range is a **low-confidence planning estimate**, **not an ETA, guarantee, or substitute for the 40% ±10 points audited-evidence scorecard**. Score remains 40% pending real acceptance evidence. Record dated progress and recalibrate only at major gates; no CI or site operation performed by ChatGPT.
+
+
 
 ## November 17, 2026 — owner requests periodic release completion estimate; Ricor SQL gate remains FIRST
 
