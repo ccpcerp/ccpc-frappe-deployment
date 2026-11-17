@@ -1,5 +1,26 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — DEVELOPMENT Procfile service declaration inventory COMPLETE; scheduler is CONFIGURED
+
+Owner ran read-only Procfile service-name inventory and reported:
+
+```text
+WEB_DECLARED=YES
+SOCKETIO_DECLARED=YES
+SCHEDULE_DECLARED=YES
+WORKER_SHORT_DECLARED=NO
+WORKER_LONG_DECLARED=NO
+WATCH_DECLARED=YES
+REDIS_CACHE_DECLARED=NO
+REDIS_QUEUE_DECLARED=NO
+OTHER_SERVICE_COUNT=1
+DEV_PROCFILE_INSPECTION=COMPLETE
+```
+
+**Interpretation:** Honcho's DEVELOPMENT Procfile configures a `schedule` service in addition to web, Socket.IO and watch, with one other unclassified service name. This **does not establish that the scheduler is currently running**, since Honcho can be started with a service subset and prior process classification used incomplete heuristics. But the scheduler is **not safely absent**: restarting the full Honcho Procfile risks starting `schedule` and enumerating the known broken third DEV site `ccpc-integration.localhost`. No application restarts, scheduler enable/disable, Procfile edits, DB writes, PROD effects or code reversion have been authorized. Code remains on-disk at PR33 SHA `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`; live HTTP module activation remains unverified.
+
+**Next read-only check:** inspect the active Honcho launch arguments and all current PID command tokens privately, printing only allowlisted *role labels* plus whether `schedule` is a running service candidate and whether Honcho appears to have been started with an explicit subset. Never print raw args, environment, secrets, Procfile commands, and never restart the supervisor. Distinguish a declared service from a live process and from an authorized target for a future web-only restart.
+
 ## November 17, 2026 — bounded Honcho process-tree inventory PASS, no reload yet
 
 Owner ran the second, strictly Honcho-descendant-only read-only classifier, ending `HONCHO_PROCESS_TREE=COMPLETE`. **Observed supervised tree (snapshot PIDs):** Honcho `543180` had direct children `543392` and `543393` marked UNCLASSIFIED. Under `543393`, children `543394` and `543395` remained UNCLASSIFIED. The `543394 → 543396` shell → `543398` Python chain was labelled WEB_CANDIDATE, with `544672` also a WEB_CANDIDATE descendant and `543417`, `544674` unclassified. The `543395 → 543399` shell → `543401` chain was labelled SOCKETIO_CANDIDATE. **No `SCHEDULER_CANDIDATE` or `WORKER_CANDIDATE` was identified within that Honcho tree**, but a heuristic filtered classifier is not proof that scheduler processes or background services are disabled outside it. Other PPID=1 Python processes remain unclassified, and multiple service runners may exist.
