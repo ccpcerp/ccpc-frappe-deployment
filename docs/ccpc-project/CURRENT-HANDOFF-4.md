@@ -1,5 +1,33 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — PR33 MAIN DEVELOPMENT V2 Finance Checker real-controller ROLLBACK-ONLY ACCEPTANCE PASS (owner-verified)
+
+**Important new verified operator result:** One separately approved, exactly pinned **V2** Finance Checker rehearsal was executed on the original MAIN `development.localhost` DEVELOPMENT environment. The owner supplied the complete concise stdout below after prior host/branch/hashed-script validation. The source and V2 script are still the exact pinned PR33 SHA `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87` and docs Git blob `b95a07bc15c9a70539864f5b36ab9ab034444093` respectively; the original **V1** host marker must also remain consumed.
+
+```text
+PINNED_DEV_APP_AND_WORKTREE=PASS
+INSTALLED_FRAPPE_UI_NOTIFICATION_PREFLIGHT=PASS
+DB_COMMIT_AND_SQL_CONTROL_GUARDS=PASS
+SELECTIVE_REALTIME_AND_OUTBOUND_API_GUARDS_ACTIVE=PASS
+UNDER_REVIEW_SOURCE_AND_ACTORS=PASS
+CROSS_LINKED_DRAFT_SI_PI_IN_TRANSACTION=PASS
+ONLY_TWO_DRAFT_INVOICES_CREATED=PASS
+GL_AND_STOCK_ROW_COUNTS_UNCHANGED=PASS
+DEFERRED_UI_NOTIFICATIONS_SUPPRESSED_COUNT=12
+ROLLBACK_ONLY_IN_TRANSACTION_CHECKS=PASS
+REHEARSAL_DB_TRANSACTION=ROLLED_BACK
+POST_ROLLBACK_BATCH_AND_COUNTS=PASS
+PRODUCTION_NOT_TARGETED=PASS
+REHEARSAL_RESULT=PASS_ALL_CHECKS_ROLLED_BACK
+NO_INVOICE_COMMIT_REQUESTED=PASS
+```
+
+**What this demonstrates:** The real PR33 `approve_and_create_invoices()` controller, impersonating the existing distinct, explicitly scoped **synthetic DEV Finance Checker** in one guarded SQL transaction, successfully produced exactly **one Draft Sales Invoice for CCPC and one Draft Purchase Invoice for Ricor** linked reciprocally, each with correct original one-line frozen rate/quantity, month-end date, matching totals, Company/internal party, `docstatus=0`, no taxes and `update_stock=0`, before rollback. In the same transaction invoice row deltas were `SI +1 / PI +1`, and `GL Entry +0 / Stock Ledger Entry +0`. Frappe emitted requests for **12 ordinary `after_commit=True` `doc_update`/`list_update`** UI notifications; V2 intercepted and suppressed all 12 inside its Python process. No other guarded queue/email/HTTP/SMTP/unexpected realtime API produced an abort. The outer SQL rollback then completed, and a separate read-only transaction verified original `Under Review` batch/no approval or invoice references, no related generated draft invoices and matching pretest SI/PI/GL/SLE row counts. **No invoice commit was requested or observed**. Mark this bounded **live-development rollback-only integration test PASS**, an important milestone beyond CircleCI/mock cases.
+
+**Evidence and boundaries:** Results are operator-provided script outputs, **not** an independently observed remote database session; common API interception cannot prove zero side effects from arbitrary third-party/raw-network hooks or offsite systems. This test covers the intended **one frozen source line in one CCPC→Ricor batch**, not concurrency or repeat attempts, multi-line/tax/FX behavior, HTTP/CSRF acceptance as a real user, native invoice submission/cancellation, real accounting ledger posting/reconciliation, or isolation from future scheduler/worker risks. It does **not** create persistent Draft invoices or mark the batch Approved; success state intentionally reverted. The V2 one-shot marker `$HOME/.ccpc-pr33-main-checker-rollback-v2-once-20261117` is now **consumed; do not delete or rerun either V1 or V2**. PRODUCTION was not targeted.
+
+**Next shortest safe path toward PR33 completion:** A distinct finance/accounting decision is needed before **one committed** MAIN DEV checker approval creating a persistent Draft SI/PI pair. First verify a **fresh, scoped recoverable DEV backup + rollback manifest**, current app/source/worktree and batch/actor state, exact selected named Checker identity and Company permissions, native invoice/party/account effects, and potential external integration side effects. Using a synthetic `@testing.invalid` actor for committed financial audit records is **not automatically approved** by this rehearsal; preferably select a real named enabled Finance Controller with legitimate company grants after separate scope review. A committed approval must be one-time, fail closed on state drift and verify both saved Draft links and **no GL/SLE movement**; do not submit invoices or alter user permissions without separate explicit consent. Continue independent ledger/native posting/concurrency/reconciliation tests and keep PRODUCTION NO-GO. No new services, migrations or financial commits were initiated by this GitHub documentation update.
+
 ## November 17, 2026 — owner EXPLICITLY APPROVED one MAIN DEV V2 rollback-only checker rehearsal; NOT YET RUN
 
 Following the installed Frappe source confirmation (`POST_SAVE_CALLS_NOTIFY=True`, `NOTIFY_CALLS_REALTIME=True`, `REALTIME_AFTER_COMMIT=True`) and GitHub-first presentation of the proposed V2 operator script, the owner responded **APPROVED** to exactly **one additional rollback-only MAIN DEVELOPMENT Finance Checker V2 rehearsal**. This is a **new authorization** distinct from the consumed V1 attempt. No permanent batch approval, real user grants, invoice submission, migration, service restart, scheduler, CI charges, PR merge or PRODUCTION modification was authorized. Neither ChatGPT nor GitHub executes host scripts automatically; current status: **AUTHORIZED / PREPARED / NOT EXECUTED**.
