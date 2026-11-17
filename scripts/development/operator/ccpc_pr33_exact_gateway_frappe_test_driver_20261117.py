@@ -108,7 +108,7 @@ def main():
         exec(compile(payload[TEST], tests.__file__, "exec"), tests.__dict__)
 
         suite = unittest.defaultTestLoader.loadTestsFromModule(tests)
-        ensure(suite.countTestCases() >= 15, "TOO_FEW_TESTS_DISCOVERED")
+        ensure(suite.countTestCases() == 15, "UNEXPECTED_TEST_COUNT")
         print("PR33_REVIEW_SHA=" + REVIEW_SHA, flush=True)
         print("PR33_EXACT_FRAPPE_TEST_COUNT=" + str(suite.countTestCases()), flush=True)
         result = unittest.TextTestRunner(verbosity=1, stream=sys.stdout).run(suite)
