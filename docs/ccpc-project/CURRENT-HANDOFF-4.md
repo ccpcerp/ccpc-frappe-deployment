@@ -1,5 +1,26 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — PR33 executive gateway security source-only update PASS in DEVELOPMENT (owner reported)
+
+The owner executed the GitHub-reviewed and blob-pinned `scripts/development/operator/ccpc_pr33_security_source_only_four_commit_update_20261117.sh` from docs PR #37, under the exact guarded approval `CCPC_APPROVE_PR33_SOURCE_ONLY=YES`. **Operator terminal result:**
+
+```text
+SOURCE_UPDATE_SCRIPT_VERIFIED=PASS
+PROTECTED_BACKUP_LOCATIONS=PASS (SHA256 independently operator-verified)
+REMOTE_EXACT_PR33_HEAD=PASS
+DEV_SOURCE_UPDATE=PASS
+DEV_SOURCE_HEAD=25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87
+PROTECTED_AGENTS_ONLY=PASS
+SOURCE_DELTA=4_COMMITS_2_PYTHON_FILES
+NOT_RUN=bench_migrate,benches,services,schedulers,user_grants,PRODUCTION
+```
+
+**Verified milestone / boundaries:** installed shared-development `apps/ccpcerp` Git checkout is now reported at the exact GitHub PR #33 head `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`. The four ancestral commits modify only `ccpcerp/ccpc_erp/executive_reporting.py` and `ccpcerp/ccpc_erp/test_executive_reporting.py`. Owner-reported guard shows the only untracked file remains protected `AGENTS.md` and its SHA-256 matched before/after source update. Two historical protected NAS backup manifest locations were present; previous SHA256 independently checked, **not a fresh backup or restore test**. ChatGPT did not access the legacy server directly. GitHub PR #33 independently rechecked exact head and remains draft/unmerged.
+
+**No deployment extras:** no `bench migrate`, application server/worker/scheduler restarts, grants, DB modifications, financial transactions, old/new PRODUCTION operation, PR merge or paid CI triggered by this source-only command. **Runtime activation remains unverified:** long-running Frappe web/worker Python processes can continue using previously loaded code despite the updated on-disk checkout. Earlier 15/15 exact-source synthetic Frappe tests passed in a distinct Python process, not a live browser/user execution after this switch. Do not assume the security fix is effective for current HTTP requests until DEV-only process boundaries and restart requirements have been reviewed and separately authorized.
+
+**Next meaningful safe gate:** inventory (read-only) which DEV-specific web/worker processes actually serve requests and whether a targeted DEV-only restart can avoid broken `ccpc-integration.localhost` scheduler/site enumeration and retained OLD PROD resources. Do **not** start bench-wide scheduler/Honcho, restart Docker Compose, or touch shared production containers. Then approve/test scoped DEV runtime activation and actual executive Company-boundary/HTTP permissions before claiming P1 closed in persistent DEV. PR33 financial acceptance remains incomplete: MAIN's single `Under Review` billing batch still has zero linked invoice pairs, and effective real-accounting roles and cancellation/concurrency/recovery cases require their own acceptance. PRODUCTION remains NO-GO and untouched.
+
 ## November 17, 2026 — owner approved protected PR33 source-only DEVELOPMENT update (PREPARED, NOT EXECUTED)
 
 Owner explicitly **approved** moving only the existing detached MAIN/Integration2-shared DEVELOPMENT application checkout from source commit `1bde04bf6d51d2c1b3197ef41696e8b6df7b0ecc` to exact GitHub-reviewed and 15/15 Frappe-regression-tested PR #33 commit `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`. No permission for `bench migrate`, service/scheduler restart, Finance record writes, PROD operations, Git history rewriting, automatic Codex agent or paid provider CI.
