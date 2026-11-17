@@ -2,6 +2,26 @@
 
 **Prepared:** 2026-11-17 Asia/Manila. **Approval scope:** Owner answered **"Approved, continue"** after first permanent Draft CCPC SI / Ricor PI pair plus distinct read-only persistence audit both PASSED. Interpret as authorization to **review and prepare** the next DEVELOPMENT accounting-posting milestone. **No native invoice `submit()`, journal/GL/stock posting, cancel, payment, privilege grant, migration, restart, PR merge or PRODUCTION operation is authorized/executed by this preparation.** Any subsequent financial posting requires the exact documents, expected financial effects and separate explicit approval.
 
+## November 17, 2026 — first MAIN read-only posting preflight STOPPED at account-name mismatch; no posting
+
+The owner executed the exact-GitHub pinned read-only posting preflight `scripts/development/operator/ccpc_pr33_main_draft_pair_readonly_posting_preflight_20261117.sh` (Git blob `d18feaba3c4dea7c7345bb703b296dcb5c6bec16`) on original MAIN DEVELOPMENT. Complete operator-provided result:
+
+```text
+READ_ONLY_SCRIPT_SOURCE_AND_SYNTAX=PASS
+PINNED_DEVELOPMENT_READ_ONLY_SOURCE=PASS
+EXACT_PERSISTED_DRAFT_PAIR_NO_LEDGER=PASS
+Traceback (most recent call last):
+  File "<stdin>", line 142, in <module>
+  File "<stdin>", line 18, in must
+RuntimeError: STOP: INVOICE_ACCOUNT_MISMATCH
+```
+
+**Exact evidence:** Pinned app/worktree passed, saved batch exact Draft SI `ACC-SINV-2026-00001` and PI `ACC-PINV-2026-00005` with zero voucher-linked GL/SLE passed; script performed its Company currencies, conversion rates and base totals assertions before failing at first discrepancy among four **exact account name** equalities: SI `debit_to` vs expected CCPC `1312`, SI item `income_account` vs CCPC `6050`, PI item `expense_account` vs Ricor `5150`, PI `credit_to` vs Ricor `2121`, with names built from live Company abbreviation. **It did not report which field mismatched**, and execution never reached its checks of account metadata, Cost Center, or native `submit` rights. The original user terminal reports no `READ_ONLY_POSTING_PREFLIGHT=PASS`. This is an observed **preflight discrepancy**, not proof that saved accounting is wrong; ERPNext may have assigned or transformed an account during native Draft validation, or the expected assumption may be too strict.
+
+**No financial write:** The preflight executes under `START TRANSACTION READ ONLY` and rolls back in `finally`. No `.submit()`, `.save()`, `frappe.db.commit()` or grant, no ledger postings, no invoice record changes, and no PRODUCTION action. Existing committed Drafts and SHA256 recovery sets must remain untouched. **HOLD all submit/GL testing**, including rollback-only submit rehearsals, until actual account mismatch is identified and reviewed; do not forcibly edit invoice accounts, rename ledger accounts, grant permissions or bypass native validations.
+
+**Immediate next bounded diagnosis:** Added separate `scripts/development/operator/ccpc_pr33_main_readonly_invoice_account_diagnostic_20261117.sh` on docs PR37, a GitHub-pinned read-only diagnostic for exact two stored Draft invoices. In a fresh `START TRANSACTION READ ONLY`, confirm pinned app/worktree, original Approved batch, reciprocal Draft invoices and zero voucher-linked postings; print four `EXPECTED` vs `ACTUAL` stored account names, whether each is a valid non-group enabled Account in the correct Company/root/type, and exact name-match summary. Does not change records, invoice status or user grants and does not attempt native invoice submit rights. Operator must validate exact GitHub docs commit, diagnostic file blob, Bash syntax and embedded Python AST before running one step. Follow-up action depends on which account field differs; **do not infer values or fix data before evidence**.
+
 ## Verified immutable current development inputs
 
 - App draft PR33 `review/billing-authorization-correction-2026-11-03` HEAD `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`; controller `intercompany_material_billing_batch.py` blob `a9a6e609759e77948d40d31bdbd342f727b208a9`; authority module blob `8de2d6ba2aa0f8995b727157491e236d2a0a8ae2`.
