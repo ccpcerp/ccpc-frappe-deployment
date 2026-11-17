@@ -1,5 +1,21 @@
 # CCPC ERPNext — PR #33 MAIN DEVELOPMENT Finance Checker transaction-effects review
 
+## November 17, 2026 — owner-confirmed post-abort MAIN database check PASS
+
+Owner completed a *separate read-only transaction*, following the abort of the single approved one-shot rehearsal:
+
+```text
+MAIN_BATCH_COUNT= 1
+MAIN_BATCH_UNDER_REVIEW= True
+MAIN_RELATED_SALES_INVOICES= 0
+MAIN_RELATED_PURCHASE_INVOICES= 0
+POST_FAILURE_DB_CHECK= PASS
+```
+
+This confirms exactly one original CCPC→Ricor billing batch still `Under Review` (`docstatus=0`, no approval fields or invoice references, as required by the invoked check), and zero related Sales/Purchase Invoices with the **exact controller-generated** `remarks` marker. The test read only MAIN `development.localhost` and rolled back its read-only transaction. This **does not upgrade** the stopped checker rehearsal to PASS or demonstrate controller-generated Draft SI/PI persistence, unchanged GL/SLE row counts, absent arbitrary unrelated records, or no external hooks. No recovery restore, user permission modification or scheduler change was necessary. Keep the original one-shot marker and do not rerun it.
+
+Before authorizing any fresh write-capable trial, identify the guarded outbound API through source inspection or separately approved instrumented isolated test, with per-API labels and a complete post-rollback check regardless of success/error.
+
 ## November 17, 2026 — executed rehearsal STOPPED safely at outbound guard, no invoice-pair acceptance
 
 **Owner-run output** from the original one-shot script `scripts/development/operator/ccpc_pr33_main_checker_rollback_once_20261117.sh`:
