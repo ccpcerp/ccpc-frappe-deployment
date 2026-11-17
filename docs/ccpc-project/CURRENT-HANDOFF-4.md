@@ -1,5 +1,17 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — exact-source Frappe 16 gateway regression runner PREPARED (NOT EXECUTED)
+
+Owner approved continuation to validate app [PR #33](https://github.com/ccpcerp/ccpcerp/pull/33) **new** head `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87` in a supported Frappe environment **before a separately authorized source-only DEVELOPMENT update**. No paid CircleCI run, shared service restart, migration or financial transaction was approved by this instruction. Current main DEV app is still pinned at `1bde04bf6d51d2c1b3197ef41696e8b6df7b0ecc`.
+
+On this docs PR #37 review branch, prepared two **operator-invoked** files:
+- `scripts/development/operator/ccpc_pr33_exact_gateway_frappe_test_once_20261117.sh` — guarded original host/user + named DEV Docker identity, private GitHub temporary SOURCE-only clone (new PR33 SHA, clean temporary worktree, two Git blobs checked), **tar streams only three reviewed source/test/runner files** into in-memory Python for exact test execution. No existing DEV checkout switched or overwritten. Asks `sudo -v` before source streaming to avoid corrupting stdin if authentication required. Stops on any guard failure. Keeps temporary host source for inspection; no destructive cleanup.
+- `scripts/development/operator/ccpc_pr33_exact_gateway_frappe_test_driver_20261117.py` — checks incoming two Git blob IDs, installed DEV original HEAD/worktree/only protected `AGENTS.md`, Python >=3.14, Frappe v16. Connects **MAIN** `development.localhost` only, begins `START TRANSACTION READ ONLY`; temporarily substitutes exact PR33 gateway in that one Python process's module cache, executes the **15 original GitHub `test_executive_reporting.py` unittest methods** against Frappe context (with mocked authorization/data lookups), restores module references, explicitly rolls back and destroys the connection. No user/master/invoice/ledger creation; no DB write, fixture mutation, bench migration, service changes or third-site connection.
+
+**Verification still pending:** script source committed and statically inspected in GitHub, but **not executed against the owner Frappe host** at this checkpoint. A successful `PR33_EXACT_FRAPPE_REGRESSIONS=PASS` would prove the exact production-relevant controller and unittest logic in the actual Frappe v16 interpreter, **not** live executive role/browser acceptability, SQL integration, confidential legacy records, posting/GL, concurrent approval, or PRODUCTION readiness. Current exact new GitHub head had no published CI checks when last queried; do not extrapolate earlier green results.
+
+Next one operator step: fetch docs PR #37 pinned commit, verify wrapper and driver blobs, `bash -n` wrapper, and invoke one reviewed wrapper. Review output (expect 15 discovered tests, all PASS, rollback/COMPLETE), stopping on unexpected results without modifying the active DEV app. If this passes, decide separately whether to approve a protected DEVELOPMENT source-only update, followed by scoped live read-only gateway acceptance.
+
 ## November 17, 2026 — executive equipment cross-Company exposure fix committed to GitHub (NOT DEPLOYED)
 
 **Owner authorization:** targeted executive-report security fix plus regression tests **in GitHub only**; no DEVELOPMENT checkout, service/migration, finance transaction or PRODUCTION change.
