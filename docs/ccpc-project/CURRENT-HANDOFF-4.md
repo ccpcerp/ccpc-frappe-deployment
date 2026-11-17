@@ -1,5 +1,21 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — post-failure MAIN read-only persisted-state verification PASS
+
+After the bounded Finance Checker rehearsal stopped at `FORBIDDEN_OUTBOUND_SIDE_EFFECT` and reported `REHEARSAL_DB_TRANSACTION=ROLLED_BACK`, owner ran a **separate** MAIN `development.localhost` read-only transaction check (no new rehearsal or write). Owner-returned complete output:
+
+```text
+MAIN_BATCH_COUNT= 1
+MAIN_BATCH_UNDER_REVIEW= True
+MAIN_RELATED_SALES_INVOICES= 0
+MAIN_RELATED_PURCHASE_INVOICES= 0
+POST_FAILURE_DB_CHECK= PASS
+```
+
+The precise check also required the sole CCPC → Ricor batch to have `docstatus=0`, blank `approved_by`, `approved_on`, `sales_invoice`, `purchase_invoice`, and no Sales/Purchase Invoice rows with a `remarks` field exactly matching `Intercompany material billing batch <batch-name>`. Its output therefore supports **one still-Unapproved/Under Review batch with no linked or same-remark invoice pair** after rollback. The query **does not** prove no GL/SLE/other-table mutation, no invoice with different remarks, nor no external mail/queue side effects. In particular, it was a new read-only check, **not** the rehearsal's skipped original `POST_ROLLBACK_BATCH_AND_COUNTS` comprehensive check.
+
+**Status:** MAIN finance batch recovery check **PASS**; original one-shot rollback rehearsal **STOPPED / not accepted**. Current financial code and review PR33 remain unchanged; no need to repeat the single-use script or restore the database on this evidence. Preserve its host marker and old backup files. The exact outbound function is unknown because the shared Python guard label did not identify it. **Next fastest safe action** is a read-only review of installed Frappe/ERPNext invoice insert and DocType hooks/source (no call to approval controller), to narrow plausible `frappe.enqueue`/`sendmail`/`publish_realtime`/`requests`/`SMTP` paths. If exact dynamic attribution remains necessary, require a separately approved one-shot run in a genuinely isolated disposable site with per-API guard labels, outbound network denied, a verified restoration strategy and explicit rollback checks on error; do not clear or rerun the consumed marker on MAIN. No PRODUCTION activity authorized or performed.
+
 ## November 17, 2026 — PR33 MAIN Finance Checker rollback rehearsal STOPPED by outbound side-effect guard; SQL rollback reported
 
 Owner executed the **single approved one-time** `ccpc_pr33_main_checker_rollback_once_20261117.sh` on original DEVELOPMENT and returned this exact result:
