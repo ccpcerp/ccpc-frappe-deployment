@@ -1,5 +1,19 @@
 # CCPC ERPNext — PR #33 MAIN DEVELOPMENT Finance Checker transaction-effects review
 
+## November 17, 2026 — one-time permanent DEV Draft-pair script static source and syntax checks PASS; not executed
+
+Owner ran the host static-only verification of the exact committed `ccpc_pr33_main_checker_persist_draft_pair_once_20261117.sh` source (Git blob `b20edd9762fb3497eb5d866e51100bb337eff25b`) against the previously pinned docs commit `7662d6ae9ccc61c9f16728e6e3cd5ef6efb75a00`. Full operator output:
+
+```text
+PERSISTENT_SCRIPT_SOURCE_AND_SYNTAX=PASS
+ONE_CONTROLLER_AND_ONE_COMMIT_CALL=PASS
+FINANCIAL_OPERATION_NOT_EXECUTED=PASS
+```
+
+This establishes exact Git file and host static checks (`bash -n`, embedded `ast.parse`, single literal `batch.approve_and_create_invoices()` and single `original_commit()`) without invoking code or consuming the persistent one-shot marker. The current docs PR37 was advanced by **documentation only**; script blob and app PR33 head remain unchanged.
+
+**Operation still pending:** The owner previously approved *one* permanent Draft CCPC SI + Ricor PI pair on MAIN DEV and explicitly nominated existing `finance_controller@ccpc.com` as the permanent `approved_by`. On the eventual one-time command, if either the explicit commit or postcommit read-only audit reports an error, do **not** rerun, restore, submit/cancel invoices, or infer SQL rollback undid an already committed pair. Inspect persisted batch/SI/PI/GL/SLE via a fresh read-only connection first. Only the known, scoped Draft creation is authorized; no direct login-authenticated Finance click is proven by `frappe.set_user()`, and no production migration/deployment is approved. Local and NAS SHA256 verified backup set remains preserved and not restore-tested.
+
 ## November 17, 2026 — owner CONFIRMED named `approved_by`; one-shot persistent MAIN DEV operator prepared in GitHub, NOT RUN
 
 Owner explicitly **confirmed** `finance_controller@ccpc.com` as the intended `approved_by` account for one persistent **Draft** CCPC Sales Invoice + Ricor Purchase Invoice pair on `development.localhost`. This follows separate owner approval of that persistent DEVELOPMENT acceptance milestone, a successful real-controller V2 **rollback-only** test, read-only named Finance Controller role/Company grants and native batch `read`/`write` permission PASS, and fresh exact-source MAIN local + Synology NAS 4/4 SHA256 backup integrity PASS. The original batch was previously finalized by the **synthetic DEV preparer** `ccpc-billing-preparer-dev@testing.invalid`; this is a DEVELOPMENT test fixture, not a claim of real human preparer authentication.
