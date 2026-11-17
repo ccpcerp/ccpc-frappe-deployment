@@ -20,7 +20,7 @@ DEV='frappe_docker_devcontainer-frappe-1'
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 DRIVER="$SCRIPT_DIR/ccpc_pr33_exact_gateway_frappe_test_driver_20261117.py"
 [[ -f "$DRIVER" && ! -L "$DRIVER" ]] || stop "reviewed driver unavailable"
-[[ "$(git hash-object "$DRIVER")" = 'e02928e8caa31464e07253cc61f1db0c2b5dfa12' ]] ||
+[[ "$(git hash-object "$DRIVER")" = '58330751ea03d3ad06a79b142434f7f75002ff4a' ]] ||
   stop "reviewed driver blob mismatch"
 
 [[ "$(sudo -n docker inspect --format '{{.State.Running}}' "$DEV")" = true ]] ||
