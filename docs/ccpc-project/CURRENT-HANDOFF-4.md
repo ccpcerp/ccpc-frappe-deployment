@@ -1,5 +1,23 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — INDEPENDENT MAIN READ-ONLY POSTCOMMIT AUDIT OF PERSISTENT CCPC→RICOR DRAFT PAIR PASS
+
+**Separate independent persisted-state acceptance PASS.** Following the exact one-time committed Finance Controller MAIN DEVELOPMENT draft-pair operation, the owner executed the independently authored, **read-only** Frappe/MariaDB audit on original `development.localhost` from the correct `/workspace/development/frappe-bench/sites` directory. The operator returned all five expected markers:
+
+```text
+INDEPENDENT_APPROVED_BATCH=PASS
+INDEPENDENT_DRAFT_PAIR=PASS
+NO_RELATED_GL_OR_STOCK_POSTINGS=PASS
+INDEPENDENT_PERSISTED_AUDIT=PASS
+READ_ONLY_NO_COMMIT=PASS
+```
+
+**Precisely what the independent audit checked:** In `START TRANSACTION READ ONLY`, exactly **one** saved intercompany material billing batch exists for `Cagayan Corn Products Corporation` → `Ricor Mills Corporation`, with `status=Approved`, `docstatus=0`, `approved_by=finance_controller@ccpc.com`, nonempty approval timestamp and exact `sales_invoice=ACC-SINV-2026-00001`, `purchase_invoice=ACC-PINV-2026-00005`. Both independently reloaded native ERPNext invoices exist as `docstatus=0` **Draft**, with correct Company for their respective sides, reciprocal `inter_company_invoice_reference` fields, `update_stock=0`, no taxes, one line each with original frozen item/quantity/rate, posting date equal to batch period end, and grand totals matching frozen batch total within 0.01. They each have the exact generated source-batch `remarks`, and exactly **one** Sales Invoice and **one** Purchase Invoice have those remarks. The audit separately counted `GL Entry` and `Stock Ledger Entry` rows for **each of the two exact invoice voucher types/names**, finding zero related records. It ended with an explicit `frappe.db.rollback()`, did **not** call `approve_and_create_invoices()`, `submit()` or `frappe.db.commit()`, and made no invoice/batch/user/ledger changes.
+
+**Acceptance state:** The first persistent MAIN DEVELOPMENT Draft invoice pair is now **corroborated by a distinct read-only postcommit audit**, beyond the committing script's own read-only verification. Preserve **both** records as Draft for follow-up native accounting/lifecycle review, and preserve consumed one-time marker `~/.ccpc-pr33-main-persist-draft-pair-once-20261117`, V1/V2 rehearsal markers, local four-part snapshot `development.localhost-20261117T043152Z-1582f342f870` and Synology recovery copy `ccpc-development-pr33-main-precommit-20261117T044035Z-591a9f7e2b035cae`. Recovery sets have 4/4 SHA256 verified; a restore has NOT been tested.
+
+**Important scope boundary:** The absence of linked GL/SLE rows for these invoice vouchers does **not** establish that the entire DEV database has zero other GL/SLE entries or fully reconcile the accounts; nothing was submitted, and no native ledger posting occurred for this pair. The originally recorded operator `frappe.set_user("finance_controller@ccpc.com")` is not proof of interactive human authentication. The source maker is a synthetic DEVELOPMENT test actor. Draft app PR33 remains open/unmerged. **Next milestone is review/planning for native Draft SI/PI submission, posting, cancellation safety and intercompany GL reconciliation in DEVELOPMENT, with a separate explicit owner authorization before any submit/GL or Stock Ledger write**; concurrency/replay and genuine HTTP/CSRF authenticated checks remain outstanding. PRODUCTION remains NO-GO; no user grants, migration, restart or production changes approved.
+
 ## November 17, 2026 — FIRST PERSISTENT MAIN DEV CCPC→RICOR DRAFT SI/PI PAIR COMMITTED + POSTCHECK PASS (owner-operated; independent audit PENDING)
 
 **Major DEVELOPMENT acceptance milestone:** Owner has now executed **exactly one** of the reviewed, SHA-pinned, one-time `scripts/development/operator/ccpc_pr33_main_checker_persist_draft_pair_once_20261117.sh` procedures against MAIN `development.localhost`. The script Git blob remains `b20edd9762fb3497eb5d866e51100bb337eff25b`, pinned app PR33 head `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`; checked GitHub app PR33 and docs PR37 remained open drafts when recording. The owner previously nominated `finance_controller@ccpc.com` as the persistent `approved_by` user and approved **one** committed Draft pair, not submit/GL posting/PRODUCTION.
