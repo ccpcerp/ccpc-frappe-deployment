@@ -44,7 +44,7 @@ sudo -v || stop 'sudo operator authentication failed'
 [[ "$(sudo -n docker inspect --format '{{.State.Running}}' "$DEV")" == 'true' ]] || stop 'DEV container stopped'
 [[ "$(sudo -n docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}}' "$DEV")" == 'frappe_docker_devcontainer' ]] || stop 'wrong Docker project'
 
-# A private one-shot marker is created before a transient SQL write could occur.
+# A private one-shot marker is created before any persistent invoice write could occur.
 # Never automatically delete it to make a second run possible.
 RUN_MARKER="$HOME/.ccpc-pr33-main-persist-draft-pair-once-20261117"
 mkdir "$RUN_MARKER" || stop 'one-shot marker already exists; do not retry'
@@ -203,10 +203,11 @@ try:
     frappe.db.sql = sql_guard
     print("SINGLE_COMMIT_AND_SQL_CONTROL_GUARDS=PASS", flush=True)
 
-    # Native Frappe Document.notify_update normally calls publish_realtime
-    # for doc_update/list_update AFTER COMMIT. In this ALWAYS-rollback
-    # rehearsal, suppress only those deferred UI notifications, which should
-    # never be delivered. All other outbound API calls terminate the test.
+    # Native Document.notify_update normally emits doc_update/list_update
+    # after-commit UI events. For this one operator-controlled persistent
+    # draft creation, deliberately suppress these UI notifications (record
+    # count) to avoid unrelated outgoing effects; invoice records still commit.
+    # Any other realtime event/email/job/HTTP/SMTP attempt fails closed.
     phase = "OUTBOUND_GUARDS"
     def forbidden(label):
         def stop_side_effect(*_args, **_kwargs):
@@ -319,7 +320,7 @@ try:
     must(original_qty > 0 and original_rate >= 0, "SOURCE_AMOUNT_INVALID")
     print("UNDER_REVIEW_SOURCE_AND_ACTORS=PASS", flush=True)
 
-    # Real controller under synthetic Finance Checker. Never use
+    # Real controller under owner-confirmed named Finance Checker. Never use
     # Administrator/System Manager permission bypass or SQL status mutation.
     phase = "CHECKER_SESSION"
     frappe.set_user(CHECKER)
@@ -422,6 +423,7 @@ try:
           + str(deferred_ui_notification_count), flush=True)
     print("PRECOMMIT_DRAFT_PAIR_AND_ZERO_GL_SLE=PASS", flush=True)
     # Explicit one and only commit, never available to controller/hooks.
+    # A post-commit exception may not undo this SQL COMMIT; never auto-retry.
     phase = "SINGLE_EXPLICIT_COMMIT"
     commit_window = True
     try:
