@@ -1,5 +1,11 @@
 # CCPC ERPNext — PR #33 MAIN DEVELOPMENT Finance Checker transaction-effects review
 
+## November 17, 2026 — native SI/PI GL and reconciliation readiness review authorized, no posting
+
+Owner said **"Approved, continue"** in response to the successful independent postcommit read-only Draft-pair audit. This advances the **posting-readiness analysis and planning** only. The exact currently committed Draft CCPC SI `ACC-SINV-2026-00001` and Draft Ricor PI `ACC-PINV-2026-00005` must **remain unsubmitted** until their full native ERPNext accounting effects, Company and Account/Cost Center mappings, chosen posting actor's native `submit` permission, fiscal freeze/period constraints, and recoverability are independently reviewed and an explicit write-capable test is approved.
+
+New dedicated source review and accounting plan: `docs/ccpc-project/PR33-NATIVE-INVOICE-POSTING-READINESS-2026-11-17.md`. New prepared, **not yet host-executed**, read-only operator `scripts/development/operator/ccpc_pr33_main_draft_pair_readonly_posting_preflight_20261117.sh`, blob `d18feaba3c4dea7c7345bb703b296dcb5c6bec16`, inspects exact Draft invoice/account/Company/currency/cost center and current Finance Controller native invoice submit rights under `START TRANSACTION READ ONLY`. It never submits, saves, grants or commits. Public upstream ERPNext version-16 `SalesInvoice.on_submit` and `PurchaseInvoice.on_submit` source shows native GL creation plus potential other hooks; the derived expected per-company debits/credits are not booked journal entries. The existing backup predates these persistent Draft records: take new post-Draft local+offsite SHA256-reverified backup before any eventual persistent submission, avoiding any destructive restore of the earlier snapshot.
+
 ## November 17, 2026 — INDEPENDENT POSTCOMMIT READ-ONLY MAIN DEVELOPMENT DRAFT SI/PI ACCEPTANCE PASS
 
 After the owner-operated one-time permanent Draft CCPC SI `ACC-SINV-2026-00001` and Ricor PI `ACC-PINV-2026-00005` creation/SQL commit PASS, the owner separately executed the **newly supplied independent read-only Frappe/MariaDB audit** from bench `sites` on `development.localhost`. Complete operator output:
