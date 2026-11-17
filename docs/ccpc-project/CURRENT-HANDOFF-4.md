@@ -1,5 +1,21 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — existing DEVELOPMENT web and Socket.IO confirmed healthy after duplicate bench start
+
+Owner ran the bounded in-container read-only host/HTTP health check after the second `bench start` failed with an expected port 9000 conflict. **Exact owner-provided result:**
+
+```text
+HONCHO_PROCESS_COUNT= 1
+SCHEDULER_CANDIDATE_COUNT= 0
+SOCKETIO_PORT_9000=LISTENING
+DEV_HTTP_STATUS= 200
+DEV_SERVER_HEALTH_CHECK=COMPLETE
+```
+
+**Interpretation:** The original Honcho-managed DEVELOPMENT web/socketio pair is still running and responsive; the earlier duplicate `bench start` did **not** leave a second Honcho or a scheduler candidate in this command-line scan. A read-only loopback HTTP GET `http://127.0.0.1:8000/login`, with `Host: development.localhost`, returned **200**; Socket.IO TCP port **9000** accepted a connection. This is a basic health/reachability check, not proof of an externally routed browser endpoint or an authenticated user/report permission result. The scheduler candidate count of zero does not certify all possible scheduler mechanisms are disabled; refrain from starting full `bench start` because the Procfile declares `schedule` and the broken third DEV site persists. No bench migration, service restart, billing record write or PROD action was part of this **read-only health check**.
+
+**Practical next action:** The owner should **use the already-running DEVELOPMENT server through its existing configured browser/port-forward access path**, not start a second bench/Honcho. If the browser cannot reach it, inspect read-only Docker port publishing / existing proxy/forwarding instead of restarting services. With the web application accessible, execute scoped read-only executive-report HTTP and Company-boundary acceptance using an existing authorized named System User; the source-only PR33 fix is on disk at SHA `25a7b6be...`, but HTTP loading of the current module and authorization security are **not yet independently verified**. PRODUCTION remains NO-GO and unchanged.
+
 ## November 17, 2026 — operator attempted second `bench start`; Socket.IO port 9000 collision, transient scheduler/worker launch
 
 Owner attempted to bring up DEVELOPMENT from an interactive shell in `frappe_docker_devcontainer-frappe-1` under `/workspace/development/frappe-bench`. **Prior to starting**, `pgrep -af 'honcho start'` found an existing Honcho supervisor running `honcho start web socketio` (at inspection time PID `543180`), consistent with the earlier read-only process inventories.
