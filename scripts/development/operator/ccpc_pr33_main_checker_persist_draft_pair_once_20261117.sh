@@ -100,7 +100,7 @@ def check_actor(user, roles, *, exact_roles=True):
     )
     company_grants = {
         row.for_value for row in grants
-        if row.allow == "Company" and int(row.apply_to_all_doctypes) == 1
+        if row.allow == "Company" and int(row.apply_to_all_doctypes or 0) == 1
         and not row.applicable_for
     }
     must({ISSUER, BUYER}.issubset(company_grants),
