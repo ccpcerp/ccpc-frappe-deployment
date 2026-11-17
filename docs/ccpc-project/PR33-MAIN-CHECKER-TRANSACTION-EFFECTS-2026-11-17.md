@@ -1,5 +1,23 @@
 # CCPC ERPNext — PR #33 MAIN DEVELOPMENT Finance Checker transaction-effects review
 
+## November 17, 2026 — MAIN fresh precommit Synology NAS 4/4 SHA256 verified; identity gate outstanding
+
+Operator executed the separately reviewed NAS-transfer `scripts/development/operator/ccpc_pr33_precommit_main_nas_copy_20261117.sh` using the exact fresh local backup `development.localhost-20261117T043152Z-1582f342f870`. Output:
+
+```text
+NAS_COPY_SCRIPT_VERIFIED=PASS
+NEW_MAIN_BACKUP_AGE_WINDOW=PASS
+NAS MOUNT: PASS
+FRESH_MAIN_SOURCE_MANIFEST: 4/4 PASS
+NEW NAS STAGING DIRECTORY: CREATED
+development.localhost: 4/4 SHA256 PASS
+NAS BACKUP CHECKSUMS: 4/4 PASS
+FINAL NAS DIRECTORY: /mnt/erpnext_backups/ccpc-development-pr33-main-precommit-20261117T044035Z-591a9f7e2b035cae
+FRESH_PRECOMMIT_MAIN_DEV_OFF_HOST_BACKUP: PASS
+```
+
+**Recovery gate:** Local four-artifact backup and matching NAS offsite copy now both checked to four SHA256 hashes under the exact required mounted Synology source, with private immutable new directories. Do not reuse the consumed NAS or local backup one-shot markers; do not remove snapshots. This is **integrity verified, NOT restore tested** or a complete online database consistency proof. No invoice approvals or Frappe changes were performed by the backup scripts. An explicit persistent-billing approval is still conditional on selecting an existing legitimate named Finance Controller and validating exact Company grants and native DocPerm, fresh batch/period/source eligibility and safe one-time commit/recovery guard; synthetic `@testing.invalid` Checker was used in rollback-only V2, not implicitly authorized as the permanent `approved_by`. Next step: read-only census and owner nomination of an eligible existing real named Finance Controller, no user rights changes.
+
 ## November 17, 2026 — new MAIN local precommit backup verified by operator; NAS protection pending
 
 Owner successfully ran new current-head exact-source MAIN backup `scripts/development/operator/ccpc_pr33_precommit_main_backup_20261117.sh`, creating **four new local backup artifacts** (database, site config, public/private archives) and private SHA256 manifest. Original host/output:
