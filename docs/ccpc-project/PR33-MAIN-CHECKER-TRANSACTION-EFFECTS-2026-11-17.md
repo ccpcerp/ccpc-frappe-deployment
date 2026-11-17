@@ -1,5 +1,44 @@
 # CCPC ERPNext — PR #33 MAIN DEVELOPMENT Finance Checker transaction-effects review
 
+## November 17, 2026 — FIRST MAIN DEVELOPMENT PERSISTENT DRAFT SI/PI PAIR COMMIT + SCRIPT POSTCOMMIT CHECK PASS
+
+After explicit owner authorization for one DEV-only persistent pair and nomination of `finance_controller@ccpc.com`, the owner executed the previously exact-source static-validated one-time script `scripts/development/operator/ccpc_pr33_main_checker_persist_draft_pair_once_20261117.sh` from docs PR37 (Git blob `b20edd9762fb3497eb5d866e51100bb337eff25b`). App PR33 pinned at `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`. The precommit off-host backup rehash, source/permissions/source-item guards, single controller/commit, exact one Draft pair, zero GL/SLE delta, and new READ ONLY persisted-state postcheck all returned PASS. Full operator stdout:
+
+```text
+FINAL_EXECUTION_SOURCE_CHECK=PASS
+PINNED_FRESH_MAIN_OFF_HOST_RECOVERY_SHA256_4_OF_4=PASS
+[sudo: authenticate] Password:
+PINNED_DEV_APP_AND_WORKTREE=PASS
+INSTALLED_FRAPPE_UI_NOTIFICATION_PREFLIGHT=PASS
+SINGLE_COMMIT_AND_SQL_CONTROL_GUARDS=PASS
+SELECTIVE_REALTIME_AND_OUTBOUND_API_GUARDS_ACTIVE=PASS
+UNDER_REVIEW_SOURCE_AND_ACTORS=PASS
+NAMED_CHECKER_NATIVE_BATCH_PERMISSIONS=PASS
+CROSS_LINKED_DRAFT_SI_PI_IN_TRANSACTION=PASS
+ONLY_TWO_DRAFT_INVOICES_CREATED=PASS
+GL_AND_STOCK_ROW_COUNTS_UNCHANGED=PASS
+DEFERRED_UI_NOTIFICATIONS_SUPPRESSED_COUNT=12
+PRECOMMIT_DRAFT_PAIR_AND_ZERO_GL_SLE=PASS
+SINGLE_EXPLICIT_DB_COMMIT=PASS
+ACTIVE_TRANSACTION_CLEANUP=PASS
+PERSISTED_DRAFT_PAIR_AND_COUNTS_POSTCHECK=PASS
+PERSISTED_SALES_INVOICE_NAME=ACC-SINV-2026-00001
+PERSISTED_PURCHASE_INVOICE_NAME=ACC-PINV-2026-00005
+COMMIT_SQL_COMPLETED=True
+COMMIT_CALL_COMPLETED=True
+POSTCOMMIT_READ_ONLY_VALIDATED=True
+PRODUCTION_NOT_TARGETED=PASS
+PERSISTENT_DRAFT_PAIR_APPROVAL=PASS
+INVOICE_SUBMISSION_NOT_REQUESTED=PASS
+DO_NOT_REPEAT_THIS_ONE_SHOT=PASS
+```
+
+**State after operation (from script's fresh read-only postcommit transaction):** One **persisted** `Approved` CCPC→Ricor one-line billing batch with `approved_by=finance_controller@ccpc.com` and exact links to `ACC-SINV-2026-00001` (CCPC Sales Invoice) and `ACC-PINV-2026-00005` (Ricor Purchase Invoice), both `docstatus=0` Draft, reciprocally linked, correct expected invoice fields, no tax/stock update, and precisely one related invoice of each type with exact batch remarks. New row count delta `SI +1, PI +1, GL +0, SLE +0`. The single explicit SQL commit returned and a separate read-only transaction verified those fields. There is no rollback of this successful commit; original V2 rollback-only result remains a separate earlier test. `frappe.publish_realtime` allowlisted deferred UI events were suppressed 12 times in the operator process. No invoice `submit()` or financial ledger posting requested. The execution used operator `frappe.set_user('finance_controller@ccpc.com')` in a CLI session: it is an approved DEVELOPMENT test attribution, **not independent proof of interactive authentication by the named account holder**. Original finalized_by remains the synthetic DEV preparer.
+
+**Mandatory preservation:** The one-shot marker `~/.ccpc-pr33-main-persist-draft-pair-once-20261117` is now **consumed — DO NOT delete/reset/re-run**. Exact local backup: `development.localhost-20261117T043152Z-1582f342f870`; exact fresh Synology SHA256-verified copy: `ccpc-development-pr33-main-precommit-20261117T044035Z-591a9f7e2b035cae`. Integrity checked 4/4, but restore rehearsal not yet validated. No backup restore, migration, service restart, user grant, production modification or PR merge.
+
+**Next acceptance:** Independently inspect persisted MAIN batch/invoice pair with a distinct **read-only** script/connection to corroborate state outside the original committing process. Then review separate native invoice submit/GL & Stock Ledger/reconciliation, permissions, HTTP/CSRF, correction/cancellation, concurrent approvals and recovery/rollback. No separate authorization yet exists for invoice submission or GL posting; PRODUCTION remains NO-GO. PR33/PR37 both still draft.
+
 ## November 17, 2026 — one-time permanent DEV Draft-pair script static source and syntax checks PASS; not executed
 
 Owner ran the host static-only verification of the exact committed `ccpc_pr33_main_checker_persist_draft_pair_once_20261117.sh` source (Git blob `b20edd9762fb3497eb5d866e51100bb337eff25b`) against the previously pinned docs commit `7662d6ae9ccc61c9f16728e6e3cd5ef6efb75a00`. Full operator output:
