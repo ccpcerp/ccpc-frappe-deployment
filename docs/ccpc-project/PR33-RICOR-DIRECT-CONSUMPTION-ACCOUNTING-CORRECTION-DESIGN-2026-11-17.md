@@ -2,6 +2,43 @@
 
 **Date:** 2026-11-17 (Asia/Manila). **Status:** **OWNER-CONFIRMED BUSINESS TREATMENT / DESIGN PROPOSED FOR SOURCE REVIEW; NOT IMPLEMENTED OR DEPLOYED.** The owner explicitly confirmed: *Ricor materials are directly consumed by departments/equipment* and instructed GitHub-first safe direct-expense correction **without modifying DEVELOPMENT financial records**. This confirms the operational treatment, **not** authorization to mutate the existing approved billing batch, Draft invoices, Item/account masters, mappings, GL/Stock Ledger or PRODUCTION. Source of truth is the GitHub review branch, not the app default branch.
 
+## 2026-11-17 — first exact MAIN read-only dependency inventory PASS, but mapping prerequisites are MISSING
+
+The owner ran `scripts/development/operator/ccpc_pr33_direct_consumption_readonly_dependencies_20261117.sh` (original Git blob `2c47c7f5b965f0c27f2f65cbc04186ce4c1edf00`) in MAIN `development.localhost`. Operator output:
+
+```text
+PINNED_MAIN_DEV_SOURCE=PASS
+PRESERVED_DRAFT_PAIR_UNPOSTED=PASS
+SOURCE_STOCK_ITEM=ITEM-00010
+SOURCE_CURRENT_ITEM_GROUP=Bearings
+SOURCE_FROZEN_UOM=Nos
+ITEM_GROUP_HISTORICAL_PROVENANCE=NOT_FROZEN_IN_BATCH
+AVAILABLE_NONSTOCK_SAME_UOM_ITEM_COUNT=1
+NONSTOCK_ITEM_ACCOUNTING_APPROVAL=NOT_INFERRED_FROM_COUNT
+SOURCE_REQUESTING_DEPARTMENT_COMPANY=Ricor Mills Corporation
+SOURCE_WORKFOR_DEPARTMENT_COMPANY=Ricor Mills Corporation
+BENEFICIARY_ISSUE_TIME_PROVENANCE=NOT_CERTIFIED_BY_BILLING_SNAPSHOT
+RICOR_SOURCE_ITEM_GROUP_EXPENSE_SCOPES_COUNT=0
+RICOR_APPROVED_EXPENSE_REVISIONS_COUNT=0
+RICOR_REVISIONS_MAPPED_TO_5150_COUNT=0
+SIGNED_MAPPING_EFFECTIVE_DATES_AND_USE=NOT_EVALUATED
+RICOR_BENEFICIARY_CENTER_SCOPES_COUNT=0
+RICOR_BENEFICIARY_APPROVED_CENTER_REVISIONS_COUNT=0
+RICOR_BENEFICIARY_VALIDATION=NOT_ESTABLISHED_BY_COUNT
+DIRECT_EXPENSE_DEPENDENCIES_READ_ONLY=PASS
+NO_MASTER_INVOICE_GL_OR_STOCK_CHANGES=PASS
+```
+
+**Grounded implications:** One non-stock Item exists with matching stock UOM `Nos`, but its item code, meaning, purchase eligibility, expense behavior and suitability for *intercompany materials consumption* were NOT inspected; do not select it merely because count=1. Ricor's original-source `ITEM-00010` CURRENT Item Group is `Bearings`, without a frozen issue-time Item Group snapshot. Both source-linked requester and work-for Departments currently belong to Ricor, but neither is confirmed as certified issue-time beneficiary. There is **no Ricor + Bearings Expense Scope**, no approved Ricor expense revision (including 5150) and no Ricor beneficiary Center Scope/revision for the candidate Department. Therefore **no signed Ricor mapping currently authorizes this correction**. The present Draft invoices passed untouched and have zero invoice-voucher GL/SLE; no master data or financial record was changed.
+
+### Actual mapping workflow source review (important limitation for historical Drafts)
+
+Further inspected pinned app PR33 `ccpcerp/ccpc_erp/bc_mapping_workflow.py` (blob `6b8c66ce048d8c463ac3adaf8d89c0ec8b9163cd`) and both revision controllers: the ordinary `CCPC Expense Mapping Revision` and `CCPC Center Mapping Revision` DocType controllers deliberately reject user-supplied `approval_state=Approved`, **but** the dedicated controlled `propose_mapping()` → `get_mapping_review()` → `approve_mapping()` server workflow exists, with named `CCPC Mapping Preparer`, distinct `CCPC Accounting Mapping Approver`, Company authorization, source/master validity, one unresolved Draft per scope, locked revision, unique effective intervals, signed `CCPC Accounting Mapping Decision` verification/consumption and `Version` audit. Therefore **do not mistake the inert ordinary DocType save controller for an absent Accounting approval workflow**. Nevertheless these workflows have **not** been operated or permission-tested on current MAIN for Ricor; none of the required Ricor scopes exist.
+
+**Non-retroactivity is a material new gate:** `approve_mapping()` sets `effective_from` to **no earlier than the server-owned approval instant** (even if an earlier date is proposed). An Accounting mapping approved after the historical month-end CANNOT truthfully be represented as an active signed revision *at the existing invoices' original posting date*. The proposed existing-Draft correction must not backdate an approval, silently move the invoice posting date, or use an unapproved mapping. The owner/Finance must first specify and approve a distinct historical correction policy and evidence that respects original period-close/tax obligations, separating present-day correction approval from the original source's accounting date. Forward-looking new billing transactions can use newly signed mappings once genuinely effective. This issue may prevent a normal unchanged-month-end correction until financial governance resolves it.
+
+**Next read-only evidence:** verify the one existing same-UOM non-stock Item's identity, eligibility and accounting flags, whether `Bearings` is a leaf Item Group, original source Department provenance and the availability (counts only) of named Ricor-scoped Finance mapping actors. No candidate is authorized by read-only identification, and no records are created.
+
 ## 1. Exact evidence and reason for the design
 
 - App review PR [#33](https://github.com/ccpcerp/ccpcerp/pull/33), `review/billing-authorization-correction-2026-11-03`, pinned HEAD `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`. Billing controller blob `a9a6e609759e77948d40d31bdbd342f727b208a9`; named billing authority `8de2d6ba2aa0f8995b727157491e236d2a0a8ae2`. Draft/unmerged.
