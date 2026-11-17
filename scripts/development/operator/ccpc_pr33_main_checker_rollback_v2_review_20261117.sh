@@ -46,6 +46,7 @@ import subprocess
 import sys
 import traceback
 import smtplib
+import inspect
 from contextlib import ExitStack
 from unittest.mock import patch
 from pathlib import Path
@@ -121,6 +122,21 @@ try:
              ) == "8de2d6ba2aa0f8995b727157491e236d2a0a8ae2",
          "BILLING_AUTHORITY_BLOB_CHANGED")
     print("PINNED_DEV_APP_AND_WORKTREE=PASS", flush=True)
+
+    # Runtime preflight: only suppress Frappe's known after-commit UI
+    # document notifications when the installed implementation matches.
+    from frappe.model.document import Document
+    notify_src = inspect.getsource(Document.notify_update)
+    post_src = inspect.getsource(Document.run_post_save_methods)
+    must(
+        "self.notify_update()" in post_src
+        and "frappe.publish_realtime(" in notify_src
+        and "after_commit=True" in notify_src
+        and '"doc_update"' in notify_src
+        and '"list_update"' in notify_src,
+        "INSTALLED_FRAPPE_NOTIFICATION_IMPLEMENTATION_CHANGED",
+    )
+    print("INSTALLED_FRAPPE_UI_NOTIFICATION_PREFLIGHT=PASS", flush=True)
 
     frappe.init(site=SITE, sites_path=".")
     frappe.connect()
