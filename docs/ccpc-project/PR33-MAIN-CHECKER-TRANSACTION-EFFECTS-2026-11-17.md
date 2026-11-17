@@ -1,5 +1,27 @@
 # CCPC ERPNext — PR #33 MAIN DEVELOPMENT Finance Checker transaction-effects review
 
+## November 17, 2026 — executed rehearsal STOPPED safely at outbound guard, no invoice-pair acceptance
+
+**Owner-run output** from the original one-shot script `scripts/development/operator/ccpc_pr33_main_checker_rollback_once_20261117.sh`:
+
+```text
+PINNED_DEV_APP_AND_WORKTREE=PASS
+DB_COMMIT_AND_SQL_CONTROL_GUARDS=PASS
+OUTBOUND_COMMON_API_GUARDS_ACTIVE=PASS
+UNDER_REVIEW_SOURCE_AND_ACTORS=PASS
+REHEARSAL_DB_TRANSACTION=ROLLED_BACK
+REHEARSAL_FAILURE_PHASE=CONTROLLER_APPROVE_AND_CREATE
+REHEARSAL_FAILURE_CLASS=RuntimeError
+REHEARSAL_FAILURE_LABEL=FORBIDDEN_OUTBOUND_SIDE_EFFECT
+PRODUCTION_NOT_TARGETED=PASS
+REHEARSAL_RESULT=STOPPED_AND_ROLLED_BACK
+DO_NOT_AUTOMATICALLY_RETRY=PASS
+```
+
+This is a **deliberate test guard exception** from one of six common outbound hook paths patched with a shared `FORBIDDEN_OUTBOUND_SIDE_EFFECT` error, not proof of which exact API was called and **not** evidence that the billing controller itself is wrong. The script reported successful outer SQL rollback; the positive pair/GL/SLE assertions **never ran to completion** and the separate post-rollback read-only verification block was skipped because it runs only after completed in-transaction assertions. **No Draft SI/PI success is claimed.** No persistent approval is authorized. One-shot host marker must remain; do not rerun with guard removed or mutate source.
+
+Next **nonmutating** action: use a separate MAIN read-only transaction to verify the one CCPC→Ricor batch still `Under Review`, no approvals or linked SI/PI, and zero invoice rows with that batch's generated remarks; do not claim whole-schema no-change without initial committed count baselines. Then examine Frappe/ERPNext native insert hooks and distinguish harmless transient UI realtime events from external queues/mail/HTTP before proposing a safer isolated rerun under a **new** owner scope/approval.
+
 ## November 17, 2026 — one rollback-only rehearsal APPROVED, script PREPARED (NOT RUN)
 
 The owner specifically approved a **single rollback-only MAIN DEVELOPMENT Checker rehearsal** of the existing CCPC→Ricor `Under Review` batch after reviewing expected changes. This is a **temporary SQL write** test with unconditional rollback; **not** permission to persist a Draft invoice pair or approve the batch, assign real-user roles, migrate, start services/scheduler, run PRODUCTION, or submit invoices.
