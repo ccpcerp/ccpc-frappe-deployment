@@ -1,5 +1,21 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 17, 2026 — pinned MAIN persistent Draft-pair one-shot Bash+Python static preflight PASS (owner operated); one-time financial execution NEXT
+
+Owner ran the previously supplied **STATIC ONLY** on-host verification of the exact GitHub PR37 script `scripts/development/operator/ccpc_pr33_main_checker_persist_draft_pair_once_20261117.sh` with Git blob `b20edd9762fb3497eb5d866e51100bb337eff25b`, using the script's previous pinned docs commit `7662d6ae9ccc61c9f16728e6e3cd5ef6efb75a00`. Exact owner-returned success markers:
+
+```text
+PERSISTENT_SCRIPT_SOURCE_AND_SYNTAX=PASS
+ONE_CONTROLLER_AND_ONE_COMMIT_CALL=PASS
+FINANCIAL_OPERATION_NOT_EXECUTED=PASS
+```
+
+This confirms exact-source host Git hash, `bash -n`, `ast.parse` of embedded Python, and one literal `batch.approve_and_create_invoices()` plus one `original_commit()` invocation in the reviewed script. **No financial operation was performed, no invoices or batch approval committed and no persistent-approval one-time host marker consumed**. The repo was reverified after owner output: app PR33 `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87` and same persistent script blob on docs PR37 `b20edd9762fb3497eb5d866e51100bb337eff25b`.
+
+**Next step authorized by prior explicit owner approval + named checker nomination:** Exactly one supervised host execution of this **same pinned script**, after re-verifying docs branch tip and script Git blob locally, scoped to original host `ccpcerpserver`/user `gani`, MAIN site `development.localhost`, real DEV `finance_controller@ccpc.com` Frappe session, one under-review one-line CCPC→Ricor batch. Host script rechecks exact Nov17 Synology 4/4 SHA256 backup before creating the separate one-shot marker `~/.ccpc-pr33-main-persist-draft-pair-once-20261117`; app/controller/actor/preflight checks precede invoking the native controller. Its **single explicit SQL commit** occurs only after draft SI/PI + GL/SLE zero posting checks pass; read-only postcommit check must validate both persisted Draft links and invoice counts. The script's `frappe.set_user()` is CLI impersonation under operator control, **not interactive authenticated approval by the named human**. It suppresses only known delayed UI notifications; common email/job/HTTP/SMTP blockers are not full sandbox/network isolation.
+
+**Critical response to any failure:** NEVER retry the one-use operator script or clear its marker. If the output says `COMMIT_SQL_COMPLETED=True` or the commit state is unknown, a subsequent SQL rollback cannot undo that commit. Pause financial operations and independently inspect persisted MAIN batch/invoice state with a read-only procedure; capture nonsecret diagnostics. Only treat persistent pair as accepted after `SINGLE_EXPLICIT_DB_COMMIT=PASS`, `PERSISTED_DRAFT_PAIR_AND_COUNTS_POSTCHECK=PASS`, `PERSISTENT_DRAFT_PAIR_APPROVAL=PASS`, and ideally separate independent read-only audit. No native invoice `submit()`, GL/stock postings, real-user grants, migration, service restart, scheduler or PRODUCTION operations authorized. Backups intact, not restore-tested.
+
 ## November 17, 2026 — final pinned one-time persistent MAIN DEV script static review gate NEXT, not run
 
 Connected GitHub reverified app PR33 HEAD `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87` (open draft) and docs PR37 review branch. Exact current **unexecuted** persistent Draft SI/PI one-time operator source `scripts/development/operator/ccpc_pr33_main_checker_persist_draft_pair_once_20261117.sh` Git blob is **`b20edd9762fb3497eb5d866e51100bb337eff25b`** (565 lines). Source inspection confirmed one literal `batch.approve_and_create_invoices()` and one literal `original_commit()` invocation, separate gated `CCPC_APPROVE_PR33_PERSIST_DRAFT_PAIR=YES` and `CCPC_CONFIRMED_FINANCE_CHECKER=finance_controller@ccpc.com` host env vars, exact Nov17 offsite SHA256 recheck, new one-shot marker, named actor source/permissions checks, deferred UI event suppression, blocked other outbound API paths, distinct precommit/postcommit SQL checks and STOP/NO RETRY behavior.
