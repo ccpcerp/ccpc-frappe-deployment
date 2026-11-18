@@ -304,10 +304,14 @@ def main():
             sys.exit(1)
     except (TimeoutError, socket.timeout):
         print("LAB_TO_CANARY: BLOCKED")
+        print("LAB_TO_CANARY_REASON: TIMEOUT")
         sys.exit(0)
     except OSError as exc:
         if exc.errno in (errno.EHOSTUNREACH, errno.ENETUNREACH):
             print("LAB_TO_CANARY: BLOCKED")
+            print("LAB_TO_CANARY_REASON: " +
+                  ("HOST_UNREACHABLE" if exc.errno == errno.EHOSTUNREACH
+                   else "NETWORK_UNREACHABLE"))
             sys.exit(0)
         print("LAB_TO_CANARY: UNEXPECTED SOCKET", exc.errno)
         sys.exit(2)
@@ -335,6 +339,25 @@ def routable_probe(network, name, image_id, target):
                        if line.startswith(("ROUTE SETUP:", "ROUTE PROOF:", "LAB_TO_CANARY:"))),
                       "PROBE EXIT WITHOUT CLASSIFIED STATUS")
         raise Stop("lab-to-canary routed test incomplete (" + reason + ")")
+    classified = [line for line in out.stdout.splitlines()
+                  if line.startswith("LAB_TO_CANARY_REASON: ")]
+    if len(classified) != 1 or classified[0] not in (
+        "LAB_TO_CANARY_REASON: TIMEOUT",
+        "LAB_TO_CANARY_REASON: HOST_UNREACHABLE",
+        "LAB_TO_CANARY_REASON: NETWORK_UNREACHABLE",
+    ):
+        raise Stop("lab-to-canary route-probe classification missing or changed")
+    return classified[0]
+
+
+def confirm_counter_deltas(before, after):
+    deltas = {direction: after[direction] - before[direction]
+              for direction in ("inbound", "outbound")}
+    if min(deltas.values()) <= 0:
+        raise Stop("firewall counter deltas insufficient: inbound=" +
+                   str(deltas["inbound"]) + " outbound=" + str(deltas["outbound"]))
+    return deltas
+
 
 def cleanup(network_id, listener_id, prefix):
     # Exact matching IDs/labels only; never global rm, prune or stop.
@@ -457,13 +480,13 @@ while True:
         before = counts()
         probe(net_name, prefix + "-from-canary", image_id, db_ip, 3306, False,
               extra=("--user", "1000:1000"))
-        routable_probe(LAB, prefix + "-from-lab", image_id, CANARY_IP)
+        negative_reason = routable_probe(LAB, prefix + "-from-lab", image_id, CANARY_IP)
+        print(negative_reason)
         after = counts()
         endpoints = (inspect("network", network_id).get("Containers") or {})
         if set(endpoints) != {listener_id}:
             raise Stop("unexpected endpoint joined the temporary canary network")
-        if after["inbound"] <= before["inbound"] or after["outbound"] <= before["outbound"]:
-            raise Stop("firewall counters did not increase for both directions")
+        confirm_counter_deltas(before, after)
         check_firewall()
         if inspect("container", AGENT).get("State", {}).get("Running") is not False:
             raise Stop("agent unexpectedly started")
