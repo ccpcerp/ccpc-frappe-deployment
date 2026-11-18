@@ -1,5 +1,14 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 18, 2026 — Offline lab MariaDB SQL PASS, public egress denied; Redis status contradictory
+
+**Operator-run runtime smoke check, new `ccpc_codex_dev_agent` lab only:** `db: RUNNING`, `agent: RUNNING`, `MARIADB SQL: PASS` (`SELECT 1` via localhost socket using synthetic local secret). Python outbound TCP attempt from new agent to `1.1.1.1:443` returned **`PUBLIC NETWORK: BLOCKED`**. This is promising but a single public IP negative test **does not prove** deny rules for old host, legacy unused production Docker/DB, dedicated `ccpcerp-prod`, NAS or broader LAN.
+
+**IMPORTANT INTERNAL CONTRADICTION:** The same pasted command output says `cache: NOT RUNNING` and `queue: NOT RUNNING`, **but also** `redis-cache PING: PASS` and `redis-queue PING: PASS`. The original shell script captured container IDs for Redis once and reused those IDs for both status and PING, so these combinations should be impossible in the same stable execution. **Do not mark Redis readiness or the whole lab healthy yet.** Check exact new-container names and Docker inspect current states and direct Redis `PING` with one consolidated read-only probe. Do not restart anything simply because of this inconsistent report, and do not accidentally inspect/modify `frappe_docker` (legacy production) or `frappe_docker_devcontainer` (persistent MAIN DEV).
+
+**Pending:** Resolve contradictory Redis output; inspect local agent internal route exposure and host reachability without touching actual protected services; test real DB/Redis/Frappe synthetic bench; keep Codex login/network/proxy and MAIN DEV access on HOLD until verified isolation. New PRODUCTION server and legacy data untouched.
+
+
 ## November 18, 2026 — Separate Codex DEVELOPMENT offline lab launched; runtime agent security PASS
 
 **Owner-executed safeguarded offline-only Docker Compose launch on `ccpcerpserver` using reviewed source SHA `719ccec95115007679d1e997e89ee5aa2060d052` and the previously host-verified 13/13 unit tests / static Compose PASS.** `docker compose -p ccpc_codex_dev_agent up -d --pull never --no-build agent db redis-cache redis-queue` returned **8/8 resources created** (internal bridge `ccpc_codex_dev_agent_lab`, volumes `ccpc_codex_dev_agent_db-data`, `agent-home`, `agent-cache`, four containers), all containers initially reported **Up**. No `online` profile was enabled. Runtime `check_codex_dev_agent_container.sh` printed **`PASS: expected isolated agent container mounts, user and basic privileges`**. The launch command separately checked Docker network `ccpc_codex_dev_agent_lab` `Internal=true` and printed **`OFFLINE LAB STARTUP CHECK COMPLETE`**.
