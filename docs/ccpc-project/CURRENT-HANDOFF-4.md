@@ -1,5 +1,12 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 18, 2026 — Redis 7 Alpine image pull verified; offline image set cached
+
+**Operator-reported successful bounded image acquisition on `ccpcerpserver`:** `docker pull redis:7-alpine` completed with **Digest `sha256:7f7d30b7fdd09467bac58198a1f166dd69789d348d4fe859cccb20e0cf287fbe`** and `Status: Downloaded newer image for redis:7-alpine`. Prior read-only Docker inspection showed `frappe/bench:latest` and `mariadb:11.8` cached, zero `ccpc_codex_dev_agent` containers, networks and volumes. All three offline lab image types are therefore cached, **but image user/architecture/startup and source digest validation remain unverified**; the image pull did not start or restart a container. Existing PROD and MAIN DEV untouched by this pull.
+
+**Next read-only launch-readiness focus:** inspect cached image startup UID/user and architectures (especially DB/Redis entrypoint needs versus Compose `cap_drop: ALL`), disk headroom and Docker Compose project identity. If needed, adjust reviewed Compose source before launching, rather than running an unvalidated DB image that may fail under zero Linux capabilities. Keep offline internal network; do not enable online proxy, grant agent production routes, touch MAIN DEV or install automatically on the host.
+
+
 ## November 18, 2026 — Read-only dedicated agent project collision check PASS; Redis image absent
 
 **Operator's read-only inspection on `ccpcerpserver`:** `docker info` AVAILABLE; **NO** existing containers, networks or named volumes matching `ccpc_codex_dev_agent`; images `frappe/bench:latest` and `mariadb:11.8` are **CACHED**; **`redis:7-alpine` is NOT CACHED**. No Docker service, image or site was modified by this inspection. This is **not** image compatibility or online network isolation validation.
