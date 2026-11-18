@@ -1,5 +1,14 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 18, 2026 — Agent STOP confirmed after SSH bridge isolation failure
+
+**Owner verified isolation failure response completed:** After `ccpc_codex_dev_agent-agent-1` successfully connected at TCP level to old host `ccpcerpserver`'s own Docker bridge gateway SSH port 22, the owner executed `docker stop ccpc_codex_dev_agent-agent-1`. Their follow-up exact `docker inspect --format 'Agent running: {{.State.Running}}' ccpc_codex_dev_agent-agent-1` reported **`Agent running: false`**. **Confirmed stopped** at that moment; do not equate with the other three synthetic DB/Redis services being stopped, since only agent was targeted. No shell/CLI Codex session has been enabled and no SSH authentication was performed in the gateway-connect test; no evidence of credential compromise.
+
+**Hold:** Do not restart agent, enable outgoing proxy, open host firewall, run local Codex, attach new agent to DEV/legacy-PROD bridges, or access dedicated `ccpcerp-prod` until a strict tested network boundary exists. Firewall rule design must be specifically scoped to `ccpc_codex_dev_agent_lab` bridge, account for host `INPUT` *and* container routing/`DOCKER-USER`/`FORWARD`, preserve current SSH and existing Docker flows, and have auditable rollback. New synthetic data volumes and three supporting containers need not be touched.
+
+**Next read-only operator evidence:** inspect the new bridge interface identity, its current subnet/gateway, existing iptables/nft compatibility and current targeted `INPUT`/`DOCKER-USER` rule placement to design a fail-closed host-specific policy without guessing interfaces or affecting global firewall rules. Do not run any `iptables -I`, `nft add`, UFW changes, Docker stop/restart, or SSH changes during this inspection.
+
+
 ## November 18, 2026 — CRITICAL: agent can reach host SSH gateway; Codex access HOLD
 
 **Live negative isolation test FAILED.** Operator ran controlled TCP connect from **only** `ccpc_codex_dev_agent-agent-1` to the *same old host's own* internal Docker bridge gateway on TCP port 22. Exact output: **`HOST SSH: REACHABLE — ISOLATION FAILED`** and `HOST ACCESS CHECK COMPLETE`. This proves that Docker `internal: true` by itself does **not** stop this isolated agent from reaching `ccpcerpserver` host SSH. Earlier `1.1.1.1:443` BLOCKED was **insufficient** to call the environment network-isolated. The port connect does not establish any SSH authentication attempt or credential compromise; Codex CLI was not enabled and no suspicious activity is reported.
