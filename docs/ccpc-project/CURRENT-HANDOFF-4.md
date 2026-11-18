@@ -1,5 +1,28 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 18, 2026 — Live shared-bench PR33 import path VERIFIED; next scoped DEV backup/maintenance gate
+
+**Owner's exact live terminal output** after running the GitHub-reviewed bounded read-only source-path probe on `ccpcerpserver`:
+
+```text
+PR33 DETACHED SOURCE: VERIFIED
+TRACKED SOURCE: CLEAN
+PROTECTED LOCAL AGENTS.md: PRESERVED
+THREE SITE CONFIGS: PRESENT (NOT CONNECTED)
+BENCH CCPC IMPORT PATH: POINTS TO SHARED APP
+READ-ONLY SOURCE PATH GATE: PASS
+```
+
+**Significance:** The running `frappe_docker_devcontainer-frappe-1` bench Python imports `ccpcerp` from `/workspace/development/frappe-bench/apps/ccpcerp` detached at existing billing PR33 SHA `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`; tracked checkout clean and only protected untracked `?? AGENTS.md`. The shared code path is used by MAIN `development.localhost` and synthetic `ccpc-integration2.localhost`. Merely staging an extra Git worktree does not activate the Phase 1 release. The third known broken site config exists, was not connected; neither PRODUCTION environment was touched. This is operator-provided evidence, not ChatGPT SSH execution. **Do not rerun redundant source-path check unless conditions change.**
+
+**GitHub documentation updated and verified:** `docs/ccpc-project/PHASE1-MAIN-DEV-SOURCE-PATH-GATE-2026-11-18.md`, on docs branch `review/pr33-dev-acceptance-2026-11-16`, commit `3543def51cd5008f365e20e4755d524f20686e9e`, verified blob `a3f67fbb592ff170b048eaebbadfbf7fececd16d` records the exact PASS and decision. Current authoritative app release remains `release/withdrawal-department-phase1-2026-11-17` at `55eb10b86a57de55a97e293a78228d9dd17b809a`; PR33 is preserved at `25a7b6...`.
+
+**Next scoped write gate — requires owner approval:** Prepare and execute a **fresh same-window four-component DEV backup for both code-affected valid sites** `development.localhost` and `ccpc-integration2.localhost`, ensure exact Compose/container/site checks, one unique snapshot per site, database + site_config + public + private files, independently verify file formats and SHA256 at local and Synology NAS destination, retain November 17 matched original copies, no overwrites/cleanup/restore. Avoid earlier November 17 one-shot scripts: they have markers and expected PR33 billing-record guards tied to prior state, and prior scripts cover MAIN only. Because the new release would affect both sites through shared installed source, maintain a defined Integration2 compatibility/hold strategy and recovery path before code activation. A restore rehearsal remains unexecuted; successful file hashes are not a full recovery proof.
+
+**Not authorized:** No Git checkout/pull/reset, no source switch, no site migration (especially not `--site all`), no service/scheduler restart, no role/Finance master transaction changes, no agent startup, no old retained or dedicated PRODUCTION activity. Before any actual source switch, obtain separate explicit approval with a maintenance plan, both sites considered, protected untracked `AGENTS.md` disposition, tested rollback strategy, and reviewed migration effects.
+
+---
+
 ## November 18, 2026 — Phase 1 MAIN DEV import-path gate prepared; shared-bench deployment design remains pending
 
 **Owner authorization in current chat:** "Approved, just keep continue" after owner-approved app PR #39 merge. Continue safe MAIN DEVELOPMENT integration preparation without repeatedly asking for routine GitHub review approval. **Do not interpret this as a blanket authorization** to change actual DEVELOPMENT app code, execute new backups/restores, migrate, restart or touch either PRODUCTION environment.
