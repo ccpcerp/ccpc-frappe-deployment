@@ -1,5 +1,12 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 18, 2026 — Read-only dedicated agent project collision check PASS; Redis image absent
+
+**Operator's read-only inspection on `ccpcerpserver`:** `docker info` AVAILABLE; **NO** existing containers, networks or named volumes matching `ccpc_codex_dev_agent`; images `frappe/bench:latest` and `mariadb:11.8` are **CACHED**; **`redis:7-alpine` is NOT CACHED**. No Docker service, image or site was modified by this inspection. This is **not** image compatibility or online network isolation validation.
+
+**Next limited probe:** Check if the existing DEV Redis container image corresponds to a usable cached Redis tag/digest, and confirm actual cached Frappe image user/arch without pulling anything. If no matching Redis 7 tag is present, prepare and approve a bounded `docker pull redis:7-alpine` for **new lab only** (never restart existing Redis). Revisit exact image digests and cache/disc capacity before offline agent startup. Keep online profile and persistent MAIN DEV access HOLD.
+
+
 ## November 18, 2026 — Real host initial Codex DEV-only preflight PASS (8/8)
 
 **Operator-reported real `ccpcerpserver` execution results (actual host, not source-only prediction):** Safely staged the deployment GitHub repository in a new `$HOME/ccpc-codex-agent-stage.*/repo` checkout, verifying exact expected review-branch HEAD `3968d3425916a8a4d2d69284dbbeb854848abfb5`. Executed `bash codex-dev-agent/preflight.sh`: `python3 -m unittest discover` **Ran 8 tests, OK**; generated two local **synthetic-only** `db-root-password` and `db-user-password` files with contents hidden; rendered Docker Compose read-only gate output **PASS: standalone agent Compose source/mount/profile gate**. Unit-test output also confirmed no-op preservation of preexisting generated synthetic secrets during its temporary fixture. Operator transcript shows `PASS: source preflight complete; live container/network still NOT VERIFIED`.
