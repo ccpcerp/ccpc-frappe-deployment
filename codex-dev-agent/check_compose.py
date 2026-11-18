@@ -68,7 +68,7 @@ def validate(rendered):
     if destinations != expected_mounts or len(mounts) != len(expected_mounts):
         reject("agent mount destinations differ from private named-volume allowlist")
     for m in mounts:
-        if m.get("type") != "volume" or not str(m.get("source", "")).startswith(PROJECT + "_"):
+        if m.get("type") != "volume" or m.get("source") not in {"agent-work", "agent-home", "agent-cache"}:
             reject("agent mount may not bind a host path or reuse non-agent volumes")
     for sec in agent.get("secrets") or []:
         source = sec.get("source") if isinstance(sec, dict) else sec
