@@ -6,6 +6,7 @@ name: ccpc_codex_dev_agent
 services:
   agent:
     image: frappe/bench:latest
+    pull_policy: never
     user: "1000:1000"
     working_dir: /home/frappe
     command: ["sleep", "infinity"]
@@ -40,6 +41,7 @@ services:
 
   db:
     image: mariadb:11.8
+    pull_policy: never
     restart: "no"
     environment:
       MARIADB_DATABASE: ccpc_codex_synthetic
@@ -49,7 +51,11 @@ services:
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
+    # MariaDB official entrypoint briefly starts as root to chown the
+    # new synthetic volume, then drops to mysql. Give only those
+    # initialization capabilities, never host-level privilege.
     cap_drop: ["ALL"]
+    cap_add: ["CHOWN", "SETUID", "SETGID", "DAC_OVERRIDE", "FOWNER"]
     security_opt: ["no-new-privileges:true"]
     volumes:
       - db-data:/var/lib/mysql
@@ -58,6 +64,8 @@ services:
 
   redis-cache:
     image: redis:7-alpine
+    pull_policy: never
+    user: redis
     command: ["redis-server", "--save", "", "--appendonly", "no"]
     cap_drop: ["ALL"]
     security_opt: ["no-new-privileges:true"]
@@ -75,6 +83,7 @@ services:
   egress-proxy:
     profiles: ["online"]
     image: ubuntu/squid:latest
+    pull_policy: never
     command: ["squid", "-N", "-f", "/etc/squid/squid.conf"]
     read_only: true
     cap_drop: ["ALL"]
