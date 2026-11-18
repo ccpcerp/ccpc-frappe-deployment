@@ -1,5 +1,24 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 18, 2026 — Nov 17 MAIN DEV backup four-part local/NAS SHA256 verification PASS
+
+**Owner-reported read-only SHA256 verification on `ccpcerpserver`:** Exact local MAIN DEVELOPMENT snapshot `development.localhost-20261117T043152Z-1582f342f870` under `/home/gani/deployments/frappe_docker/development/frappe-bench/.ccpc-pr32-snapshots`; exact off-host Synology copy `/mnt/erpnext_backups/ccpc-development-pr33-main-precommit-20261117T044035Z-591a9f7e2b035cae/development.localhost-20261117T043152Z-1582f342f870`; Synology mount verified as `//192.168.50.132/erpnext_backups cifs`. Operator ran the previously provided bounded **read-only** Python checksum comparison. Exact output:
+```
+LOCAL BACKUP: 4/4 SHA256 PASS
+NAS BACKUP: 4/4 SHA256 PASS
+LOCAL/NAS COPIES: MATCH
+RESTORE VALIDATION: NOT YET PERFORMED
+READ-ONLY BACKUP VERIFICATION: COMPLETE
+VERIFICATION EXIT CODE: 0
+```
+The check required four unique types (`database.sql.gz`, `site_config_backup.json`, `files.tar`, `private-files.tar`), safe/nonempty/non-symlink files, four expected inner manifests matching NAS global manifest, and recomputed matching SHA256 on local and NAS. **All reported PASS; original bytes not inspected by ChatGPT**. Integrity proves consistency of the **Nov 17** copies, not a snapshot of all changes as of Nov 18, database transaction consistency or successful restoration.
+
+**Current GitHub/source boundary verified again:** release branch `release/withdrawal-department-phase1-2026-11-17` at merged PR38 commit `2b6e4e73cfbbd316caaa06fa9987255d05a631de`; PR33 billing branch `review/billing-authorization-correction-2026-11-03` at `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87` (same as owner-observed detached MAIN DEV checkout), 44 PR33-only / 15 Phase1-only commits. `?? AGENTS.md` is protected, and three site configs include a broken third site. No app git pull/checkout/reset, database activity, Docker restart, migrations, backup creation, restore or PRODUCTION modification has been performed here.
+
+**Next critical gate:** prepare source-only, separate-branch reconciliation of release and PR33 differences without loading unapproved intercompany billing into Phase 1; protect live detached DEV worktree. When requesting **separate write approval**, plan a NEW scoped four-artifact `development.localhost` backup immediately before any real DEV migration, preserve and hash-verify an off-host copy, confirm actual independent isolated restore/rollback path, then explicit DEV source integration, reviewed migration side effects and UAT. DO NOT re-run old one-shot backup/transfer scripts: they pin the old checkout and billing record state, and may have used one-time markers. No `--site all` and no access to OLD/NEW PRODUCTION.
+
+---
+
 ## November 18, 2026 — Owner read-only MAIN DEVELOPMENT inventory PASS; Nov 17 local/NAS backups located
 
 **Exact owner-supplied host command results (no local access by ChatGPT):** `hostname -s` verified `ccpcerpserver`; Docker container `frappe_docker_devcontainer-frappe-1` `Running: true`, Compose project `frappe_docker_devcontainer`. In shared app `/workspace/development/frappe-bench/apps/ccpcerp`, Git HEAD exactly **`25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`** (PR33), branch `DETACHED`, and `git status --porcelain=v1 --untracked-files=all` returned **only `?? AGENTS.md`**; that protected file is present. The three expected site configs `development.localhost`, `ccpc-integration2.localhost` and known broken `ccpc-integration.localhost` are present. No attempt to connect to or alter any site. Source has no tracked working-tree changes to preserve, but protected `AGENTS.md` must not be overwritten and detached PR33 source must not be reset/pulled blindly.
