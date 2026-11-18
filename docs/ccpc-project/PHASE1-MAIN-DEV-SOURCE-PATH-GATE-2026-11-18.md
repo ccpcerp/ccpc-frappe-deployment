@@ -83,3 +83,23 @@ PY
 5. No modifications to old retained PRODUCTION or the physically separate `ccpcerp-prod`. The local Codex agent stays stopped while outbound isolation remains unverified.
 
 **Evidence levels:** This document is a vetted **plan** and contains a read-only diagnostic; it does not assert that this probe, a fresh backup, restore, migration, or live UAT has been executed.
+
+
+## November 18 — live operator result: ALL SIX GATES PASS
+
+**Evidence:** The operator ran the exact guarded read-only command on the legacy `ccpcerpserver` DEVELOPMENT container and returned the complete output:
+
+```text
+PR33 DETACHED SOURCE: VERIFIED
+TRACKED SOURCE: CLEAN
+PROTECTED LOCAL AGENTS.md: PRESERVED
+THREE SITE CONFIGS: PRESENT (NOT CONNECTED)
+BENCH CCPC IMPORT PATH: POINTS TO SHARED APP
+READ-ONLY SOURCE PATH GATE: PASS
+```
+
+**Interpretation:** The persistent bench's Python resolves `ccpcerp` through `/workspace/development/frappe-bench/apps/ccpcerp` at detached PR33 commit `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`, with only protected untracked `AGENTS.md`. This is **operator-reported execution**, not direct ChatGPT remote access. No active DB connection, backup, live site action or PRODUCTION change occurred. **Further repeating the import-path read-only probe is unnecessary unless source/bench changes.**
+
+**Decision for next gate:** Do **not** treat a separate Git clone/worktree as deployment: the same bench imports the old checkout and serves both `development.localhost` and `ccpc-integration2.localhost`. A real code activation will change imports for both sites and requires a **DEV-only maintenance window** or genuinely independent bench. Before such a switch, prepare (and separately authorize execution of) **new, same-window, uniquely named** four-part backups for both affected sites; preserve the Nov17 original local/NAS sets, never reuse the Nov17 one-shot marker scripts, confirm source SHA and exact target list, and create SHA256-confirmed off-host NAS copies. Backups are data-bearing writes to backup storage; owner approval for read-only probing alone did not authorize them.
+
+**Unresolved deployment design:** Need safe import/checkout transition without overwriting untracked `AGENTS.md`, release-tracked `AGENTS.md` collision handling, a defined pre-switch PR33 return path, explicit protection of Integration2 from Phase 1 metadata incompatibility, reviewed `setup.after_migrate` effects, site-specific schema transition, and safe rollback/recovery. Prefer the simplest verified DEVELOPMENT-only maintenance plan; do not restart shared services or migrate the broken third site simply to accelerate integration. Checkpoint remains GitHub-only until the owner approves actual backup and source operations.
