@@ -35,7 +35,6 @@ def safe_config():
                 "cap_drop": ["ALL"], "security_opt": ["no-new-privileges:true"],
                 "networks": ["lab"],
                 "volumes": [
-                    {"type": "volume", "source": "agent-work", "target": "/work"},
                     {"type": "volume", "source": "agent-home", "target": "/home/frappe"},
                     {"type": "volume", "source": "agent-cache", "target": "/home/frappe/.cache"},
                 ],
