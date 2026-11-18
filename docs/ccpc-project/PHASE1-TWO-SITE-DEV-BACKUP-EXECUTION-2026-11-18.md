@@ -57,3 +57,28 @@ BACKUP EXIT CODE: 0
 **If there is any `STOP:` or nonzero exit code**, do not blindly retry, rename, chmod, delete files, or bypass snapshot guards. New partial directories may have been left for deliberate recovery inspection. Send only the nonsecret PASS/STOP/status lines and snapshot directory names back to ChatGPT. **Never paste or upload** `site_config_backup.json`, SQL archives, TAR contents, private business data, passwords, or private NAS ACL/credentials.
 
 After both copies are verified, separately decide whether to perform an isolated restore rehearsal and a shared-bench, two-site-aware maintenance window. A successful backup alone is **not** authorization to activate the Phase 1 release.
+
+
+## 2026-11-19 — Operator-reported two-site backup completed, SHA256 checks passed
+
+**Evidence source:** On 2026-11-19 (Asia/Manila), owner pasted terminal output from running the approved, SHA256-preverified `ccpc_phase1_two_site_backup_20261118.sh` on `gani@ccpcerpserver`. The exact emitted markers were:
+
+```text
+DEV CONTAINER/NAS PRECHECK: PASS
+CREATING TWO LOCAL DEV BACKUPS (NO SITE MIGRATION)
+LOCAL DEV SNAPSHOTS: 2/2, FOUR FILES EACH, SHA256 PASS
+COPYING BOTH SNAPSHOTS TO VERIFIED NAS
+NAS DEV SNAPSHOTS: 2/2, FOUR FILES EACH, SHA256 PASS
+LOCAL/NAS BACKUPS: MATCH
+MAIN DEV SNAPSHOT: development.localhost-20261118T233442Z-8db803832468
+INTEGRATION2 DEV SNAPSHOT: ccpc-integration2.localhost-20261118T233442Z-8db803832468
+FINAL NAS BACKUP DIRECTORY: /mnt/erpnext_backups/ccpc-development-phase1-two-site-preswitch-20261118T233444Z-35c00130d53b457e
+PHASE1_TWO_SITE_OFFHOST_BACKUP: PASS
+RESTORE TEST: NOT PERFORMED
+SOURCE SWITCH / MIGRATION / RESTART: NOT PERFORMED
+BACKUP EXIT CODE: 0
+```
+
+**Assessment:** Verified local/remote checksums are **script-reported and operator-provided** (8 expected backup components: 2 sites × database SQL gzip, configuration JSON, public TAR, private TAR; per-site and NAS SHA256 manifests). ChatGPT did **not** independently access/read backup bytes, inspect MariaDB content, or run a restore. These backups are asynchronous sequential site copies, not a coordinated atomic two-site snapshot. Restore viability remains **NOT TESTED**. The Nov17 MAIN local/NAS checkpoint remains a separate historically verified recovery point.
+
+**Current approved scope is exhausted:** No Phase1 app checkout/pull, Frappe migration, site metadata/Finance data change, Docker restart, NAS/old backup cleanup, persistent test fixtures, restore, or PRODUCTION operation was executed or is authorized by the backup approval. A new, separate DEV-only approval is required before any recovery rehearsal using a new isolated test DB/site or any source switch. Next prefer a backed-up DEV-only isolation/restore strategy, then a two-site-aware maintenance/cutover plan that avoids replacing protected `AGENTS.md` and does not import PR33 unreleased billing paths.
