@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-SOURCE = Path(__file__).with_name('ccpc_codex_cross_bridge_canary.py')
+SOURCE = Path(__file__).resolve().parents[1] / 'scripts/security/ccpc_codex_cross_bridge_canary.py'
 spec = importlib.util.spec_from_file_location('ccpc_bridge_canary', SOURCE)
 m = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(m)
