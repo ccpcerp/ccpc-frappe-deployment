@@ -1,6 +1,7 @@
 """Docker-free negative tests for the reviewed synthetic canary safety gate."""
 import importlib.util
 import ipaddress
+import struct
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -64,6 +65,46 @@ class CanarySafetyTests(unittest.TestCase):
                         h.replace('-j DROP', '-m tcp -j DROP')):
             with self.subTest(changed=changed), self.assertRaises(m.Stop):
                 m.firewall_order(changed, u, f)
+
+    def test_route_probe_has_no_external_ip_binary_dependency(self):
+        code = m.lab_route_probe_code()
+        compile(code, "<synthetic-route-probe>", "exec")
+        for bad in ('subprocess', 'shutil.which', 'os.system', '/bin/ip', '/sbin/ip'):
+            self.assertNotIn(bad, code)
+        self.assertIn('NETLINK_ROUTE', code)
+        self.assertIn('198.19.255.240/28', code)
+        self.assertIn('172.21.0.1', code)
+        self.assertIn('LAB_TO_CANARY: BLOCKED', code)
+
+    def test_route_message_is_exact_scoped_rtnetlink(self):
+        namespace = {'__name__': 'synthetic_route_unit'}
+        exec(compile(m.lab_route_probe_code(), '<synthetic-route-probe>', 'exec'),
+             namespace)
+        data = namespace['route_message'](2)
+        self.assertEqual(struct.unpack_from('=IHHII', data),
+                         (len(data), 24, 0x605, 1, 0))
+        self.assertEqual(struct.unpack_from('=BBBBBBBBI', data, 16),
+                         (2, 28, 0, 0, 254, 3, 0, 1, 0))
+        self.assertEqual(data[28:], bytes.fromhex(
+            '08000100c613fff008000500ac1500010800040002000000'))
+
+    def test_route_proof_does_not_accept_wrong_gateway(self):
+        from io import StringIO
+        namespace = {'__name__': 'synthetic_route_unit'}
+        exec(compile(m.lab_route_probe_code(), '<synthetic-route-probe>', 'exec'),
+             namespace)
+        fields = 'eth0 F0FF13C6 010015AC 0003 0 0 0 F0FFFFFF 0 0 0\\n'
+        with patch('builtins.open', return_value=StringIO(fields)):
+            self.assertTrue(namespace['verify_route']())
+        with patch('builtins.open', return_value=StringIO(
+                fields.replace('010015AC', '020015AC'))):
+            self.assertFalse(namespace['verify_route']())
+
+    def test_routable_probe_rejects_other_network_and_target(self):
+        with self.assertRaises(m.Stop):
+            m.routable_probe('some-other-network', 'probe', 'fake-image', m.CANARY_IP)
+        with self.assertRaises(m.Stop):
+            m.routable_probe(m.LAB, 'probe', 'fake-image', '198.19.255.243')
 
     def test_preceding_accept_is_rejected(self):
         h,u,f=policy()
