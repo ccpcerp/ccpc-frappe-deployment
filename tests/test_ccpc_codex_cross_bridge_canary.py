@@ -93,7 +93,7 @@ class CanarySafetyTests(unittest.TestCase):
         namespace = {'__name__': 'synthetic_route_unit'}
         exec(compile(m.lab_route_probe_code(), '<synthetic-route-probe>', 'exec'),
              namespace)
-        fields = 'eth0 F0FF13C6 010015AC 0003 0 0 0 F0FFFFFF 0 0 0\\n'
+        fields = 'eth0 F0FF13C6 010015AC 0003 0 0 0 F0FFFFFF 0 0 0\n'
         with patch('builtins.open', return_value=StringIO(fields)):
             self.assertTrue(namespace['verify_route']())
         with patch('builtins.open', return_value=StringIO(
