@@ -63,12 +63,12 @@ def validate(rendered):
         reject("proxy must have read-only rootfs")
 
     mounts = agent.get("volumes") or []
-    expected_mounts = {"/work", "/home/frappe", "/home/frappe/.cache"}
+    expected_mounts = {"/home/frappe", "/home/frappe/.cache"}
     destinations = {m.get("target") for m in mounts if isinstance(m, dict)}
     if destinations != expected_mounts or len(mounts) != len(expected_mounts):
         reject("agent mount destinations differ from private named-volume allowlist")
     for m in mounts:
-        if m.get("type") != "volume" or m.get("source") not in {"agent-work", "agent-home", "agent-cache"}:
+        if m.get("type") != "volume" or m.get("source") not in {"agent-home", "agent-cache"}:
             reject("agent mount may not bind a host path or reuse non-agent volumes")
     for sec in agent.get("secrets") or []:
         source = sec.get("source") if isinstance(sec, dict) else sec
