@@ -1,5 +1,15 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 18, 2026 — Draft PR #39 source review posted; exact Python tests pending isolated Codex Cloud
+
+**Owner direction:** User approved continuing after GitHub-only PR #39 was opened. Reverified [ccpcerp/ccpcerp draft PR #39](https://github.com/ccpcerp/ccpcerp/pull/39): still open, draft, mergeable, exact head `600b946b3b09aa59bf0266a0929fe55973267560`, exact base `2b6e4e73cfbbd316caaa06fa9987255d05a631de`, 2 ahead / 0 behind, exactly two changes (AST source test + Markdown runbook), no production/Finance/Stock Entry runtime source changes. Reviewed exact diff. **Comment-only GitHub PR review successfully submitted** on this pinned head, review ID `5953122974`, no APPROVE or merge.
+
+**Source review outcome:** Narrow static logic appropriate as a regression guard: requiring every directly `@frappe.whitelist(...)` decorated method in the existing legacy billing controller to call `_assert_billing_not_released` first, and pinning the existing Finance/executive `before_install` and `before_migrate` hooks. The narrow method enumeration does not cover all possible other modules/routes, and the exact hook-shape assertion may need intentional update if future equivalent hooks are refactored; no confirmed defect. Current bill-disabled, same-company and Finance onboarding source preserved. No actual Python tests executed in this active ChatGPT environment: private GitHub repository source connector is **not** an executable isolated checkout; no local Codex task launch tool, no silent provider-CI jobs. **The next exact task** in the user's existing independently isolated Codex Cloud environment is `python3 -B -m unittest -v ccpcerp.ccpc_erp.test_phase1_release_scope ccpcerp.ccpc_erp.test_phase1_release_wiring_static` on pinned PR head `600b946...`; return count/errors and environment provenance. Do not claim PASS until executable evidence. No Frappe/SQL/MariaDB required for these two source-only modules.
+
+**Remaining gates:** PR39 remains **DRAFT and UNMERGED**; no approval for merge requested yet. Keep PR33 unchanged. Do not change actual MAIN DEV checkout `25a7b6be...` with protected untracked `AGENTS.md`, run migration, restore, add Finance permission grants, trigger CI spending or touch either PRODUCTION system. Prior Nov17 backup local/NAS hash integrity 4/4 remains only recovery-point evidence, not an actual restore or a fresh same-day backup.
+
+---
+
 ## November 18, 2026 — GitHub-only Phase1 / PR33 reconciliation review branch created; draft app PR #39 open
 
 **User authorization:** Owner explicitly approved creating a new **GitHub-only reconciliation branch and review PR**, with no merge or DEV/PRODUCTION deployment. Implemented with connected GitHub tools, not a host checkout.
