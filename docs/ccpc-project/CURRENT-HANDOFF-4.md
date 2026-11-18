@@ -1,5 +1,12 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 18, 2026 — All four operating DEVELOPMENT Companies have Perpetual Inventory ENABLED
+
+**Operator-executed read-only check, main `development.localhost`:** All four uniquely matched real Company codes **CCPC, RMC, WFC, GSL** returned `ENABLED` from `erpnext.is_perpetual_inventory_enabled(company.name)`. This resolves prior ambiguity in the aggregate result `14 enabled out of 25 Company records`: the **four real operating Companies are all compliant**; remaining test/other Company statuses are outside Phase 1 scope and should not be changed. Previously measured active `department` Accounting Dimension and effective `department` fields on Stock Entry, Stock Entry Detail and GL Entry were all True. **Inventory/dimension readiness gate for four Companies: PASS** at the time of the read-only probe. Do not change production or DEVELOPMENT Company settings as a reaction to the other 11 disabled Company rows.
+
+**Next critical focus:** read-only inspect mapped approved expense (Company + leaf Item Group) and center (Company + actual beneficiary Department/selector) Finance revisions on main DEVELOPMENT. Need distinguish existing DocTypes/tables from actual signed mapping coverage. Do not create/approve maps without Accounting signoff; do not assume counts alone prove valid effective-date, approval provenance, Company matching or all applicable items/departments. Existing PR33 working copy `25a7b6be...` and protected untracked `AGENTS.md` remain untouched; Phase 1 release candidate is separate/divergent `e781b7c...`. Any merge/switch/persistent migration still pending a non-destructive integration design and fresh protected backup.
+
+
 ## November 18, 2026 — MAIN DEVELOPMENT accounting dimensions PASS; four business Companies require targeted inventory check
 
 **Operator-supplied actual read-only `development.localhost` Frappe/MariaDB evidence:** `frappe.get_all("Company", pluck="name")` returned **25 Company records**, while `erpnext.is_perpetual_inventory_enabled` reported **14/25 enabled**. Active Accounting Dimension `department` = **True**; effective `department` metadata field on **Stock Entry, Stock Entry Detail and GL Entry all True**. No business records, migrations, role changes, code checkout, or production operations were performed.
