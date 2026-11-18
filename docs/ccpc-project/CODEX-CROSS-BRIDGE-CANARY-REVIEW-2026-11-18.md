@@ -1,0 +1,34 @@
+# CCPC Codex synthetic cross-bridge firewall canary — review
+
+**Date:** November 18, 2026 (Asia/Manila). **Status: GitHub-reviewed source, not yet run on `ccpcerpserver`.** The owner approved continuation to the next non-production firewall security gate. This is not permission to enable the Codex agent, online proxy, or persistent DEVELOPMENT access; no PRODUCTION operation is included.
+
+## Target and current evidence
+
+Existing GitHub-vetted firewall script: `scripts/security/ccpc_codex_dev_lab_firewall.sh`. Owner reported three bridge-specific DROP rules applied and verified on old host `ccpcerpserver`, lab bridge `br-a88796be8a7a` / `172.21.0.0/16`. Subsequent one-shot non-agent diagnostic reported `HOST SSH: BLOCKED`, synthetic `db`, `redis-cache`, `redis-queue` PASS, and `NETWORK TEST: PASS`. This proved just one host bridge gateway port was blocked while same-bridge connections worked. These firewall rules are **ephemeral** and not reboot/reload safe.
+
+## New script and scope
+
+- `scripts/security/ccpc_codex_cross_bridge_canary.py` supports `plan` (read-only), `run` (one guarded, manual, synthetic-only disposable test). The script uses the local Docker Unix socket and host iptables-nft only; it does not configure firewall, SSH, Docker daemon, Compose, application, proxy or site files.
+- `tests/test_ccpc_codex_cross_bridge_canary.py` supplies source-only regression tests, including firewall ordering, stopped-agent/DB network identity, route conflicts, failure behavior and cleanup label checks.
+- `plan` requires root on exact `ccpcerpserver`, exact local Docker daemon, lab bridge/subnet identity and internal flag, agent stopped with restart disabled, running synthetic MariaDB label/network, the three tagged firewall DROP rules in exact first-match priority, pre-existing route/Docker-network exclusion of reserved canary range, and an already-cached `frappe/bench:latest` image. It prints no credentials, container environment or real business data.
+- `run` creates one new, uniquely named Docker *bridge* network with `198.19.255.240/28` (RFC 2544 benchmarking space) and one synthetic Python TCP listener at `198.19.255.242:18080`. The temporary bridge is intentionally non-`internal` so its diagnostics have a default route; **only disposable synthetic probes** join it, and nothing is host-port-published. Network creation is a narrow temporary host networking change and must not be confused with read-only `plan`.
+- A temporary canary-network probe reaches its listener (same-bridge positive). A temporary lab-network nonroot probe reaches only **synthetic** `db:3306` (same-bridge positive). A nonroot canary-side probe then attempts just the explicitly validated synthetic lab DB IPv4/port and must be blocked. A lab-side probe has root **inside its own ephemeral container namespace**, no filesystem mounts, no host namespaces, all Linux capabilities dropped except `NET_ADMIN` solely to add one route for `198.19.255.240/28` via `172.21.0.1`, and must be blocked reaching the synthetic canary port. Neither test connects to actual OLD/NEW PRODUCTION, NAS, persistent MAIN DEV, or unrelated LAN.
+- Both negative tests demand an increment in their specifically tagged `DOCKER-USER` iptables packet counters. This, plus positive endpoint and route proof, prevents treating missing routes or dead target listeners as firewall-policy success. The counters alone are not attribution of every packet; the controlled probes strengthen the evidence. Only `timeout` or equivalent unreachable is allowed as a block; connection-refused is not a PASS. Fail closed if `ip` is unavailable inside the bench diagnostic image or the needed isolated namespace route cannot be installed. **Do not relax this by granting NET_ADMIN to the actual Codex agent.**
+- After the test, only exact, newly created, label-and-ID-verified disposable listener and network are removed. No broad Compose `down`, Docker prune, production data, persistent volumes or pre-existing containers are touched. On unexpected identity/drift, do **not** force cleanup, leave resources for manual review. All probes are `--rm`, bounded and credential-free. The agent must remain stopped throughout.
+
+## Validation done at authoring time
+
+- Local source compilation: PASS.
+- `python3 -B -m unittest discover -s <review-directory> -p 'test_ccpc_codex_cross_bridge_canary.py' -v`: **13/13 PASS** (mock/source-only).
+- No Docker daemon, existing host iptables, actual bridge, real `frappe/bench` image or authenticated Frappe site was contacted in the authoring environment. **No host execution or new cross-bridge connectivity PASS claimed.**
+
+## Controlled operator path — one step at a time
+
+1. Acquire the **exact reviewed GitHub source and test blob** on the OLD host through existing verified private-GitHub delivery, without pulling/resetting a dirty DEVELOPMENT checkout. Verify committed source SHA-256 and `python3 -m py_compile` before any privileged use. Do not run unverified copy-and-execute commands or pipe URLs to Python/bash.
+2. First run only `sudo python3 <verified-source-path> plan`. This is read-only and must report `PREFLIGHT: PASS`, `FIREWALL PRIORITY: PASS`, `RESERVED CANARY SUBNET: AVAILABLE`, and `PLAN ONLY`. STOP otherwise. Do not run the command against `ccpcerp-prod` or in an existing agent container.
+3. After reviewing the plan output and maintaining an operator-accessible rollback path, run `sudo python3 <same-verified-source-path> run` once. This creates/deletes the temporary synthetic Docker bridge and containers. Expected success markers: `SYNTHETIC SAME-BRIDGE CONTROLS: PASS`, `CROSS-BRIDGE INBOUND: BLOCKED, COUNTER INCREASED`, `CROSS-BRIDGE OUTBOUND: BLOCKED WITH EXPLICIT ROUTE, COUNTER INCREASED`, `CLEANUP: PASS`, `ONE-SHOT SYNTHETIC CROSS-BRIDGE CANARY: PASS`.
+4. If a STOP occurs, do not blindly rerun; inspect the exact error and any labeled temporary resources without exposing secrets. Keep agent/proxy stopped. Only the previously reviewed firewall script may roll back its own tagged rules if an existing service is actually disrupted, not as normal test cleanup.
+
+## Remaining gates
+
+Even a complete canary PASS cannot prove all host ports, alternate networks, LAN/NAS/PRODUCTION routes, DNS, or online proxy security. The `online` proxy is deliberately not connected during this test. Firewall rules currently do **not** persist over host reboot/Docker or nftables refresh, and the agent has no boot-time deny-by-default interlock. **Codex agent, Codex CLI, online profile, and persistent MAIN DEVELOPMENT remain HOLD** until separate verified persistence and egress-proxy controls. Productive coding/testing can continue on GitHub and through separately approved hosted disposable CircleCI.
