@@ -121,8 +121,8 @@ class CanarySafetyTests(unittest.TestCase):
     def test_route_negative_probe_returns_classified_reason(self):
         from types import SimpleNamespace
         response = SimpleNamespace(returncode=0, stdout=(
-            'ROUTE PROOF: PASS\\nLAB_TO_CANARY: BLOCKED\\n'
-            'LAB_TO_CANARY_REASON: HOST_UNREACHABLE\\n'))
+            'ROUTE PROOF: PASS\nLAB_TO_CANARY: BLOCKED\n'
+            'LAB_TO_CANARY_REASON: HOST_UNREACHABLE\n'))
         with patch.object(m, 'dc', return_value=response):
             self.assertEqual(
                 m.routable_probe(m.LAB, 'ccpc-canary-1234-from-lab',
@@ -131,11 +131,11 @@ class CanarySafetyTests(unittest.TestCase):
 
     def test_route_negative_probe_rejects_missing_or_changed_reason(self):
         from types import SimpleNamespace
-        for ending in ('', 'LAB_TO_CANARY_REASON: UNKNOWN\\n',
-                       'LAB_TO_CANARY_REASON: TIMEOUT\\n'
-                       'LAB_TO_CANARY_REASON: NETWORK_UNREACHABLE\\n'):
+        for ending in ('', 'LAB_TO_CANARY_REASON: UNKNOWN\n',
+                       'LAB_TO_CANARY_REASON: TIMEOUT\n'
+                       'LAB_TO_CANARY_REASON: NETWORK_UNREACHABLE\n'):
             response = SimpleNamespace(returncode=0, stdout=(
-                'ROUTE PROOF: PASS\\nLAB_TO_CANARY: BLOCKED\\n' + ending))
+                'ROUTE PROOF: PASS\nLAB_TO_CANARY: BLOCKED\n' + ending))
             with self.subTest(ending=ending), patch.object(
                     m, 'dc', return_value=response), self.assertRaises(m.Stop):
                 m.routable_probe(m.LAB, 'ccpc-canary-1234-from-lab',
