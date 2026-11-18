@@ -1,5 +1,16 @@
 # CCPC ERPNext — 30-day first-release execution tracker
 
+## 2026-11-18 — Codex Phase 1 PR37 successfully merged into release candidate
+
+**Release candidate source step: PASS.** The owner approved source integration and GitHub verified [app PR #37](https://github.com/ccpcerp/ccpcerp/pull/37) merged with exact preserved head `f875bc31ffe0c3756a0fb1fc5dab3ce2952bd620` into **`release/withdrawal-department-phase1-2026-11-17` at `e781b7c003c4bd0c0b9c80554898cf23364d26e4`**. This adds the missing Company Perpetual Inventory guard for both stockroom and direct native Stock Entry issuance and a new five-case disposable Frappe/MariaDB end-to-end acceptance suite. Code review confirmed the wiring. **Codex-reported 129 targeted tests pass (including 5 real MariaDB); runner output not independently uploaded into GitHub.**
+
+**Owner-reported PRODUCTION configurations:** Perpetual Inventory already enabled for **every Company**; accounting dimensions configured consistently across all Companies. This is useful confirmed operator knowledge, but **not a live GitHub/DEV database probe**; no production settings changes are planned. Actual DEVELOPMENT Company setting, Department Accounting Dimension fields, approved Company+ItemGroup→Expense / Company+beneficiary Department→Cost Center mapping and real permissions still need verification.
+
+**Actions infrastructure observation:** Automatic private [workflow #44216606141](https://github.com/ccpcerp/ccpcerp/actions/runs/44216606141) on merge commit failed **before any test step/runner**, so its red status is not a source-code test result. Root cause remains unknown; do not start uncontrolled retries or convert repositories to public. Disposable Codex integration proof moves release forward meanwhile.
+
+**Unfinished gates:** actual persisted DEV status/backup/worktree and signed mapping/user access, guarded pull/site migrations if needed, real named-user stockroom/Finance UAT, stock/SLE/GL/report reconciliation in real CCPC Company using genuine configured currency/account, production security/restore/recovery signoff and separate release approval. Do not confuse release candidate merge with PR35 merging to default, DEV deployment, or a PRODUCTION change. **Deadline remains safety-conditional December 17**.
+
+
 **Started:** 2026-11-17 (Asia/Manila). **Target decision / limited go-live: by 2026-12-17** if all technical, accounting and operational gates PASS. **Owner-approved product scope:** use the already-tested custom CCPC Withdrawal Slip, independent Stockroom Material Issue, genuine native SLE/GL, Department material cost register and native ERPNext accounting. **Same legal Company only.** CCPC↔Ricor billing deferred. Do not re-scope back to manual native Material Request as the main release workflow.
 
 ## 2026-11-17 — Phone-first, PRIVATE GitHub Actions added; first Actions job failed before runner (no charge)
