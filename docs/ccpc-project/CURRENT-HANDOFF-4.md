@@ -1,5 +1,16 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 18, 2026 — MAIN DEVELOPMENT accounting dimensions PASS; four business Companies require targeted inventory check
+
+**Operator-supplied actual read-only `development.localhost` Frappe/MariaDB evidence:** `frappe.get_all("Company", pluck="name")` returned **25 Company records**, while `erpnext.is_perpetual_inventory_enabled` reported **14/25 enabled**. Active Accounting Dimension `department` = **True**; effective `department` metadata field on **Stock Entry, Stock Entry Detail and GL Entry all True**. No business records, migrations, role changes, code checkout, or production operations were performed.
+
+**Owner clarification:** The **only four actual operating Companies relevant to the CCPC business rollout** are **CCPC, RMC, WFC, GSL** (may be Company abbreviations rather than DocType `name`). Other 21 Company records are not automatically live Companies; their origin/test status and deletion eligibility are unverified. **Do not remove or change them based on the aggregate result.** Likewise, **14/25 does not establish the perpetual inventory setting for any particular one of the four**; direct 4-Company read-only resolution by exact Company `abbr` or exact `name` is needed.
+
+**Next read-only step:** inspect only `development.localhost` Company records whose abbreviation or exact name corresponds to CCPC, RMC, WFC or GSL. Print each code's unique match count, and the ERPNext effective `is_perpetual_inventory_enabled(company.name)` status if uniquely matched. If a code has zero or multiple matches, stop interpreting that code and request the canonical Company master link; do not guess. Do not enable Perpetual Inventory or alter any existing Company, patch, stock/GL, or site configuration from this check. The user previously reported all Companies have Perpetual Inventory enabled in **PRODUCTION**, which does not substitute for DEVELOPMENT verification.
+
+Remaining Phase 1 barriers: preserve protected untracked MAIN DEVELOPMENT `AGENTS.md` and PR33 detached checkout `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`; the merged-PR37 Phase 1 release branch is divergent at `e781b7c003c4bd0c0b9c80554898cf23364d26e4`. Do not fast switch/overwrite. Follow reviewed source reconciliation, fresh 4-part DEV backup, real signed mapping and named-user UAT before any migration/deployment.
+
+
 ## November 18, 2026 — MAIN DEVELOPMENT read-only Git preflight; confirmed PR33–Phase 1 divergence
 
 **Owner-supplied actual DEVELOPMENT shell output** from `frappe_docker_devcontainer-frappe-1`, app checkout `/workspace/development/frappe-bench/apps/ccpcerp`: `git rev-parse HEAD` = exact **`25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`**, `git branch --show-current` blank (detached HEAD), `git status --porcelain=v1 --untracked-files=all` prints **only `?? AGENTS.md`**. Thus tracked checkout clean at time observed, but untracked local `AGENTS.md` **must not be overwritten/deleted/stashed without separate review**. No git update/pull/checkout/branch switch/migration was done.
