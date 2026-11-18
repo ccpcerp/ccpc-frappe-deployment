@@ -1,5 +1,17 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 18, 2026 — Scoped synthetic cross-bridge canary prepared in GitHub, 13/13 source-only tests PASS; host run pending
+
+**Owner approval in active conversation:** Continue the next non-production firewall verification. Implemented only source, tests and documentation in private GitHub review branch `review/pr33-dev-acceptance-2026-11-16` (not merged). Reviewed canary script `scripts/security/ccpc_codex_cross_bridge_canary.py`, blob `b51b8a49965f65eb74524dab61e4accf54b75eaf` (SHA-256 `14099df208df14f96aaa92dd8a9504fffea581bac6ce6b35388e42710d2dd39e`); corrected tests `tests/test_ccpc_codex_cross_bridge_canary.py`, blob `ca997afff56cd026ae2d3bbd590673451969f668` (SHA-256 `ab231832890d97756a1312f2ff2d70cd062590a933e04edf0094f284cbf57431`); review doc `docs/ccpc-project/CODEX-CROSS-BRIDGE-CANARY-REVIEW-2026-11-18.md`. GitHub commits: source `081f3b54dfd334ed80f92d97e61dfc0357a979a5`, tests `e334f0d04fad765de758662d5fed1aac0455ea68`, doc `8ae01bff7f96432d6dfefb3047dca24a0a44987c`, corrected test import `e3f2406e07045dbcba72026505466721bfee0647`. Exact Git blobs were refetched and matched locally tested source.
+
+**Validation** in a disposable local Python directory mirroring the repository paths: **13/13 source-only safety/unit tests PASS**, Python compile PASS. No Docker daemon, firewall, old host, NEW PRODUCTION, OLD retained data or MAIN DEVELOPMENT site touched by this GitHub work. **No actual cross-bridge test result yet.** Existing separate owner-pasted gateway SSH negative test and synthetic db/Redis connectivity PASS remain as previously recorded.
+
+**What the canary would test (only after reviewed operator delivery):** read-only `plan` first checks the exact old host, stopped Codex agent, internal lab bridge `172.21.0.0/16` + existing first-priority three DROP rules, eligible synthetic DB and conflicts. A separately manual `run` would create **one transient synthetic bridge** in reserved benchmark `198.19.255.240/28`, one nonpublished synthetic TCP listener and short-lived non-secret diagnostic containers. Positive same-bridge probes, negative both-direction routed probes, exact DROP counter increments and exact-label/ID cleanup are required. Only one ephemeral route probe receives NET_ADMIN **inside its own container namespace**, not the Codex agent or host. On any STOP, do not retry blindly or force-clean unrelated resources.
+
+**NEXT one owner/operator step:** examine the existing staged Git checkout's branch/HEAD/status **read-only** before fetching or transferring the exact reviewed canary; preserve any local work. Then verified byte-identical delivery and `sudo python3 <verified-source> plan` only. The subsequent `run` is a narrower **temporary Docker network/container mutation**, not a read-only preflight. Keep exact original firewall rollback available if existing host services are disrupted, and keep Codex agent/CLI, online proxy, persistent DEV access and automatic startup **HOLD** until actual test evidence, reboot persistence and proxy egress controls are verified.
+
+---
+
 ## November 18, 2026 — Codex lab gateway SSH negative connectivity test PASS; synthetic DB/Redis PASS (owner-reported)
 
 **Operator-provided one-shot output from the previous conversation:**
