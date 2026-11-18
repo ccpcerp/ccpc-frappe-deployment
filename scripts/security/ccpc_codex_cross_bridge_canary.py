@@ -96,12 +96,19 @@ def firewall_order(input_lines, user_lines, forward_lines):
     fwd = [x for x in forward_lines.splitlines() if x.startswith("-A FORWARD ")]
     expected_host = ("-A INPUT -i " + BRIDGE + " -s 172.21.0.0/16 -m comment "
                      "--comment ccpc-codex-deny-host -j DROP")
+    # iptables-nft may reserialize equivalent -s/-i selectors in either order.
+    # Accept exactly these two forms, not arbitrary tokens or added matches.
+    expected_host_source_first = (
+        "-A INPUT -s 172.21.0.0/16 -i " + BRIDGE +
+        " -m comment --comment ccpc-codex-deny-host -j DROP"
+    )
     expected_in = ("-A DOCKER-USER ! -i " + BRIDGE + " -o " + BRIDGE +
                    " -m comment --comment ccpc-codex-deny-inbound -j DROP")
     expected_out = ("-A DOCKER-USER -i " + BRIDGE + " ! -o " + BRIDGE +
                     " -m comment --comment ccpc-codex-deny-outbound -j DROP")
     # Inspect EXACT first-match rules, not merely presence of a matching comment.
-    if (not host or host[0] != expected_host or len(rules) < 2
+    if (not host or host[0] not in (expected_host, expected_host_source_first)
+        or len(rules) < 2
         or rules[:2] != [expected_in, expected_out]
         or not fwd or fwd[0] != "-A FORWARD -j DOCKER-USER"
         or sum("ccpc-codex-deny-host" in x for x in host) != 1
