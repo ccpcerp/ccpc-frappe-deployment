@@ -1,5 +1,12 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 18, 2026 — Docker bridge identified; sudo -n blocks firewall readout
+
+**Operator's verified read-only follow-up on `ccpcerpserver`:** New agent status `exited` (still stopped). `ccpc_codex_dev_agent_lab` maps to exact Docker bridge **`br-a88796be8a7a`**, which is UP. Host firewall command `iptables --version` returned **`iptables v1.8.11 (nf_tables)`**. Attempts to inspect `INPUT` and `DOCKER-USER` through `sudo -n iptables -S ...` produced **`sudo: interactive authentication is required`**, i.e. **firewall chain contents were not read and no host firewall was modified**. Do not mistake this sudo authentication failure for absent Docker firewall rules.
+
+**Next one read-only step:** Owner interactively runs `sudo -v` at their normal terminal (never transmit sudo password in chat), then prints bounded `iptables -S INPUT`, `iptables -S DOCKER-USER`, `iptables -S FORWARD`, `nft list tables` and exact bridge subnet via `docker network inspect`. Use privileged inspection only; no firewall insertion until rules have been reviewed for safety, session preservation and rollback. Continue holding the agent, optional outbound proxy, Codex CLI and persistent DEV/PROD access.
+
+
 ## November 18, 2026 — Agent STOP confirmed after SSH bridge isolation failure
 
 **Owner verified isolation failure response completed:** After `ccpc_codex_dev_agent-agent-1` successfully connected at TCP level to old host `ccpcerpserver`'s own Docker bridge gateway SSH port 22, the owner executed `docker stop ccpc_codex_dev_agent-agent-1`. Their follow-up exact `docker inspect --format 'Agent running: {{.State.Running}}' ccpc_codex_dev_agent-agent-1` reported **`Agent running: false`**. **Confirmed stopped** at that moment; do not equate with the other three synthetic DB/Redis services being stopped, since only agent was targeted. No shell/CLI Codex session has been enabled and no SSH authentication was performed in the gateway-connect test; no evidence of credential compromise.
