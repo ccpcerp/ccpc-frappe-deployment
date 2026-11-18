@@ -54,7 +54,6 @@ if networks != {PROJECT + "_lab"}:
     errors.append("network membership outside dedicated internal lab")
 
 allowed_volumes = {
-    PROJECT + "_agent-work": "/work",
     PROJECT + "_agent-home": "/home/frappe",
     PROJECT + "_agent-cache": "/home/frappe/.cache",
 }
