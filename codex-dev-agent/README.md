@@ -24,12 +24,10 @@ The agent **never mounts** the legacy shared `/workspace`, host `.ssh`, host Doc
 From a trusted checkout of the deployment repository on a workstation with Python 3 and Docker Compose v2:
 
 ```bash
-python3 -m unittest discover -s codex-dev-agent/tests -p 'test_*.py'
-python3 codex-dev-agent/init_local_secrets.py
-python3 codex-dev-agent/check_compose.py
+bash codex-dev-agent/preflight.sh
 ```
 
-Only the initializer creates two **new synthetic-only local secret files**. It neither opens real site configuration nor connects to any database. The tests may create temporary local files; no Docker services are started. The Compose source check is read-only. Any STOP output means **do not launch the project**.
+The helper runs all three checks in sequence. Only its synthetic-password initializer creates two **new local secret files**. It neither opens real site configuration nor connects to any database. The tests may create temporary local files; no Docker services are started. The Compose source check is read-only. Any STOP output means **do not launch the project**.
 
 Before deployment, review/pin the real image digests and validate the specific image architecture and runtime user; current source uses the repository-standard `frappe/bench:latest`, `mariadb:11.8`, `redis:7-alpine`, and `ubuntu/squid:latest` as provisional images. Do not treat these moving tags as reproducible production-grade dependencies.
 
