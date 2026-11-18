@@ -1,5 +1,25 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 18, 2026 — Codex lab gateway SSH negative connectivity test PASS; synthetic DB/Redis PASS (owner-reported)
+
+**Operator-provided one-shot output from the previous conversation:**
+
+```text
+HOST SSH: BLOCKED
+db: PASS
+redis-cache: PASS
+redis-queue: PASS
+NETWORK TEST: PASS
+```
+
+The reviewed one-shot command checked `docker inspect` that `ccpc_codex_dev_agent-agent-1` was stopped and that `ccpc_codex_dev_agent_lab` is Docker `internal=true`, then used a **temporary** `docker run --rm --pull=never` diagnostic container attached only to the synthetic lab bridge (nonroot 1000:1000, read-only root, all Linux capabilities dropped, `no-new-privileges`, PID limit 64, `frappe/bench:latest` with Python entrypoint). The TCP probe to host lab gateway **`172.21.0.1:22`** was classified BLOCKED (timeout, host-unreachable or network-unreachable); TCP connects to **synthetic lab** `db:3306`, `redis-cache:6379` and `redis-queue:6379` each succeeded. Overall Python check emitted PASS, which by the shown script implies exit code 0. This is owner-pasted output, **not an independently accessed host test by ChatGPT**, and is consistent with the earlier separately reported three bridge-specific temporary DROP rules installed and verified at commit `59c622f75e596e9edf811027f5f976c7f66cf5f8`.
+
+**Scope and limitations:** This establishes the tested gateway SSH TCP path was unreachable from that temporary container and synthetic same-bridge TCP service access remained possible at the time. It does **not** prove every host port is blocked, unrelated bridges/LAN/NAS/OLD or NEW PRODUCTION are unreachable, rule hit counters, correct credential or application-layer DB/Redis behavior, proxy egress confinement, rule ordering after reload, or automatic persistence across reboot. The agent was required to be stopped to run the diagnostic, and there is **no approval to start Codex CLI, agent or proxy**. The preexisting exact rollback command remains `sudo bash /home/gani/ccpc-codex-agent-stage.PfveGZZj/repo/scripts/security/ccpc_codex_dev_lab_firewall.sh rollback`; use only on a reviewed need, not routinely.
+
+**Next concrete security gate:** Design/review an expressly non-production cross-bridge TCP canary to prove the lab-to-other-bridge deny and reverse direction, without contacting any actual PRODUCTION endpoint, credentials or LAN/NAS. Review scoped canary creation/cleanup and preservation of existing networks before any host-changing operator command. Separately design fail-closed firewall reapplication/order verification across host reboot or Docker firewall reload **before** enabling a persistent agent. Keep the agent stopped and preserve OLD/NEW PRODUCTION and MAIN DEVELOPMENT. Fast application-development work can continue via GitHub and approved disposable CircleCI while local Codex remains held.
+
+---
+
 ## November 18, 2026 — Guarded bridge-specific firewall APPLY and VERIFY both PASS
 
 **Owner's actual privileged host output:** The reviewed `scripts/security/ccpc_codex_dev_lab_firewall.sh` at previously checked staging repo was invoked as `sudo bash ... apply` with the agent **STOPPED**. It printed `Lab bridge: br-a88796be8a7a`, `Lab subnet: 172.21.0.0/16`, `Gateway: 172.21.0.1`, **`PASS: three scoped temporary DROP rules present`**. The immediate `sudo bash ... verify` repeated the same host identity and stopped-agent checks and printed **`PASS: all three bridge-specific DROP rules installed`** / **`FIREWALL RULE INSTALLATION: PASS`**. Exact printed rollback command, which must remain accessible: `sudo bash /home/gani/ccpc-codex-agent-stage.PfveGZZj/repo/scripts/security/ccpc_codex_dev_lab_firewall.sh rollback`. No global chain flush or Docker stack restart was requested. **Rule installation is verified; actual reachability blocking has NOT been tested yet.**
