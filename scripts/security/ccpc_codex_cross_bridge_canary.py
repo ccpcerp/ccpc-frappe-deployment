@@ -216,37 +216,125 @@ def probe(network, name, image_id, host, port, want, *, extra=()):
         raise Stop("probe did not supply expected result")
 
 
-def routable_probe(network, name, image_id, target):
-    # Only this *throwaway* network namespace receives NET_ADMIN, never the agent.
-    # It adds one /28 route so failure cannot be attributed to missing default route.
-    script = '''import subprocess, socket, sys, errno, shutil
-if shutil.which("ip") is None:
- print("ROUTE SETUP: UNAVAILABLE"); sys.exit(3)
-route=["ip","-4","route","add","198.19.255.240/28","via","172.21.0.1","dev","eth0"]
-if subprocess.run(route,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode:
- print("ROUTE SETUP: FAILED"); sys.exit(3)
-check=subprocess.run(["ip","-4","route","get","198.19.255.242"],capture_output=True,text=True)
-if check.returncode or "via 172.21.0.1" not in check.stdout or "dev eth0" not in check.stdout:
- print("ROUTE PROOF: FAILED");sys.exit(3)
-print("ROUTE PROOF: PASS")
-try:
- s=socket.create_connection(("198.19.255.242",18080),timeout=3);s.close()
- print("LAB_TO_CANARY: REACHABLE");sys.exit(1)
-except (TimeoutError,socket.timeout):
- print("LAB_TO_CANARY: BLOCKED");sys.exit(0)
-except OSError as e:
- print("LAB_TO_CANARY: UNEXPECTED ERROR");sys.exit(2)
+def lab_route_probe_code():
+    # The cached frappe/bench:latest image has NO "ip" binary (owner-verified).
+    # Use Python stdlib rtnetlink only inside this ephemeral NET_ADMIN namespace;
+    # never add a route to the Docker host, existing agent, or persistent service.
+    return r'''import errno
+import ipaddress
+import socket
+import struct
+import sys
+
+NETWORK = ipaddress.IPv4Network("198.19.255.240/28")
+GATEWAY = ipaddress.IPv4Address("172.21.0.1")
+DEST = ipaddress.IPv4Address("198.19.255.242")
+PORT = 18080
+
+def attr(kind, payload):
+    length = 4 + len(payload)
+    return struct.pack("=HH", length, kind) + payload + b"\0" * ((-length) % 4)
+
+def route_message(ifindex):
+    # RTM_NEWROUTE for this container's namespace: exact /28 via lab gateway.
+    rtm = struct.pack("=BBBBBBBBI", socket.AF_INET, NETWORK.prefixlen,
+                      0, 0, 254, 3, 0, 1, 0)
+    attrs = (attr(1, NETWORK.network_address.packed) +
+             attr(5, GATEWAY.packed) +
+             attr(4, struct.pack("=I", ifindex)))
+    payload = rtm + attrs
+    flags = 1 | 4 | 0x400 | 0x200  # REQUEST|ACK|CREATE|EXCLUSIVE
+    return struct.pack("=IHHII", 16 + len(payload), 24, flags, 1, 0) + payload
+
+def install_route():
+    try:
+        ifindex = socket.if_nametoindex("eth0")
+        with socket.socket(socket.AF_NETLINK, socket.SOCK_RAW, socket.NETLINK_ROUTE) as netlink:
+            netlink.bind((0, 0))
+            netlink.settimeout(3)
+            netlink.sendto(route_message(ifindex), (0, 0))
+            response = netlink.recv(65535)
+    except (OSError, AttributeError, ValueError):
+        print("ROUTE SETUP: KERNEL REQUEST FAILED")
+        return False
+    offset = 0
+    while offset + 16 <= len(response):
+        length, mtype, _, seq, _ = struct.unpack_from("=IHHII", response, offset)
+        if length < 16 or offset + length > len(response):
+            break
+        if seq == 1 and mtype == 2 and length >= 20:  # NLMSG_ERROR / ACK
+            code, = struct.unpack_from("=i", response, offset + 16)
+            if code != 0:
+                print("ROUTE SETUP: KERNEL REJECTED", abs(code))
+                return False
+            return True
+        offset += (length + 3) & ~3
+    print("ROUTE SETUP: NO ACK")
+    return False
+
+def verify_route():
+    # Read only the kernel's route table in this disposable container netns.
+    def kernel_hex(address):
+        return "%08X" % int.from_bytes(address.packed, "little")
+    expect_dst = kernel_hex(NETWORK.network_address)
+    expect_gateway = kernel_hex(GATEWAY)
+    expect_mask = kernel_hex(NETWORK.netmask)
+    try:
+        with open("/proc/net/route", encoding="ascii") as routefile:
+            for line in routefile:
+                fields = line.split()
+                if (len(fields) > 7 and fields[0] == "eth0" and
+                    fields[1].upper() == expect_dst and
+                    fields[2].upper() == expect_gateway and
+                    fields[7].upper() == expect_mask and
+                    int(fields[3], 16) & 3 == 3):
+                    return True
+    except (OSError, ValueError):
+        pass
+    print("ROUTE PROOF: MISSING OR DIFFERENT")
+    return False
+
+def main():
+    if not install_route() or not verify_route():
+        sys.exit(3)
+    print("ROUTE PROOF: PASS")
+    try:
+        with socket.create_connection((str(DEST), PORT), timeout=3):
+            print("LAB_TO_CANARY: REACHABLE")
+            sys.exit(1)
+    except (TimeoutError, socket.timeout):
+        print("LAB_TO_CANARY: BLOCKED")
+        sys.exit(0)
+    except OSError as exc:
+        if exc.errno in (errno.EHOSTUNREACH, errno.ENETUNREACH):
+            print("LAB_TO_CANARY: BLOCKED")
+            sys.exit(0)
+        print("LAB_TO_CANARY: UNEXPECTED SOCKET", exc.errno)
+        sys.exit(2)
+
+if __name__ == "__main__":
+    main()
 '''
+
+
+def routable_probe(network, name, image_id, target):
+    # Only this one ephemeral lab diagnostic container receives NET_ADMIN.
+    if target != CANARY_IP or network != LAB:
+        raise Stop("routed test target or lab identity changed")
     out = dc("run", "--rm", "--pull=never", "--name", name,
              "--label", TAG + "=" + TAG_VALUE,
              "--network", network, "--user", "0:0", "--read-only",
              "--cap-drop=ALL", "--cap-add=NET_ADMIN", "--security-opt", "no-new-privileges",
              "--pids-limit", "64", "--memory", "192m", "--cpus", "0.5",
-             "--entrypoint", "python3", image_id, "-c", script,
+             "--entrypoint", "python3", image_id, "-c", lab_route_probe_code(),
              timeout=40, allow_fail=True)
     if out.returncode or "ROUTE PROOF: PASS" not in out.stdout or "LAB_TO_CANARY: BLOCKED" not in out.stdout:
-        raise Stop("lab-to-canary scoped route negative test failed")
-
+        # Only a bounded, classified status from our own disposable probe is
+        # returned. Do not echo Docker runtime output or secret-bearing logs.
+        reason = next((line[:96] for line in reversed(out.stdout.splitlines())
+                       if line.startswith(("ROUTE SETUP:", "ROUTE PROOF:", "LAB_TO_CANARY:"))),
+                      "PROBE EXIT WITHOUT CLASSIFIED STATUS")
+        raise Stop("lab-to-canary routed test incomplete (" + reason + ")")
 
 def cleanup(network_id, listener_id, prefix):
     # Exact matching IDs/labels only; never global rm, prune or stop.
