@@ -7,7 +7,7 @@ services:
   agent:
     image: frappe/bench:latest
     user: "1000:1000"
-    working_dir: /work
+    working_dir: /home/frappe
     command: ["sleep", "infinity"]
     init: true
     read_only: true
@@ -26,7 +26,6 @@ services:
       ALL_PROXY: ""
       NO_PROXY: "localhost,127.0.0.1,db,redis-cache,redis-queue"
     volumes:
-      - agent-work:/work
       - agent-home:/home/frappe
       - agent-cache:/home/frappe/.cache
     secrets:
@@ -100,7 +99,6 @@ networks:
     driver: bridge
 
 volumes:
-  agent-work:
   agent-home:
   agent-cache:
   db-data:
