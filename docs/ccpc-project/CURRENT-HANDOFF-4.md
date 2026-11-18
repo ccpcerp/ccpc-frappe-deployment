@@ -1,5 +1,14 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 18, 2026 — Real host initial Codex DEV-only preflight PASS (8/8)
+
+**Operator-reported real `ccpcerpserver` execution results (actual host, not source-only prediction):** Safely staged the deployment GitHub repository in a new `$HOME/ccpc-codex-agent-stage.*/repo` checkout, verifying exact expected review-branch HEAD `3968d3425916a8a4d2d69284dbbeb854848abfb5`. Executed `bash codex-dev-agent/preflight.sh`: `python3 -m unittest discover` **Ran 8 tests, OK**; generated two local **synthetic-only** `db-root-password` and `db-user-password` files with contents hidden; rendered Docker Compose read-only gate output **PASS: standalone agent Compose source/mount/profile gate**. Unit-test output also confirmed no-op preservation of preexisting generated synthetic secrets during its temporary fixture. Operator transcript shows `PASS: source preflight complete; live container/network still NOT VERIFIED`.
+
+**Passed:** real Ubuntu host Python tests, local synthetic-only file creation and rendered Compose static policy gate. **Not passed/not yet tested:** Docker image availability/user compatibility, actual new project container startup, host firewall/DNS/egress, old/new production route exclusion, Codex CLI sign-in, Frappe bench/DB integration, MAIN `development.localhost` access. Do not interpret static policy as successful isolation or enable optional `online` profile. No existing DEV/PROD service restart, migration, database write or Git checkout overwrite occurred.
+
+**Next bounded operator pre-launch check:** read-only check whether project `ccpc_codex_dev_agent` already has any containers/networks/volumes, and whether required image tags are cached with compatible container identity. Do not pull images, create networks or start containers until collisions, runtime compatibility and restricted network path have been reviewed. Codex Cloud independent work can continue.
+
+
 ## November 18, 2026 — Owner-approved DEV-only Codex agent source implementation staged and source-reviewed
 
 **Owner approved continuation of [DEV-only Codex agent Issue #38](https://github.com/ccpcerp/ccpc-frappe-deployment/issues/38)**, preserving dedicated `ccpcerp-prod`, the old unused-but-running `frappe_docker` database/Redis, and actual persistent `development.localhost`. Implemented on deployment GitHub review branch `review/pr33-dev-acceptance-2026-11-16`:
