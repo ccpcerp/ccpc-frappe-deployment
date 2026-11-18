@@ -22,7 +22,10 @@ secrets = module("codex_dev_local_secrets", "init_local_secrets.py")
 
 
 def safe_config():
-    return {
+    images = {"agent": "frappe/bench:latest", "db": "mariadb:11.8",
+              "redis-cache": "redis:7-alpine", "redis-queue": "redis:7-alpine",
+              "egress-proxy": "ubuntu/squid:latest"}
+    result = {
         "name": "ccpc_codex_dev_agent",
         "networks": {"lab": {"internal": True}, "outgoing": {"internal": False}},
         "secrets": {
@@ -52,6 +55,14 @@ def safe_config():
             },
         },
     }
+    for name, service in result["services"].items():
+        service["image"] = images[name]
+        service["pull_policy"] = "never"
+        if name == "db":
+            service["cap_add"] = ["CHOWN", "SETUID", "SETGID", "DAC_OVERRIDE", "FOWNER"]
+        if name in ("redis-cache", "redis-queue"):
+            service["user"] = "redis"
+    return result
 
 
 class TestStaticComposeGate(unittest.TestCase):
@@ -85,6 +96,32 @@ class TestStaticComposeGate(unittest.TestCase):
 
     def test_egress_proxy_always_on_denied(self):
         self.config["services"]["egress-proxy"]["profiles"] = []
+        with self.assertRaises(ValueError):
+            gate.validate(self.config)
+
+
+    def test_unreviewed_image_denied(self):
+        self.config["services"]["agent"]["image"] = "another/agent:latest"
+        with self.assertRaises(ValueError):
+            gate.validate(self.config)
+
+    def test_implicit_image_pull_denied(self):
+        self.config["services"]["agent"]["pull_policy"] = "always"
+        with self.assertRaises(ValueError):
+            gate.validate(self.config)
+
+    def test_extra_mariadb_capability_denied(self):
+        self.config["services"]["db"]["cap_add"].append("NET_ADMIN")
+        with self.assertRaises(ValueError):
+            gate.validate(self.config)
+
+    def test_missing_mariadb_initialization_cap_denied(self):
+        self.config["services"]["db"]["cap_add"].remove("SETUID")
+        with self.assertRaises(ValueError):
+            gate.validate(self.config)
+
+    def test_redis_root_default_denied(self):
+        self.config["services"]["redis-queue"].pop("user")
         with self.assertRaises(ValueError):
             gate.validate(self.config)
 
