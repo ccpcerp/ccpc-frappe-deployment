@@ -1,5 +1,10 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 18, 2026 — DEV-only agent technical preparation committed, issue #38 opened
+
+**Versioned operator-ready preparations (not live deployment):** Owner-approved isolated agent [implementation plan](CODEX-DEV-ONLY-AGENT-RUNTIME-PLAN-2026-11-18.md) committed and verified at `ea6b3a73604d6804f02560fab8f3d38e733ebcf0`. New read-only `scripts/security/check_codex_dev_agent_container.sh` script was committed then simplified at **`794f93a6eaf088f2bcfacf8ce1fc1e9b13325ede`**; verifies dedicated target container's baseline privileged/host-mode/rootfs/nonroot/mount conditions, **does not prove production network isolation**. The script has been source-inspected in GitHub but **not executed against a real new container**, which doesn't yet exist. Created [deployment issue #38](https://github.com/ccpcerp/ccpc-frappe-deployment/issues/38) describing runnable isolated agent compose/launcher, egress enforcement, synthetic bench, tests, rollout and rollback gates. **No PROD/DEV container, site, source checkout, network, SSH mount or DB was changed by these GitHub commits.** Continue already working Codex Cloud app tasks in parallel.
+
+
 ## November 18, 2026 — Owner confirms live PRODUCTION migrated; Codex DEV-only agent plan approved
 
 **Owner's current operating-state clarification (first-hand report):** The **old PRODUCTION site on `ccpcerpserver` is no longer being used** because the currently used real PRODUCTION site now runs on the **dedicated `ccpcerp-prod` server**. This supersedes earlier documentation's uncertainty for *owner-confirmed operational status*, but is **not a live independently inspected cutover, backup or recovery test**. The recent `docker ps` nonetheless showed legacy `frappe_docker-db-1`, `frappe_docker-redis-cache-1`, and `frappe_docker-redis-queue-1` still RUNNING on the old host; do not treat unused as safe to erase or access from Codex. The dedicated PRODUCTION machine, credentials and its network remain absolutely excluded from agent execution.
