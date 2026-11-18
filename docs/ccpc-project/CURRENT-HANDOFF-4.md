@@ -1,5 +1,19 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 18, 2026 — PR #39 exact-head isolated Python 11/11 PASS (Codex-reported), READY FOR REVIEW; merge not approved
+
+**Owner-supplied executable test result:** In an isolated checkout of app PR #39 at exact commit `600b946b3b09aa59bf0266a0929fe55973267560`, Codex ran:
+```sh
+python3 -B -m unittest -v ccpcerp.ccpc_erp.test_phase1_release_scope ccpcerp.ccpc_erp.test_phase1_release_wiring_static
+```
+Owner reports **11 passed, 0 failed, 0.075 seconds, exit code 0, no traceback**. ChatGPT did not directly execute the Python tests or independently inspect the raw runtime logs; these are **owner-provided Codex execution results**, distinguished from connected GitHub source inspection and CI statuses (GitHub statuses empty).
+
+**Verified connected GitHub actions:** Re-fetched PR #39 and comparison before recording: two commits ahead and zero behind the exact Phase 1 release `2b6e4e73cfbbd316caaa06fa9987255d05a631de`; head unchanged `600b946b3b09aa59bf0266a0929fe55973267560`. No runtime files changed, only `ccpcerp/ccpc_erp/test_phase1_release_wiring_static.py` and `docs/PHASE1-PR33-SAFE-RECONCILIATION-2026-11-18.md`. Wrote [PR #39 test evidence comment](https://github.com/ccpcerp/ccpcerp/pull/39), GitHub issue-comment ID **6973383241**. Marked [PR #39](https://github.com/ccpcerp/ccpcerp/pull/39) **READY FOR REVIEW**; GitHub response confirmed `state=open`, `draft=false`, `merged=false`, `mergeable=true`, head and base unchanged. **Not an approval to merge.** Exact-source test gate now supported by owner-reported isolated execution.
+
+**Remaining release decisions:** Need separate explicit owner authorization before merging PR #39 into the Phase 1 release. PR39 is a two-file static boundary-check+runbook PR, **not** actual PR33 billing-source integration, and preserving PR33 historical work is still required. Its 11/11 source-only result does not substitute for an exact SHA disposable Frappe/ERPNext/MariaDB acceptance run, MAIN DEV staged reconciliation, new as-of-deployment MAIN `development.localhost` backup + verified off-host copy and recovery plan, migration effect review, Finance real master and maker/checker signoffs, or persistent DEV UAT. Old detached PR33 checkout at `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`, with protected `?? AGENTS.md`, remains untouched. Both old retained and separate new PRODUCTION environments remain untouched; local Codex lab remains HOLD due unverified outbound isolation.
+
+---
+
 ## November 18, 2026 — Draft PR #39 source review posted; exact Python tests pending isolated Codex Cloud
 
 **Owner direction:** User approved continuing after GitHub-only PR #39 was opened. Reverified [ccpcerp/ccpcerp draft PR #39](https://github.com/ccpcerp/ccpcerp/pull/39): still open, draft, mergeable, exact head `600b946b3b09aa59bf0266a0929fe55973267560`, exact base `2b6e4e73cfbbd316caaa06fa9987255d05a631de`, 2 ahead / 0 behind, exactly two changes (AST source test + Markdown runbook), no production/Finance/Stock Entry runtime source changes. Reviewed exact diff. **Comment-only GitHub PR review successfully submitted** on this pinned head, review ID `5953122974`, no APPROVE or merge.
