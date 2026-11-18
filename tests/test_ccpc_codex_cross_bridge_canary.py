@@ -36,6 +36,35 @@ class CanarySafetyTests(unittest.TestCase):
     def test_exact_firewall_order(self):
         self.assertTrue(m.firewall_order(*policy()))
 
+    def test_observed_iptables_nft_input_selector_order_is_accepted(self):
+        # Owner's 2026-11-18 read-only iptables -S output; no firewall edit.
+        host, user, forward = policy()
+        observed_host = ('-P INPUT ACCEPT\n'
+                         '-A INPUT -s 172.21.0.0/16 -i br-a88796be8a7a '
+                         '-m comment --comment ccpc-codex-deny-host -j DROP')
+        observed_user = '-N DOCKER-USER\n' + user
+        observed_forward = '-P FORWARD DROP\n' + forward + '\n-A FORWARD -j DOCKER-FORWARD'
+        self.assertTrue(m.firewall_order(observed_host, observed_user, observed_forward))
+
+    def test_host_rule_first_match_remains_required(self):
+        h, u, f = policy()
+        h = '-A INPUT -j ACCEPT\n' + h.replace(
+            '-i br-a88796be8a7a -s 172.21.0.0/16',
+            '-s 172.21.0.0/16 -i br-a88796be8a7a')
+        with self.assertRaises(m.Stop):
+            m.firewall_order(h, u, f)
+
+    def test_host_selector_drift_still_rejected(self):
+        h, u, f = policy()
+        h = h.replace('-i br-a88796be8a7a -s 172.21.0.0/16',
+                      '-s 172.21.0.0/16 -i br-a88796be8a7a')
+        for changed in (h.replace('172.21.0.0/16', '172.22.0.0/16'),
+                        h.replace('br-a88796be8a7a', 'br-other'),
+                        h.replace('-j DROP', '-j ACCEPT'),
+                        h.replace('-j DROP', '-m tcp -j DROP')):
+            with self.subTest(changed=changed), self.assertRaises(m.Stop):
+                m.firewall_order(changed, u, f)
+
     def test_preceding_accept_is_rejected(self):
         h,u,f=policy()
         with self.assertRaises(m.Stop):
