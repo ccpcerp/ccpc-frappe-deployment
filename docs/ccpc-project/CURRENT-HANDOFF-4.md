@@ -1,5 +1,14 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 18, 2026 — CRITICAL: agent can reach host SSH gateway; Codex access HOLD
+
+**Live negative isolation test FAILED.** Operator ran controlled TCP connect from **only** `ccpc_codex_dev_agent-agent-1` to the *same old host's own* internal Docker bridge gateway on TCP port 22. Exact output: **`HOST SSH: REACHABLE — ISOLATION FAILED`** and `HOST ACCESS CHECK COMPLETE`. This proves that Docker `internal: true` by itself does **not** stop this isolated agent from reaching `ccpcerpserver` host SSH. Earlier `1.1.1.1:443` BLOCKED was **insufficient** to call the environment network-isolated. The port connect does not establish any SSH authentication attempt or credential compromise; Codex CLI was not enabled and no suspicious activity is reported.
+
+**Immediate safety response instructed to owner:** `docker stop ccpc_codex_dev_agent-agent-1` to stop the **new agent container alone**, preserving newly created volumes, new synthetic DB/Redis and existing MAIN DEVELOPMENT/legacy production. **The actual result of the stop is NOT YET CONFIRMED**; await operator output. Do **not** continue running shell commands within that agent, enable optional online Squid proxy, attach it to production networks or install/login Codex until verified protections are in place.
+
+**Remediation, NOT yet approved/applied:** Explicit host firewall policy for inbound traffic from new lab bridge to host INPUT (including SSH and all privileged services), Docker FORWARD/DOCKER-USER isolation to old Docker networks and unrelated LAN, with outbound proxy enforced separately, backed by rollback/safe SSH-session preservation; test host gateway and a non-production canary before authorizing any agent start. Because this host also runs legacy production services and MAIN DEV, **do not blindly insert global firewall policies**. Prepare an exact isolated-interface-specific rule design and dry-run review first, prove new rule applies as intended, then repeat negative tests. Codex Cloud is available independently for app coding.
+
+
 ## November 18, 2026 — Redis discrepancy resolved: four standalone DEV lab services stable
 
 **Operator's later direct Docker inspection resolved the earlier contradictory Redis output.** `docker ps -a --filter label=com.docker.compose.project=ccpc_codex_dev_agent` returned **all four** expected containers (agent, synthetic MariaDB, redis-cache, redis-queue) in **running** state, **Up 17 minutes** each. Direct `docker exec ccpc_codex_dev_agent-redis-cache-1 redis-cli ping` and corresponding `redis-queue-1` each returned **PONG**. Prior `mariadb --protocol=socket ... SELECT 1` had **PASS**, and isolated agent TCP connection to public `1.1.1.1:443` was **BLOCKED**. Therefore **synthetic database/Redis basic service readiness is verified**; do not repeat baseline readiness probes or treat prior `NOT RUNNING` strings as current service state.
