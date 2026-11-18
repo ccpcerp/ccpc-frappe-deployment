@@ -1,5 +1,12 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 18, 2026 — Redis discrepancy resolved: four standalone DEV lab services stable
+
+**Operator's later direct Docker inspection resolved the earlier contradictory Redis output.** `docker ps -a --filter label=com.docker.compose.project=ccpc_codex_dev_agent` returned **all four** expected containers (agent, synthetic MariaDB, redis-cache, redis-queue) in **running** state, **Up 17 minutes** each. Direct `docker exec ccpc_codex_dev_agent-redis-cache-1 redis-cli ping` and corresponding `redis-queue-1` each returned **PONG**. Prior `mariadb --protocol=socket ... SELECT 1` had **PASS**, and isolated agent TCP connection to public `1.1.1.1:443` was **BLOCKED**. Therefore **synthetic database/Redis basic service readiness is verified**; do not repeat baseline readiness probes or treat prior `NOT RUNNING` strings as current service state.
+
+**Unverified:** Effective denial of reachability to old host's legacy production DB/services, Docker host and LAN/NAS, dedicated production `ccpcerp-prod`, plus optional online proxy safety. Internal bridge `internal=true` and one negative public connection test are not proof of full isolation. Codex CLI not signed in / agent not authorized to execute, synthetic Frappe site not bootstrapped, persistent MAIN DEVELOPMENT untouched. **Next priority:** verify runtime network topology and non-production canary policy without scanning or touching production endpoints; use still-working isolated Codex Cloud as immediate coding path until online controls validated.
+
+
 ## November 18, 2026 — Offline lab MariaDB SQL PASS, public egress denied; Redis status contradictory
 
 **Operator-run runtime smoke check, new `ccpc_codex_dev_agent` lab only:** `db: RUNNING`, `agent: RUNNING`, `MARIADB SQL: PASS` (`SELECT 1` via localhost socket using synthetic local secret). Python outbound TCP attempt from new agent to `1.1.1.1:443` returned **`PUBLIC NETWORK: BLOCKED`**. This is promising but a single public IP negative test **does not prove** deny rules for old host, legacy unused production Docker/DB, dedicated `ccpcerp-prod`, NAS or broader LAN.
