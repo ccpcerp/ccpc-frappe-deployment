@@ -1,5 +1,17 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 19, 2026 — BOTH DEVELOPMENT SQL/files restore rehearsals PASS, exact operator evidence
+
+**Owner report from actual approved isolated recovery rehearsal:** On `gani@ccpcerpserver`, the owner ran the checksum-verified `ccpc_phase1_two_site_restore_rehearsal_20261119.sh` for both 2026-11-19 fresh DEVELOPMENT backup sets. Terminal reported script SHA256 `OK`; local+Synology SHA256 **8/8 PASS**, files/config restored **both PASS**, disposable MariaDB **NETWORK NONE / no ports / resource-limited**, separate SQL database restore **`ccpc_rehearsal_main PASS`** and **`ccpc_rehearsal_int2 PASS`**, `TWO-SITE ISOLATED SQL + FILE RECOVERY: PASS`, scratch cleanup `PASS`, final `PHASE1_TWO_SITE_ISOLATED_RESTORE_REHEARSAL: PASS`, **exit code `0`**. Script also explicitly reported `FULL FRAPPE SITE BOOT / APP UAT: NOT TESTED` and `LIVE DEV / PROD SOURCE, DB, SERVICES: NOT MODIFIED`. Operator evidence is direct terminal transcription, **not** an independently executed ChatGPT SSH/Docker test. No DEV checkout, migration, service restart or old/new production operation was authorized.
+
+**Exact recovery set preserved:** MAIN `development.localhost-20261118T233442Z-8db803832468`, Integration2 `ccpc-integration2.localhost-20261118T233442Z-8db803832468`, NAS `/mnt/erpnext_backups/ccpc-development-phase1-two-site-preswitch-20261118T233444Z-35c00130d53b457e`; retain earlier Nov17 MAIN local+NAS recovery point and all protected originals.
+
+**Runbook verification:** Appended operator's complete PASS output and evidence limits to `docs/ccpc-project/PHASE1-TWO-SITE-ISOLATED-RESTORE-REHEARSAL-2026-11-19.md` on docs branch `review/pr33-dev-acceptance-2026-11-16`, verified commit **`c4be4f46cabbe0e063a37c36a215117038813307`**, Git blob `a21d1811a5c6aecfd7c9d070652a3d2a9b9a5141`.
+
+**Next milestone:** GitHub-review the exact Phase1 release `55eb10b86a57de55a97e293a78228d9dd17b809a` → MAIN DEVELOPMENT source-switch plan with two-site shared bench, preservable original PR33 detached `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87` plus protected local `?? AGENTS.md`, release-tracked AGENTS collision, shared-bench import path verified, broken `ccpc-integration.localhost` excluded, and broad `setup.after_migrate()` effects (including new Finance Page/roles and existing permission/backfills). An isolated SQL/files recovery test cannot guarantee live Frappe startup. Select a safe DEV-only maintenance window, staged release source and reversible approach before requesting **separate** approval for any persistent checkout/code/migration/site/role write. Existing two valid sites share the app code, so include both in outage/compatibility plan. No PROD rollout under any DEV approval. Release branch and separate PR33 latest GitHub refs reconfirmed `55eb10b86a57de55a97e293a78228d9dd17b809a` and `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`, respectively.
+
+---
+
 ## November 19, 2026 — Approved disposable two-site SQL/files restore rehearsal prepared; awaiting operator run
 
 **Owner approval scope:** After new two-site DEVELOPMENT local/Synology backups passed 8/8 file checks and script exit 0, owner responded `aPPROVED` to the separate request to prepare and perform a **controlled, isolated restore rehearsal of both backup sets** without modifying existing DEVELOPMENT sites or either PRODUCTION environment. This is distinct from approval to change persistent source, site metadata, users, invoices, migrations, schedulers or any PRODUCTION deployment.
