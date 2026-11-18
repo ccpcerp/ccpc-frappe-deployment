@@ -61,7 +61,8 @@ if user in ("", "root", "0", "0:0"):
 
 for m in mounts:
     if m.get("Type") != "volume":
-        errors.append(f"mount type not allowed: {m.get(chr(84)+chr(121)+chr(112)+chr(101), chr(63))}")
+        kind = m.get("Type")
+        errors.append("mount type not allowed: " + str(kind))
     destination = str(m.get("Destination") or "")
     if any(destination == p or destination.startswith(p + "/") for p in (
         "/home/frappe/.ssh", "/root/.ssh", "/var/run", "/run/docker",
