@@ -41,14 +41,32 @@ def validate(rendered):
             reject(f"{name}: privileged/host mode")
         if service.get("ports") or service.get("devices") or service.get("extra_hosts"):
             reject(f"{name}: ports/devices/extra_hosts prohibited")
-        if service.get("cap_add"):
-            reject(f"{name}: capabilities added")
+        required_images = {
+            "agent": "frappe/bench:latest",
+            "db": "mariadb:11.8",
+            "redis-cache": "redis:7-alpine",
+            "redis-queue": "redis:7-alpine",
+            "egress-proxy": "ubuntu/squid:latest",
+        }
+        if service.get("image") != required_images[name]:
+            reject(f"{name}: unreviewed image")
+        if service.get("pull_policy") != "never":
+            reject(f"{name}: image pulls must be disabled for offline gate")
+        # MariaDB official image briefly starts as root to initialize/chown
+        # its *new synthetic* data volume, then switches to mysql.
+        expected_caps = {"CHOWN", "SETUID", "SETGID", "DAC_OVERRIDE", "FOWNER"} if name == "db" else set()
+        if set(service.get("cap_add") or []) != expected_caps:
+            reject(f"{name}: unexpected Linux capabilities")
         if "ALL" not in (service.get("cap_drop") or []):
             reject(f"{name}: missing cap_drop ALL")
         opts = service.get("security_opt") or []
         if not any("no-new-privileges" in str(item) for item in opts):
             reject(f"{name}: missing no-new-privileges")
         only_network(service, {"lab", "outgoing"} if name == "egress-proxy" else {"lab"}, name)
+
+    for name in ("redis-cache", "redis-queue"):
+        if services[name].get("user") != "redis":
+            reject(f"{name}: Redis must run as the non-root redis user")
 
     agent = services["agent"]
     if not agent.get("read_only") or str(agent.get("user")) not in ("1000:1000", "1000"):
