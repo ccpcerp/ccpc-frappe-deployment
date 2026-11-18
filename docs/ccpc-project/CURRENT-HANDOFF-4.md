@@ -1,5 +1,24 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 19, 2026 — TWO-SITE DEV local + Synology backups VERIFIED (operator logs), no restore performed
+
+**Completed approved backup-only action (owner-provided execution log):** Owner ran the reviewed, SHA256-verified `ccpc_phase1_two_site_backup_20261118.sh` on `gani@ccpcerpserver` after transfer to `/home/gani`. Operator output confirmed `DEV CONTAINER/NAS PRECHECK: PASS`; local `2/2` site snapshot directories, four components each and `SHA256 PASS`; Synology NAS `2/2` with four components each, `SHA256 PASS`; `LOCAL/NAS BACKUPS: MATCH`; `PHASE1_TWO_SITE_OFFHOST_BACKUP: PASS`; and **`BACKUP EXIT CODE: 0`**. Local and NAS file bytes were checked by the script, but ChatGPT did **not** independently access those files. This is operator-provided script execution evidence rather than an independently performed restore or remote inspection. `RESTORE TEST: NOT PERFORMED`; `SOURCE SWITCH / MIGRATION / RESTART: NOT PERFORMED`.
+
+**Exact protected snapshot identifiers:**
+
+- MAIN: `development.localhost-20261118T233442Z-8db803832468`
+- Integration2: `ccpc-integration2.localhost-20261118T233442Z-8db803832468`
+- Final Synology directory: `/mnt/erpnext_backups/ccpc-development-phase1-two-site-preswitch-20261118T233444Z-35c00130d53b457e`
+- Event timestamps correspond to **2026-11-19 ~07:34 Asia/Manila**. New backups must be retained alongside older Nov17 set. No source checkout, site migration, shared services operation or old/new PRODUCTION data access was executed.
+
+**Documentation follow-up completed:** Updated and verified `docs/ccpc-project/PHASE1-TWO-SITE-DEV-BACKUP-EXECUTION-2026-11-18.md` on docs review branch in commit **`5ae900dc3268ddbfa5df44c601ebbfb5a410cd8f`**, Git blob `5d0606a1f820092923c1091768ce288eb03af65f` with exact operator output, evidence limits and recovery criteria.
+
+**Release refs reconfirmed from connected GitHub on Nov19:** `ccpcerp/ccpcerp` Phase1 `release/withdrawal-department-phase1-2026-11-17` remains at `55eb10b86a57de55a97e293a78228d9dd17b809a`; held PR33 branch `review/billing-authorization-correction-2026-11-03` remains at `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`.
+
+**Next gate:** Before a source switch, separately approve (1) a genuinely isolated disposable Frappe/MariaDB restore rehearsal of one or both backup snapshots that cannot contact PROD/old DEV; (2) a two-site-aware maintenance/rollback strategy reflecting shared `ccpcerp` imports, preserved detached PR33 checkout plus protected untracked `AGENTS.md`, Finance roles/Page and broad `setup.after_migrate()` side effects; and (3) subsequent narrowly authorized DEV integration. Do not automatically overwrite backups, rerun the one-shot backup, migrate the broken `ccpc-integration.localhost`, restart bench services, or deploy to either PRODUCTION.
+
+---
+
 ## November 18, 2026 — Owner APPROVED fresh two-site DEV backup; operator script committed, execution awaiting host
 
 **Owner-scope approval:** Owner said `aPPROVED` specifically in response to creating **two new DEVELOPMENT four-component backups with verified Synology NAS copies**, targeting valid sites `development.localhost` and `ccpc-integration2.localhost`. This does **NOT** approve source switching, `bench migrate`, stock/GL transaction writing, restoring a database, Docker/service restarts, stopping other DEV sites, PRODUCTION or Codex local automation.
