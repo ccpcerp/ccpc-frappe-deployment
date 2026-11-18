@@ -76,3 +76,29 @@ On **STOP** or a nonzero exit code, do **not** automatically retry, change image
 ## Deployment gate remains separate
 
 After restore evidence is documented, the next project milestone is a shared-bench **two-site-aware** source-switch/rollback design, current PR33 checkout and protected `AGENTS.md` disposition, `setup.after_migrate()` impact review, separate actual DEVELOPMENT write authorization, real site UAT and only then independently approved PRODUCTION deployment.
+
+
+## 2026-11-19 — Operator-reported isolated SQL/files restore: BOTH SITES PASS
+
+**Evidence:** The owner ran the GitHub-reviewed isolated restore script on `gani@ccpcerpserver` and pasted the full terminal result in ChatGPT, including successful SHA256 check of the script itself:
+
+```text
+/home/gani/ccpc_phase1_two_site_restore_rehearsal_20261119.sh: OK
+TWO LOCAL/NAS BACKUP SETS: 8/8 SHA256 PASS
+OFFLINE MARIA DB IMAGE / DEV IDENTITY: VERIFIED
+ISOLATED FILES/CONFIG RESTORE: ccpc_rehearsal_main PASS
+ISOLATED FILES/CONFIG RESTORE: ccpc_rehearsal_int2 PASS
+DISPOSABLE MARIADB: NETWORK NONE, NO PORTS, RESOURCE LIMITED
+ISOLATED SQL RESTORE: ccpc_rehearsal_main PASS
+ISOLATED SQL RESTORE: ccpc_rehearsal_int2 PASS
+TWO-SITE ISOLATED SQL + FILE RECOVERY: PASS
+FULL FRAPPE SITE BOOT / APP UAT: NOT TESTED
+LIVE DEV / PROD SOURCE, DB, SERVICES: NOT MODIFIED
+ISOLATED SCRATCH CLEANUP: PASS
+PHASE1_TWO_SITE_ISOLATED_RESTORE_REHEARSAL: PASS
+RESTORE REHEARSAL EXIT CODE: 0
+```
+
+**Result boundaries:** The script reported successful import of each `database.sql.gz` into its separately named MariaDB database inside a newly created, network-disabled disposable container, and extracted both configurations and public/private TAR files into a private scratch path. Both previously verified local and NAS sets passed checksum revalidation. Disposable database container shutdown and scratch cleanup were **script-reported PASS**, with exit `0`. This is a **successful isolated SQL+files restore rehearsal**, stronger than simple backup integrity verification; not a full Frappe bench/site restore or proof of successful application startup, scheduler, schema migration, real CCPC transactions or permission correctness. ChatGPT did not have independent SSH/Docker access and relies on operator-supplied terminal output. Script's own reporting says live DEV/PROD source, DB and services were not modified. No source pull/checkout, `bench migrate`, service restart or PRODUCTION deployment was authorized by this test.
+
+**Decision:** Isolated backup content recoverability gate is satisfied for both valid DEVELOPMENT sites at the SQL/files level. Preserve 2026-11-19 backup set and historical Nov17 copies. Next gate is a **GitHub-reviewed, two-site-aware shared-bench integration and rollback plan**, including protected untracked `AGENTS.md`, PR33 billing isolation, full `setup.after_migrate` effects, and separately approved live DEVELOPMENT code/migration operations. No repeat of this successful restore necessary absent changed backups or environment.
