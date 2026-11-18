@@ -1,5 +1,14 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 18, 2026 — Updated 13/13 host policy tests PASS; next gate first offline-only lab startup
+
+**Operator-executed updated source verification `ccpcerpserver`:** Isolated stage at expected reviewed source commit `719ccec95115007679d1e997e89ee5aa2060d052` fetched and fast-forwarded without altering existing work. `bash codex-dev-agent/preflight.sh` printed **`Ran 13 tests in 0.001s\nOK`**, idempotently **preserved** synthetic MariaDB local `db-root-password` and `db-user-password` with no values revealed, and **`PASS: standalone agent Compose source/mount/profile gate`**. This validates host Python unit cases plus **rendered Compose static policy**, not Docker runtime or network safety. Owner's prior read-only checks already established no `ccpc_codex_dev_agent` containers/networks/volumes, all three offline images cached on amd64, ~684 GiB available.
+
+**Next explicitly operator-run step, subject to final collision/identity guard:** Launch only **offline** `ccpc_codex_dev_agent` agents+synthetic MariaDB+Redis with `docker compose up -d --pull never agent db redis-cache redis-queue`, no `online` profile, no other stack services, and no access to persistent `development.localhost`. Guard Docker daemon is exactly the old `ccpcerpserver`, do not run if project artifacts already exist, ensure staged Git HEAD remains `719ccec...`, then run new project runtime inspector for agent. If startup/inspection fails stop **only this new project** preserving volumes, don't delete existing projects, don't open proxy or give Codex shell access. **No offline project has actually started as of this documented checkpoint.** Stage's synthetic passwords remain local and ignored by Git.
+
+**Open safety gates:** Host route to legacy/new PRODUCTION and NAS not proven blocked, Codex CLI login absent, initial MariaDB Frappe v16 bench site absent, persistent DEVELOPMENT DB access not enabled. Codex Cloud continues independently in isolated cloud; no assertion that local lab is a working Codex session.
+
+
 ## November 18, 2026 — Cached image compatibility verified; offline lab startup privileges corrected in GitHub
 
 **Owner's real read-only Docker inspection on `ccpcerpserver`:** cached `frappe/bench:latest` runs as `frappe`, architecture **amd64**; `mariadb:11.8` and `redis:7-alpine` are both **amd64** with default **root** entrypoints; Docker root filesystem `/dev/nvme0n1p2`: **915G total, 185G used, 684G available, 22%**. Prior successful Redis pull digest `sha256:7f7d30b7fdd09467bac58198a1f166dd69789d348d4fe859cccb20e0cf287fbe`. No containers launched by these read-only checks.
