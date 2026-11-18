@@ -11,7 +11,7 @@ This new Compose project is intentionally separate from `frappe_docker_devcontai
 - `init_local_secrets.py`: creates two randomly generated, strictly owner-only passwords for the **new synthetic MariaDB**, without overwriting old values or displaying them. `local-secrets/` is ignored by Git.
 - `check_compose.py`: read-only static validation of actual `docker compose config --format json`, guarding project identity, service/network separation, mounts, secrets, privileges and offline default.
 - `../scripts/security/check_codex_dev_agent_container.sh`: host-side **read-only** Docker inspector for the newly created `agent`, allowing only exact expected private volumes and the synthetic user password secret. It does **not** establish internet or production network safety.
-- `tests/test_safety_policy.py`: Docker-free negative tests for unsafe Compose modifications and secret creation/reuse. They do not prove that Docker containers boot or that the real host is isolated.
+- `tests/test_safety_policy.py`: 13 Docker-free negative and secret-lifecycle tests for unsafe Compose modifications and secret creation/reuse. They do not prove that Docker containers boot or that the real host is isolated.
 
 ## Isolation boundaries
 
@@ -27,9 +27,9 @@ From a trusted checkout of the deployment repository on a workstation with Pytho
 bash codex-dev-agent/preflight.sh
 ```
 
-The helper runs all three checks in sequence. Only its synthetic-password initializer creates two **new local secret files**. It neither opens real site configuration nor connects to any database. The tests may create temporary local files; no Docker services are started. The Compose source check is read-only. Any STOP output means **do not launch the project**.
+The helper runs the Python regression tests, local synthetic password initialization, and rendered Compose policy gate in sequence. Only its synthetic-password initializer creates two **new local secret files**. It neither opens real site configuration nor connects to any database. The tests may create temporary local files; no Docker services are started. The Compose source check is read-only. Any STOP output means **do not launch the project**.
 
-Before deployment, review/pin the real image digests and validate the specific image architecture and runtime user; current source uses the repository-standard `frappe/bench:latest`, `mariadb:11.8`, `redis:7-alpine`, and `ubuntu/squid:latest` as provisional images. Do not treat these moving tags as reproducible production-grade dependencies.
+Host read-only verification on 2026-11-18 found amd64 Frappe Bench (user frappe), MariaDB 11.8 and Redis 7 Alpine, with ~684 GiB available disk. MariaDB's official entrypoint starts as root to adjust ownership of its **new synthetic** database volume, then drops to mysql; the database service uses cap-drop ALL and a five-capability initialization allowlist (CHOWN, SETUID, SETGID, DAC_OVERRIDE, FOWNER). Both Redis services explicitly run as non-root user redis. All images use `pull_policy: never` in this offline lab. Actual startup/permissions remain unverified. Before broader deployment, pin the real image digests and validate the specific runtime user; current source uses the repository-standard `frappe/bench:latest`, `mariadb:11.8`, `redis:7-alpine`, and `ubuntu/squid:latest` as provisional images. Do not treat these moving tags as reproducible production-grade dependencies.
 
 ## One-time lab creation (NOT YET AUTHORIZED FOR EXECUTION FROM THIS DOCUMENT)
 
@@ -37,7 +37,7 @@ Only after successful source review, host/legacy service protection review, and 
 
 ```bash
 cd codex-dev-agent
-docker compose --project-name ccpc_codex_dev_agent up -d agent db redis-cache redis-queue
+docker compose --project-name ccpc_codex_dev_agent up -d --pull never agent db redis-cache redis-queue
 docker compose --project-name ccpc_codex_dev_agent ps
 ../scripts/security/check_codex_dev_agent_container.sh "$(docker compose --project-name ccpc_codex_dev_agent ps -q agent)"
 ```
