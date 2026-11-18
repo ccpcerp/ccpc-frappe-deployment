@@ -73,6 +73,8 @@ services:
 
   redis-queue:
     image: redis:7-alpine
+    pull_policy: never
+    user: redis
     command: ["redis-server", "--save", "", "--appendonly", "no"]
     cap_drop: ["ALL"]
     security_opt: ["no-new-privileges:true"]
