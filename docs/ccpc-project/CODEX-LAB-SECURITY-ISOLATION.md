@@ -167,6 +167,27 @@ These rules provide promising evidence that Docker's network separation has addi
 
 **Next:** one read-only sanitized rule-order/direction review for the six lab-matching rules and the jump path from FORWARD to Docker chains, without printing IP addresses, CIDRs, proxy values or raw firewall expressions. Codex stays stopped/NO-GO.
 
+## Step 22 — lab firewall jump order and interface-direction report (2026-11-19)
+
+The operator ran a hostname-guarded, read-only `iptables -S` inspection, filtered to interface references for the Codex laboratory bridge. No raw rules, IPs or credentials were published.
+
+| Chain | Reported position | Interface-direction classification | Target |
+| --- | ---: | --- | --- |
+| `INPUT` | 1 | IN from lab bridge | DROP |
+| `FORWARD` | 1 | jump (not bridge-specific in abbreviated output) | DOCKER-USER |
+| `FORWARD` | 2 | jump (not bridge-specific in abbreviated output) | DOCKER-FORWARD |
+| `DOCKER-USER` | 1, 2 | BOTH lab input/output interfaces referenced | DROP / DROP |
+| `DOCKER-FORWARD` | 2 | jump (not bridge-specific in abbreviated output) | DOCKER-INTERNAL |
+| `DOCKER-FORWARD` | 8 | BOTH lab input/output interfaces referenced | ACCEPT |
+| `DOCKER-INTERNAL` | 1 | OUT toward lab bridge | DROP |
+| `DOCKER-INTERNAL` | 2 | IN from lab bridge | DROP |
+
+**Important limitation:** The diagnostic classified `-i` and `-o` appearances but **did not parse `!` negation or match predicates**. For example, `-i LAB ! -o LAB` is *not* an intra-lab match even though both interface tokens appear. Likewise, the INPUT rule may have additional conditions. We cannot conclude the precise allowed/blocked flow or the reachability of alternate chains, stateful exceptions, proxy destinations or host services from this abbreviated output.
+
+**Interpretation:** there are clearly scoped, early firewall DROP rules and jump paths consistent with an isolation design, including an INPUT DROP at position 1 and cross-Docker chain protections. This is stronger evidence than the bridge's `internal=true` metadata alone, but still **not a host-connectivity/isolation pass**. Agent remains stopped/NO-GO.
+
+**Next diagnostic:** sanitized read-only parse of the same bridge-matching rules with interface negation (`!`) and presence of extra predicates preserved. No raw rules, interface names, IPs, ports, credentials, network probes, or container actions.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
