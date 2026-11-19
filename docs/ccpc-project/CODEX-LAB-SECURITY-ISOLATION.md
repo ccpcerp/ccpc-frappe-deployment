@@ -577,6 +577,14 @@ The operator ran a hostname-guarded, read-only inspection of existing **stopped*
 
 **Next read-only diagnostic:** determine whether the lab bridge has IPv6 enabled, whether the stopped agent has an IPv6 address, and whether host IPv6 forwarding is enabled; classify any IPv6 ingress/forward firewall controls without printing interface names, IPs, network topology specifics or policy rules. This is the unverified counterpart of Steps 20–25's IPv4-only static inspection. No packet probes, service starts or firewall changes.
 
+## Step 54 — lab IPv6 disabled and host forwarding off (2026-11-19)
+
+Operator ran a hostname-guarded, read-only Docker inspection and Linux kernel settings check. Reported `agent_running=False`, `lab_network_internal=True`, `lab_network_driver_bridge=True`, `lab_ipv6_enabled=False`, `lab_ipv6_ipam_subnet_count=0`, `stopped_agent_ipv6_address_recorded=False`, `host_ipv6_disabled_all=0`, `host_ipv6_forwarding_all=0`, and `host_ipv6_forwarding_default=0`.
+
+**Interpretation:** IPv6 capability is **not globally disabled** on the Ubuntu host, but the existing internal Codex lab bridge has IPv6 disabled, contains no IPv6 IPAM subnet, and Docker records no stopped-agent IPv6 address. Host-wide and default IPv6 forwarding controls are disabled. This is favorable **static evidence** against IPv6 forwarding via the existing lab bridge. It does not prove every host interface setting or a future optional proxy network's IPv6 configuration; no runtime negative connectivity tests have been performed. No Docker/network/firewall changes, processes started, packets sent or DEV/OLD PROD/NEW PROD/UAT modifications. Codex stopped; optional Squid inactive; **NO-GO remains**.
+
+**Next one read-only diagnostic:** revisit Step 40–41's proxy policy file host-side group writability. Classify whether file-owning group has any non-owner local members and whether parent directory permissions are broadly writable; no raw file/parent paths, usernames, group names, UID/GID values, file contents, domains, credentials, or other metadata to be displayed. The proxy must not be activated while its source policy's change authority is uncertain. Keep other blockers (all-interface Squid listener/no source ACL, absent unpinned image, DNS, resource limits and runtime isolation tests) open.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
