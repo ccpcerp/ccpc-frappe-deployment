@@ -130,6 +130,23 @@ Operator executed a read-only, hostname-guarded query of the `ccpc_codex_dev_age
 
 **Next diagnostic:** inventory the effective host firewall rule implementation and hook policies via read-only, *sanitized* counts before examining scoped lab-bridge INPUT/FORWARD handling. Do not print IP addresses or rule targets containing sensitive host details.
 
+## Step 20 — nftables host INPUT/FORWARD policies (2026-11-19)
+
+The operator's read-only `iptables --version` and `nft -j list ruleset` metadata inspection returned:
+
+| Metadata | Operator-reported value |
+| --- | --- |
+| `iptables_version` | `iptables v1.8.11 (nf_tables)` |
+| `input_base_chains` | `1` |
+| `input_default_policies` | `accept` |
+| `forward_base_chains` | `2` |
+| `forward_default_policies` | `accept,drop` |
+| `nft_ruleset` | `readable` |
+
+**Interpretation:** the `input` hook includes an `accept` base-chain default; the `forward` hook has two base chains with mixed defaults. This **does not prove** that Codex can reach the Docker host or other networks, nor does it prove isolation: rule expressions, chain priorities, jump paths, and bridge-specific matching were not inspected. Different hooked base chains can have different priorities and a later drop can still block a packet; a base-chain accept by itself is not a global allow. Docker `internal=true` remains configured but is not a substitute for effective packet filtering and host-service boundary verification.
+
+**Next diagnostic:** read-only and sanitized scoped nftables analysis for the Codex bridge: count rules with exact bridge-interface references, show their family/table/chain and action types (never IPs, CIDRs, addresses, proxy values, or raw rule bodies), and print input/forward base-chain priorities. Keep Codex stopped. No production, DEVELOPMENT or UAT activity is authorized.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
