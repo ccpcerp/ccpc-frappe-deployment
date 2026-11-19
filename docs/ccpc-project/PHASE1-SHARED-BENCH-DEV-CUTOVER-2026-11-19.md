@@ -114,3 +114,80 @@ PY
 6. If source switch fails **before any migration**, a guarded two-directory rollback can restore prior app source. If migration fails/partially completes, code-only rollback is insufficient: preserve original, assess DB transactional effects, and use the separately scoped exact backup restore procedure only with verified site targets and explicit operator approval. No automated restore or destructive recovery shortcut is authorized.
 
 **No actual Gate B/C execution has occurred yet.** The staged plan is not proof that installed package paths, full Frappe site boot or live business transactions will succeed; those are DEVELOPMENT acceptance checks after safe execution.
+
+
+## November 19 — Gate A PASSED; Phase 1 Git object absent; exact GitHub SSH staging step
+
+**Owner-supplied real read-only gate output:**
+```text
+ORIGINAL PR33 CHECKOUT: VERIFIED
+PROTECTED AGENTS.md: VERIFIED
+RELEASE COMMIT OBJECT PRESENT: NO
+APP GIT ORIGIN TRANSPORT: SSH
+RELEASE REMOTE TRACKING EXACT: NO
+DEV HONCHO PROCESS IDS: 543180
+DEVELOPMENT PRE-CUTOVER INSPECTION: PASS
+```
+
+**Interpretation:** On the live bench, PR33 is intact and the protected untracked file remains. The release commit and its remote tracking ref are absent, so an in-place checkout or a local clone then direct checkout **cannot** supply the release without fetching GitHub. `543180` is a **read-only process match**, not a validated process tree or authorization to send a signal to that PID. Re-inspect PID/session/ownership separately before any DEV maintenance stop. No shutdown or release fetch occurred in Gate A.
+
+**GitHub re-confirmed:** Phase1 release exact `55eb10b86a57de55a97e293a78228d9dd17b809a`; PR33 exact `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`.
+
+**Gate B implementation:** Use an independent SSH clone from the **known repository** `git@github.com:ccpcerp/ccpcerp.git` directly into a previously nonexistent, hidden staging directory outside `apps` and `sites`. The command below will **write only to that new staging directory**. It checks the exact live source and local `AGENTS.md` before/after; requires an already trusted GitHub SSH host key; rejects interactive password or host-key prompts. No Git remote URL, token, key or sensitive configuration is printed. The clone is deliberately `--no-checkout` followed by checkout `--detach` of the exact verified release SHA. **Do not** execute the later cutover/migration from this staging approval.
+
+```bash
+bash <<'HOST'
+set -euo pipefail
+test "$(hostname -s)" = "ccpcerpserver" || { echo "STOP: WRONG HOST"; exit 1; }
+test "$(id -un)" = "gani" || { echo "STOP: WRONG OPERATOR"; exit 1; }
+dev=frappe_docker_devcontainer-frappe-1
+test "$(sudo docker inspect --format '{{.State.Running}}' "$dev")" = "true" || { echo "STOP: DEV CONTAINER NOT RUNNING"; exit 1; }
+test "$(sudo docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}}' "$dev")" = "frappe_docker_devcontainer" || { echo "STOP: WRONG COMPOSE PROJECT"; exit 1; }
+sudo docker exec -i --user frappe --workdir /workspace/development/frappe-bench/sites "$dev" bash -s <<'DEV'
+set -euo pipefail
+umask 077
+bench=/workspace/development/frappe-bench
+live="$bench/apps/ccpcerp"
+stage="$bench/.ccpc-phase1-release-stage-20261119-55eb10b86a57"
+old=25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87
+release=55eb10b86a57de55a97e293a78228d9dd17b809a
+branch=release/withdrawal-department-phase1-2026-11-17
+
+test -d "$live" && test ! -L "$live" || { echo "STOP: LIVE APP DIRECTORY"; exit 1; }
+test "$(git -C "$live" rev-parse HEAD)" = "$old" || { echo "STOP: LIVE APP HEAD CHANGED"; exit 1; }
+test -z "$(git -C "$live" branch --show-current)" || { echo "STOP: LIVE HEAD NOT DETACHED"; exit 1; }
+test "$(git -C "$live" status --porcelain=v1 --untracked-files=all)" = "?? AGENTS.md" || { echo "STOP: LIVE GIT STATUS CHANGED"; exit 1; }
+test -f "$live/AGENTS.md" && test ! -L "$live/AGENTS.md" || { echo "STOP: LOCAL AGENTS NOT PROTECTED"; exit 1; }
+test ! -e "$stage" && test ! -L "$stage" || { echo "STOP: STAGING PATH ALREADY EXISTS"; exit 1; }
+test -w "$bench" || { echo "STOP: BENCH DIRECTORY NOT WRITABLE"; exit 1; }
+for s in development.localhost ccpc-integration2.localhost; do
+  test -f "$bench/sites/$s/site_config.json" || { echo "STOP: DEV SITE CONFIG MISSING"; exit 1; }
+done
+printf '%s\n' "LIVE PR33 / AGENTS.md: VERIFIED" "ISOLATED STAGING PATH: AVAILABLE" "FETCHING PINNED PHASE1 RELEASE FROM GITHUB SSH"
+if ! GIT_TERMINAL_PROMPT=0 GIT_SSH_COMMAND='ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o ConnectTimeout=15' \
+    git clone --quiet --no-checkout --single-branch --depth 1 --branch "$branch" \
+    git@github.com:ccpcerp/ccpcerp.git "$stage" >/dev/null 2>&1; then
+  echo "STOP: GITHUB SSH CLONE FAILED; DO NOT DELETE OR RETRY BLINDLY"
+  exit 1
+fi
+if ! git -C "$stage" -c advice.detachedHead=false checkout --quiet --detach "$release" >/dev/null 2>&1; then
+  echo "STOP: EXACT RELEASE CHECKOUT FAILED; STAGE RETAINED"
+  exit 1
+fi
+test "$(git -C "$stage" rev-parse HEAD)" = "$release" || { echo "STOP: STAGED RELEASE SHA MISMATCH"; exit 1; }
+test -z "$(git -C "$stage" branch --show-current)" || { echo "STOP: STAGED RELEASE NOT DETACHED"; exit 1; }
+test -z "$(git -C "$stage" status --porcelain=v1 --untracked-files=all)" || { echo "STOP: STAGED RELEASE NOT CLEAN"; exit 1; }
+test -n "$(git -C "$stage" ls-tree -r --name-only HEAD -- AGENTS.md)" && test -f "$stage/AGENTS.md" || { echo "STOP: RELEASE AGENTS.md MISSING"; exit 1; }
+test -f "$stage/ccpcerp/__init__.py" || { echo "STOP: STAGED APP PACKAGE MISSING"; exit 1; }
+test "$(git -C "$live" rev-parse HEAD)" = "$old" || { echo "STOP: LIVE SOURCE CHANGED DURING STAGE"; exit 1; }
+test "$(git -C "$live" status --porcelain=v1 --untracked-files=all)" = "?? AGENTS.md" || { echo "STOP: LIVE STATUS CHANGED DURING STAGE"; exit 1; }
+echo "STAGED PHASE1 RELEASE COMMIT: $release"
+echo "STAGED RELEASE SOURCE: CLEAN, DETACHED, SEPARATE"
+echo "LIVE PR33 SOURCE / LOCAL AGENTS.md: UNCHANGED"
+echo "PHASE1 STAGING: PASS"
+echo "SOURCE SWITCH / MIGRATIONS / DEV RESTART: NOT PERFORMED"
+DEV
+HOST
+```
+
+**STOP instructions:** If `GITHUB SSH CLONE FAILED` appears (unknown SSH host key, missing credentials, blocked port or other fetch failure), preserve any newly created staging directory. Do **not** turn off `StrictHostKeyChecking`, export private keys, switch to HTTPS with embedded tokens, remove/retry blindly, or attempt an in-place fetch of the live PR33 repository. If `PHASE1 STAGING: PASS`, the next milestone is a read-only **source path/mount topology and Honcho+worker process inventory**, then actual maintenance source activation; a PASS here is **not a migration or application acceptance**.
