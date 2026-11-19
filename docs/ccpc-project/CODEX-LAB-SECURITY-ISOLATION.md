@@ -387,6 +387,14 @@ Operator ran hostname-guarded read-only parse of the current Compose source for 
 
 **Next diagnostic:** read-only sanitized classification of the proxy's single source-declared mount: type, read-only setting, whether it references Docker's control socket, and whether source path is a symlink (only if safe to determine), without showing paths, target names, config contents, proxy addresses or credentials. Later verify the image default user and outbound ACLs; resource limits remain an availability blocker on cohosted infrastructure.
 
+## Step 38 — optional proxy bind-mount classification (2026-11-19)
+
+Operator ran a hostname-guarded read-only inspection of the configured but inactive optional `egress-proxy` service's one Compose-declared mount. Sanitized results: `agent_running=False`, `mount_type=bind`, `mount_read_only=True`, `source_is_absolute=True`, `bind_source_exists=True`, `bind_source_is_symlink=False`, `source_is_docker_socket=False`, `target_is_docker_socket=False`.
+
+**Interpretation:** A currently existing absolute host path is declared as the proxy's read-only bind source, not itself a symlink and not resolving directly to the standard Docker Unix control socket; its container target is not the standard socket either. This is promising but not proof of source safety: the source could be a directory, a file containing credentials, an alias through a parent directory, or overlap other protected containers' mounted host filesystems. A read-only mount does not prevent reading sensitive material, and this check does not detect nonstandard Docker daemon endpoints. No configuration content, source paths or secrets were displayed; no Docker or protected-environment state changed. Codex remains stopped and proxy inactive/NO-GO.
+
+**Next one read-only diagnostic:** classify the proxy bind source as regular file/directory, detect parent-path symlink resolution, and count exact/nested host-mount-source overlaps with containers outside the lab. Report only booleans/counts; never print raw source paths, file contents, proxy addresses or credentials. If safe, later inspect *sanitized policy categories* and image default user before any proxy activation.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
