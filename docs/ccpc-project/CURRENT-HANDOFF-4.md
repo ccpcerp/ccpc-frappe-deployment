@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-19 — MAIN DEVELOPMENT named Finance actor selection still pending
+
+**Owner-provided MAIN DEV User List observation:** the first 20 of 37 Users include one active System User labeled as an actual Finance Controller, alongside active `DEV Finance Checker` and `DEV Billing Preparer` testing identities, and other active operational System Users. **No Finance mapping role assignment or exact Company User Permission has been demonstrated for any user.** The DEV billing test roles/accounts and `Finance Controller`/billing roles must not be treated as equivalents of `CCPC Mapping Preparer` or `CCPC Accounting Mapping Approver` without explicitly verifying their direct Role rows. A real named preparer and independent authorized checker are required; no Administrator exception and no test-account Finance signoff shortcut. Public project GitHub handoff deliberately does **not** reproduce personal employee names, identifiers, addresses or roster details from the browser.
+
+**Next step:** read-only browser review of the existing enabled real Finance Controller account's Role assignments and Company User Permission rows, without saving any changes. Then owner identifies one *different*, authorized real Finance preparer account for the required maker/checker separation; only after their real responsibilities and intended DEV Company are confirmed should an explicit separately approved DEV role/Company grant be made. Do not approve any actual mapping or financial posting in these preliminary UI tests, and no PROD change.
+
+---
+
 ## 2026-11-19 — MAIN DEV Finance mapping Role list visibly confirms both required roles Enabled
 
 **Owner supplied exact MAIN DEVELOPMENT ERPNext Role List entries (browser-side `http://development.localhost:8001/desk`):** `CCPC Accounting Mapping Approver` — Enabled and `CCPC Mapping Preparer` — Enabled, both visible under Role (not Role Profile). Also `CCPC Billing Preparer` is visible and Enabled but is a **different** role, not a mapping-preparer substitute. This confirms Role definitions in browser, consistent with previous successful MAIN post-migration database metadata validation. The prior `An enabled named Finance mapping user is required.` while signed in as Administrator remains expected, because current Phase1 source explicitly rejects Administrator. **No named Finance actor login or Company permission/role assignment has yet been verified; no mapping proposal or approval was performed.**
