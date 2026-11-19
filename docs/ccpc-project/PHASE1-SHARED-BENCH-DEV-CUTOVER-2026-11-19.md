@@ -820,3 +820,54 @@ HOST
 ```
 
 **Interpretation / boundary:** If all counts remain consistent, document the remaining data-quality tasks; do not fix Department/Company relations or change Issue Qty without owner-authorized master/stock workflow decisions. Next maintenance gate is queue/user quiescence and two-site-aware stopping/restart/rollback, with protected backup sets and PR33 checkout unchanged. The four aggregate status categories sum to exactly the number of nonpositive items; on any surprising values or STOP marker, investigate read-only first.
+
+
+## November 19 — Five historical exceptions classified; DEV-only worker/scheduler status gate
+
+**Operator-provided actual classification (explicit READ ONLY SQL on MAIN):**
+```text
+PERSONNEL COMPANY MISSING: 3
+PERSONNEL DEPARTMENT LINK INVALID: 0
+PERSONNEL DEPARTMENT COMPANY BLANK: 3
+PERSONNEL COMPANY RESOLVABLE: 0
+WITHDRAWAL ITEMS NONPOSITIVE: 2
+WITHDRAWAL ITEMS PARENT MISSING: 0
+WITHDRAWAL ITEMS OTHER PARENT STATUS: 2
+WITHDRAWAL ITEMS STOCKROOM REVIEW: 0
+WITHDRAWAL ITEMS ISSUED STATUSES: 0
+MAIN DATA EXCEPTION CLASSIFICATION: PASS
+SOURCE / MIGRATION / SERVICES: UNCHANGED
+```
+
+**Decision:** The three MAIN CCPC Personnel links are **valid Department references**, but `tabDepartment.company` is blank for each linked Department. Existing `backfill_ccpc_personnel_company` will not fill these three records without a separate authorized Department/Company business-master decision. The two MAIN Withdrawal Slip Items have valid parents, but both parent statuses are **outside** `Stockroom Review` / `Fully Issued` / `Issued with Shortage`. Existing `backfill_withdrawal_slip_issue_qty` will not update them; no evidence of an invalid stock posting follows from the aggregation alone. They are **outstanding data-quality/workflow questions, not demonstrated migration failures**. Do NOT silently fill Company, choose a stock status, or alter quantities. Record these exceptions for targeted authenticated DEV UAT after source integration. Their unresolved business intent requires separate review before any stock/finance posting that depends on them. The printed `PASS` certifies classification only.
+
+**Next safety gate: check *both* DEV sites' live worker/scheduler/queue overview and obtain operator confirmation that nobody is using the sites before a future DEV-only outage.** The existing deployment operations document `DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md` records that site-scoped `bench doctor` ran successfully after the previous 2026-10-27 DEV maintenance. That command reports registered workers and queue/scheduler diagnostics but does not guarantee every active HTTP request, running job, unsaved user form or transaction is absent. Treat this only as a no-write diagnostic; do not interpret a worker count alone as a safe stop permit. We have **not** stopped Honcho or opened a maintenance window yet.
+
+On the verified original `gani@ccpcerpserver` Ubuntu host:
+
+```bash
+bash <<'HOST'
+set -euo pipefail
+test "$(hostname -s)" = ccpcerpserver && test "$(id -un)" = gani || { echo "STOP: WRONG HOST OR OPERATOR"; exit 1; }
+dev=frappe_docker_devcontainer-frappe-1
+test "$(sudo docker inspect --format '{{.State.Running}}' "$dev")" = true || { echo "STOP: DEVELOPMENT CONTAINER DOWN"; exit 1; }
+test "$(sudo docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}}' "$dev")" = frappe_docker_devcontainer || { echo "STOP: WRONG DOCKER PROJECT"; exit 1; }
+sudo docker exec --user frappe --workdir /workspace/development/frappe-bench "$dev" bash -lc '
+set -euo pipefail
+app=apps/ccpcerp
+stage=.ccpc-phase1-release-stage-20261119-55eb10b86a57
+test "$(git -C "$app" rev-parse HEAD)" = 25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87 || { echo "STOP: LIVE APP HEAD MOVED"; exit 1; }
+test "$(git -C "$app" status --porcelain=v1 --untracked-files=all)" = "?? AGENTS.md" || { echo "STOP: LIVE GIT STATUS CHANGED"; exit 1; }
+test "$(git -C "$stage" rev-parse HEAD)" = 55eb10b86a57de55a97e293a78228d9dd17b809a || { echo "STOP: STAGED RELEASE MOVED"; exit 1; }
+test -z "$(git -C "$stage" status --porcelain=v1 --untracked-files=all)" || { echo "STOP: RELEASE STAGE CHANGED"; exit 1; }
+for site in development.localhost ccpc-integration2.localhost; do
+  echo "DEV DOCTOR SITE: $site"
+  FRAPPE_STREAM_LOGGING=1 bench --site "$site" doctor
+done
+echo "BOTH DEV SITES BENCH DOCTOR INVOCATIONS: PASS"
+echo "NO HONCHO STOP / APP SWITCH / SITE MIGRATION PERFORMED"
+'
+HOST
+```
+
+**Interpretation and further action:** Return the full scheduler/worker/queue diagnostic output with any sensitive user data redacted if unexpectedly printed. If `bench doctor` exits nonzero, reports pending/enqueued/running jobs, no active worker, site exceptions, scheduler errors or a broken-site crossover, STOP for analysis. If both doctor invocations pass, ask the operator explicitly whether **both valid DEV sites are free of active users and unsaved transactions** and whether a DEV-only maintenance outage can start now; this cannot be inferred from the queue diagnostics. Recheck exact stopped Honcho identity immediately before sending a scoped graceful signal. Preserve original PR33 repo `AGENTS.md`, separate release stage, 2-site Nov19 + Nov17 backups and verified NAS copies; never use broad Docker/Compose shutdowns or production services. Full site migration still requires controlled ordered site scope and post-acceptance tests, and the original two-site isolated SQL/files recovery does not prove full app-site recovery.
