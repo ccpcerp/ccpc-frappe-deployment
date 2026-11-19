@@ -27,7 +27,15 @@ def safe_config():
               "egress-proxy": "ubuntu/squid:latest"}
     result = {
         "name": "ccpc_codex_dev_agent",
-        "networks": {"lab": {"internal": True}, "outgoing": {"internal": False}},
+        "networks": {
+            "lab": {"internal": True, "driver": "bridge"},
+            "proxy_clients": {
+                "internal": True, "driver": "bridge", "attachable": False,
+                "enable_ipv6": False,
+                "ipam": {"config": [{"subnet": gate.CLIENT_SUBNET}]},
+            },
+            "outgoing": {"internal": False, "driver": "bridge", "attachable": False},
+        },
         "secrets": {
             "db-user-password": {"file": "/safe/codex-dev-agent/local-secrets/db-user-password"},
             "db-root-password": {"file": "/safe/codex-dev-agent/local-secrets/db-root-password"},
@@ -36,7 +44,14 @@ def safe_config():
             "agent": {
                 "user": "1000:1000", "read_only": True,
                 "cap_drop": ["ALL"], "security_opt": ["no-new-privileges:true"],
-                "networks": ["lab"],
+                "networks": {"lab": None,
+                             "proxy_clients": {"ipv4_address": gate.AGENT_CLIENT_IP}},
+                "environment": {
+                    "HTTP_PROXY": "http://egress-proxy:3128",
+                    "HTTPS_PROXY": "http://egress-proxy:3128",
+                    "ALL_PROXY": "",
+                    "NO_PROXY": "localhost,127.0.0.1,db,redis-cache,redis-queue",
+                },
                 "volumes": [
                     {"type": "volume", "source": "agent-home", "target": "/home/frappe"},
                     {"type": "volume", "source": "agent-cache", "target": "/home/frappe/.cache"},
@@ -51,7 +66,16 @@ def safe_config():
             "egress-proxy": {
                 "cap_drop": ["ALL"], "security_opt": ["no-new-privileges:true"],
                 "read_only": True, "profiles": ["online"],
-                "networks": ["lab", "outgoing"],
+                "networks": {
+                    "proxy_clients": {"ipv4_address": gate.PROXY_CLIENT_IP},
+                    "outgoing": None,
+                },
+                "volumes": [{
+                    "type": "bind",
+                    "source": "/safe/codex-dev-agent/proxy/squid.conf",
+                    "target": "/etc/squid/squid.conf",
+                    "read_only": True,
+                }],
             },
         },
     }
@@ -70,7 +94,10 @@ class TestStaticComposeGate(unittest.TestCase):
         self.config = safe_config()
 
     def test_secure_baseline_accepts(self):
-        self.assertTrue(gate.validate(self.config))
+        self.assertTrue(gate.validate(
+            self.config,
+            proxy_policy=(ROOT / "proxy" / "squid.conf").read_text(encoding="utf-8"),
+        ))
 
     def test_host_network_denied(self):
         self.config["services"]["agent"]["network_mode"] = "host"
@@ -129,6 +156,117 @@ class TestStaticComposeGate(unittest.TestCase):
         self.config["services"]["agent"]["secrets"] = ["db-root-password"]
         with self.assertRaises(ValueError):
             gate.validate(self.config)
+
+
+class TestProxyNetworkIsolation(unittest.TestCase):
+    def setUp(self):
+        self.config = safe_config()
+
+    def rejected(self):
+        with self.assertRaises(ValueError):
+            gate.validate(self.config)
+
+    def test_proxy_must_not_share_lab_bridge(self):
+        self.config["services"]["egress-proxy"]["networks"]["lab"] = None
+        self.rejected()
+
+    def test_db_must_not_join_proxy_client_bridge(self):
+        self.config["services"]["db"]["networks"] = ["lab", "proxy_clients"]
+        self.rejected()
+
+    def test_redis_must_not_join_proxy_client_bridge(self):
+        self.config["services"]["redis-cache"]["networks"] = ["lab", "proxy_clients"]
+        self.rejected()
+
+    def test_agent_must_not_join_outgoing_bridge(self):
+        self.config["services"]["agent"]["networks"]["outgoing"] = None
+        self.rejected()
+
+    def test_wrong_agent_ip_denied(self):
+        self.config["services"]["agent"]["networks"]["proxy_clients"]["ipv4_address"] = "172.30.250.4"
+        self.rejected()
+
+    def test_wrong_proxy_ip_denied(self):
+        self.config["services"]["egress-proxy"]["networks"]["proxy_clients"]["ipv4_address"] = "172.30.250.4"
+        self.rejected()
+
+    def test_client_network_must_be_internal(self):
+        self.config["networks"]["proxy_clients"]["internal"] = False
+        self.rejected()
+
+    def test_client_network_must_not_be_attachable(self):
+        self.config["networks"]["proxy_clients"]["attachable"] = True
+        self.rejected()
+
+    def test_client_network_ipv6_disabled(self):
+        self.config["networks"]["proxy_clients"]["enable_ipv6"] = True
+        self.rejected()
+
+    def test_client_subnet_cannot_drift(self):
+        self.config["networks"]["proxy_clients"]["ipam"]["config"][0]["subnet"] = "172.30.251.0/29"
+        self.rejected()
+
+    def test_proxy_published_port_denied(self):
+        self.config["services"]["egress-proxy"]["ports"] = ["3128:3128"]
+        self.rejected()
+
+    def test_proxy_policy_mount_must_be_readonly(self):
+        self.config["services"]["egress-proxy"]["volumes"][0]["read_only"] = False
+        self.rejected()
+
+    def test_proxy_must_not_have_secrets(self):
+        self.config["services"]["egress-proxy"]["secrets"] = ["db-user-password"]
+        self.rejected()
+
+    def test_lowercase_proxy_env_override_denied(self):
+        self.config["services"]["agent"]["environment"]["http_proxy"] = "http://other:3128"
+        self.rejected()
+
+
+class TestProxyPolicy(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.policy = (ROOT / "proxy" / "squid.conf").read_text(encoding="utf-8")
+
+    def test_approved_policy_accepts(self):
+        self.assertTrue(gate.validate_proxy_policy(self.policy))
+
+    def denies(self, policy):
+        with self.assertRaises(ValueError):
+            gate.validate_proxy_policy(policy)
+
+    def test_wildcard_listener_denied(self):
+        self.denies(self.policy.replace(
+            "http_port " + gate.PROXY_LISTENER, "http_port 3128"
+        ))
+
+    def test_additional_listener_denied(self):
+        self.denies(self.policy + "\nhttp_port 0.0.0.0:3129\n")
+
+    def test_broad_client_acl_denied(self):
+        self.denies(self.policy.replace(
+            "src " + gate.PROXY_SOURCE, "src 172.30.250.0/29"
+        ))
+
+    def test_missing_source_deny_denied(self):
+        self.denies(self.policy.replace("http_access deny !codex_agent\n", ""))
+
+    def test_extra_allow_denied(self):
+        self.denies(self.policy + "\nhttp_access allow all\n")
+
+    def test_destination_deny_removal_denied(self):
+        self.denies(self.policy.replace("http_access deny prohibited\n", ""))
+
+    def test_domain_allowlist_expansion_denied(self):
+        self.denies(self.policy.replace(
+            ".pythonhosted.org", ".pythonhosted.org .example.com"
+        ))
+
+    def test_include_file_denied(self):
+        self.denies(self.policy + "\ninclude /etc/squid/extra.conf\n")
+
+    def test_upstream_proxy_override_denied(self):
+        self.denies(self.policy + "\ncache_peer 192.0.2.9 parent 3128 0\n")
 
 
 class TestSecretSafety(unittest.TestCase):
