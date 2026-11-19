@@ -473,6 +473,16 @@ The operator ran a hostname-guarded, read-only sanitized parse of the configured
 
 **Next read-only check:** classify which ACL type is actually referenced by each rule and report coverage (only boolean categories) of major private/reserved IPv4/IPv6 blocks by the *destination-deny* ACL, plus a count of permitted destination-name patterns without displaying their contents. This should not publish ACL names, host paths, domain names, IPs, raw directives, or credentials. Avoid image pull, proxy activation or Codex launch.
 
+## Step 43 — Squid private-range coverage and destination ACL shape (2026-11-19)
+
+The operator ran a hostname-guarded, read-only classifier of the inactive Squid proxy configuration. It confirmed the five `http_access` rule types and the specific reference types (not raw ACL values): `DENY_NOT_METHOD`, `DENY_NOT_PORT`, `DENY_DST`, `ALLOW_DSTDOMAIN`, `DENY_ALL`. The destination IP deny rule was correctly referenced (`destination_ip_deny_verified=True`), with `deny_network_entry_count=13` and `deny_unparsed_entry_count=0`. The destination-name allow rule was correctly referenced (`destination_name_allow_verified=True`), with `allowed_name_pattern_count=10` and `allowed_name_has_star_wildcard=False`.
+
+Each coverage check returned true: IPv4 private `10/8`, `172.16/12`, `192.168/16`; loopback `127/8`; link-local `169.254/16`; shared `100.64/10`; IPv6 loopback `::1/128`, unique-local `fc00::/7`, and link-local `fe80::/10`. Coverage is defined here as **the full indicated block being contained by at least one parsable network entry**. No actual proxy policy values, host paths, hostnames, or secrets were shown.
+
+**Interpretation:** The observed Squid rule order is consistent with method/port restrictions, protection of the tested private/special-use destination ranges, a destination-name allowlist and terminal default-deny. This is strong static configuration evidence, **not approval to activate Squid/Codex**: exact method/port values are unverified, other reserved ranges and DNS rebinding/lookup behavior are untested, destination-name patterns may match suffixes even without `*`, and no runtime traffic testing has occurred. The absence of a wildcard `*` is insufficient to establish narrow exact-host matching. The proxy is inactive, Codex stopped, and there were no host, Docker, DEVELOPMENT, OLD/NEW PRODUCTION or UAT changes.
+
+**Next single diagnostic:** safely classify actual method and port ACL values (e.g. CONNECT-only, 443-only), and destination-name pattern shapes (exact-name versus suffix, IP literals, potentially overly broad entries), outputting only booleans and counts. No raw allowed domains, proxy endpoints, paths, configuration text, credentials, or network probes. Continue separately to evaluate DNS/IPv6 edge cases and file integrity before any activation.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
