@@ -286,6 +286,24 @@ The operator ran a hostname-guarded, read-only Docker metadata check for the sto
 
 **Next single read-only check:** parse the agent service in the recorded Compose file and report only security-relevant key presence/type and resource-limit presence (never raw paths, environment or secret values). First guard against a moving file or ambiguous service. Do not run `docker compose up`, pull images, or execute the agent.
 
+## Step 31 — Compose agent resource and privilege declarations (2026-11-19)
+
+Operator ran a hostname-guarded, read-only `docker compose config --format json --no-interpolate --no-env-resolution` inspection of the single Compose file identified by Docker's stopped-agent metadata, reporting only selected settings from service `agent`:
+
+| Field | Operator-reported value |
+| --- | --- |
+| `agent_running` | `False` |
+| `source_service_found` | `True` |
+| `memory_limit_defined` | `False` |
+| `cpu_limit_defined` | `False` |
+| `pids_limit_defined` | `True` |
+| `source_read_only` | `True` |
+| `source_privileged` | `None` (omitted in Compose source) |
+
+**Interpretation:** the current parsed Compose source contains no configured agent CPU or memory cap, although it does contain a PID cap and read-only root filesystem setting. The omitted Compose `privileged` key should not be treated as privileged mode being enabled: the earlier Docker runtime inspection reported `privileged=false`. Prior read-only runtime inspection also found **no CPU or memory caps on all four laboratory containers**, and the three support services are still running in the last confirmed container-state observation. Missing resource limits are an outstanding **cohosted availability risk** and a mandatory blocker before any Codex agent start. A current Compose file need not exactly match the settings at the original time of container creation; the earlier runtime verification provides an independent check. No changes made to containers, Docker, host, DEV, OLD/NEW PROD or UAT.
+
+**Next single read-only check:** inspect the same Compose source for CPU, memory and PID limits of **all lab services** (agent, DB, Redis), reporting only service names and boolean limit presence, not raw Compose configuration, paths or environment values. Do not run `docker compose up`, recreate containers, pull images, or restart services. Design approved and reviewed changes in GitHub before any lab-only host operation, protecting cohosted workloads.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
