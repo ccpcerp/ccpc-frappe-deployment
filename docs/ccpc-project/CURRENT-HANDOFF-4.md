@@ -2,6 +2,20 @@
 
 ## 2026-11-20 — Owner-approved Phase 1 Finance UI Playwright regression suite committed (GitHub-only)
 
+### 2026-11-20 — Original Node PR40 spec functions run via isolated local adapter: 4/4 PASS
+
+**Owner authorization:** install needed Node/Playwright dependencies and run the original suite in an isolated credential-free workspace, without MAIN DEVELOPMENT/PRODUCTION changes.
+
+**Source integrity:** The local browser test files verified by Git blob hash against draft PR40: `phase1-finance.spec.cjs` **`a9907ecaf6a265737d0e67809fe4726f3ed4b55e`**, `phase1-finance.live.spec.cjs` **`3327e345eed842daf97aefeb3d01d6a0a0f289f4`**, `package.json` **`dd9dabd16d76382ddcfe9a6c9da496392e778052`**, `playwright.config.cjs` **`e5adac1a0b200c65610d533ab7e31ebd7451b217`**, and actual Phase 1 Finance Page source **`413cc18d294af23acc4b2b34907fe0bfcbd57fdb`** (app release branch). Node `v22.16.0`, npm `10.9.2`, system Chromium available.
+
+**Attempted exact install:** In isolated scratch directory, `npm install --no-audit --no-fund --ignore-scripts --fetch-retries=0 --fetch-timeout=16000` failed **`EAI_AGAIN`** because `registry.npmjs.org` DNS cannot resolve in this workspace. Other registry/public hosts also unavailable; no official `@playwright/test` or declared jQuery 3.7.1 was installed. `npm run check` **PASS**. No dependencies installed to shared MAIN DEV/PRODUCTION, no remote CI triggered.
+
+**Additional executable validation:** Ran **all four original committed Node spec functions without editing the spec**, using locally bundled `playwright-core` 1.57.0-beta from the Python Playwright installation, Debian system Chromium, locally available jQuery 3.6.1, and a **temporary isolated Node adapter** implementing the narrow `test`/`expect` API. **4/4 PASS**, covering Preparer/Controller matrix and both stale-selection reset tests. This executes the actual PR40 JavaScript test functions in Chromium; unlike an official Playwright Test runner, the adapter has no full assertions/retry/reporting semantics, so do **not** call it a completed official `npm test` run. No real Frappe API, database, session, financial master, proposal, approval or accounting post was contacted.
+
+**Outstanding:** The official pinned `@playwright/test` 1.56.0 + jQuery 3.7.1 `npm test` run and lockfile remain pending an isolated environment with npm registry access. PR40 stays draft/unmerged; MAIN DEV named-user tests/financial validation and PRODUCTION changes are not part of this authorization.
+
+
+
 ### 2026-11-20 — Isolated Chromium browser spot-validation: 10/10 PASS (not npm suite)
 
 During owner-authorized assistant-run testing, the isolated ChatGPT scratch environment was confirmed to have **Python Playwright** and Debian **Chromium 144.0.7559.96** but not the npm `@playwright/test` runner. The public npm registry hostname was unreachable from that environment; no install or paid CI workflow was triggered. The exact Phase 1 Finance Page source text was reconstructed from the prior GitHub connector fetch, and `git hash-object` of the tested copy matched the checked GitHub blob **`413cc18d294af23acc4b2b34907fe0bfcbd57fdb`**. The local jQuery used was **3.6.1** (PR40's declared npm version is 3.7.1). Chromium started successfully with no network, login or database connection.
