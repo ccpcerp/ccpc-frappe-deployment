@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-19 — Dual-Honcho shutdown NOT CONFIRMED; both original PIDs still alive
+
+**Owner report:** staged and checksum-verified `ccpc_dev_dual_honcho_stop_20261119.sh` returned `DEV SHUTDOWN SCRIPT STAGED AND VERIFIED: PASS`, then the **terminal unexpectedly exited** after owner attempted to execute the script; no command output or exit code for the execution was captured. Subsequent **read-only** exact named DEV container check returned `RUNNING HONCHO MANAGERS: 2`; original `BENCH-MANAGER: PID=543180` and `WORKER-ONLY: PID=546647`; `HONCHO SHUTDOWN: INCOMPLETE OR UNVERIFIED`. This is evidence both managers were still visible and must **not** be treated as a successful graceful shutdown. It does not prove whether a signal was ever sent, whether a precondition failed, or whether child/job state changed.
+
+**STOP/next:** Do **not** rerun the one-shot shutdown script, send manual SIGINT/TERM/KILL, source-swap, migrate, restart Docker or alter Redis. Run a small site-scoped read-only diagnostics of Honcho identity/commands and the script's critical source/backup/RQ-idle preconditions, with sanitized output, to learn if any gate would have blocked launch. Reassess the shutdown approach and explicitly account for previous termination attempt before another approved operation. Both site databases/backups, live original app checkout and production have not been intentionally modified by diagnostic checks; absence of unintended side effects is not independently established. Previous owner-reported lone DEV operator logout continues to count as maintenance availability, not as proof of no background activity.
+
+---
+
 ## 2026-11-19 — Two DEVELOPMENT Honcho managers identified; approved maintenance stop staged
 
 **Owner-reported fresh read-only process inventory:** `HONCHO PROCESS COUNT: 2`; original bench-manager `PID=543180 PPID=0 PGID=543180 SID=543180 STATE=S DESCENDANTS=11`; recovered worker-only manager `PID=546647 PPID=0 PGID=546647 SID=546647 STATE=S DESCENDANTS=5`. Inventory reported `NO SERVICES OR DATABASES MODIFIED`. This confirms two distinct managers under the named DEV container, not separate site workers. Owner previously confirmed being the only DEV user and fully logged out.
