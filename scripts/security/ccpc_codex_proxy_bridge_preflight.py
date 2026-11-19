@@ -210,6 +210,18 @@ def main(argv=None):
     if 0 < sum(present.values()) < len(present):
         fail()  # Do not normalize partial firewall state automatically.
 
+    # Refuse any additional filter/nat rule that mentions the reserved name,
+    # including one that could bypass later pre-enforced DROP rules.
+    for table in ("filter", "nat"):
+        lines = command(["iptables", "-w", "5", "-t", table, "-S"]).splitlines()
+        refs = [
+            shlex.split(line) for line in lines
+            if BRIDGE in shlex.split(line)
+        ]
+        expected_count = sum(present.values()) if table == "filter" else 0
+        if len(refs) != expected_count:
+            fail()
+
     # Output contains no network IDs, raw rules, subnet addresses or routes.
     print("CODEX_PROXY_BRIDGE_FIREWALL_READ_ONLY_REVIEW")
     print("agent_running=False")
