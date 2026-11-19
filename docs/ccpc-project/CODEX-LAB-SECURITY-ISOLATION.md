@@ -222,6 +222,22 @@ Total matching rules classified: **6**. The operator did not print address value
 
 **Next diagnostic:** sanitized read-only comparison of the INPUT/DOCKER-INTERNAL address predicates with the Docker network's own IPAM subnet; report coverage categories (exact, covering, partial, disjoint), not actual IPs, interface names or raw rule text. Negation and direction must be handled correctly.
 
+## Step 25 — firewall address predicates cover lab subnet (2026-11-19)
+
+The operator ran a hostname-guarded, read-only comparison of the lab network's own Docker IPAM IPv4 subnet against source/destination predicates in three matching firewall rules; subnet and address values were not printed:
+
+| Chain / position | Source coverage | Source negated? | Destination coverage | Destination negated? |
+| --- | --- | --- | --- | --- |
+| `INPUT` #1 | `EXACT_LAB_SUBNET` | no | `ANY` | no |
+| `DOCKER-INTERNAL` #1 | `EXACT_LAB_SUBNET` | **yes** | `ANY` | no |
+| `DOCKER-INTERNAL` #2 | `ANY` | no | `EXACT_LAB_SUBNET` | **yes** |
+
+**Interpretation with Step 23 interface matches:** `INPUT` #1 matches traffic arriving via the lab bridge and originating from the exact lab IPv4 subnet and drops it. `DOCKER-INTERNAL` #1, which matches egress interface LAB, drops packets sourced **outside** the lab subnet; #2, which matches ingress interface LAB, drops packets destined **outside** the lab subnet. The two `DOCKER-USER` rules (Step 24) impose additional cross-interface DROP restrictions without packet-filtering predicates beyond the interface match. This is strong *static configuration evidence* consistent with host and cross-network isolation while permitting intra-lab bridge forwarding. It is **not proof of live connectivity denial**, host-local proxy isolation, DNS restrictions or full absence of other packet paths. The Step 25 diagnostic did not create packets or change the firewall. No development, old/new production, or UAT services were touched.
+
+**Static IPv4 firewall review:** provisionally passed on the verified scoped predicates, subject to controlled negative runtime tests and any review of alternate network/host routes. **Codex startup remains NO-GO** pending resource caps, sandbox/approval posture, workspace and credential boundaries, and approved GitHub access design.
+
+**Next read-only host diagnostic:** inventory Compose provenance for the stopped lab agent and its image/configuration identity, *without printing command-line arguments, env values, host filesystem paths or credentials*, before reviewing sandbox/approval settings. The audit should distinguish the live container from the tracked source template and avoid any agent execution.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
