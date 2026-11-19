@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-19 — Phase1 source-only activation PASS on shared DEV bench
+
+**Operator-reported actual execution of staged and SHA256-verified source activation script `ccpc_phase1_source_activation_20261119.sh`:** `DEV APPLICATION SEPARATE DOCKER MOUNT: NO`; `DEV ORIGINAL HONCHO SESSIONS AND SERVICE CANDIDATES: CLEAR`; `PHASE1 SOURCE SWITCH PRECHECK: PASS`; `PHASE1 ACTIVE APP RELEASE SHA: 55eb10b86a57de55a97e293a78228d9dd17b809a`; `ORIGINAL PR33 CHECKOUT AND LOCAL AGENTS.MD: PRESERVED IN PROTECTED SIBLING`; `PHASE1 SOURCE ACTIVATION: PASS`; `SITE MIGRATION / SERVICES / PROD: NOT PERFORMED`. The named DEV Docker container app path now points to released Phase1 checkout; original PR33 detached `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87` with untracked local `AGENTS.md` is preserved at `apps/.ccpcerp-preserved-pr33-20261119-25a7b6be`. Reported output indicates script's same-filesystem rename, post-switch git status and Python import origin checks PASS. No source reset or deletion. Both DEVELOPMENT site migrations and DEV service start remain unperformed; both sites are intentionally unavailable during maintenance. PRODUCTION is not included.
+
+**Next checkpoint:** review actual Phase1 release hooks/setup/patches and the known two-site schema/roles/master prerequisites, not blind `bench --site all migrate`. Confirm pre/post migration rollback decision boundary and isolated backup proof before operating against `ccpc-integration2.localhost`, then `development.localhost` separately. Both sites share source but have independent DB and state. Migrations are DB writes and must not be combined with a service start; do not assume a successful source activation proves Frappe/ERPNext migration compatibility. Do not migrate failed third site `ccpc-integration.localhost`, do not restart broad Compose services and never touch either PRODUCTION environment.
+
+---
+
 ## 2026-11-19 — Phase1 source-only activation script committed after verified two-Honcho stop
 
 **Current operator-reported operational checkpoint:** The corrected two-Honcho graceful shutdown V2 successfully exited both DEV process managers with a single idle RQ worker checked twice and `DEV TWO-HONCHO GRACEFUL STOP: PASS`. Both valid DEV sites now intentionally offline; no app source move/migration or PRODUCTION action reported. Owner is the only DEVELOPMENT user and logged out.
