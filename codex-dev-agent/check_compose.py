@@ -80,20 +80,15 @@ def only_network(service, expected, name):
 
 
 def network_config(entry, address=None):
+    # Match the whole entry rather than accepting unreviewed route priorities,
+    # links, aliases, or other attributes that happen to be falsey.
     if entry is None:
         return address is None
     if not isinstance(entry, dict):
         return False
     if address is None:
-        return not any(entry.get(key) for key in (
-            "ipv4_address", "ipv6_address", "aliases", "link_local_ips"
-        ))
-    return (
-        entry.get("ipv4_address") == address
-        and not any(entry.get(key) for key in (
-            "ipv6_address", "aliases", "link_local_ips"
-        ))
-    )
+        return entry == {}
+    return entry == {"ipv4_address": address}
 
 
 def validate_proxy_policy(source):
@@ -175,6 +170,8 @@ def validate(rendered, proxy_policy=None):
         reject("outgoing bridge must not be internal")
     if networks["outgoing"].get("attachable") is not False:
         reject("outgoing bridge must not be attachable")
+    if networks["outgoing"].get("enable_ipv6") is not False:
+        reject("outgoing bridge must explicitly disable IPv6")
     # Preserve the existing live application bridge: no source-level IPAM
     # changes to lab or outgoing are permitted as part of this PR.
     if any((networks[name].get("ipam") or {}).get("config")
@@ -188,9 +185,10 @@ def validate(rendered, proxy_policy=None):
         reject("proxy client addresses out of subnet")
 
     for name, service in services.items():
-        if service.get("privileged") or service.get("network_mode") or            any(service.get(key) for key in
-               ("pid", "ipc", "uts", "cgroup", "userns_mode", "volumes_from",
-                "device_cgroup_rules", "cgroup_parent")):
+        if (service.get("privileged") or service.get("network_mode") or
+                any(service.get(key) for key in
+                    ("pid", "ipc", "uts", "cgroup", "userns_mode", "volumes_from",
+                     "device_cgroup_rules", "cgroup_parent"))):
             reject(f"{name}: privileged/host namespace or external resource mode")
         if any(service.get(key) for key in
                ("ports", "devices", "extra_hosts", "links", "external_links",
@@ -225,6 +223,9 @@ def validate(rendered, proxy_policy=None):
         reject("offline agent command/entrypoint must not change")
     if agent.get("profiles"):
         reject("agent must be in offline default profile")
+    # A restart policy must not auto-start the intentionally stopped agent.
+    if agent.get("restart") not in (None, "no"):
+        reject("agent must not automatically restart")
     if not network_config(network_entries(agent)["lab"]):
         reject("agent application bridge overrides forbidden")
     if not network_config(network_entries(agent)["proxy_clients"], AGENT_CLIENT_IP):
@@ -233,6 +234,8 @@ def validate(rendered, proxy_policy=None):
     proxy = services["egress-proxy"]
     if set(proxy.get("profiles") or []) != {"online"}:
         reject("proxy must only start with explicit online profile")
+    if proxy.get("restart") not in (None, "no"):
+        reject("proxy must not automatically restart")
     if not proxy.get("read_only"):
         reject("proxy must have read-only rootfs")
     if proxy.get("entrypoint") or proxy.get("command") != [
@@ -264,8 +267,8 @@ def validate(rendered, proxy_policy=None):
         reject("agent proxy routing changed")
     if env.get("NO_PROXY") != "localhost,127.0.0.1,db,redis-cache,redis-queue":
         reject("agent no-proxy route changed")
-    if any(key.lower() in {"http_proxy", "https_proxy", "all_proxy"}
-           and key not in {"HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY"}
+    if any(key.lower() in {"http_proxy", "https_proxy", "all_proxy", "no_proxy"}
+           and key not in {"HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY"}
            for key in env):
         reject("conflicting agent proxy environment")
 
@@ -305,8 +308,16 @@ def validate(rendered, proxy_policy=None):
             if mount.get("type") != "volume":
                 reject(f"{name}: unexpected bind or host mount")
 
-    if proxy_policy is not None:
-        validate_proxy_policy(proxy_policy)
+    # Never silently skip the Squid policy gate for callers of validate().
+    # The on-disk source file is the same one the proxy bind-mount would use.
+    if proxy_policy is None:
+        try:
+            proxy_policy = (HERE / "proxy" / "squid.conf").read_text(
+                encoding="utf-8"
+            )
+        except OSError:
+            reject("Squid policy unavailable")
+    validate_proxy_policy(proxy_policy)
     return True
 
 
