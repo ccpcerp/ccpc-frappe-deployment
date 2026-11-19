@@ -904,3 +904,80 @@ NO HONCHO STOP / APP SWITCH / SITE MIGRATION PERFORMED
 **Maintenance decision:** **HOLD** DEVELOPMENT Honcho shutdown, Stage→live app source swap and both site migrations until present worker processes/Redis queue state, job ages and ownership, queue recovery needs and site user quiescence are reviewed. Specifically avoid `bench purge-jobs`, `docker compose down`, broad Redis flush, force-kill, and premature migration. Protected two-site local/NAS Nov19 and earlier Nov17 backups and original PR33 `AGENTS.md` stay preserved. This is not evidence of a deployment failure: there has not been a Phase1 deployment yet.
 
 **Owner follow-up:** Owner asked `Can i delete the default test company`. No Company name or target site identified, and no delete operation authorized/executed. Company master deletion is **distinct** from ERPNext's `Delete Transactions` action, which is destructive and leaves masters; the latter is not a way to safely remove Company. Ask owner for the **exact Company name and target DEVELOPMENT site**, then perform a site-scoped read-only Company dependency audit (default setting, account/warehouse/cost center and custom CCPC links, transactions/stock/GL), with explicit approval before any master/data removal. Never delete a production Company or clear linked objects merely to bypass Frappe link constraints. Do not clean test Company as a workaround for the backlog or use data cleanup to remove jobs.
+
+
+## November 19 — Owner proposes MAIN Company cleanup: preserve CCPC/RMC, later add GSL/WFC
+
+**Owner request and evidence:** User screenshots show the ERPNext Company list with **20 of 25** rows currently displayed; the two intended real Companies are **`Cagayan Corn Products Corporation`** (CCPC, PHP, Philippines) and **`Ricor Mills Corporation`** (RMC, PHP, Philippines). Other visible Companies include `_Test Company` variants, `Wind Power LLC`, `Parent Group Company India`, `Child Company US`, `Best Test`, VAT test Companies and `Trial Balance Company`. User intends to **delete all remaining test/demo Companies** and subsequently **add real GSL and WFC Companies**, aiming for 4 real Companies. The screenshot is partial, so **not all 23 deletion candidates are identified or verified**. This aligns with the earlier reported 25 Companies on MAIN `development.localhost`, but the screenshot has no independently confirmed site URL; the following diagnostic is purposely MAIN-only and does not touch Integration2 or PRODUCTION.
+
+**Safety and release boundaries:** No approval to force-delete any accounting/stock transactions, chart-of-accounts, Warehouse, Cost Center, users or GL/SLE records; do not run `Delete Company Transactions`, `bench purge-jobs`, manual SQL `DELETE`, or `ignore_links`. Frappe/ERPNext test code uses `_Test Company`; these fixtures can be required by tests and removing them from the shared MAIN DEV site can disrupt repeatable regression testing. Preserve a separate isolated testing strategy. ERPNext `Delete Company Transactions` deletes transaction records, not Company/master data (official Frappe docs); immutable-ledger restrictions and linked defaults matter. In current DEV, `bench doctor` reported 0 online workers and queued create_contact/route-index jobs, so the Phase1 source cutover and any destructive cleanup remain **ON HOLD** pending review. Do not infer all 25 are disposable from names alone.
+
+**Read-only Stage D1: exact MAIN Company inventory, including parent groups and defaults.** First operator step below does not delete or create anything. It fails if old PR33, independent release stage or total count differ, preserves their respective `AGENTS.md`, and queries only MAIN `tabCompany` and `tabDefaultValue` in a SQL READ ONLY transaction. It prints Company names and group/parent relationships (user is authorized to inspect this MAIN DEV master list), no financial or user data.
+
+```bash
+bash <<'HOST'
+set -euo pipefail
+test "$(hostname -s)" = ccpcerpserver && test "$(id -un)" = gani || { echo "STOP: WRONG HOST OR OPERATOR"; exit 1; }
+dev=frappe_docker_devcontainer-frappe-1
+test "$(sudo docker inspect --format '{{.State.Running}}' "$dev")" = true || { echo "STOP: DEV CONTAINER DOWN"; exit 1; }
+test "$(sudo docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}}' "$dev")" = frappe_docker_devcontainer || { echo "STOP: WRONG DEV PROJECT"; exit 1; }
+sudo docker exec -i --user frappe --workdir /workspace/development/frappe-bench/sites "$dev" \
+ env FRAPPE_STREAM_LOGGING=1 /workspace/development/frappe-bench/env/bin/python -B - <<'PY'
+import subprocess
+from pathlib import Path
+import frappe
+B=Path("/workspace/development/frappe-bench")
+for path,sha in (
+    (B/"apps/ccpcerp","25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87"),
+    (B/".ccpc-phase1-release-stage-20261119-55eb10b86a57",
+     "55eb10b86a57de55a97e293a78228d9dd17b809a"),
+):
+    p=subprocess.run(["git","-C",str(path),"rev-parse","HEAD"],
+                     capture_output=True,text=True,timeout=20)
+    if p.returncode or p.stdout.strip()!=sha:
+        raise SystemExit("STOP: APP SOURCE COMMIT CHANGED")
+keep={"Cagayan Corn Products Corporation","Ricor Mills Corporation"}
+frappe.init(site="development.localhost",sites_path=".")
+try:
+    frappe.connect()
+    frappe.db.sql("START TRANSACTION READ ONLY")
+    rows=frappe.db.sql(
+        "SELECT name,is_group,parent_company,default_currency FROM `tabCompany` ORDER BY name",
+        as_dict=True)
+    names={x.name for x in rows}
+    if len(rows)!=25 or not keep.issubset(names):
+        raise SystemExit("STOP: COMPANY COUNT/PROTECTED IDENTITIES CHANGED")
+    other=[x for x in rows if x.name not in keep]
+    default_values={r[0] for r in frappe.db.sql(
+        "SELECT DISTINCT defvalue FROM `tabDefaultValue` WHERE defkey IN ('company','default_company')",
+        as_list=True)}
+    children={}
+    for x in rows:
+        if x.parent_company:
+            children[x.parent_company]=children.get(x.parent_company,0)+1
+    print("MAIN DEV TOTAL COMPANIES:",len(rows))
+    print("PROTECTED COMPANIES:",len(keep))
+    print("PROPOSED DELETION CANDIDATES:",len(other))
+    print("== PRESERVE ==")
+    for x in rows:
+        if x.name in keep:
+            print(x.name,"| currency:",x.default_currency,
+                  "| company default:", "YES" if x.name in default_values else "NO")
+    print("== CANDIDATES: INVENTORY ONLY, NOT CLEARED FOR DELETION ==")
+    for x in other:
+        print(x.name,"| group:",int(x.is_group or 0),
+              "| children:",children.get(x.name,0),
+              "| parent:",x.parent_company or "NONE",
+              "| configured default:", "YES" if x.name in default_values else "NO")
+    print("COMPANY INVENTORY READ ONLY: PASS")
+finally:
+    try:
+        if frappe.db: frappe.db.rollback()
+    finally:
+        frappe.destroy()
+print("NO COMPANY DELETED / CREATED; NO DEV SERVICE CHANGE")
+PY
+HOST
+```
+
+**Stage D2 (not yet authorized/executed):** After reviewing *all* 23 exact candidates, conduct a per-Company **read-only comprehensive linked-Doctype / GL / SLE / transactional / Company default / child tree / custom CCPC field dependency audit**, and identify ERPNext test fixture dependencies and any queued contacts tied to records before deciding which can be removed. Explicitly preserve legitimate CCPC/RMC Company/Accounts/Cost Centers/Warehouses. Use the ordinary permission/linked-document mechanisms, never `ignore_links`, direct SQL deletion, DB restores or Delete Company Transactions as shortcuts. Any irreversible destructive cleanup needs a separately verified rollback/backups and exact owner approval; GSL/WFC creation separately requires confirmed legal names, abbreviations, currency, country, parent/group status, ledger/inventory defaults and Chart of Accounts, before posting any transaction. No action in PRODUCTION or broken third site.
