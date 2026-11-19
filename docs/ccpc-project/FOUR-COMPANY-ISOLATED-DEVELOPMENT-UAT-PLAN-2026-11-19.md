@@ -57,7 +57,7 @@ df -Pk /home/gani | awk 'NR==2 {
 docker_root=$(sudo docker info --format '{{.DockerRootDir}}')
 test -n "$docker_root" && test -d "$docker_root" || { echo "STOP: DOCKER DATA ROOT UNAVAILABLE"; exit 1; }
 sudo df -Pk "$docker_root" | awk 'NR==2 {
-  printf "DOCKER DATA FILESYSTEM FREE GiB: %.1f\\n", $4/1048576
+  printf "DOCKER DATA FILESYSTEM FREE GiB: %.1f\n", $4/1048576
 }'
 echo "DOCKER SERVER VERSION: $(sudo docker version --format '{{.Server.Version}}')"
 echo "DOCKER COMPOSE VERSION: $(sudo docker compose version --short)"
