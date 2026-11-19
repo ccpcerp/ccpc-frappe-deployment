@@ -457,6 +457,22 @@ Operator ran a hostname-guarded, read-only stat and extended-ACL presence check 
 
 **Next single read-only check:** inspect sanitized Squid `acl` types and `http_access` ordering, including whether an explicit terminal `deny all` exists and whether a source- or destination-constraining ACL is actually referenced. Print *only classifications/counts*, never ACL names, domain/IP values, paths, credentials, or raw config. Effective policy/security still requires deeper review; do not activate the proxy or agent.
 
+## Step 42 — Squid outbound access order and ACL classification (2026-11-19)
+
+The operator ran a hostname-guarded, read-only sanitized parse of the configured but inactive Squid proxy's local policy file (no source values displayed). Results: `agent_running=False`, `policy_include_directives=0`, `acl_definition_count=4`, `acl_source_count=0`, `acl_destination_ip_count=1`, `acl_destination_name_count=1`, `acl_port_count=1`, `acl_method_count=1`, `acl_other_count=0`, `http_access_rule_count=5`, and `explicit_terminal_deny_all=True`.
+
+| http_access rule position | Action | ACL predicates | Negations | Destination scope? | Unknown references? |
+| --- | --- | ---: | ---: | --- | ---: |
+| 1 | DENY | 1 | 1 | no | 0 |
+| 2 | DENY | 1 | 1 | no | 0 |
+| 3 | DENY | 1 | 0 | yes | 0 |
+| 4 | ALLOW | 1 | 0 | yes | 0 |
+| 5 | DENY | 1 (all) | 0 | no | 0 |
+
+**Interpretation:** This is consistent with an outbound allowlist pattern: two early conditional denies (possibly port/method checks; their specific types were not printed), a destination-based deny, destination-based allow, and explicit terminal deny-all. Squid evaluates `http_access` sequentially. The audit has **not** verified that the destination deny targets protected/private subnets, that the allow targets only intended domains, that DNS resolutions cannot bypass IP restrictions, or that port/method restrictions are correctly mapped. No source-address ACL is declared; network-side access to the proxy listener must be separately constrained. Directive counts and classifications **do not prove a secure policy**. No proxy/agent execution, network packets, or changes to any protected environment. Codex and proxy remain stopped/inactive and NO-GO.
+
+**Next read-only check:** classify which ACL type is actually referenced by each rule and report coverage (only boolean categories) of major private/reserved IPv4/IPv6 blocks by the *destination-deny* ACL, plus a count of permitted destination-name patterns without displaying their contents. This should not publish ACL names, host paths, domain names, IPs, raw directives, or credentials. Avoid image pull, proxy activation or Codex launch.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
