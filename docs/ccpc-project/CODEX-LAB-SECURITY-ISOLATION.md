@@ -601,6 +601,14 @@ The operator ran a hostname-guarded, read-only check of the three group-writable
 
 **Next one read-only diagnostic:** inspect the current local Squid policy for proxy behaviors that could alter the intended simple outbound CONNECT design (redirectors, cache peers, alternate routing, authentication, TLS bump, named DNS resolvers). Report only boolean presence and sanitized counts without raw directive values, paths, hostnames, secrets or extra host/network operations. No proxy activation or file edit.
 
+## Step 57 — optional Squid proxy extra-feature static audit (2026-11-19)
+
+The operator ran a hostname-guarded, read-only parser of the optional inactive Squid policy file's directive names and listener option classifications. Reported: `agent_running=False`, `policy_include_count=0`, `directive_total=14`, `unique_directive_count=7`, `upstream_proxy_directive_count=0`, `alternate_routing_directive_count=0`, `redirector_directive_count=0`, `external_acl_directive_count=0`, `authentication_directive_count=0`, `tls_interception_directive_count=0`, `custom_dns_directive_count=0`, `cache_storage_directive_count=1`, and `listener_tls_interception_option=False`.
+
+**Interpretation:** none of the specifically examined Squid directives for upstream peers, alternate routing, redirectors, external ACLs, proxy authentication, TLS interception or custom DNS was found. This is consistent with a relatively simple restricted CONNECT proxy source configuration; it does not exclude every possible Squid directive, built-in default, or runtime behavior. **One cache/storage-family directive** was found (`cache_dir` or `cache_store_log` within the Step 57 parser), but the exact classification and storage implications have not yet been determined. Given Step 37's read-only root filesystem and only one config-file bind, storage/cache/logging configuration deserves a separate static review. No image acquisition, agent/proxy start, DNS queries, network traffic, host/Compose edits, or protected DEV/OLD PROD/NEW PROD/UAT actions. Codex stopped; Squid inactive; **NO-GO**.
+
+**Next single read-only diagnostic:** classify the existing cache/storage directive and Squid logging directives, explicit cache-disable/cache memory settings, and proxy `tmpfs` declarations in Compose. Report only directive names or booleans/counts (never path arguments, raw configuration, domains, usernames, ports, image refs or secrets). Do not create directories, containers or traffic. Remaining gates: source ACL and all-interface listener, image provenance/default user, DNS/security allowlist, safe resource governance and runtime-negative testing.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
