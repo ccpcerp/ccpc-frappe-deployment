@@ -507,6 +507,14 @@ Operator performed a hostname-guarded read-only inspection of the current Compos
 
 **Next single read-only diagnostic:** classify the configured proxy image reference as an immutable SHA-256 digest versus a mutable tag, and inspect whether the Compose source declares an image pull policy, without displaying image names, registry hostnames, paths, user identities or secret values. If unpinned or pull behavior is not controlled, flag for review before future proxy activation. Do not pull or start the image.
 
+## Step 47 — unpinned proxy image with explicit never-pull (2026-11-19)
+
+The operator's hostname-guarded read-only Compose check produced: `agent_running=False`, `proxy_optional_profile=True`, `image_reference_declared=True`, `image_reference_uses_variables=False`, `image_reference_digest_pinned=False`, `image_reference_mutable_or_unresolved=True`, `build_declared=False`, `pull_policy_declared=True`, `pull_policy_class=NEVER`.
+
+**Interpretation:** the optional Squid proxy declares a literal mutable image reference, with no Compose build declaration, and explicitly requests `pull_policy: never`. This is a useful guard against **automatic image download**. At Step 46 Docker did not have the configured image locally, so activation should not be attempted; it would require separately reviewed acquisition or config changes. The missing local image means image metadata and default user remain **unverified**. Neither mutable tag nor pull-policy alone proves trusted provenance. No proxy image pull/build, container start, network change, host mutation or DEV/OLD/NEW PRODUCTION/UAT modification was performed. Codex remains stopped and optional Squid proxy inactive/NO-GO.
+
+**Next one read-only diagnostic:** inspect the configured Squid policy's **proxy listener interface scope** (`http_port` / `https_port`, wildcard versus loopback versus explicit bind) and whether transparent/intercept/reverse-proxy modes are configured. Report only classification/booleans and counts, no host addresses, raw config, domain suffixes, credentials, image refs or paths. Since the optional proxy is on two networks and has no source ACL (Step 42), listener accessibility to the proxy-only network is a distinct exposure risk requiring examination before any activation. Do not download/start services.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
