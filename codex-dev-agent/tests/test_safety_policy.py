@@ -21,7 +21,7 @@ gate = module("codex_dev_compose_gate", "check_compose.py")
 secrets = module("codex_dev_local_secrets", "init_local_secrets.py")
 proxy_bridge = module(
     "ccpc_codex_proxy_bridge_readonly",
-    "../../scripts/security/ccpc_codex_proxy_bridge_preflight.py",
+    "../scripts/security/ccpc_codex_proxy_bridge_preflight.py",
 )
 
 
