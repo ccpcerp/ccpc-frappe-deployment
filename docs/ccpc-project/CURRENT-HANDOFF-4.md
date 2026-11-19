@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-19 — Original Honcho arg count and exact-tail checks failed
+
+**Owner-reported read-only field-level check of original DEV Honcho PID 543180:** `ARGUMENT COUNT: MISMATCH`, `HONCHO SCRIPT PATH: PASS`, `START ARGUMENT: MISMATCH` (the actual check compared the **whole argument tail** to exactly `['start']`, so this does **not** establish that `start` itself was absent); `PROCESS OWNER: PASS`, `PARENT PID: PASS`, `PROCESS GROUP: PASS`, `SESSION ID: PASS`, `PROCESS ACTIVE: PASS`, `WORKING DIRECTORY: PASS`, `NO SIGNALS OR SERVICE CHANGES`. This strongly suggests additional args or other tail difference, and confirms the existing shutdown script's **exact argument-tail gate** would reject the original manager, assuming the PID state has not since changed.
+
+**Next one nonmutating check:** print only `args[2] == 'start'`, count of extra args and allowlisted *option names* for remaining args with all arbitrary values redacted. Do not expose full command line or credentials. Inspect before authoring a separately reviewed revised graceful stop command; do **not** re-run earlier one-shot shutdown or signal processes. The extra worker identity and idle RQ were separately checked PASS; both original Honcho processes remained visible in last inventory. No Phase1 source switch or migrations authorized solely by this diagnostic.
+
+---
+
 ## 2026-11-19 — Failed dual-Honcho stop narrowed to original manager signature
 
 **Latest owner-reported read-only precondition check after terminal exited during attempted shutdown:** `LIVE SOURCE: PASS`, `RELEASE STAGE: PASS`, `BACKUP MANIFESTS: PASS`, `BENCH HONCHO SIGNATURE: CHECK REQUIRED`, `WORKER HONCHO SIGNATURE: PASS`, `RQ REGISTERED WORKERS: 1`, `RQ WORKER IDLE: True`, `READ-ONLY DIAGNOSTIC COMPLETE`. Previous targeted post-attempt inventory still showed both Honcho managers alive at exact original PIDs `543180` and `546647`. The original manager identity gate is the **only reported mismatch** in that diagnostic; whether the earlier interrupted shutdown actually reached the gate is unverified. Do not call shutdown PASS.
