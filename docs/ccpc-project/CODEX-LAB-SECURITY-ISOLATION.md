@@ -339,6 +339,14 @@ The operator ran a hostname-guarded, read-only Docker inspection of all present 
 
 **Next diagnostic:** read-only source configuration inspection of optional `egress-proxy` service: report only service network topology classifications, host exposure indicators, privilege and relevant mount-presence booleans. Do not display paths, raw config, addresses, proxy targets, tokens or environment variables. No Compose activation.
 
+## Step 35 — optional proxy dual-network Compose topology (2026-11-19)
+
+Operator ran a hostname-guarded, read-only parse of the current Compose source for the stopped lab agent and configured-but-inactive `egress-proxy` service. Results: `agent_running=False`, `proxy_optional_profile=True`, `proxy_network_count=2`, `networks_shared_with_agent=1`, `networks_not_shared_with_agent=1`, `proxy_external_network_count=0`, `proxy_host_network_mode=False`, `proxy_published_ports_defined=False`, `proxy_privileged=False`.
+
+**Interpretation:** the proxy is designed to bridge two Compose-managed network attachments: one shared with the agent and one that is not. This is consistent with a controlled egress proxy but is **not** proof of access control, routing safety, or ability to reach GitHub. In particular, `external=false` refers to whether Compose manages the network, **not** whether that network has outbound/Internet connectivity. The second network's `internal` setting and gateway properties are pending verification. In Step 34 no running/stopped `egress-proxy` container was found; no activation or runtime network test occurred. No host, DEVELOPMENT, OLD/NEW PRODUCTION, or UAT state was modified. The agent remains stopped/NO-GO.
+
+**Next step:** sanitized source-only comparison of the second network's `internal`, `external`, `driver`, `attachable` settings and the agent's attachment count, avoiding raw network names, addresses or proxy values. Check allowed target policy and proxy service hardening before even considering approval to activate the optional profile. Resource and authentication gates also remain open.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
