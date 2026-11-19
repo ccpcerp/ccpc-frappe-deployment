@@ -15,6 +15,7 @@ HERE = Path(__file__).resolve().parent
 PROJECT = "ccpc_codex_dev_agent"
 REQUIRED = {"agent", "db", "redis-cache", "redis-queue", "egress-proxy"}
 CLIENT_SUBNET = "172.30.250.0/29"
+CLIENT_BRIDGE = "br-ccpc-cdxpx"
 AGENT_CLIENT_IP = "172.30.250.2"
 PROXY_CLIENT_IP = "172.30.250.3"
 PROXY_LISTENER = PROXY_CLIENT_IP + ":3128"
@@ -163,6 +164,10 @@ def validate(rendered, proxy_policy=None):
             client.get("attachable") is not False or
             client.get("enable_ipv6") is not False):
         reject("proxy client bridge must be internal and nonattachable IPv4")
+    if client.get("driver_opts") != {
+        "com.docker.network.bridge.name": CLIENT_BRIDGE
+    }:
+        reject("proxy client bridge device name changed")
     ipam = client.get("ipam") or {}
     if ipam.get("config") != [{"subnet": CLIENT_SUBNET}]:
         reject("unexpected proxy client IPAM; needs pre-activation overlap review")
@@ -177,6 +182,9 @@ def validate(rendered, proxy_policy=None):
     if any((networks[name].get("ipam") or {}).get("config")
            for name in ("lab", "outgoing")):
         reject("existing network IPAM may not be changed")
+    if any(networks[name].get("driver_opts")
+           for name in ("lab", "outgoing")):
+        reject("existing network bridge identity must not be changed")
 
     # Static address must be inside the dedicated internal /29, not its gateway.
     subnet = ipaddress.ip_network(CLIENT_SUBNET, strict=True)
