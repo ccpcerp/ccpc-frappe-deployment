@@ -561,6 +561,14 @@ Operator ran a hostname-guarded, read-only comparison of the stopped Codex agent
 
 **Next read-only diagnostic:** classify each `NO_PROXY` token by category only (lab-service alias, loopback literal/network, RFC1918 or other nonloopback CIDR, localhost label, other hostname/suffix), including whether any IP/CIDR entry overlaps the laboratory's Docker IPAM subnet. Report counts and booleans only: no raw token, address, hostname, port or credentials. Do not start Codex, Squid or containers, or perform DNS/probes. Resource availability, proxy listener source filtering, image provenance, authentication and sandbox controls remain unresolved.
 
+## Step 52 — NO_PROXY limited to loopback and local services (2026-11-19)
+
+The operator ran a hostname-guarded, read-only check against the stopped agent's Docker container metadata and the existing internal lab network's Docker IPAM subnet. Sanitized output: `agent_running=False`, `no_proxy_entry_count=5`, `parsed_ip_network_count=1`, `loopback_only_network_count=1`, `non_loopback_network_count=0`, `network_entries_overlapping_lab=0`, `network_entries_covering_entire_lab=0`, `known_service_name_entries=3`, `localhost_name_entries=1`, and `other_hostname_entries=0`.
+
+**Interpretation:** The single parseable `NO_PROXY` IP/CIDR item is loopback-only and does not overlap the lab bridge subnet; three hostname entries are known laboratory service aliases, one is a localhost name, and there are no other hostname entries. No broad network proxy bypass was found among these five entries. This validates only the **reported uppercase `NO_PROXY` setting for the stopped agent**, not lowercase or application-specific overrides. `NO_PROXY` is an application preference rather than a firewall; direct sockets and non-proxy-aware clients can bypass proxy settings. Docker/firewall static rules remain relevant, and live negative tests and IPv6 isolation are unverified. No agent/proxy execution, host mutations, DNS queries, network traffic or DEV/OLD/NEW PROD/UAT modifications. **NO-GO** unchanged.
+
+**Next read-only diagnostic:** classify alternate lowercase/mixed-case proxy variables, `ALL_PROXY`, and additional bypass settings from stopped agent Docker metadata. Report names/categories and equality to existing uppercase proxy endpoints, never reveal values, hosts, ports, credentials, raw Compose files or paths. No container activation. Later: harden all-interface Squid listener with source controls, verify image provenance/user, special-use/DNS behavior, and address host-shared resource risks before any runtime test.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
