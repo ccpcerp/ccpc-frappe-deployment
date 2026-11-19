@@ -191,3 +191,106 @@ HOST
 ```
 
 **STOP instructions:** If `GITHUB SSH CLONE FAILED` appears (unknown SSH host key, missing credentials, blocked port or other fetch failure), preserve any newly created staging directory. Do **not** turn off `StrictHostKeyChecking`, export private keys, switch to HTTPS with embedded tokens, remove/retry blindly, or attempt an in-place fetch of the live PR33 repository. If `PHASE1 STAGING: PASS`, the next milestone is a read-only **source path/mount topology and Honcho+worker process inventory**, then actual maintenance source activation; a PASS here is **not a migration or application acceptance**.
+
+
+## November 19 — Gate B SOURCE STAGING PASS; active DEV service/mount preflight next
+
+**Owner-reported live staging terminal output, exact (last terminal line in user paste truncated after NOT PERFOR):**
+```text
+LIVE PR33 / AGENTS.md: VERIFIED
+ISOLATED STAGING PATH: AVAILABLE
+FETCHING PINNED PHASE1 RELEASE FROM GITHUB SSH
+STAGED PHASE1 RELEASE COMMIT: 55eb10b86a57de55a97e293a78228d9dd17b809a
+STAGED RELEASE SOURCE: CLEAN, DETACHED, SEPARATE
+LIVE PR33 SOURCE / LOCAL AGENTS.md: UNCHANGED
+PHASE1 STAGING: PASS
+SOURCE SWITCH / MIGRATIONS / DEV RESTART: NOT PERFOR
+```
+
+**Assessment:** GitHub's exact release SHA was cloned over the already-trusted SSH GitHub transport into `frappe-bench/.ccpc-phase1-release-stage-20261119-55eb10b86a57` as a separate tracked-clean, detached release. The original `apps/ccpcerp` PR33 checkout and its untracked `AGENTS.md` were unchanged. The final line was truncated during user paste; given the script's explicit earlier PASS and lack of a switch operation, source activation has **not** been reported/performed. The earlier read-only check observed DEV Honcho matching PID **543180**, which is not a validated safe stop target; no service shutdown authorized by mere PID match.
+
+**Next safe step — READ ONLY:** Verify inside the named DEVELOPMENT container that both Git checkouts are unmodified and on exactly pinned SHAs; source directory and stage are on the same filesystem (atomic rename prerequisite); `apps/ccpcerp` is not an exact separate Docker bind mount; both site configs and recent checksum manifests still exist; identify the **current** Honcho PID, parent, process group and session, ensure one `frappe` owner, and report worker/group count. If mount/process identity differs, STOP and redesign. No DB/site initialization, network, Git fetch, renames, migrations, service stops or PID signalling in this inventory.
+
+Operator command:
+
+```bash
+bash <<'HOST'
+set -euo pipefail
+test "$(hostname -s)" = ccpcerpserver || { echo "STOP: WRONG HOST"; exit 1; }
+test "$(id -un)" = gani || { echo "STOP: WRONG OPERATOR"; exit 1; }
+dev=frappe_docker_devcontainer-frappe-1
+test "$(sudo docker inspect --format '{{.State.Running}}' "$dev")" = true || { echo "STOP: DEV NOT RUNNING"; exit 1; }
+test "$(sudo docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}}' "$dev")" = frappe_docker_devcontainer || { echo "STOP: WRONG COMPOSE PROJECT"; exit 1; }
+sudo docker inspect --format '{{json .Mounts}}' "$dev" | python3 -c '
+import json,sys
+mounts=json.load(sys.stdin)
+must_not="/workspace/development/frappe-bench/apps/ccpcerp"
+if any(str(m.get("Destination","")).rstrip("/") == must_not for m in mounts):
+    sys.exit("STOP: ACTIVE APP HAS AN EXACT DOCKER MOUNT")
+print("ACTIVE APP SEPARATE DOCKER MOUNT: NO")
+print("DEVELOPMENT CONTAINER MOUNT INVENTORY: PASS")
+'
+sudo docker exec -i --user frappe --workdir /workspace/development/frappe-bench/sites "$dev" \
+  /workspace/development/frappe-bench/env/bin/python -B - <<'PY'
+from pathlib import Path
+import os
+import re
+import subprocess
+B=Path("/workspace/development/frappe-bench")
+A=B/"apps/ccpcerp"
+S=B/".ccpc-phase1-release-stage-20261119-55eb10b86a57"
+OLD="25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87"
+NEW="55eb10b86a57de55a97e293a78228d9dd17b809a"
+def stop(ok,why):
+    if not ok: raise SystemExit("STOP: "+why)
+def git(repo,*args):
+    p=subprocess.run(["git","-C",str(repo),*args],capture_output=True,text=True,timeout=30)
+    stop(p.returncode==0,"GIT CHECK FAILED")
+    return p.stdout.strip()
+stop(A.is_dir() and S.is_dir() and not A.is_symlink() and not S.is_symlink(),"SOURCE DIRECTORY")
+stop((S/".git").is_dir() and not (S/".git").is_symlink(),"STAGING GIT DIR")
+stop(git(A,"rev-parse","HEAD")==OLD,"ORIGINAL SHA CHANGED")
+stop(git(S,"rev-parse","HEAD")==NEW,"STAGED SHA CHANGED")
+stop(git(A,"status","--porcelain=v1","--untracked-files=all")=="?? AGENTS.md","PR33 STATUS CHANGED")
+stop(git(S,"status","--porcelain=v1","--untracked-files=all")=="","STAGED STATUS CHANGED")
+stop((A/"AGENTS.md").is_file() and not (A/"AGENTS.md").is_symlink(),"PROTECTED AGENTS MISSING")
+stop((S/"AGENTS.md").is_file() and bool(git(S,"ls-tree","-r","--name-only","HEAD","--","AGENTS.md")),"RELEASE AGENTS MISSING")
+stop(B.stat().st_dev == A.stat().st_dev == S.stat().st_dev == (B/"apps").stat().st_dev,"NOT SAME FILESYSTEM")
+for site,folder in (
+  ("development.localhost","development.localhost-20261118T233442Z-8db803832468"),
+  ("ccpc-integration2.localhost","ccpc-integration2.localhost-20261118T233442Z-8db803832468"),
+):
+    stop((B/"sites"/site/"site_config.json").is_file(),"SITE CONFIG MISSING")
+    stop((B/".ccpc-pr32-snapshots"/folder/"SHA256SUMS").is_file(),"SNAPSHOT MANIFEST MISSING")
+stop((B/"sites/ccpc-integration.localhost/site_config.json").is_file(),"BROKEN SITE STATUS CHANGED")
+p=subprocess.run(["ps","-eo","pid=,ppid=,pgid=,sid=,user=,stat=,args="],capture_output=True,text=True,timeout=20)
+stop(p.returncode==0,"PROCESS INSPECTION FAILED")
+rows=[]
+for line in p.stdout.splitlines():
+    fields=line.split(None,6)
+    if len(fields)<7: continue
+    pid,ppid,pgid,sid,user,state,cmd=fields
+    if re.search(r"(?:^|/)honcho start(?:\s|$)",cmd):
+        rows.append((pid,ppid,pgid,sid,user,state))
+stop(len(rows)==1,"HONCHO COUNT NOT ONE")
+pid,ppid,pgid,sid,user,state=rows[0]
+stop(user=="frappe" and not state.startswith("Z"),"HONCHO OWNER/STATE")
+stop(pid=="543180","HONCHO PID CHANGED SINCE READ-ONLY GATE A")
+group_count=sum(1 for line in p.stdout.splitlines()
+    if len(line.split(None,6))>=7 and line.split(None,6)[2]==pgid
+    and line.split(None,6)[4]=="frappe" and not line.split(None,6)[5].startswith("Z"))
+print("LIVE PR33 / LOCAL AGENTS: PASS")
+print("STAGED RELEASE EXACT SHA / CLEAN: PASS")
+print("APP SOURCE + STAGE SAME FILESYSTEM: PASS")
+print("TWO SITE SNAPSHOTS PRESENT: PASS")
+print("HONCHO PID:",pid)
+print("HONCHO PPID:",ppid)
+print("HONCHO PGID:",pgid)
+print("HONCHO SESSION:",sid)
+print("HONCHO GROUP FRAPPE PROCESS COUNT:",group_count)
+print("DEV SHARED-BENCH PRE-MAINTENANCE READ-ONLY: PASS")
+PY
+HOST
+```
+
+**STOP on any deviation** rather than changing the expected PID or disabling checks. These outputs will establish whether a same-filesystem guarded directory rename is technically viable. Do not send `SIGINT` to PID 543180 based on this command alone; a precise DEV-only service interruption plan, app import behavior and site migration impact still need review. No source switch or database write is part of this step.
