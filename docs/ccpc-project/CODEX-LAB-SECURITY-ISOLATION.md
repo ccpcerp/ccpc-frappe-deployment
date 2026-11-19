@@ -331,6 +331,14 @@ The operator used a hostname-guarded, read-only lookup of the one additional ser
 
 **Next read-only check:** determine whether a Compose-managed egress-proxy container exists/is running, and count its attached networks if present. Report sanitized counts only; do not display host addresses, proxy settings, Docker labels or raw paths.
 
+## Step 34 — no active egress-proxy container (2026-11-19)
+
+The operator ran a hostname-guarded, read-only Docker inspection of all present containers, filtered by Compose project `ccpc_codex_dev_agent` and service `egress-proxy`. Results: `agent_running=False`, `proxy_containers_found=0`, `proxy_containers_running=0`, `proxy_attached_to_lab=0`, `proxy_attached_to_other_networks=0`, `proxy_containers_with_port_bindings=0`.
+
+**Interpretation:** no container with the specific expected Compose labels exists for the optional egress-proxy service at inspection time; the optional profile has not produced an active or stopped Compose-managed proxy container. This does **not** demonstrate that all other proxy services, host listeners, DNS/proxy destinations or alternate outbound routes are absent. The agent's earlier environment-name inspection found HTTP_PROXY/HTTPS_PROXY settings, whose actual endpoint identity and reachability remain unverified. No packets were sent and no Docker, host, DEV, OLD/NEW PROD or UAT state changed. Codex remains stopped/NO-GO.
+
+**Next diagnostic:** read-only source configuration inspection of optional `egress-proxy` service: report only service network topology classifications, host exposure indicators, privilege and relevant mount-presence booleans. Do not display paths, raw config, addresses, proxy targets, tokens or environment variables. No Compose activation.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
