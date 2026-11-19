@@ -553,6 +553,14 @@ Operator ran a hostname-guarded, read-only classifier on the **stopped** agent's
 
 **Next single read-only diagnostic:** compare both agent proxy URL ports to the inactive Squid `http_port` listener and classify whether `NO_PROXY` can bypass the proxy for protected/private addresses or broad wildcards. Report matches/counters only, never numeric port values, raw URL/NO_PROXY values, destinations, host paths or credentials. No proxy activation or host network probing.
 
+## Step 51 — aligned Squid listener ports and NO_PROXY categories (2026-11-19)
+
+Operator ran a hostname-guarded, read-only comparison of the stopped Codex agent's stored proxy environment settings with the inactive optional Squid configuration. Reported: `agent_running=False`, `squid_http_listener_count=1`, `http_proxy_port_matches_listener=True`, `https_proxy_port_matches_listener=True`, `no_proxy_configured=True`, `no_proxy_entry_count=5`, `no_proxy_global_wildcard=False`, `no_proxy_wildcard_pattern_count=0`, `no_proxy_ip_or_cidr_entries=1`, `no_proxy_private_or_special_entries=1`, `no_proxy_known_service_alias_matches=3`.
+
+**Interpretation:** both HTTP(S) proxy URLs refer to the same port configured as Squid's single `http_port` listener (consistent with Step 50's alias match). The five `NO_PROXY` tokens contain no obvious wildcard; three exactly match known Compose service names, and one is a parsable private/special-use IP/CIDR entry. This diagnostic does not establish whether that bypass is loopback-only, strictly within lab, or reaches a broader protected/private address range; remaining unmatched entries also need classification. Since cooperating HTTP clients use `NO_PROXY` to bypass an explicit proxy, the scope matters, although proxy bypass alone **does not grant network reachability** in the presence of Docker/firewall isolation. Not all applications honor `NO_PROXY`; arbitrary outbound socket traffic may bypass proxy environment variables regardless. The agent remains stopped and Squid inactive. No traffic, Docker/host changes or DEV/OLD/NEW PROD/UAT operations were performed. **NO-GO remains**.
+
+**Next read-only diagnostic:** classify each `NO_PROXY` token by category only (lab-service alias, loopback literal/network, RFC1918 or other nonloopback CIDR, localhost label, other hostname/suffix), including whether any IP/CIDR entry overlaps the laboratory's Docker IPAM subnet. Report counts and booleans only: no raw token, address, hostname, port or credentials. Do not start Codex, Squid or containers, or perform DNS/probes. Resource availability, proxy listener source filtering, image provenance, authentication and sandbox controls remain unresolved.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
