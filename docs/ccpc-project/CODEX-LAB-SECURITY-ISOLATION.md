@@ -238,6 +238,14 @@ The operator ran a hostname-guarded, read-only comparison of the lab network's o
 
 **Next read-only host diagnostic:** inventory Compose provenance for the stopped lab agent and its image/configuration identity, *without printing command-line arguments, env values, host filesystem paths or credentials*, before reviewing sandbox/approval settings. The audit should distinguish the live container from the tracked source template and avoid any agent execution.
 
+## Step 26 — startup argv-only flag scan (2026-11-19)
+
+Operator ran a hostname-guarded read-only parse of Docker `.Config.Entrypoint` and `.Config.Cmd` for the **stopped** agent, without printing argument contents. Results: `entrypoint_arg_count=0`, `command_arg_count=2`, `references_codex=False`, `danger_full_access=False`, `bypass_approvals_and_sandbox=False`, `full_auto=False`, and `approval_never=False`.
+
+**Interpretation:** None of the five searched Codex invocation strings was present directly in this two-argument command/entrypoint configuration. **This is not a complete command/script/config review:** the arguments may launch a shell, wrapper or other executable; runtime scripts or config files could still set unsafe flags; CLI installation and its effective approval/sandbox posture remain **unverified**. The absence of a direct `codex` string does not establish whether Codex is installed or can execute. The agent remains stopped/NO-GO; no host or protected environment was modified.
+
+**Next single read-only check:** classify the agent startup command interpreter/executable and shell-mode flags without printing its raw argv, commands, host paths or values. Do not launch the container or agent to inspect this.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
