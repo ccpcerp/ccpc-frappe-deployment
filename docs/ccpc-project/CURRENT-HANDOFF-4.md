@@ -1,5 +1,17 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## November 19, 2026 — Phase 1 GitHub staging PASS; waiting for read-only mount/Honcho cutover gate
+
+**Owner-reported Gate B execution:** On `gani@ccpcerpserver`, the approved source-only staging command printed `LIVE PR33 / AGENTS.md: VERIFIED`, `ISOLATED STAGING PATH: AVAILABLE`, `STAGED PHASE1 RELEASE COMMIT: 55eb10b86a57de55a97e293a78228d9dd17b809a`, `STAGED RELEASE SOURCE: CLEAN, DETACHED, SEPARATE`, `LIVE PR33 SOURCE / LOCAL AGENTS.md: UNCHANGED`, `PHASE1 STAGING: PASS`. Final `SOURCE SWITCH / MIGRATIONS / DEV RESTART: NOT PERFOR...` line was truncated by paste; code path staged the release only. No live checkout, migration, Honcho stop or DB operation performed. Stage resides at `/workspace/development/frappe-bench/.ccpc-phase1-release-stage-20261119-55eb10b86a57`, independent of active `apps/ccpcerp` (still detached original PR33 `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87` with protected `?? AGENTS.md`). Pre-existing local+NAS two-site snapshots and successful SQL/files restore results remain unchanged.
+
+**Connected GitHub re-verification:** Phase1 release exact `55eb10b86a57de55a97e293a78228d9dd17b809a`; PR33 preservation branch exact `25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87`; no new GitHub feature merges.
+
+**Next user action (strictly READ ONLY):** Run the new `Gate B SOURCE STAGING PASS; active DEV service/mount preflight next` section in [`docs/ccpc-project/PHASE1-SHARED-BENCH-DEV-CUTOVER-2026-11-19.md`](PHASE1-SHARED-BENCH-DEV-CUTOVER-2026-11-19.md), verified docs branch commit **`4393fe0896a8d849901e7b21e7ebca733e266c0d`**, blob **`3e5bb93b701dda6041333c005caf26feb3e93cb7`**. The probe checks one named DEV container, absence of an exact separate app bind mount, old+new repo HEAD/status, protected local `AGENTS.md`, matched filesystems for atomic source-directory swap, site snapshots, and observed live Honcho PID/PPID/PGID/session/group count. Requires Honcho still `543180`, else STOP for re-evaluation. Do not signal/stop anything yet, and do not assume this plan validates schema migrations or full Frappe app boot.
+
+**Pending work before protected code activation:** Complete current DEV process/site/worker and mount inventory; inspect DB patch log and Phase1 migration side effects for BOTH sites; ensure an operator maintenance window with no users/critical jobs, exact safe DEV Honcho shutdown, pre-cutover rollback directions, and test site-specific migrations one at a time with service state controlled. Broken third `ccpc-integration.localhost` is never targeted or automatically scheduled. Original PR33 checkout and its local AGENTS remain preserved, PROD excluded.
+
+---
+
 ## November 19, 2026 — Pre-cutover Gate A PASS; release commit absent locally, safe SSH staging prepared
 
 **Owner's verified read-only operator output from `gani@ccpcerpserver`:** `ORIGINAL PR33 CHECKOUT: VERIFIED`; `PROTECTED AGENTS.md: VERIFIED`; `RELEASE COMMIT OBJECT PRESENT: NO`; `APP GIT ORIGIN TRANSPORT: SSH`; `RELEASE REMOTE TRACKING EXACT: NO`; `DEV HONCHO PROCESS IDS: 543180`; `DEVELOPMENT PRE-CUTOVER INSPECTION: PASS`. PID 543180 is **process-name detection only**; full process identity, children, site scheduler, shutdown authority not yet validated. No DEV shutdown, source change or database action occurred. This means simple local checkout of the Phase1 release SHA is unavailable and the original PR33 repo must **not** be fetched/switched blindly.
