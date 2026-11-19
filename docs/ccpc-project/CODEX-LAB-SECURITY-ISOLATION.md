@@ -205,6 +205,23 @@ Operator ran a hostname-guarded read-only `iptables -S` analysis that explicitly
 
 **Next one read-only check:** classify the *additional rule predicates* (comment-only versus source/destination/conntrack/protocol/port/other conditions) without printing any predicate values. Keep the agent stopped; do not send packets to DEV, either PRODUCTION environment, the Docker host, or other sensitive services.
 
+## Step 24 — laboratory firewall additional conditions (2026-11-19)
+
+A hostname-guarded read-only classification of the six bridge-matching `iptables -S` rules found:
+
+| Chain / position | Additional condition category |
+| --- | --- |
+| `INPUT` #1 | `address_filter` |
+| `DOCKER-USER` #1 and #2 | `COMMENT_ONLY` |
+| `DOCKER-INTERNAL` #1 and #2 | `address_filter` |
+| `DOCKER-FORWARD` #8 | `NO_ADDITIONAL_FILTER` |
+
+Total matching rules classified: **6**. The operator did not print address values, ports, comments or raw rules.
+
+**Interpretation:** the two cross-interface `DOCKER-USER` DROP rules found at Step 23 have comments only, so no further packet conditions were observed in those rules beyond interface matches. This is strong configuration evidence for denying forwarded cross-bridge traffic in both directions. The same-bridge `DOCKER-FORWARD` ACCEPT has no additional filters, but earlier rule traversal still matters. The lab-origin `INPUT` and both `DOCKER-INTERNAL` DROP rules use address filters; their actual coverage relative to the lab subnet is **not yet verified**. Do not infer that every host-bound, LAN-bound, proxy-bound or outbound path is blocked merely from the category names. Codex remains stopped/NO-GO. No container, firewall, DEV, UAT or production state changed.
+
+**Next diagnostic:** sanitized read-only comparison of the INPUT/DOCKER-INTERNAL address predicates with the Docker network's own IPAM subnet; report coverage categories (exact, covering, partial, disjoint), not actual IPs, interface names or raw rule text. Negation and direction must be handled correctly.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
