@@ -254,6 +254,22 @@ Operator's read-only classification of the stopped agent's Docker Entrypoint/Cmd
 
 **Next diagnostic:** read-only review of the stopped agent's immutable image ID, local image tag match and repository-digest availability, without printing labels, image history, Docker args, env values, paths or secrets. A mutable `frappe/bench:latest` tag was observed earlier; pinning/provenance must be reviewed before execution. Then evaluate Codex executable/sandbox by a separate approved plan.
 
+## Step 28 — stopped agent image identity and mutable tag (2026-11-19)
+
+Operator ran a hostname-guarded, read-only `docker inspect` plus `docker image inspect` comparison. Reported sanitized output:
+
+| Field | Operator-reported result |
+| --- | --- |
+| Agent running | `False` |
+| Configured image is `frappe/bench:latest` | `True` |
+| Container image ID (partial only) | `sha256:49cdcb679e3c` |
+| Local configured tag resolves to container image ID | `True` |
+| Recorded repository digests | `1` |
+
+**Interpretation:** the stopped container's immutable image ID matches the local image currently tagged `frappe/bench:latest`. This is local *identity consistency*, **not image provenance verification, image signature/attestation verification, or a secure pinned configuration**. The `latest` tag remains mutable, and a recorded repo digest does not by itself prove trust in the image publisher, what was built into the image, or installed Codex CLI/sandbox behavior. The hash is intentionally recorded only as a partial diagnostic identifier, not as a fully usable pinned digest. No agent execution, pull, container restart or protected-environment change occurred.
+
+**Next read-only check:** check that the recorded `RepoDigests` entry uses the expected `frappe/bench@sha256:<64 hex>` shape and whether the *container's local image* and current tag still agree; print only boolean/counters, not the digest itself. Do not pull or build the image. This cannot establish supply-chain trust; further work must inspect approved Compose source, local CLI installation, sandbox settings, and resource controls before any startup.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
