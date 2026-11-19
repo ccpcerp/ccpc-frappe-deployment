@@ -270,6 +270,14 @@ Operator ran a hostname-guarded, read-only `docker inspect` plus `docker image i
 
 **Next read-only check:** check that the recorded `RepoDigests` entry uses the expected `frappe/bench@sha256:<64 hex>` shape and whether the *container's local image* and current tag still agree; print only boolean/counters, not the digest itself. Do not pull or build the image. This cannot establish supply-chain trust; further work must inspect approved Compose source, local CLI installation, sandbox settings, and resource controls before any startup.
 
+## Step 29 — recorded repository digest shape (2026-11-19)
+
+Operator ran a hostname-guarded read-only Docker inspection against the stopped lab agent and its local immutable image reference. Reported `agent_running=False`, `image_reference_is_expected=True`, `repository_digest_count=1`, `expected_repository_digest_count=1`, `all_digests_expected=True`. The test uses the complete regular expression for optional official Docker registry prefix followed by `frappe/bench@sha256:` and 64 lowercase hexadecimal characters, without disclosing the actual digest.
+
+**Interpretation:** exactly one recorded repository digest conforms to the expected **name and digest syntax**; the container is stopped and still configured as `frappe/bench:latest`. This verifies neither image authorship nor a trusted build provenance, attestation, digest pinning in the Compose source, CLI installation, sandbox enforcement, resource safety or runtime connectivity. `latest` is still mutable. No image pull/build or container start occurred. Codex remains **NO-GO**.
+
+**Next read-only diagnostic:** classify the container's Compose provenance labels and whether it refers to an explicitly tracked source configuration, without displaying source paths, labels' values, startup arguments, environment or secrets. Then use that provenance to examine planned installation/invocation without starting the agent.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
