@@ -32,6 +32,9 @@ def safe_config():
             "proxy_clients": {
                 "internal": True, "driver": "bridge", "attachable": False,
                 "enable_ipv6": False,
+                "driver_opts": {
+                    "com.docker.network.bridge.name": gate.CLIENT_BRIDGE
+                },
                 "ipam": {"config": [{"subnet": gate.CLIENT_SUBNET}]},
             },
             "outgoing": {"internal": False, "driver": "bridge",
@@ -203,6 +206,26 @@ class TestProxyNetworkIsolation(unittest.TestCase):
 
     def test_client_network_ipv6_disabled(self):
         self.config["networks"]["proxy_clients"]["enable_ipv6"] = True
+        self.rejected()
+
+    def test_client_bridge_name_cannot_drift(self):
+        self.config["networks"]["proxy_clients"]["driver_opts"][
+            "com.docker.network.bridge.name"
+        ] = "br-unreviewed"
+        self.rejected()
+
+    def test_client_bridge_name_cannot_be_removed(self):
+        self.config["networks"]["proxy_clients"].pop("driver_opts")
+        self.rejected()
+
+    def test_client_bridge_option_cannot_expand(self):
+        self.config["networks"]["proxy_clients"]["driver_opts"]["mtu"] = "1500"
+        self.rejected()
+
+    def test_existing_lab_bridge_name_must_not_change(self):
+        self.config["networks"]["lab"]["driver_opts"] = {
+            "com.docker.network.bridge.name": "br-unreviewed"
+        }
         self.rejected()
 
     def test_client_subnet_cannot_drift(self):
