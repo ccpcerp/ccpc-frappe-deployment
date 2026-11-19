@@ -188,6 +188,23 @@ The operator ran a hostname-guarded, read-only `iptables -S` inspection, filtere
 
 **Next diagnostic:** sanitized read-only parse of the same bridge-matching rules with interface negation (`!`) and presence of extra predicates preserved. No raw rules, interface names, IPs, ports, credentials, network probes, or container actions.
 
+## Step 23 — interface negation and scoped traffic-direction interpretation (2026-11-19)
+
+Operator ran a hostname-guarded read-only `iptables -S` analysis that explicitly recognizes `!` interface negation, reporting only abstract match categories and not raw firewall rules, addresses, ports or secrets:
+
+| Chain and position | Input match | Output match | Target | Additional options |
+| --- | --- | --- | --- | --- |
+| `INPUT` #1 | LAB | ANY | DROP | yes |
+| `DOCKER-USER` #1 | NOT_LAB | LAB | DROP | yes |
+| `DOCKER-USER` #2 | LAB | NOT_LAB | DROP | yes |
+| `DOCKER-INTERNAL` #1 | ANY | LAB | DROP | yes |
+| `DOCKER-INTERNAL` #2 | LAB | ANY | DROP | yes |
+| `DOCKER-FORWARD` #8 | LAB | LAB | ACCEPT | no |
+
+**Interpretation:** The observed interface conditions are consistent with deliberate separation: a lab-origin INPUT drop, both cross-bridge directions denied in DOCKER-USER, and an explicit same-bridge ACCEPT. This corrects the ambiguity of Step 22's abbreviated `BOTH` classification, which did not account for negation. **All five DROP rules have unexamined additional options**, so the actual packet classes they match remain unverified. The apparent DOCKER-INTERNAL broad interface rules also need their extra conditions interpreted to establish whether they block all lab traffic or only crossing traffic. A direct same-bridge ACCEPT does not prove access to DB/Redis is healthy; no connectivity probes were performed. No host/network or container modifications occurred.
+
+**Next one read-only check:** classify the *additional rule predicates* (comment-only versus source/destination/conntrack/protocol/port/other conditions) without printing any predicate values. Keep the agent stopped; do not send packets to DEV, either PRODUCTION environment, the Docker host, or other sensitive services.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
