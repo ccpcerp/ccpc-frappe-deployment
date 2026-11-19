@@ -609,6 +609,14 @@ The operator ran a hostname-guarded, read-only parser of the optional inactive S
 
 **Next single read-only diagnostic:** classify the existing cache/storage directive and Squid logging directives, explicit cache-disable/cache memory settings, and proxy `tmpfs` declarations in Compose. Report only directive names or booleans/counts (never path arguments, raw configuration, domains, usernames, ports, image refs or secrets). Do not create directories, containers or traffic. Remaining gates: source ACL and all-interface listener, image provenance/default user, DNS/security allowlist, safe resource governance and runtime-negative testing.
 
+## Step 58 — Squid storage and logging directive counts (2026-11-19)
+
+The operator ran a hostname-guarded read-only check of the inactive optional Squid proxy's Compose filesystem declaration and sanitized policy directive counts. Reported: `agent_running=False`, `proxy_read_only_rootfs=True`, `proxy_volume_count=1`, `proxy_tmpfs_count=4`, `cache_dir_directive_count=0`, `cache_store_log_directive_count=1`, `cache_mem_directive_count=0`, `cache_directive_count=1`, `cache_deny_directive_count=0`, `cache_allow_directive_count=0`, `access_log_directive_count=1`, `cache_log_directive_count=0`, `pid_filename_directive_count=0`, `coredump_dir_directive_count=0`, `logfile_rotate_directive_count=0`, `policy_include_count=0`.
+
+**Interpretation:** One config-file bind was identified earlier as read-only and the root filesystem is configured read-only; four `tmpfs` mounts are declared, but their destination suitability and mode/size have not yet been verified. The Squid source declares no `cache_dir`, but has one `cache`, one `cache_store_log`, and one `access_log` directive. **Directive counts alone do not determine** whether caching or logging is enabled, redirected, or disabled; do not assume either that caching is off or that logging has writable storage. No custom `cache_log`, `pid_filename`, `coredump_dir` or `logfile_rotate` directive appears, leaving image/default behavior unverified. Squid has not been executed and its image is not locally available under the Compose reference (Step 46). No host, Compose, Docker, network, DEV/OLD PROD/NEW PROD/UAT mutations occurred; agent stopped, proxy inactive, **NO-GO**.
+
+**Next single read-only diagnostic:** safely classify only the first arguments of `cache`, `cache_store_log`, and `access_log` into enabled/disabled/path-like/stdout classifications, without disclosing destinations or raw configuration lines; additionally classify four Compose `tmpfs` mount destinations against conventional Squid runtime directory categories without displaying paths or any environment variable value. Strictly stop on changed Compose or missing evidence. No proxy, image or Docker activation.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
