@@ -414,6 +414,29 @@ Operator ran a hostname-guarded, read-only comparison of the optional proxy's si
 
 **Next read-only diagnostic:** classify host permission exposure of the proxy's bind source and whether its content looks like a proxy-policy configuration, without printing any source path, file content, host identity, proxy address, destination, or credentials. Follow with a separate policy-specific rule review once the file format has been safely identified. No proxy activation.
 
+## Step 40 — Squid policy format and host file permission flags (2026-11-19)
+
+Operator ran a hostname-guarded, read-only classification of the configured but inactive optional proxy's single read-only bind source, checking file permissions and counting policy directives without exposing policy content. Reported:
+
+| Field | Operator-reported value |
+| --- | --- |
+| `agent_running` | `False` |
+| `source_regular_file` | `True` |
+| `source_group_readable` | `True` |
+| `source_world_readable` | `True` |
+| `source_group_writable` | **`True`** |
+| `source_world_writable` | `False` |
+| `proxy_image_family` | `SQUID` |
+| `active_directive_count` | `14` |
+| `squid_acl_count` | `4` |
+| `squid_http_access_count` | `5` |
+| `nginx_proxy_pass_count` | `0` |
+| `generic_allow_count`, `generic_deny_count` | `0`, `0` |
+
+**Interpretation:** the declared proxy image family appears to be Squid, and its mounted host source contains an apparent Squid policy with four `acl` and five `http_access` directives. Crucially, group-write and world-read permission bits are set on that regular host file. These bits raise **potential integrity and confidentiality concerns**: a suitably authorized member of the file's group may be able to modify the proxy's access rules, and users with directory traversal permission may be able to read them. This **does not yet establish effective access**: parent directory mode/ACLs, file ownership, any POSIX ACLs and execution identity need review. The file is read-only *inside the optional proxy container* (Steps 37–38), but that does not protect the host-side source from writes by authorized host identities. Squid counts alone do not verify private-network deny policies, ACL definition correctness, `http_access` order or CONNECT restrictions. No filenames, ACL contents, destinations, source addresses, credentials or paths were printed, and no file, container or host changes were made. **Codex/proxy remain inactive and NO-GO.**
+
+**Next read-only diagnostic:** check the mounted file's effective host access boundaries by reporting only source/parent-directory permission indicators and presence of extended POSIX ACLs, without disclosing identities, paths or configuration contents. If appropriate, subsequently inspect sanitized Squid `http_access` ordering/allowlist semantics. Do not chmod, chown, modify ACLs, start the proxy, or run Codex until a separate safe change is reviewed.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
