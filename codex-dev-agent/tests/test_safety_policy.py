@@ -34,7 +34,8 @@ def safe_config():
                 "enable_ipv6": False,
                 "ipam": {"config": [{"subnet": gate.CLIENT_SUBNET}]},
             },
-            "outgoing": {"internal": False, "driver": "bridge", "attachable": False},
+            "outgoing": {"internal": False, "driver": "bridge",
+                         "attachable": False, "enable_ipv6": False},
         },
         "secrets": {
             "db-user-password": {"file": "/safe/codex-dev-agent/local-secrets/db-user-password"},
@@ -249,6 +250,40 @@ class TestProxyNetworkIsolation(unittest.TestCase):
         self.config["networks"]["lab"]["ipam"] = {"config": [{"subnet": "172.30.123.0/24"}]}
         self.rejected()
 
+
+    def test_outgoing_ipv6_must_stay_disabled(self):
+        self.config["networks"]["outgoing"]["enable_ipv6"] = True
+        self.rejected()
+
+    def test_agent_restart_always_denied(self):
+        self.config["services"]["agent"]["restart"] = "always"
+        self.rejected()
+
+    def test_proxy_restart_always_denied(self):
+        self.config["services"]["egress-proxy"]["restart"] = "always"
+        self.rejected()
+
+    def test_unreviewed_agent_gateway_priority_denied(self):
+        self.config["services"]["agent"]["networks"]["proxy_clients"]["gw_priority"] = 1
+        self.rejected()
+
+    def test_unreviewed_agent_network_alias_denied(self):
+        self.config["services"]["agent"]["networks"]["proxy_clients"]["aliases"] = []
+        self.rejected()
+
+    def test_unreviewed_proxy_outgoing_priority_denied(self):
+        self.config["services"]["egress-proxy"]["networks"]["outgoing"] = {
+            "gw_priority": 1
+        }
+        self.rejected()
+
+    def test_lowercase_no_proxy_denied(self):
+        self.config["services"]["agent"]["environment"]["no_proxy"] = "*"
+        self.rejected()
+
+    def test_missing_proxy_source_policy_denied(self):
+        with self.assertRaises(ValueError):
+            gate.validate(self.config, proxy_policy="")
 
 class TestProxyPolicy(unittest.TestCase):
     @classmethod
