@@ -321,6 +321,16 @@ Operator ran a hostname-guarded, read-only parse of the current Compose source f
 
 **Next step:** identify the extra Compose service using a sanitized, read-only classification without disclosing paths, credentials or configuration values; then inspect aggregate host resources, if needed, before proposing any GitHub-first resource plan. Keep agent stopped; do not run `docker compose up` or change DEV, OLD/NEW PROD or UAT.
 
+## Step 33 — optional egress proxy Compose service (2026-11-19)
+
+The operator used a hostname-guarded, read-only lookup of the one additional service in the current Compose source. Sanitized result: `extra_service_count=1`, `service_name=egress-proxy`, `optional_profile=True`, `image_declared=True`, `build_declared=False`. The source therefore defines a fifth service named `egress-proxy` with one or more Compose profiles and an image reference rather than a local build declaration.
+
+**Interpretation:** An opt-in/profile-gated service may be used as an outbound access path, but this inspection did **not** establish whether it is running, whether it is connected to the lab or other Docker networks, or whether its configuration enforces egress policy. Compose profiles ordinarily exclude the service from default `up` unless the profile is enabled or the service is directly targeted. The currently active state and any host/protected-network reachability must be verified separately without launching the proxy or Codex.
+
+**Operator preference carried forward:** prioritize maximum possible Codex CPU performance; resource controls, especially a cohosted memory ceiling and support-service protections, remain unresolved and require separate explicit agreement. No change authorized to agent, proxy, databases, Compose, DEVELOPMENT, OLD/NEW PRODUCTION or UAT; Codex remains **NO-GO**.
+
+**Next read-only check:** determine whether a Compose-managed egress-proxy container exists/is running, and count its attached networks if present. Report sanitized counts only; do not display host addresses, proxy settings, Docker labels or raw paths.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
