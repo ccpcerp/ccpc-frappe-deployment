@@ -981,3 +981,117 @@ HOST
 ```
 
 **Stage D2 (not yet authorized/executed):** After reviewing *all* 23 exact candidates, conduct a per-Company **read-only comprehensive linked-Doctype / GL / SLE / transactional / Company default / child tree / custom CCPC field dependency audit**, and identify ERPNext test fixture dependencies and any queued contacts tied to records before deciding which can be removed. Explicitly preserve legitimate CCPC/RMC Company/Accounts/Cost Centers/Warehouses. Use the ordinary permission/linked-document mechanisms, never `ignore_links`, direct SQL deletion, DB restores or Delete Company Transactions as shortcuts. Any irreversible destructive cleanup needs a separately verified rollback/backups and exact owner approval; GSL/WFC creation separately requires confirmed legal names, abbreviations, currency, country, parent/group status, ledger/inventory defaults and Chart of Accounts, before posting any transaction. No action in PRODUCTION or broken third site.
+
+
+## November 19 — Corrected Company keep-list: GSL and WFC ALREADY EXIST, 21 not 23 deletion candidates
+
+**Critical correction to earlier provisional two-Company deletion plan:** The owner's full **MAIN DEVELOPMENT** `development.localhost` read-only inventory reported exactly **25 Companies** and printed all 23 outside the original CCPC/RMC keep-list. Among those supposedly disposable records are **`GSL Realty Corporation`** and **`Woodland Farms Corporation`**, plausible matches for intended GSL and WFC; **do not delete these records or recreate duplicate Companies**. Owner should confirm their intended legal identity/abbreviations/currency before promotion as actual Company masters. Revised **provisional** keep-list:
+- `Cagayan Corn Products Corporation` — preserve
+- `Ricor Mills Corporation` — preserve
+- `GSL Realty Corporation` — preserve pending owner's identity confirmation
+- `Woodland Farms Corporation` — preserve pending owner's identity confirmation
+
+Thus the proposed cleanup list is now **21 candidates, not 23**, all unapproved for deletion. The owner's inventory reported no currently saved default for any of the original 23 candidates, but this is NOT evidence that they have no accounting, stock, hierarchy or dynamic links. Five of 21 are group Companies: `_Test Company 3` (one child `_Test Company 4`), `_Test Company 4` (one child `_Test Company 5`), `_Test Company 6` (one child `_Test Company 7`), `_Test Company 7` (zero children), `Parent Group Company India` (two children `Child Company India`, `Child Company US`). This parent/child hierarchy forbids arbitrary deletion order. Tests may depend on these fixture names. Do not apply to Integration2 or PRODUCTION. No delete/create action occurred.
+
+**Next Gate D1b: read-only identity + linked-record SCREENING counts for all 25 on MAIN only.** This reports the four provisional keep-record names, abbreviations, countries, currencies and group/parent flags, then per-candidate counts of direct Company references in a fixed list of standard accounting/inventory/procurement documents. It does NOT inspect all Frappe Link/Dynamic Link fields, custom CCPC references or all transactions, and a zero count is **NOT** deletion clearance. `Company` child relationships, saved defaults and exact SHA guards are checked. Run from original host `gani@ccpcerpserver`:
+
+```bash
+bash <<'HOST'
+set -euo pipefail
+test "$(hostname -s)" = ccpcerpserver && test "$(id -un)" = gani || { echo "STOP: WRONG HOST OR USER"; exit 1; }
+dev=frappe_docker_devcontainer-frappe-1
+test "$(sudo docker inspect --format '{{.State.Running}}' "$dev")" = true || { echo "STOP: DEV CONTAINER DOWN"; exit 1; }
+test "$(sudo docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}}' "$dev")" = frappe_docker_devcontainer || { echo "STOP: WRONG DEV PROJECT"; exit 1; }
+sudo docker exec -i --user frappe --workdir /workspace/development/frappe-bench/sites "$dev" \
+ env FRAPPE_STREAM_LOGGING=1 /workspace/development/frappe-bench/env/bin/python -B - <<'PY'
+from pathlib import Path
+import subprocess
+import frappe
+B=Path("/workspace/development/frappe-bench")
+for directory,sha in (
+  (B/"apps/ccpcerp","25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87"),
+  (B/".ccpc-phase1-release-stage-20261119-55eb10b86a57",
+   "55eb10b86a57de55a97e293a78228d9dd17b809a"),
+):
+    r=subprocess.run(["git","-C",str(directory),"rev-parse","HEAD"],
+                     capture_output=True,text=True,timeout=20)
+    if r.returncode or r.stdout.strip()!=sha:
+        raise SystemExit("STOP: GIT SOURCE PIN CHANGED")
+keep={
+    "Cagayan Corn Products Corporation",
+    "Ricor Mills Corporation",
+    "GSL Realty Corporation",
+    "Woodland Farms Corporation",
+}
+tables=(
+    "Account", "Cost Center", "Warehouse", "GL Entry", "Stock Ledger Entry",
+    "Journal Entry", "Sales Invoice", "Purchase Invoice", "Stock Entry",
+    "Payment Entry", "Sales Order", "Purchase Order", "Material Request",
+    "Delivery Note", "Purchase Receipt",
+)
+frappe.init(site="development.localhost",sites_path=".")
+try:
+    frappe.connect()
+    frappe.db.sql("START TRANSACTION READ ONLY")
+    rows=frappe.db.sql("""
+        SELECT name, abbr, country, default_currency, is_group, parent_company
+        FROM `tabCompany` ORDER BY name
+    """,as_dict=True)
+    names={x.name for x in rows}
+    if len(rows)!=25 or not keep.issubset(names):
+        raise SystemExit("STOP: MAIN COMPANY INVENTORY CHANGED")
+    children={}
+    for r in rows:
+        if r.parent_company:
+            children[r.parent_company]=children.get(r.parent_company,0)+1
+    dv=frappe.db.sql("""
+        SELECT DISTINCT defvalue FROM `tabDefaultValue`
+        WHERE defkey IN ('company','default_company')
+    """,as_list=True)
+    default_names={x[0] for x in dv}
+    qualified=("tab"+t for t in tables)
+    available={
+        r[0] for r in frappe.db.sql(
+          "SELECT TABLE_NAME FROM information_schema.COLUMNS "
+          "WHERE TABLE_SCHEMA=DATABASE() AND COLUMN_NAME='company' "
+          "AND TABLE_NAME IN ("+",".join(["%s"]*len(tables))+")",
+          tuple("tab"+t for t in tables),as_list=True)
+    }
+    counts={r.name:{} for r in rows}
+    for table in tables:
+        if "tab"+table not in available:
+            continue
+        query="SELECT company, COUNT(*) FROM `tab"+table+"` WHERE company IS NOT NULL AND company != '' GROUP BY company"
+        for name,n in frappe.db.sql(query,as_list=True):
+            if name in counts:
+                counts[name][table]=int(n)
+    print("MAIN DEV COMPANY INVENTORY:",len(rows))
+    print("PROVISIONAL FOUR-COMPANY KEEP LIST:")
+    for r in rows:
+        if r.name in keep:
+            print("KEEP:",r.name,"| abbr:",r.abbr,"| country:",r.country,
+                  "| currency:",r.default_currency,"| group:",int(r.is_group or 0),
+                  "| parent:",r.parent_company or "NONE",
+                  "| selected direct links:",sum(counts[r.name].values()))
+    print("COMPANY DELETE CANDIDATES: 21 — SCREENING ONLY")
+    for r in rows:
+        if r.name in keep: continue
+        links=counts[r.name]
+        linked=", ".join(t+"="+str(links[t]) for t in tables if links.get(t,0))
+        print("CANDIDATE:",r.name,
+              "| children:",children.get(r.name,0),
+              "| default:",int(r.name in default_names),
+              "| direct links:",linked or "NONE IN SCREENED TABLES")
+    print("SCANNED TABLES WITH COMPANY COLUMN:",sum("tab"+t in available for t in tables))
+    print("MAIN DEV COMPANY IDENTITY + LIMITED LINK SCREEN: PASS")
+finally:
+    try:
+        if frappe.db: frappe.db.rollback()
+    finally:
+        frappe.destroy()
+print("NO COMPANIES / TRANSACTIONS / SERVICES MODIFIED")
+PY
+HOST
+```
+
+**Before any deletion:** This limited survey must be followed by full Doctype Link, Dynamic Link, default-value, nested Company and custom CCPC references plus GL/SLE/Stock/Financial document verification, separately protected backups, test-fixture preservation strategy, human-reviewed explicit 21-Company deletion authorization and an operations plan. Some linked standard Company documents must not be cascaded or force-deleted at all. GSL/WFC **already exist on MAIN**; do not create duplicate names, abbreviations or accounting trees. Existing DEV worker backlog remains ON HOLD (`Workers online: 0` both sites; queued contact creation and route builds). Phase1 maintenance/checkout/migrate is also ON HOLD. No PRODUCTION action.
