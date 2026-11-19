@@ -569,6 +569,14 @@ The operator ran a hostname-guarded, read-only check against the stopped agent's
 
 **Next read-only diagnostic:** classify alternate lowercase/mixed-case proxy variables, `ALL_PROXY`, and additional bypass settings from stopped agent Docker metadata. Report names/categories and equality to existing uppercase proxy endpoints, never reveal values, hosts, ports, credentials, raw Compose files or paths. No container activation. Later: harden all-interface Squid listener with source controls, verify image provenance/user, special-use/DNS behavior, and address host-shared resource risks before any runtime test.
 
+## Step 53 — no alternative proxy environment configuration detected (2026-11-19)
+
+The operator ran a hostname-guarded, read-only inspection of existing **stopped** Codex agent Docker metadata for alternative proxy environment variables. Sanitized output: `agent_running=False`, `duplicate_environment_key_count=0`, `lowercase_http_proxy_configured=False`, `lowercase_http_matches_upper=NOT_SET`, `lowercase_https_proxy_configured=False`, `lowercase_https_matches_upper=NOT_SET`, `lowercase_no_proxy_configured=False`, `lowercase_no_proxy_matches_upper=NOT_SET`, `lowercase_no_proxy_has_wildcards=NOT_SET`, `any_all_proxy_configured=False`, `any_ftp_proxy_configured=False`, and `other_proxy_named_env_key_count=0`.
+
+**Interpretation:** No conflicting lowercase HTTP(S)/NO_PROXY, ALL_PROXY, FTP_PROXY, or other suffix-`_proxy` variables were present in the *inspected agent Docker environment*. Existing uppercase HTTP(S) proxy and narrowly scoped `NO_PROXY` settings remained established in Steps 50–52. This is a positive static configuration finding, not runtime network enforcement: app-specific settings or direct sockets can still bypass proxy environment variables. No Codex/optional Squid execution, Docker/host changes, image download or DEV/OLD PROD/NEW PROD/UAT actions occurred; agent remains stopped, proxy inactive, **NO-GO**.
+
+**Next read-only diagnostic:** determine whether the lab bridge has IPv6 enabled, whether the stopped agent has an IPv6 address, and whether host IPv6 forwarding is enabled; classify any IPv6 ingress/forward firewall controls without printing interface names, IPs, network topology specifics or policy rules. This is the unverified counterpart of Steps 20–25's IPv4-only static inspection. No packet probes, service starts or firewall changes.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
