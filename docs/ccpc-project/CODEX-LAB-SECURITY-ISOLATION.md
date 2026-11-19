@@ -98,6 +98,22 @@ The operator's read-only inspection found:
 
 **Risk:** unbounded memory/CPU consumption can impair co-hosted environments even without a privilege breakout. Propose and review bounded limits after inspecting the Compose source and actual workload requirements; do not change running services or containers under this documentation-only work.
 
+## Step 18 — host bind-source overlap check (2026-11-19)
+
+Operator ran a host-guarded read-only inspection of all current Docker containers, comparing resolved `Source` values for the agent's `bind` mounts against resolved mount sources outside the Codex Compose project. Reported counts:
+
+| Check | Operator-reported result |
+| --- | ---: |
+| Docker containers inspected (running and stopped) | 19 |
+| Containers outside Codex lab | 15 |
+| Agent resolved mounts of type `bind` | 1 |
+| Exact source-path matches outside lab | 0 |
+| Source-path ancestor/descendant overlap candidates outside lab | 0 |
+
+**Interpretation:** The single resolved agent bind did not match or nest within any resolved Docker mount source on the 15 other containers, as compared lexically after `os.path.normpath`. This is evidence against *direct Docker mount-source sharing* at that point in time. It is **not** proof against symlink aliases, hardlinks, mount propagation, host-level file access, a separate Docker socket connection, or routes into protected networks. The query did not read secret contents or modify containers. Codex remains **NO-GO**.
+
+**Next diagnostic:** read-only check whether Docker's laboratory bridge has a host-side network interface/gateway and whether host IPv4 forwarding is enabled, without printing IP addresses. Then separately examine effective firewall policy. Neither check by itself proves connectivity or isolation.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
