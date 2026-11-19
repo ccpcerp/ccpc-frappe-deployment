@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-19 — Two-Honcho graceful DEV shutdown completed PASS
+
+**Owner-reported actual V2 one-shot execution on `gani@ccpcerpserver`:** `RQ REGISTERED WORKER: ONE, IDLE, NO CURRENT JOB`; `DEV TWO HONCHO MANAGERS AND SOURCE/BACKUP GUARDS: PASS`; `DEV BENCH HONCHO EXITED`; a second idle/no-current-job RQ check PASS; `DEV WORKER-ONLY HONCHO EXITED`; `DEV TWO-HONCHO GRACEFUL STOP: PASS`; `SOURCE SWAP / SITE MIGRATION / PROD: NOT PERFORMED`. This confirms the V2 script's built-in process/descendant wait and no-remaining-Honcho checks passed **at completion**; independently from server host or worker/job DB not directly queried by ChatGPT. Both valid DEV sites are intentionally offline during maintenance, and owner previously confirmed sole user logged out.
+
+**NEXT:** Perform protected two-site Phase1 **source-only** activation in `frappe_docker_devcontainer-frappe-1` after fresh zero-manager/process, exact original PR33/stage SHA/cleanliness, same filesystem and Nov19 backup manifest guards. Preserve all original `apps/ccpcerp` contents including untracked `AGENTS.md` by moving entire original directory to a unique protected sibling, then move tracked-clean pinned release stage to `apps/ccpcerp`; do not change site DB, run migrate, restart services, alter Redis or touch PROD in same operation. Verify import origin and exact source. If activation fails *before migrations*, a guarded automatic rollback of the exact two directory renames is permissible only when identities remain known; otherwise STOP without guessing. Migration of `ccpc-integration2.localhost` then `development.localhost` must remain a separate reviewed, one-site-at-a-time high-risk operation with `setup.after_migrate` impact and roles/Finance controls considered. Never `--site all` and never touch broken `ccpc-integration.localhost`.
+
+---
+
 ## 2026-11-19 — Original Honcho runs web+socketio; corrected DEV shutdown v2 committed
 
 **Latest owner read-only output:** `ARGUMENT COUNT: 5`, `HONCHO START PRESENT: True`, `EXTRA ARGUMENT COUNT: 2`, and both extra args were redacted by the earlier classifier. Historical verified GitHub handoff already documents **original `543180` executed `honcho start web socketio`** (2026-11-17 failed duplicate `bench start` diagnostic). This accounts for the two extra service names, and explains why original v1 graceful shutdown script's `['start']` argv-tail guard rejected the original manager. Previous standalone field check confirms original script path, owner, PPID 0, PGID/SID PID, working directory and active process all match. The separate `546647` `honcho start worker` signature passed. Do not weaken/skip remaining identity or RQ idle checks.
