@@ -1,5 +1,17 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-19 — Owner re-prioritizes: FINISH DEVELOPMENT FIRST; defer separate four-Company UAT
+
+**New owner clarification superseding the earlier UAT go-ahead as the immediate workstream:** The goal is earliest safe completion of CCPC ERPNext development; reducing 25 existing DEVELOPMENT Companies to four is optional and should not divert time. **DEFER provisioning** the new isolated four-Company UAT bench/site/DB/Redis/volumes. Preserve its approved design for later targeted acceptance only if justified; no new UAT environment was created. **Do not delete** any of the 21 demo/test Companies, their linked masters, or posted stock/ledger history. All four intended real Company masters (CCPC, RMC, GSL, WFC) already exist on MAIN. No DEVELOPMENT/PRODUCTION changes authorized by this reprioritization.
+
+**Immediate critical path:** Investigate existing MAIN `development.localhost` **0 online workers / pending create_contact and route-index jobs** by guarded read-only inspection; resolve the blocker via a separately reviewed, approved DEV-only procedure before any Phase1 code switch, migration or persistent data test. In parallel finish reviewed Phase1 withdrawal → Material Issue → Stock Ledger/expense GL, intercompany validation, roles/permissions, replay/concurrency/rollback checks, and the four agreed day-one reports, using GitHub-first reviews and available disposable real Frappe/MariaDB tests. Phase1 DEV switch/migrate remains **ON HOLD** until its specific safeguards pass; PR33 original detached SHA and separate staged Phase1 remain protected. **Codex Cloud continues** via app issue #36; local Codex access/security under deployment issue #38 remains a separate parallel diagnostics-only workstream until isolation proven.
+
+**Host preflight (owner-reported) now completed, no provisioning:** `HOST UAT READ-ONLY CAPACITY/IDENTITY: PASS`; x86_64; memory 30.0 GiB total/26.5 available; free home and Docker-root FS each 682.5 GiB; Docker 29.1.3; Compose 2.40.3; existing Compose project container counts 4 Codex, 10 `frappe_docker`, 4 `frappe_docker_devcontainer`; UAT project 0 containers; three Codex lab containers running. This proves capacity/identity only, **not** safe network/credential isolation; do not infer a Codex agent has been launched from container count alone. No Docker, site, DB, secrets or production touched.
+
+**Updated UAT design/status:** [`FOUR-COMPANY-ISOLATED-DEVELOPMENT-UAT-PLAN-2026-11-19.md`](FOUR-COMPANY-ISOLATED-DEVELOPMENT-UAT-PLAN-2026-11-19.md) on review branch, defer-implementation decision committed as `de9aec4b48d8d1df994d043fb342166f5b72def8`. Previous approved UAT plan remains historical but is **not** current active operator action.
+
+---
+
 ## November 19, 2026 — Owner APPROVED isolated four-Company UAT and reaffirmed active Codex development
 
 **Owner's exact decision following 21-Company cleanup NO-GO:** `Approved, and lets not give up codex`. This approves proceeding with **design and controlled creation of a separate clean four-Company DEVELOPMENT/UAT environment** rather than deleting the 21 test/demo Companies from MAIN. It also reaffirms using **Codex for development/testing**, not abandoning the established Codex Cloud task/PR workflow. It does **not** reinstate the previously cancelled automatic Codex report publisher, new paid API, unattended scheduled reporting, or grant Codex PROD/MAIN credentials or host Docker/socket access. No UAT environment or Codex task is claimed started by ChatGPT.
