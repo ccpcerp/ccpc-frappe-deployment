@@ -537,6 +537,14 @@ The operator ran a hostname-guarded, read-only parser of the optional/inactive S
 
 **Next one read-only diagnostic:** determine whether the proxy's *second* declared Compose network has been instantiated, and whether any current containers are attached to it, with no raw names, IPs, ports, commands, environment or network addresses reported. Never start Squid or Codex to perform this check.
 
+## Step 49 — second outbound-facing proxy network absent (2026-11-19)
+
+The operator ran a hostname-guarded, read-only inspection of Docker network labels against the optional Squid proxy's Compose-declared network that is not shared with the agent. Reported `agent_running=False`, `compose_network_found=False`, `attached_container_count=0`, and `outside_lab_attached_count=0`.
+
+**Interpretation:** the optional proxy's proposed second Compose-managed Docker network has not been instantiated under its expected Compose project/network labels at the time of inspection. Together with Step 34 (no Compose-managed `egress-proxy` container), this supports a conclusion of **no active exposure through this *specific planned proxy topology***. It does not rule out alternate or preexisting network paths, independently managed proxies, or reachability of the existing `HTTP_PROXY`/`HTTPS_PROXY` hostnames configured for the stopped agent (Steps 11–13). These endpoint relationships and effective routing remain unverified. The broad Squid listener remains a **pre-activation design issue**, not a demonstrated active exposure. No network or containers were created, no probes sent, no change to host/DEV/OLD or NEW PROD/UAT. Agent stopped, proxy inactive, overall Codex **NO-GO**.
+
+**Next read-only diagnostic:** compare sanitized configured HTTP/HTTPS proxy URL hostnames/ports from the stopped agent's Docker metadata against the optional Compose service's names and network aliases. Report only equality, URL scheme, host-is-IP and host-is-lab-service classifications; never print endpoint values, DNS answers, addresses, credentials, raw environment values or proxy configuration. Do not start any containers or make DNS/network requests.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
