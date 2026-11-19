@@ -1,6 +1,8 @@
 # CCPC Codex DEVELOPMENT-only lab: opt-in, standalone, synthetic data only.
 # No host source, SSH, Docker socket, legacy database, NAS or production mounts.
 # ONLINE PROFILE DISABLED BY DEFAULT; do not enable without egress verification.
+# REVIEW ONLY: proposed proxy_client IPAM, listener/ACL and host firewall
+# controls must pass real-host checks before any Docker Compose apply.
 name: ccpc_codex_dev_agent
 
 services:
@@ -34,7 +36,12 @@ services:
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=256m
       - /run:rw,noexec,nosuid,size=32m
-    networks: [lab]
+    # Agent remains on the synthetic DB/Redis lab bridge and gains a
+    # second, internal-only client path to Squid (never the outgoing bridge).
+    networks:
+      lab:
+      proxy_clients:
+        ipv4_address: 172.30.250.2
     labels:
       ccpc.scope: dev-only-synthetic
       ccpc.no-production: "true"
@@ -97,7 +104,12 @@ services:
       - /var/log/squid:rw,nosuid,size=32m
       - /var/spool/squid:rw,nosuid,size=64m
       - /run:rw,noexec,nosuid,size=16m
-    networks: [lab, outgoing]
+    # No direct connectivity to the synthetic DB/Redis lab bridge.
+    # Static client-facing address is required for Squid's listener bind.
+    networks:
+      proxy_clients:
+        ipv4_address: 172.30.250.3
+      outgoing:
     labels:
       ccpc.scope: dev-only-proxy
       ccpc.no-production: "true"
@@ -106,8 +118,20 @@ networks:
   lab:
     internal: true
     driver: bridge
+  # REVIEW ONLY: the reserved /29 MUST be checked against actual host Docker
+  # subnets and routes before creating it. Do not run 'up' from this branch.
+  # The client bridge has only agent and Squid; no DB/Redis containers.
+  proxy_clients:
+    driver: bridge
+    internal: true
+    attachable: false
+    enable_ipv6: false
+    ipam:
+      config:
+        - subnet: 172.30.250.0/29
   outgoing:
     driver: bridge
+    attachable: false
 
 volumes:
   agent-home:
