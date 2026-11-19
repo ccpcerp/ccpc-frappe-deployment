@@ -364,6 +364,29 @@ The operator ran a hostname-guarded, read-only parse of the current Compose sour
 
 **Next read-only inspection:** audit the optional proxy Compose service's local hardening flags (user, read-only root filesystem, privilege, security options, capabilities, ports, mounts, resource limits, configuration input presence) without printing paths, environment variable values, service commands, credentials or raw Compose content. Review the actual proxy application allow/deny policy in a separate sanitized inspection before any activation. Resource headroom/sandbox/authentication remain unresolved.
 
+## Step 37 — optional proxy hardening declarations (2026-11-19)
+
+Operator ran hostname-guarded read-only parse of the current Compose source for the configured but inactive optional `egress-proxy`, while checking the agent remains stopped. Reported `agent_running=False` and these service declarations:
+
+| Setting | Reported value |
+| --- | --- |
+| `proxy_read_only_root` | `True` |
+| `proxy_privileged` | `False` |
+| `proxy_user_explicitly_set` | `False` |
+| `proxy_all_capabilities_dropped` | `True` |
+| `proxy_added_capability_count` | `0` |
+| `proxy_no_new_privileges` | `True` |
+| `proxy_mount_count` | `1` |
+| `proxy_secret_count` | `0` |
+| `proxy_published_ports` | `0` |
+| `proxy_memory_limit_defined` | `False` |
+| `proxy_cpu_limit_defined` | `False` |
+| `proxy_pid_limit_defined` | `False` |
+
+**Interpretation:** The source declares valuable container hardening: read-only root, unprivileged container mode, no-new-privileges, drop-all capabilities with no additions, and no host published ports. However, the proxy user is omitted (so the *image's default user*, not yet inspected, would be used), there is one mount of as-yet-unknown type/source/read-write state, and no CPU/memory/PID caps. `proxy_secret_count=0` means no Compose-managed secret references, **not** that the mount, image or environment is free of secrets. The proxy's application-level destination/ACL policy and actual reachability are still unknown. This is config inspection, not execution. No host, Docker, DEVELOPMENT, OLD/NEW PRODUCTION or UAT changes. Codex remains stopped/NO-GO.
+
+**Next diagnostic:** read-only sanitized classification of the proxy's single source-declared mount: type, read-only setting, whether it references Docker's control socket, and whether source path is a symlink (only if safe to determine), without showing paths, target names, config contents, proxy addresses or credentials. Later verify the image default user and outbound ACLs; resource limits remain an availability blocker on cohosted infrastructure.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
