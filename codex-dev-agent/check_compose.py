@@ -175,6 +175,11 @@ def validate(rendered, proxy_policy=None):
         reject("outgoing bridge must not be internal")
     if networks["outgoing"].get("attachable") is not False:
         reject("outgoing bridge must not be attachable")
+    # Preserve the existing live application bridge: no source-level IPAM
+    # changes to lab or outgoing are permitted as part of this PR.
+    if any((networks[name].get("ipam") or {}).get("config")
+           for name in ("lab", "outgoing")):
+        reject("existing network IPAM may not be changed")
 
     # Static address must be inside the dedicated internal /29, not its gateway.
     subnet = ipaddress.ip_network(CLIENT_SUBNET, strict=True)
@@ -183,8 +188,10 @@ def validate(rendered, proxy_policy=None):
         reject("proxy client addresses out of subnet")
 
     for name, service in services.items():
-        if service.get("privileged") or service.get("network_mode") or service.get("pid") == "host":
-            reject(f"{name}: privileged/host mode")
+        if service.get("privileged") or service.get("network_mode") or            any(service.get(key) for key in
+               ("pid", "ipc", "uts", "cgroup", "userns_mode", "volumes_from",
+                "device_cgroup_rules", "cgroup_parent")):
+            reject(f"{name}: privileged/host namespace or external resource mode")
         if any(service.get(key) for key in
                ("ports", "devices", "extra_hosts", "links", "external_links",
                 "dns", "dns_search", "dns_opt")):
@@ -201,9 +208,8 @@ def validate(rendered, proxy_policy=None):
             reject(f"{name}: unexpected Linux capabilities")
         if "ALL" not in (service.get("cap_drop") or []):
             reject(f"{name}: missing cap_drop ALL")
-        if not any("no-new-privileges" in str(option)
-                   for option in (service.get("security_opt") or [])):
-            reject(f"{name}: missing no-new-privileges")
+        if set(service.get("security_opt") or []) != {"no-new-privileges:true"}:
+            reject(f"{name}: unexpected security profile override")
         if name == "agent":
             expected_networks = {"lab", "proxy_clients"}
         elif name == "egress-proxy":
@@ -215,6 +221,8 @@ def validate(rendered, proxy_policy=None):
     agent = services["agent"]
     if not agent.get("read_only") or str(agent.get("user")) not in ("1000:1000", "1000"):
         reject("agent must run nonroot with read-only rootfs")
+    if agent.get("entrypoint") or agent.get("command") != ["sleep", "infinity"]:
+        reject("offline agent command/entrypoint must not change")
     if agent.get("profiles"):
         reject("agent must be in offline default profile")
     if not network_config(network_entries(agent)["lab"]):
@@ -227,6 +235,12 @@ def validate(rendered, proxy_policy=None):
         reject("proxy must only start with explicit online profile")
     if not proxy.get("read_only"):
         reject("proxy must have read-only rootfs")
+    if proxy.get("entrypoint") or proxy.get("command") != [
+        "squid", "-N", "-f", "/etc/squid/squid.conf"
+    ]:
+        reject("Squid command/entrypoint must load the reviewed policy")
+    if proxy.get("environment"):
+        reject("unreviewed Squid environment overrides")
     if not network_config(network_entries(proxy)["proxy_clients"], PROXY_CLIENT_IP):
         reject("proxy client IP changed")
     if not network_config(network_entries(proxy)["outgoing"]):
