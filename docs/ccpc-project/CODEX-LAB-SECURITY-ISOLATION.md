@@ -545,6 +545,14 @@ The operator ran a hostname-guarded, read-only inspection of Docker network labe
 
 **Next read-only diagnostic:** compare sanitized configured HTTP/HTTPS proxy URL hostnames/ports from the stopped agent's Docker metadata against the optional Compose service's names and network aliases. Report only equality, URL scheme, host-is-IP and host-is-lab-service classifications; never print endpoint values, DNS answers, addresses, credentials, raw environment values or proxy configuration. Do not start any containers or make DNS/network requests.
 
+## Step 50 — agent proxy host resolves to optional service alias (2026-11-19)
+
+Operator ran a hostname-guarded, read-only classifier on the **stopped** agent's Docker environment metadata and the current Compose source's optional proxy service/network aliases, without logging URL values or ports. Reported `agent_running=False`, `http_proxy_configured=True`, `https_proxy_configured=True`, `both_proxy_urls_parseable=True`, `proxy_destinations_equal=True` (same host and port), `http_matches_optional_service_alias=True`, `https_matches_optional_service_alias=True`, `any_proxy_host_is_ip_literal=False`, `any_proxy_host_is_docker_host_alias=False`, `embedded_auth_detected=False`.
+
+**Interpretation:** HTTP(S) proxy environment settings point at the optional `egress-proxy` Compose service alias (same host and port) instead of an IP literal, Docker host alias, or different observed endpoint. Steps 34 and 49 found no Compose-managed Squid container and no second proxy bridge instantiated; thus the *intended optional service path* is not currently active. The result does not establish effective DNS resolution, exclude alternative routes or prove that all outbound traffic is denied. Credentials embedded in the proxy URLs were not detected, but unrelated stored credentials were not ruled out. No DNS queries, network traffic, Docker/host operations or DEV/OLD PROD/NEW PROD/UAT changes occurred. Agent remains stopped; proxy inactive; **NO-GO**.
+
+**Next single read-only diagnostic:** compare both agent proxy URL ports to the inactive Squid `http_port` listener and classify whether `NO_PROXY` can bypass the proxy for protected/private addresses or broad wildcards. Report matches/counters only, never numeric port values, raw URL/NO_PROXY values, destinations, host paths or credentials. No proxy activation or host network probing.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
