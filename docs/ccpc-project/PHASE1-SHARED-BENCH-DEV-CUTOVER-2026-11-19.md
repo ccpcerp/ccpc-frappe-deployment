@@ -294,3 +294,102 @@ HOST
 ```
 
 **STOP on any deviation** rather than changing the expected PID or disabling checks. These outputs will establish whether a same-filesystem guarded directory rename is technically viable. Do not send `SIGINT` to PID 543180 based on this command alone; a precise DEV-only service interruption plan, app import behavior and site migration impact still need review. No source switch or database write is part of this step.
+
+
+## November 19 — Mount/filesystem preflight PASS; Honcho parent PID zero requires targeted read-only topology check
+
+**Owner's exact operator output from previous read-only preflight** (two leading heredoc delimiters also appeared in paste):
+```text
+ACTIVE APP SEPARATE DOCKER MOUNT: NO
+DEVELOPMENT CONTAINER MOUNT INVENTORY: PASS
+LIVE PR33 / LOCAL AGENTS: PASS
+STAGED RELEASE EXACT SHA / CLEAN: PASS
+APP SOURCE + STAGE SAME FILESYSTEM: PASS
+TWO SITE SNAPSHOTS PRESENT: PASS
+HONCHO PID: 543180
+HONCHO PPID: 0
+HONCHO PGID: 543180
+HONCHO SESSION: 543180
+HONCHO GROUP FRAPPE PROCESS COUNT: 5
+DEV SHARED-BENCH PRE-MAINTENANCE READ-ONLY: PASS
+```
+
+**Interpretation:** Correct named DEV Docker project, separate app bind mount absent, staged exact release and original PR33 clean/protected, matched source+stage filesystem and site snapshot manifests verified. Honcho still has exact observed PID **543180**, own PGID+SID **543180**, but **PPID 0**. A reported parent of zero can reflect PID namespace boundaries or other unusual process parent visibility; it does not prove the process can be safely stopped, who would restart it, whether its workers are all healthy, or whether unrelated services share the group. Five group members do **not** automatically prove five healthy Procfile services. No services have been stopped and no code/DB changes have been made.
+
+**Next: exact read-only process/topology census.** Do not signal/kill PID 543180 based on earlier broad process count. Run only the command below from `gani@ccpcerpserver`. It checks the named DEV Docker container, PID namespace mode and one named live Honcho instance; examines process parent/group/session relationship and its descendants **without exposing full command lines or environment variables**; confirms configured Procfile labels but does not read config secrets, access the database, or touch other containers. Its only output is sanitized process counts and statuses.
+
+```bash
+bash <<'HOST'
+set -euo pipefail
+test "$(hostname -s)" = ccpcerpserver && test "$(id -un)" = gani || { echo "STOP: WRONG HOST OR OPERATOR"; exit 1; }
+dev=frappe_docker_devcontainer-frappe-1
+test "$(sudo docker inspect --format '{{.State.Running}}' "$dev")" = true || { echo "STOP: DEV NOT RUNNING"; exit 1; }
+test "$(sudo docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}}' "$dev")" = frappe_docker_devcontainer || { echo "STOP: WRONG DEV COMPOSE PROJECT"; exit 1; }
+mode=$(sudo docker inspect --format '{{.HostConfig.PidMode}}' "$dev")
+case "$mode" in ""|"private") echo "DEV CONTAINER PID MODE: PRIVATE_OR_DEFAULT";; "host") echo "DEV CONTAINER PID MODE: HOST";; *) echo "DEV CONTAINER PID MODE: OTHER";; esac
+sudo docker exec -i --user frappe --workdir /workspace/development/frappe-bench/sites "$dev" \
+ /workspace/development/frappe-bench/env/bin/python -B - <<'PY'
+from pathlib import Path
+import re
+import subprocess
+
+BENCH = Path("/workspace/development/frappe-bench")
+EXPECTED_PID = 543180
+p = subprocess.run(["ps", "-eo", "pid=,ppid=,pgid=,sid=,user=,stat=,comm=,args="],
+                   capture_output=True, text=True, timeout=20)
+if p.returncode:
+    raise SystemExit("STOP: PROCESS SNAPSHOT FAILED")
+rows = {}
+for line in p.stdout.splitlines():
+    parts = line.split(None, 7)
+    if len(parts) != 8:
+        continue
+    pid, parent, group, session, user, state, executable, args = parts
+    if all(s.isdigit() for s in (pid, parent, group, session)):
+        rows[int(pid)] = (int(parent), int(group), int(session), user, state, executable, args)
+honcho_pids = [pid for pid, row in rows.items()
+               if re.search(r"(?:^|/)honcho start(?:\s|$)", row[-1])]
+if honcho_pids != [EXPECTED_PID] or EXPECTED_PID not in rows:
+    raise SystemExit("STOP: HONCHO IDENTITY OR COUNT CHANGED")
+parent, group, session, owner, state, executable, cmd = rows[EXPECTED_PID]
+if owner != "frappe" or state.startswith("Z") or group != EXPECTED_PID or session != EXPECTED_PID:
+    raise SystemExit("STOP: HONCHO OWNER/PROCESS GROUP/SESSION CHANGED")
+procfile = BENCH / "Procfile"
+if not procfile.is_file():
+    raise SystemExit("STOP: PROCFILE MISSING")
+labels = re.findall(r"^([a-z][a-z0-9_-]*):", procfile.read_text(), re.M)
+if set(labels) != {"web", "socketio", "watch", "schedule", "worker"} or len(labels) != 5:
+    raise SystemExit("STOP: PROCFILE SERVICE LABELS CHANGED")
+descendants = set()
+frontier = {EXPECTED_PID}
+while frontier:
+    current = {pid for pid, row in rows.items() if row[0] in frontier and pid not in descendants}
+    current.discard(EXPECTED_PID)
+    descendants |= current
+    frontier = current
+members = {pid for pid, row in rows.items() if row[1] == group and row[3] == session}
+non_frappe = [pid for pid in (members | descendants)
+              if rows[pid][3] != "frappe"]
+if non_frappe:
+    raise SystemExit("STOP: NON-FRAPPE PROCESS IN HONCHO GROUP/TREE")
+cwd = Path("/proc") / str(EXPECTED_PID) / "cwd"
+try:
+    cwd_ok = cwd.resolve() == BENCH.resolve()
+except (OSError, PermissionError):
+    cwd_ok = False
+print("HONCHO PROCESS IDENTITY: VERIFIED")
+print("HONCHO PID:", EXPECTED_PID)
+print("HONCHO REPORTED PPID:", parent)
+print("HONCHO SESSION/GROUP LEADER: YES")
+print("HONCHO CWD BENCH MATCH:", "YES" if cwd_ok else "NO_OR_UNAVAILABLE")
+print("PROCFILE SERVICE LABELS: web socketio watch schedule worker")
+print("HONCHO SAME-SESSION GROUP PROCESSES:", len(members))
+print("HONCHO DESCENDANT PROCESSES:", len(descendants))
+print("HONCHO DESCENDANT PROCESS GROUPS:", len({rows[pid][1] for pid in descendants}))
+print("HONCHO GROUP/TREE OWNER CHECK: FRAPPE ONLY")
+print("DEV HONCHO TOPOLOGY READ-ONLY: PASS")
+PY
+HOST
+```
+
+**Risk gate:** If parent remains zero or Honcho cwd is not confirmed, do not guess a safe signal, shutdown mechanism, or agent ownership. Review the output and verify Honcho supervisor/restart mechanism and absence of site transactions/critical queued jobs before any maintenance stop. For actual cutover, the source-only directory swap still requires the site-specific patch log and `setup.after_migrate` review, a planned DEV outage for both sites, and a rollback strategy that may require both databases/files (not merely the Git code). Absolutely no `docker compose down`, global `pkill`, automatic restart, `--site all migrate` or PRODUCTION involvement.
