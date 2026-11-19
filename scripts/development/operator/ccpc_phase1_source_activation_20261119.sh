@@ -160,7 +160,9 @@ try:
     if git(APP, "status", "--porcelain=v1", "--untracked-files=all"):
         raise RuntimeError("POST-SWAP RELEASE WORKTREE NOT CLEAN")
     ensure_import_points_to_app()
-except Exception as exc:
+except BaseException as exc:
+    # Catch preflight helper SystemExit/KeyboardInterrupt too, so post-rename
+    # verification cannot leave the original checkout moved without a rollback.
     # Do not operate on unknown paths. Exact git identity is checked before reversal.
     print("STOP: SOURCE ACTIVATION FAILED; ATTEMPTING GUARDED PRE-MIGRATION ROLLBACK")
     try:
