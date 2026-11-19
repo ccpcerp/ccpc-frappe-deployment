@@ -714,3 +714,109 @@ HOST
 ```
 
 **Post-census gate:** Compare eligible row counts to the user's intended personnel/stock workflows. Even if eligibility is zero, do not treat the migration as risk-free: MRS names, workflow transitions, permissions, stock-related custom fields and Frappe schema sync remain potentially site-mutating. Before Honcho stop, require safe queue/user quiescence, a separate two-site schema/role compatibility review, rollback readiness for **both** SQL+files, and the expected Finance Phase1-only same-Company rules. Never run `--site all migrate`, alter the broken third site, or perform PRODUCTION operations.
+
+
+## November 19 — Conditional backfills: ZERO eligible; classify five existing exceptions before outage
+
+**Owner-reported bounded read-only SQL from MAIN `development.localhost`:**
+
+```text
+MAIN PERSONNEL COMPANY MISSING: 3
+MAIN PERSONNEL COMPANY BACKFILL ELIGIBLE: 0
+MAIN PERSONNEL WITH NO DEPARTMENT: 0
+MAIN WITHDRAWAL ITEMS NONPOSITIVE/NULL: 2
+MAIN WITHDRAWAL ITEMS NULL QTY: 0
+MAIN WITHDRAWAL ISSUE QTY BACKFILL ELIGIBLE: 0
+MAIN CONDITIONAL BACKFILL CENSUS: PASS
+DEV SOURCE/MIGRATION/SERVICE CHANGES: NOT PERFORMED
+```
+
+**Meaning, grounded in pinned Phase1 release `55eb10b86a57de55a97e293a78228d9dd17b809a` `ccpcerp/setup.py`:**
+
+- The three personnel have a populated `department` value, but none resolves through `tabDepartment.company` to a nonempty Company. They could have **orphaned Department links or linked Departments with no Company**; the current aggregate alone cannot distinguish. Release's `backfill_ccpc_personnel_company()` would not populate these records in the observed state.
+- Both Withdrawal Slip Items have numeric zero/negative (none SQL NULL); neither meets `backfill_withdrawal_slip_issue_qty()` conditions: its parent's `status` must be `Stockroom Review` or `Fully Issued` or `Issued with Shortage`, and the selected source quantity must be positive. Their statuses and values are not yet classified; the migration should not be expected to correct these rows.
+- These five candidates are **not a direct Phase1 migration failure**. Do not auto-fix accounting/operational master records based only on this query. Other on-migrate effects still exist, including three MAIN MRS display-name writes, permissions/workflow/role edits and schema sync; migration is **not read-only**.
+- No source switch, migration, Honcho stop, PRODUCTION operation, or site record write has occurred.
+
+**Next (LAST data-exception classification, READ ONLY):** Classify the three broken-or-unconfigured personnel Department→Company links, and the two Withdrawal Item parent/status/source-quantity conditions **only as aggregate counts**; return no row IDs, names, prices, amounts or credentials. Then determine whether these existing defects should be handled in later owner-authorized master-data cleanup or warrant a halt to the Phase1 DEV cutover. The command continues to enforce immutable live/stage SHAs and an explicit SQL READ ONLY transaction.
+
+```bash
+bash <<'HOST'
+set -euo pipefail
+test "$(hostname -s)" = ccpcerpserver && test "$(id -un)" = gani || { echo 'STOP: WRONG HOST OR USER'; exit 1; }
+dev=frappe_docker_devcontainer-frappe-1
+test "$(sudo docker inspect --format '{{.State.Running}}' "$dev")" = true || { echo 'STOP: DEV CONTAINER DOWN'; exit 1; }
+test "$(sudo docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}}' "$dev")" = frappe_docker_devcontainer || { echo 'STOP: WRONG DEV COMPOSE PROJECT'; exit 1; }
+sudo docker exec -i --user frappe --workdir /workspace/development/frappe-bench/sites "$dev" \
+ env FRAPPE_STREAM_LOGGING=1 /workspace/development/frappe-bench/env/bin/python -B - <<'PY'
+from pathlib import Path
+import subprocess
+import frappe
+
+B=Path("/workspace/development/frappe-bench")
+for path,expected in (
+    (B/"apps/ccpcerp","25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87"),
+    (B/".ccpc-phase1-release-stage-20261119-55eb10b86a57",
+     "55eb10b86a57de55a97e293a78228d9dd17b809a"),
+):
+    p=subprocess.run(["git","-C",str(path),"rev-parse","HEAD"],
+                     capture_output=True,text=True,timeout=20)
+    if p.returncode or p.stdout.strip()!=expected:
+        raise SystemExit("STOP: SOURCE PIN MOVED")
+
+frappe.init(site="development.localhost",sites_path=".")
+try:
+    frappe.connect()
+    frappe.db.sql("START TRANSACTION READ ONLY")
+    p=frappe.db.sql("""
+        SELECT COUNT(*) AS missing,
+               COALESCE(SUM(CASE WHEN d.name IS NULL THEN 1 ELSE 0 END),0) AS missing_link,
+               COALESCE(SUM(CASE WHEN d.name IS NOT NULL
+                              AND COALESCE(d.company,'')=''
+                         THEN 1 ELSE 0 END),0) AS department_no_company,
+               COALESCE(SUM(CASE WHEN d.name IS NOT NULL
+                              AND COALESCE(d.company,'')!=''
+                         THEN 1 ELSE 0 END),0) AS resolvable
+        FROM `tabCCPC Personnel` p
+        LEFT JOIN `tabDepartment` d ON d.name=p.department
+        WHERE COALESCE(p.company,'')=''
+    """,as_dict=True)[0]
+    w=frappe.db.sql("""
+        SELECT COUNT(*) AS nonpositive,
+               COALESCE(SUM(CASE WHEN s.name IS NULL THEN 1 ELSE 0 END),0) AS missing_parent,
+               COALESCE(SUM(CASE WHEN s.name IS NOT NULL
+                              AND (s.status IS NULL OR s.status NOT IN
+                                   ('Stockroom Review','Fully Issued','Issued with Shortage'))
+                         THEN 1 ELSE 0 END),0) AS other_status,
+               COALESCE(SUM(CASE WHEN s.status='Stockroom Review'
+                         THEN 1 ELSE 0 END),0) AS review_status,
+               COALESCE(SUM(CASE WHEN s.status IN ('Fully Issued','Issued with Shortage')
+                         THEN 1 ELSE 0 END),0) AS issued_status
+        FROM `tabWithdrawal Slip Item` i
+        LEFT JOIN `tabWithdrawal Slip` s ON s.name=i.parent
+        WHERE COALESCE(i.issue_qty,0)<=0
+    """,as_dict=True)[0]
+    print("PERSONNEL COMPANY MISSING:",int(p.missing))
+    print("PERSONNEL DEPARTMENT LINK INVALID:",int(p.missing_link))
+    print("PERSONNEL DEPARTMENT COMPANY BLANK:",int(p.department_no_company))
+    print("PERSONNEL COMPANY RESOLVABLE:",int(p.resolvable))
+    print("WITHDRAWAL ITEMS NONPOSITIVE:",int(w.nonpositive))
+    print("WITHDRAWAL ITEMS PARENT MISSING:",int(w.missing_parent))
+    print("WITHDRAWAL ITEMS OTHER PARENT STATUS:",int(w.other_status))
+    print("WITHDRAWAL ITEMS STOCKROOM REVIEW:",int(w.review_status))
+    print("WITHDRAWAL ITEMS ISSUED STATUSES:",int(w.issued_status))
+    if int(p.missing)!=3 or int(p.resolvable)!=0 or int(w.nonpositive)!=2:
+        raise SystemExit("STOP: LIVE RECORD COUNTS CHANGED")
+    print("MAIN DATA EXCEPTION CLASSIFICATION: PASS")
+finally:
+    try:
+        if frappe.db:
+            frappe.db.rollback()
+    finally:
+        frappe.destroy()
+print("SOURCE / MIGRATION / SERVICES: UNCHANGED")
+PY
+HOST
+```
+
+**Interpretation / boundary:** If all counts remain consistent, document the remaining data-quality tasks; do not fix Department/Company relations or change Issue Qty without owner-authorized master/stock workflow decisions. Next maintenance gate is queue/user quiescence and two-site-aware stopping/restart/rollback, with protected backup sets and PR33 checkout unchanged. The four aggregate status categories sum to exactly the number of nonpositive items; on any surprising values or STOP marker, investigate read-only first.
