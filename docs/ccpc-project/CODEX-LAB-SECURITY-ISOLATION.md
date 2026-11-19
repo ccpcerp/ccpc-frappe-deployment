@@ -347,6 +347,23 @@ Operator ran a hostname-guarded, read-only parse of the current Compose source f
 
 **Next step:** sanitized source-only comparison of the second network's `internal`, `external`, `driver`, `attachable` settings and the agent's attachment count, avoiding raw network names, addresses or proxy values. Check allowed target policy and proxy service hardening before even considering approval to activate the optional profile. Resource and authentication gates also remain open.
 
+## Step 36 — optional proxy two-network definitions (2026-11-19)
+
+The operator ran a hostname-guarded, read-only parse of the current Compose source for the stopped agent and inactive optional proxy; reported `agent_network_count=1`, with one proxy network shared with the agent and one not shared:
+
+| Sanitized field | Shared lab network | Unshared proxy network |
+| --- | --- | --- |
+| Definition present | true | true |
+| `internal` | true | **false** |
+| `external` | false | false |
+| Driver declared, bridge | true, true | true, true |
+| `attachable` | false | false |
+| Driver options present | false | false |
+
+**Interpretation:** The agent is defined on one internal Compose-managed Docker bridge. The optional `egress-proxy` is defined on both that lab bridge and a separate Compose-managed `bridge` with `internal=false`. This is consistent with a proposed egress gateway. `external=false` describes Compose ownership, **not** Internet isolation: the second network could potentially access outbound destinations or host/private networks depending on Docker routing, firewall rules and proxy application policy. The proxy's ability to relay traffic, its ACLs and actual reachability **have not been verified**; Step 34 found no Compose-managed proxy container. No network, container, host or protected-environment changes occurred. Codex remains stopped/NO-GO.
+
+**Next read-only inspection:** audit the optional proxy Compose service's local hardening flags (user, read-only root filesystem, privilege, security options, capabilities, ports, mounts, resource limits, configuration input presence) without printing paths, environment variable values, service commands, credentials or raw Compose content. Review the actual proxy application allow/deny policy in a separate sanitized inspection before any activation. Resource headroom/sandbox/authentication remain unresolved.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
