@@ -1,23 +1,39 @@
 # CCPC Codex DEV-only synthetic lab (NOT production)
 
-**Status:** source implemented for review; no container has been started by ChatGPT. This is not connected to the existing Codex Cloud session. The online profile and any live DEVELOPMENT access remain **held** pending a real host-level network/security review.
+**Status:** review-only security hardening proposal. The operator has previously run synthetic lab services, but the Codex agent is stopped and optional Squid has not been activated. No container has been started by ChatGPT. This is not connected to an existing Codex Cloud session. The online profile, Codex CLI and any live DEVELOPMENT access remain **held** pending separate host-level isolation review and explicit operational approval.
 
 This new Compose project is intentionally separate from `frappe_docker_devcontainer` and the old `frappe_docker` stack. The actual production site is now on a dedicated host according to the project owner; that does **not** make old host data or secrets disposable.
 
 ## What is included
 
-- `compose.yaml`: own `ccpc_codex_dev_agent` Compose project with a non-root, read-only-rootfs `frappe/bench` agent, synthetic MariaDB and Redis, separate named volumes and **internal-only lab network**.
-- `proxy/squid.conf`: optional HTTPS-CONNECT-only allowlist proxy, **disabled by default** via Compose profile `online`. Private/RFC1918 and loopback destination addresses are denied in policy. The proxy is not a substitute for host-enforced network isolation; gateway/forwarding exceptions and DNS behavior require live tests.
+- `compose.yaml`: own `ccpc_codex_dev_agent` Compose project with a non-root, read-only-rootfs `frappe/bench` agent, synthetic MariaDB and Redis, separate named volumes, an existing internal application bridge, and a proposed second **internal proxy-client-only bridge**.
+- `proxy/squid.conf`: optional HTTPS-CONNECT-only allowlist proxy, **disabled by default** via Compose profile `online`. Its listener binds to the proposed internal client bridge IP and accepts only the agent's fixed source IP; private, special-use and loopback destinations are denied by the provisional Squid policy. The proxy is not a substitute for host-enforced network isolation; gateway/forwarding exceptions and DNS behavior require live tests.
 - `init_local_secrets.py`: creates two randomly generated, strictly owner-only passwords for the **new synthetic MariaDB**, without overwriting old values or displaying them. `local-secrets/` is ignored by Git.
 - `check_compose.py`: read-only static validation of actual `docker compose config --format json`, guarding project identity, service/network separation, mounts, secrets, privileges and offline default.
 - `../scripts/security/check_codex_dev_agent_container.sh`: host-side **read-only** Docker inspector for the newly created `agent`, allowing only exact expected private volumes and the synthetic user password secret. It does **not** establish internet or production network safety.
-- `tests/test_safety_policy.py`: 13 Docker-free negative and secret-lifecycle tests for unsafe Compose modifications and secret creation/reuse. They do not prove that Docker containers boot or that the real host is isolated.
+- `tests/test_safety_policy.py`: expanded Docker-free policy regression and secret-lifecycle tests for unsafe Compose networks, listener/ACL changes, and secret creation/reuse. They do not prove that Docker containers boot or that the real host is isolated.
 
 ## Isolation boundaries
 
 The agent **never mounts** the legacy shared `/workspace`, host `.ssh`, host Docker socket, existing Frappe sites, `.env`, PRODUCTION data, NAS, or backup paths. The only allowed credential is a disposable synthetic database *user* password; the synthetic DB root password is held only by the DB container. The agent owns a separate `agent-home` named volume. Create its worktree under `/home/frappe` after it starts, preserving the existing detached PR33 checkout and untracked `AGENTS.md`.
 
 `lab.internal: true` keeps the normal agent profile off external Docker routing. **This is not a certified proof of isolation from the Docker host or its legacy services.** Only an operator-verified network/firewall rule set and negative connectivity tests can unlock online agent operation. The optional proxy's external network must not be enabled until that review; no blanket LAN egress, host networking, privileged mode, or production bridge membership is permitted.
+
+## Proposed three-network proxy design (REVIEW ONLY — NOT DEPLOYED)
+
+The separate review branch proposes the following future topology; the active host still has its original two-network Compose declaration until an independently approved deployment:
+
+1. `lab` (existing internal bridge): agent, synthetic MariaDB, Redis cache and Redis queue. **Squid does not join this bridge**; database and Redis service discovery should stay on `lab`.
+2. `proxy_clients` (new internal, non-attachable, IPv6-disabled bridge): **only agent and Squid**, with reserved static /29 addresses for the agent and Squid. Squid binds its `http_port` to the internal client-facing address only, not to every container interface. An explicit Squid source ACL permits the agent's fixed address; HTTPS CONNECT, port 443, the restricted destination-IP list and provisional allowed-domain list remain enforced in order. This is **not user identity authentication**.
+3. `outgoing` (separate bridge): Squid only, for outbound traffic following host firewall policy. The agent does **not** join this network; Squid must not accept inbound proxy clients through its outgoing-facing address.
+
+The `172.30.250.0/29` block in this **review-only source** is a provisional IPAM reservation, not an assertion it is safe for this host. **Before any Docker Compose apply**, recheck real Docker bridge allocations, host routes, external/LAN routes, address availability and subnet collision. Readdress and update `compose.yaml`, `proxy/squid.conf`, `check_compose.py` and tests together if necessary; do not modify or recreate the existing `lab` network to make this reservation fit.
+
+**Important new-host-boundary risk:** even an internal Docker network can expose its bridge gateway/host services to containers. Before the new `proxy_clients` network is instantiated, extend and review the *existing host-deny and Docker isolation policy* to cover that second bridge, including rollback and reboot persistence. Verify client-to-host gateway, client-to-other-bridge, client-to-production-canary, and outgoing-bridge-to-listener **negative tests** under separately approved isolated conditions. A correctly bound Squid listener and `src` ACL do not secure Docker host routing or Squid's own outbound sockets.
+
+**Unresolved NO-GO gates:** source inspection does not verify Squid binary parsing, DNS-resolved destination-IP enforcement, DNS rebinding, redirect/CNAME handling, suitability of broad approved domain suffixes, or bypass via raw sockets. `ubuntu/squid:latest` is an unpinned mutable image absent locally under the configured reference at last inspection, and its effective runtime UID, provenance and filesystem permissions remain unverified. Do **not** pull images, change `pull_policy: never`, enable the online profile, authenticate Codex, or call this production-ready solely because static tests pass. Confirm resource budgets, credential isolation and actual Codex sandbox/approval policy independently.
+
+**GitHub-first review:** keep the host's current development-acceptance review branch and its tracked/clean laboratory source unchanged. Review the new Compose/ACL/validator/tests in GitHub, record commit/test results, and later prepare a separately authorized, backup/rollback-reviewed DEVELOPMENT-only handoff. PRODUCTION is on a separate server per the operator and is not in scope.
 
 ## Validate source safely (NO running containers)
 
@@ -27,9 +43,9 @@ From a trusted checkout of the deployment repository on a workstation with Pytho
 bash codex-dev-agent/preflight.sh
 ```
 
-The helper runs the Python regression tests, local synthetic password initialization, and rendered Compose policy gate in sequence. Only its synthetic-password initializer creates two **new local secret files**. It neither opens real site configuration nor connects to any database. The tests may create temporary local files; no Docker services are started. The Compose source check is read-only. Any STOP output means **do not launch the project**.
+The helper runs Python regression tests, local synthetic password initialization, and the rendered Compose **and Squid source** policy gate in sequence. Only its synthetic-password initializer creates two **new local secret files**. It neither opens real site configuration nor connects to any database. The tests may create temporary local files; no Docker services are started. The Compose and Squid source checks are read-only. To run **source-only tests without even creating the local synthetic password files**, use `python3 -m unittest discover -s codex-dev-agent/tests -p 'test_*.py' -v` from the repository root. Any STOP output means **do not launch the project**.
 
-Host read-only verification on 2026-11-18 found amd64 Frappe Bench (user frappe), MariaDB 11.8 and Redis 7 Alpine, with ~684 GiB available disk. MariaDB's official entrypoint starts as root to adjust ownership of its **new synthetic** database volume, then drops to mysql; the database service uses cap-drop ALL and a five-capability initialization allowlist (CHOWN, SETUID, SETGID, DAC_OVERRIDE, FOWNER). Both Redis services explicitly run as non-root user redis. All images use `pull_policy: never` in this offline lab. Actual startup/permissions remain unverified. Before broader deployment, pin the real image digests and validate the specific runtime user; current source uses the repository-standard `frappe/bench:latest`, `mariadb:11.8`, `redis:7-alpine`, and `ubuntu/squid:latest` as provisional images. Do not treat these moving tags as reproducible production-grade dependencies.
+Host read-only verification on 2026-11-18 found amd64 Frappe Bench (user frappe), MariaDB 11.8 and Redis 7 Alpine, with ~684 GiB available disk. MariaDB's official entrypoint starts as root to adjust ownership of its **new synthetic** database volume, then drops to mysql; the database service uses cap-drop ALL and a five-capability initialization allowlist (CHOWN, SETUID, SETGID, DAC_OVERRIDE, FOWNER). Both Redis services explicitly run as non-root user redis. All images use `pull_policy: never` in this offline lab. Actual startup/permissions remain unverified. Before even considering online activation, pin the real image digests and validate the specific Squid runtime user and non-root feasibility; current source uses the repository-standard `frappe/bench:latest`, `mariadb:11.8`, `redis:7-alpine`, and `ubuntu/squid:latest` as provisional images. Do not treat these moving tags as reproducible production-grade dependencies.
 
 ## One-time lab creation (NOT YET AUTHORIZED FOR EXECUTION FROM THIS DOCUMENT)
 
