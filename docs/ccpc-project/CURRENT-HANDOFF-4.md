@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-19 — Failed dual-Honcho stop narrowed to original manager signature
+
+**Latest owner-reported read-only precondition check after terminal exited during attempted shutdown:** `LIVE SOURCE: PASS`, `RELEASE STAGE: PASS`, `BACKUP MANIFESTS: PASS`, `BENCH HONCHO SIGNATURE: CHECK REQUIRED`, `WORKER HONCHO SIGNATURE: PASS`, `RQ REGISTERED WORKERS: 1`, `RQ WORKER IDLE: True`, `READ-ONLY DIAGNOSTIC COMPLETE`. Previous targeted post-attempt inventory still showed both Honcho managers alive at exact original PIDs `543180` and `546647`. The original manager identity gate is the **only reported mismatch** in that diagnostic; whether the earlier interrupted shutdown actually reached the gate is unverified. Do not call shutdown PASS.
+
+**Next one step:** run a **read-only, field-level** breakdown of the original PID `543180` signature: expected command interpreter/script shape, exact `start` argument, process owner UID, PPID, PGID, SID, state and bench working directory. Print only field-specific PASS/MISMATCH and safe numeric identifiers, **never raw full command lines, env, logs or secrets**. Do not change the existing script's identity guard or re-run it until exact mismatch is explained. Preserve original checkout + staged release + backups; no source switch/migrate/REDIS purge or PRODUCTION interaction.
+
+---
+
 ## 2026-11-19 — Dual-Honcho shutdown NOT CONFIRMED; both original PIDs still alive
 
 **Owner report:** staged and checksum-verified `ccpc_dev_dual_honcho_stop_20261119.sh` returned `DEV SHUTDOWN SCRIPT STAGED AND VERIFIED: PASS`, then the **terminal unexpectedly exited** after owner attempted to execute the script; no command output or exit code for the execution was captured. Subsequent **read-only** exact named DEV container check returned `RUNNING HONCHO MANAGERS: 2`; original `BENCH-MANAGER: PID=543180` and `WORKER-ONLY: PID=546647`; `HONCHO SHUTDOWN: INCOMPLETE OR UNVERIFIED`. This is evidence both managers were still visible and must **not** be treated as a successful graceful shutdown. It does not prove whether a signal was ever sent, whether a precondition failed, or whether child/job state changed.
