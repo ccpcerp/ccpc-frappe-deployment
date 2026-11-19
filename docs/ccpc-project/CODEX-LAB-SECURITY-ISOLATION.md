@@ -14,6 +14,16 @@
 
 **Next safe step:** identify whether other nonlab containers are active on this host using Docker metadata only, returning **counts by broad operational category** (not names, images, paths, ports, IDs, IPs, labels, credentials or environment). This is only a local workload inventory and should not be used to infer where remote PRODUCTION resides.
 
+## Step 63 — local nonlaboratory Docker workload inventory (2026-11-19)
+
+The operator ran a hostname-guarded, read-only inventory on `ccpcerpserver` using Docker metadata. Sanitized output: `agent_running=False`, `lab_container_count=4`, `other_container_count=15`, `other_running_count=7`, `other_stopped_count=8`, `other_compose_project_count=2`, `other_running_memory_limited_count=0`, `other_running_cpu_limited_count=0`, `other_running_oom_killed_recorded_count=0`.
+
+**Interpretation:** seven nonlab containers are presently running and eight are stopped, across two other Compose projects (the project count does not independently characterize container roles). None of the seven *running nonlab containers* has an effective Docker HostConfig memory or CPU limit, and none currently reports the Docker state flag `OOMKilled=True`. These facts neither establish the services' identities nor demonstrate where PRODUCTION is hosted. The operator's Step 62 clarification remains authoritative for the intended planning assumption: **PRODUCTION is on a separate server; no production workloads are claimed to reside on `ccpcerpserver`**, although this topology was not independently verified by this Docker inventory. Avoid repeating the earlier cohosted-OLD-PRODUCTION assumption as current fact. Other local services still need protection from resource starvation.
+
+**Resource planning:** the Step 62 host memory snapshot was total 29.96 GiB and available 26.24 GiB, 8 GiB swap unused. The operator prefers unrestricted Codex CPU performance; that remains reasonable to evaluate in this updated topology, but lack of memory/PID ceilings across the lab (Step 61) can still destabilize this host and local DEVELOPMENT/UAT. Do not infer safe memory budgets solely from a point-in-time availability figure. No containers or host settings were changed, no image pulls/activations/network probes, and no DEVELOPMENT, UAT or PRODUCTION actions occurred. **Codex and optional Squid remain inactive/NO-GO** due to independent security gates.
+
+**Next read-only diagnostic:** take a one-shot, sanitized aggregate snapshot of CPU and memory currently used by the seven running nonlab containers and three running laboratory containers (no names, IPs, ports, image references or raw Docker stats), plus host RAM availability. This is for local capacity planning only, not a sustained-load guarantee. No changes or activations.
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
