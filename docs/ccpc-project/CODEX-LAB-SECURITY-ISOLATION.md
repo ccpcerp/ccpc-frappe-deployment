@@ -585,6 +585,14 @@ Operator ran a hostname-guarded, read-only Docker inspection and Linux kernel se
 
 **Next one read-only diagnostic:** revisit Step 40–41's proxy policy file host-side group writability. Classify whether file-owning group has any non-owner local members and whether parent directory permissions are broadly writable; no raw file/parent paths, usernames, group names, UID/GID values, file contents, domains, credentials, or other metadata to be displayed. The proxy must not be activated while its source policy's change authority is uncertain. Keep other blockers (all-interface Squid listener/no source ACL, absent unpinned image, DNS, resource limits and runtime isolation tests) open.
 
+## Step 55 — Squid policy file group-writable and parent directories (2026-11-19)
+
+Operator ran a hostname-guarded, read-only inspection of the inactive optional Squid proxy policy file's ownership and standard POSIX file/directory mode bits, including local POSIX group membership. Sanitized findings: `agent_running=False`, `file_owner_is_root=False`, `file_owner_is_operator=True`, `file_group_writable=True`, `file_world_writable=False`, `nonowner_group_member_count=0`, `interactive_nonowner_group_member_count=0`, `group_writable_parent_count=3`, `world_writable_parent_count=0`.
+
+**Interpretation:** the source policy is operator-owned and group-writable, with no **enumerated local** non-owner members of that file's owning group; zero world-writable parents were found. Three ancestor directories are group-writable, but their owners, groups, memberships, effective access, sticky bits and POSIX ACL/default ACLs are not yet characterized. Directory write+search permissions may permit replacement or rename despite file mode, even without direct write access to the file. Enumerated local POSIX memberships are not a complete proof of effective permissions (NSS/external identities, ACLs, host Docker admins, and privileged accounts may have access). No unauthorized editor has been demonstrated. **Do not chmod/chown** or make other host changes without targeted review and user approval. No Docker/host mutations, container starts or DEV/OLD PROD/NEW PROD/UAT changes. Codex stopped, optional Squid inactive, **NO-GO**.
+
+**Next one read-only diagnostic:** classify the three group-writable parent directories' owning-group nonowner membership (including interactive accounts), whether their group write+execute permissions can permit rename/replacement, sticky bits, and any POSIX ACL/default ACL indicators, using sanitized counts/booleans only—no paths, identities, group names, UID/GID, file content or raw ACL entries. Do not start proxy/agent or alter existing services.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
