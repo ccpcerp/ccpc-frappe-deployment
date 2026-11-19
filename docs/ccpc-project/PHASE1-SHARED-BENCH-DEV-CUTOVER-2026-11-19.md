@@ -607,3 +607,110 @@ HOST
 ```
 
 **Limits of census:** A `PASS` means read-only counts completed, *not* that all migration dependencies or transaction/business invariants are satisfied. If any table/column is absent, record it rather than creating it during inspection. In particular, approval status/workflow counts need human review before triggering broad `after_migrate` logic. One earlier Frappe integration case had a CWD/logger issue: the above starts in `frappe-bench/sites` with `sites_path="."` and stream logging. Preserve both protected backup sets and the original checkout/AGENTS, and keep Honcho live until this impact review is complete. No PRODUCTION operation authorized.
+
+
+## November 19 — Migration-impact census PASS; conditional backfills need one targeted read-only assessment
+
+**Owner-reported live read-only migration-impact census (both sites):**
+
+| Metric | MAIN `development.localhost` | Integration2 `ccpc-integration2.localhost` |
+|---|---:|---:|
+| MRS / MRS Item | 3 / 18 | 0 / 0 |
+| Purchase Order | 5 | 0 |
+| Withdrawal Slip / Item | 7 / 7 | 1 / 1 |
+| CCPC Personnel | 10 | 0 |
+| Equipment Registry | 6 | 0 |
+| Desktop Layout | 0 | 0 |
+| PO missing approval status | 0 | 0 |
+| Withdrawal Items with `COALESCE(issue_qty,0) <= 0` | **2** | 0 |
+| Personnel with `COALESCE(company,'') = ''` | **3** | 0 |
+| Equipment `area` nonblank + `section` blank | 0 | COLUMN NOT PRESENT |
+| CCPC MRS / PO / Withdrawal workflows present | YES, each | YES, each |
+| Mapping Preparer / Accounting Approver / Group Executive Role definitions present | YES, each | YES, each |
+
+Both per-site inspections reported `DEV MIGRATION IMPACT READ ONLY: ... PASS`, followed by `PHASE1 TWO-SITE IMPACT CENSUS: PASS` and `HONCHO STOP / SOURCE SWITCH / MIGRATION: NOT PERFORMED`. All earlier eight Patch Log entries recorded on both sites, with separate DB connections verified. This is **operator-provided evidence, not independently queried by ChatGPT**. There were no mutations, no shutdown, no code swap.
+
+**Pinned release code interpretation, checked in GitHub at SHA `55eb10b86a57de55a97e293a78228d9dd17b809a`:**
+
+1. `backfill_ccpc_personnel_company()` **only** updates an empty-company Personnel record when it has a populated Department whose Department Company can be resolved. The **3** MAIN blank company rows are a *candidate pool*, not a guarantee that three rows will change. Inspect only aggregated eligibility counts before migration.
+2. `backfill_withdrawal_slip_issue_qty()` queries numeric `issue_qty <= 0` and **only** updates rows whose parent Withdrawal Slip status is `Stockroom Review` (uses requested quantity), `Fully Issued`, or `Issued with Shortage` (uses issued, falling back to requested). It requires a positive resolved quantity. The **2** `COALESCE(issue_qty,0) <= 0` rows include potential SQL NULL values and are *not automatically two migration writes*. Inspect eligible count with effective status and quantity.
+3. `migrate_equipment_area_to_section()` has a guard `if not meta.has_field("section") or not frappe.db.has_column("Equipment Registry","area"): return`. Thus the missing `area` column on Integration2 currently triggers an intentional skip if still missing at hook time; with **zero** Equipment Registry rows, it is not by itself evidence of a lost record or migration failure. Frappe model synchronization might change columns before `after_migrate`; re-assess any new state.
+4. Both sites have **zero** `Desktop Layout` rows; `reset_maintenance_supervisor_desktop_layouts()` would therefore not delete any existing desktop layout in this snapshot, although it still executes role-filtered cache clearing and needs operational review.
+5. MAIN has **3 MRS** and `backfill_mrs_display_names()` explicitly calls `frappe.db.set_value` for every MRS row; other MRS item-search/procurement and workflow/permissions operations may also write. `after_migrate()` reruns broadly even when patches are 8/8 recorded. No claim of zero-impact migrations is warranted.
+
+**Next operator action — aggregate read-only eligibility probe on MAIN only**, so the real likely data updates can be assessed before a DEV-only outage. It never retrieves or prints record names, emails, quantities, prices, credentials or complete site configuration:
+
+```bash
+bash <<'HOST'
+set -euo pipefail
+test "$(hostname -s)" = ccpcerpserver && test "$(id -un)" = gani || { echo 'STOP: WRONG HOST OR OPERATOR'; exit 1; }
+dev=frappe_docker_devcontainer-frappe-1
+test "$(sudo docker inspect --format '{{.State.Running}}' "$dev")" = true || { echo 'STOP: DEV CONTAINER NOT RUNNING'; exit 1; }
+test "$(sudo docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}}' "$dev")" = frappe_docker_devcontainer || { echo 'STOP: NOT DEV COMPOSE PROJECT'; exit 1; }
+sudo docker exec -i --user frappe --workdir /workspace/development/frappe-bench/sites "$dev" \
+ env FRAPPE_STREAM_LOGGING=1 /workspace/development/frappe-bench/env/bin/python -B - <<'PY'
+import frappe
+import subprocess
+from pathlib import Path
+
+B=Path("/workspace/development/frappe-bench")
+for directory,sha in (
+    (B/"apps/ccpcerp", "25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87"),
+    (B/".ccpc-phase1-release-stage-20261119-55eb10b86a57",
+     "55eb10b86a57de55a97e293a78228d9dd17b809a"),
+):
+    p=subprocess.run(["git","-C",str(directory),"rev-parse","HEAD"],
+                     capture_output=True,text=True,timeout=20)
+    if p.returncode or p.stdout.strip()!=sha:
+        raise SystemExit("STOP: SOURCE CHECKOUT CHANGED")
+
+frappe.init(site="development.localhost",sites_path=".")
+try:
+    frappe.connect()
+    frappe.db.sql("START TRANSACTION READ ONLY")
+    personnel = frappe.db.sql("""
+        SELECT
+            COUNT(*) AS missing_company,
+            COALESCE(SUM(CASE WHEN COALESCE(p.department,'') != ''
+                                  AND COALESCE(d.company,'') != ''
+                              THEN 1 ELSE 0 END),0) AS eligible,
+            COALESCE(SUM(CASE WHEN COALESCE(p.department,'') = ''
+                              THEN 1 ELSE 0 END),0) AS missing_department
+        FROM `tabCCPC Personnel` p
+        LEFT JOIN `tabDepartment` d ON d.name=p.department
+        WHERE COALESCE(p.company,'')=''
+    """,as_dict=True)[0]
+    issue = frappe.db.sql("""
+        SELECT
+            COUNT(*) AS nonpositive_or_null,
+            COALESCE(SUM(CASE WHEN i.issue_qty IS NULL
+                              THEN 1 ELSE 0 END),0) AS null_qty,
+            COALESCE(SUM(CASE
+                WHEN i.issue_qty<=0
+                  AND ((w.status='Stockroom Review' AND i.requested_qty>0)
+                       OR (w.status IN ('Fully Issued','Issued with Shortage')
+                           AND COALESCE(NULLIF(i.issued_qty,0),i.requested_qty)>0))
+                THEN 1 ELSE 0 END),0) AS eligible
+        FROM `tabWithdrawal Slip Item` i
+        LEFT JOIN `tabWithdrawal Slip` w ON w.name=i.parent
+        WHERE COALESCE(i.issue_qty,0)<=0
+    """,as_dict=True)[0]
+    print("MAIN PERSONNEL COMPANY MISSING:",int(personnel.missing_company))
+    print("MAIN PERSONNEL COMPANY BACKFILL ELIGIBLE:",int(personnel.eligible))
+    print("MAIN PERSONNEL WITH NO DEPARTMENT:",int(personnel.missing_department))
+    print("MAIN WITHDRAWAL ITEMS NONPOSITIVE/NULL:",int(issue.nonpositive_or_null))
+    print("MAIN WITHDRAWAL ITEMS NULL QTY:",int(issue.null_qty))
+    print("MAIN WITHDRAWAL ISSUE QTY BACKFILL ELIGIBLE:",int(issue.eligible))
+    print("MAIN CONDITIONAL BACKFILL CENSUS: PASS")
+finally:
+    try:
+        if frappe.db:
+            frappe.db.rollback()
+    finally:
+        frappe.destroy()
+print("DEV SOURCE/MIGRATION/SERVICE CHANGES: NOT PERFORMED")
+PY
+HOST
+```
+
+**Post-census gate:** Compare eligible row counts to the user's intended personnel/stock workflows. Even if eligibility is zero, do not treat the migration as risk-free: MRS names, workflow transitions, permissions, stock-related custom fields and Frappe schema sync remain potentially site-mutating. Before Honcho stop, require safe queue/user quiescence, a separate two-site schema/role compatibility review, rollback readiness for **both** SQL+files, and the expected Finance Phase1-only same-Company rules. Never run `--site all migrate`, alter the broken third site, or perform PRODUCTION operations.
