@@ -483,3 +483,127 @@ HOST
 ```
 
 **Important limits:** A `PASS` here proves that SQL reads and patch history can be queried with two distinct active site connections, **not** that required Chart of Accounts branches, canonical Company names, intercompany Customer/Supplier relationships, permission mappings or patch side effects are safe. A `NOT RECORDED` patch must be evaluated against its actual patch source and live master config before a migration. If a read-only inspection fails, STOP rather than adding missing accounting masters or enabling `--site all`. End-user DEVELOPMENT traffic and queued job quiescence must still be established before any Honcho stop, and a code-only rollback after DB migration remains unsafe.
+
+
+## November 19 — Both sites 8/8 patches recorded; migration side-effect census before cutover
+
+**Owner-supplied actual read-only results (verified operator command):**
+
+```text
+DEV SITE PATCH INVENTORY: development.localhost
+  check_work_request_job_order_duplicates: RECORDED
+  migrate_phase1_equipment_costing: RECORDED
+  create_equipment_accounting_dimension: RECORDED
+  grant_operational_requestor_roles: RECORDED
+  grant_purchase_order_approver_role: RECORDED
+  create_intercompany_material_accounts: RECORDED
+  create_intercompany_parties: RECORDED
+  add_intercompany_material_billing_indexes: RECORDED
+  tabCompany COUNT: 25
+  tabAccount COUNT: 2870
+  tabCustomer COUNT: 16
+  tabSupplier COUNT: 16
+DEV SITE PATCH INVENTORY: ccpc-integration2.localhost
+  check_work_request_job_order_duplicates: RECORDED
+  migrate_phase1_equipment_costing: RECORDED
+  create_equipment_accounting_dimension: RECORDED
+  grant_operational_requestor_roles: RECORDED
+  grant_purchase_order_approver_role: RECORDED
+  create_intercompany_material_accounts: RECORDED
+  create_intercompany_parties: RECORDED
+  add_intercompany_material_billing_indexes: RECORDED
+  tabCompany COUNT: 2
+  tabAccount COUNT: 199
+  tabCustomer COUNT: 1
+  tabSupplier COUNT: 1
+TWO DEV SITES: SEPARATE DATABASE CONNECTIONS VERIFIED
+DEV PATCH LOG + MASTER COUNTS READ-ONLY: PASS
+SOURCE SWITCH / MIGRATION / STOP: NOT PERFORMED
+```
+
+**Assessment:** Both valid DEVELOPMENT sites have all eight existing `ccpcerp` Patch Log entries, and their database connections were confirmed separate. MAIN has 25 Companies vs Integration2 only 2, and drastically different master volumes. This **does not** mean migration cannot alter data: `ccpcerp.setup.after_migrate()` is always invoked from release `hooks.py`. The pinned release `55eb10b86a57de55a97e293a78228d9dd17b809a` code directly invokes role/permission setup, MRS print/workflow replacement, workforce assignments, Purchase Order approval status backfill, stock field creation, Withdrawal Slip workflow replacement and issue quantity backfill. Specifically `reset_maintenance_supervisor_desktop_layouts` calls `frappe.delete_doc_if_exists("Desktop Layout", user_name, force=True)` for operational roleholders. `backfill_mrs_display_names` updates all MRS rows; `backfill_mrs_item_search_text` and procurement status update records as needed. Neither `8/8 RECORDED` nor a backup SQL import alone proves these effects are safe on both sites.
+
+**Next step is still READ ONLY** and prints only table presence/aggregate counts, no business-row values, no user identities, and no credentials. This is a scoped pre-migration risk census, not a release activation. Run the following at `gani@ccpcerpserver`:
+
+```bash
+bash <<'HOST'
+set -euo pipefail
+test "$(hostname -s)" = ccpcerpserver && test "$(id -un)" = gani || { echo 'STOP: WRONG HOST OR USER'; exit 1; }
+dev=frappe_docker_devcontainer-frappe-1
+test "$(sudo docker inspect --format '{{.State.Running}}' "$dev")" = true || { echo 'STOP: DEV CONTAINER NOT RUNNING'; exit 1; }
+test "$(sudo docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}}' "$dev")" = frappe_docker_devcontainer || { echo 'STOP: NOT DEV PROJECT'; exit 1; }
+sudo docker exec -i --user frappe --workdir /workspace/development/frappe-bench/sites "$dev" \
+ env FRAPPE_STREAM_LOGGING=1 /workspace/development/frappe-bench/env/bin/python -B - <<'PY'
+from pathlib import Path
+import subprocess
+import frappe
+
+B=Path("/workspace/development/frappe-bench")
+repos=((B/"apps/ccpcerp","25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87"),
+       (B/".ccpc-phase1-release-stage-20261119-55eb10b86a57","55eb10b86a57de55a97e293a78228d9dd17b809a"))
+for path,expected in repos:
+    p=subprocess.run(["git","-C",str(path),"rev-parse","HEAD"],
+                     capture_output=True,text=True,timeout=20)
+    if p.returncode or p.stdout.strip()!=expected:
+        raise SystemExit("STOP: SOURCE COMMIT MOVED")
+
+def table_columns(t):
+    names=frappe.db.sql(
+      "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=%s",
+      ("tab"+t,),as_list=True)
+    return {row[0] for row in names}
+
+def count(label, table, columns=(), where=None):
+    known=table_columns(table)
+    if not known:
+        print(label+": TABLE NOT PRESENT")
+        return
+    if not set(columns).issubset(known):
+        print(label+": COLUMN NOT PRESENT")
+        return
+    q="SELECT COUNT(*) FROM `tab"+table+"`"+(" WHERE "+where if where else "")
+    print(label+": "+str(int(frappe.db.sql(q)[0][0])))
+
+for site in ("development.localhost","ccpc-integration2.localhost"):
+    frappe.init(site=site, sites_path=".")
+    try:
+        frappe.connect()
+        frappe.db.sql("START TRANSACTION READ ONLY")
+        print("DEV MIGRATION IMPACT CENSUS:",site)
+        for table in ("MRS","MRS Item","Purchase Order","Withdrawal Slip",
+                      "Withdrawal Slip Item","CCPC Personnel","Equipment Registry","Desktop Layout"):
+            count("  EXISTING "+table,table)
+        count("  PO WITHOUT APPROVAL STATUS","Purchase Order",
+              ("ccpc_approval_status",),"COALESCE(ccpc_approval_status,'') = ''")
+        count("  WITHDRAWAL ITEMS NONPOSITIVE ISSUE QTY","Withdrawal Slip Item",
+              ("issue_qty",),"COALESCE(issue_qty,0) <= 0")
+        count("  PERSONNEL WITHOUT COMPANY","CCPC Personnel",
+              ("company",),"COALESCE(company,'') = ''")
+        count("  EQUIPMENT AREA WITH EMPTY SECTION","Equipment Registry",
+              ("area","section"),"COALESCE(area,'') != '' AND COALESCE(section,'') = ''")
+        if table_columns("Workflow"):
+            values=("CCPC MRS Workflow","CCPC Purchase Order Approval",
+                    "CCPC Withdrawal Slip Workflow")
+            for name in values:
+                n=frappe.db.sql(
+                  "SELECT COUNT(*) FROM `tabWorkflow` WHERE name=%s",(name,))[0][0]
+                print("  WORKFLOW DEFINITION PRESENT:",name,"YES" if n else "NO")
+        for role in ("CCPC Mapping Preparer","CCPC Accounting Mapping Approver",
+                     "CCPC Group Executive Reporting"):
+            n=frappe.db.sql(
+              "SELECT COUNT(*) FROM `tabRole` WHERE name=%s",(role,))[0][0]
+            print("  ROLE DEFINITION PRESENT:",role,"YES" if n else "NO")
+        print("DEV MIGRATION IMPACT READ ONLY:",site,"PASS")
+    finally:
+        try:
+            if frappe.db:
+                frappe.db.rollback()
+        finally:
+            frappe.destroy()
+print("PHASE1 TWO-SITE IMPACT CENSUS: PASS")
+print("HONCHO STOP / SOURCE SWITCH / MIGRATION: NOT PERFORMED")
+PY
+HOST
+```
+
+**Limits of census:** A `PASS` means read-only counts completed, *not* that all migration dependencies or transaction/business invariants are satisfied. If any table/column is absent, record it rather than creating it during inspection. In particular, approval status/workflow counts need human review before triggering broad `after_migrate` logic. One earlier Frappe integration case had a CWD/logger issue: the above starts in `frappe-bench/sites` with `sites_path="."` and stream logging. Preserve both protected backup sets and the original checkout/AGENTS, and keep Honcho live until this impact review is complete. No PRODUCTION operation authorized.
