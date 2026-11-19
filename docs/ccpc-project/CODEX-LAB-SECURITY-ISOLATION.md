@@ -395,6 +395,25 @@ Operator ran a hostname-guarded read-only inspection of the configured but inact
 
 **Next one read-only diagnostic:** classify the proxy bind source as regular file/directory, detect parent-path symlink resolution, and count exact/nested host-mount-source overlaps with containers outside the lab. Report only booleans/counts; never print raw source paths, file contents, proxy addresses or credentials. If safe, later inspect *sanitized policy categories* and image default user before any proxy activation.
 
+## Step 39 — proxy bind source host-path isolation (2026-11-19)
+
+Operator ran a hostname-guarded, read-only comparison of the optional proxy's single Compose-declared bind source against all other containers' resolved mount sources. Reported:
+
+| Check | Operator-reported value |
+| --- | --- |
+| `agent_running` | `False` |
+| `source_is_regular_file` | `True` |
+| `source_is_directory` | `False` |
+| `source_path_uses_symlink` | `False` |
+| `source_within_compose_workdir` | `True` |
+| `outside_lab_containers_inspected` | `15` |
+| `external_exact_mount_matches` | `0` |
+| `external_mount_overlap_candidates` | `0` |
+
+**Interpretation:** the bind source currently resolves to a regular, non-symlink-path file within the laboratory's Compose working directory, and there were no exact or ancestor/descendant source path overlaps with the 15 Docker containers outside the lab. This is positive evidence against accidental Docker mount-source sharing, **not** proof that the file has no sensitive contents, that a proxy could not reach protected systems, or that no other host process can access the file. Prior Step 38 established read-only inside the proxy configuration, and Step 34 found no proxy container. The file's permissions, semantics and outbound rules remain unverified. No host file contents were displayed; no containers, Docker networks or protected environments were modified. The Codex agent remains stopped/NO-GO.
+
+**Next read-only diagnostic:** classify host permission exposure of the proxy's bind source and whether its content looks like a proxy-policy configuration, without printing any source path, file content, host identity, proxy address, destination, or credentials. Follow with a separate policy-specific rule review once the file format has been safely identified. No proxy activation.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
