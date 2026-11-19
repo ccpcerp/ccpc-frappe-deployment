@@ -499,6 +499,14 @@ Operator ran a hostname-guarded, read-only parser of the inactive Squid proxy's 
 
 **Next read-only check:** determine whether the *locally available* image declared for the optional Squid proxy specifies a non-root default user. Use Docker image metadata only; no image pull, creation, build or execution; report only default-user classification, not image reference, labels, paths, or environment. An absent image is an acceptable finding, not an instruction to pull it. Review image trust, proxy domain safety/DNS and cohosted resource controls separately before any activation.
 
+## Step 46 — optional proxy image not available locally (2026-11-19)
+
+Operator performed a hostname-guarded read-only inspection of the current Compose-declared `egress-proxy` image reference, checking local Docker image availability and the image's default user *only if available*, without image pull, container creation or execution. Operator reported `agent_running=False`, `compose_user_explicitly_set=False`, `proxy_image_available_locally=False`, and `image_default_user_class=UNVERIFIED`.
+
+**Interpretation:** the proxy has no explicit Compose `user` and the named image is absent from the local Docker image store under that reference, so its default runtime user **cannot yet be classified**. This is not proof no similar image exists under another reference. Launching the service may attempt an image pull unless explicitly controlled, which is **not authorized**. Do not infer the proxy runs as non-root or that image provenance has been checked. Agent remains stopped; optional proxy remains inactive. No image downloads, host/Compose changes, or DEV, OLD/NEW PROD or UAT operations occurred. **NO-GO**.
+
+**Next single read-only diagnostic:** classify the configured proxy image reference as an immutable SHA-256 digest versus a mutable tag, and inspect whether the Compose source declares an image pull policy, without displaying image names, registry hostnames, paths, user identities or secret values. If unpinned or pull behavior is not controlled, flag for review before future proxy activation. Do not pull or start the image.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
