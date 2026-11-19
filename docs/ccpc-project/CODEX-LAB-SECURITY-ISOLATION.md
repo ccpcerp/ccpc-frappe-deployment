@@ -437,6 +437,26 @@ Operator ran a hostname-guarded, read-only classification of the configured but 
 
 **Next read-only diagnostic:** check the mounted file's effective host access boundaries by reporting only source/parent-directory permission indicators and presence of extended POSIX ACLs, without disclosing identities, paths or configuration contents. If appropriate, subsequently inspect sanitized Squid `http_access` ordering/allowlist semantics. Do not chmod, chown, modify ACLs, start the proxy, or run Codex until a separate safe change is reviewed.
 
+## Step 41 — Squid host file access boundary flags (2026-11-19)
+
+Operator ran a hostname-guarded, read-only stat and extended-ACL presence check on the configured but inactive Squid proxy's single bind-source file and its ancestor directories. Reported:
+
+| Observation | Operator-reported value |
+| --- | --- |
+| `agent_running` | `False` |
+| `file_owned_by_root` | `False` |
+| `file_group_readable` | `True` |
+| `file_group_writable` | **`True`** |
+| `file_world_readable` | `True` |
+| `all_parent_directories_world_searchable` | `False` |
+| `all_parent_directories_group_searchable` | `False` |
+| `any_parent_directory_world_writable` | `False` |
+| `source_extended_acl` | `NOT_SET` |
+
+**Interpretation:** parent directory permissions impose some traversal restrictions, so world-read bits alone do not prove every local user can read the file. The file is not owned by root, has group-write and world-read bits, and has no file-level extended POSIX ACL in this check. This does **not** establish effective access by particular identities: owning UID/GID, group memberships, ownership and ACLs of each ancestor, as well as other authorized access routes, remain unknown. Group write remains a **potential policy-integrity risk** if an identity can traverse the directory chain and write the file; a world-readable configuration could be confidential if directory access exists. No unauthorized access was demonstrated. The bind is read-only inside the proxy but that does not prevent host-side edits. No chmod/chown or file/config/container changes were performed; Codex and Squid remain inactive/NO-GO.
+
+**Next single read-only check:** inspect sanitized Squid `acl` types and `http_access` ordering, including whether an explicit terminal `deny all` exists and whether a source- or destination-constraining ACL is actually referenced. Print *only classifications/counts*, never ACL names, domain/IP values, paths, credentials, or raw config. Effective policy/security still requires deeper review; do not activate the proxy or agent.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
