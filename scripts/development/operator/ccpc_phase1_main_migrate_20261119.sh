@@ -157,7 +157,7 @@ if [[ -e "$marker" || -e "$log" ]]; then
   echo "STOP: MAIN MIGRATION ALREADY ATTEMPTED OR LOG EXISTS; NO RETRY"
   exit 1
 fi
-( set -o noclobber; printf 'One-shot Integration2-only migration attempted; inspect private log before retry.\n' > "$marker" ) || {
+( set -o noclobber; printf 'One-shot MAIN-only migration attempted; inspect private log before retry.\n' > "$marker" ) || {
   echo "STOP: MAIN ATTEMPT MARKER EXISTS"; exit 1;
 }
 ( set -o noclobber; : > "$log" ) || {
@@ -177,7 +177,7 @@ set -e
 if [[ "$result" -ne 0 ]]; then
   echo "STOP: MAIN MIGRATION FAILED (EXIT CODE $result)"
   echo "PRIVATE MIGRATION LOG: $log"
-  echo "NO RETRY / NO SOURCE-ONLY ROLLBACK / DO NOT MIGRATE MAIN OR START SERVICES"
+  echo "NO RETRY / NO SOURCE-ONLY ROLLBACK / DO NOT START SERVICES"
   exit 1
 fi
 echo "MAIN MIGRATION COMMAND EXIT: 0"
