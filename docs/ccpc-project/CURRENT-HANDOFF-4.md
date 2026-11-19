@@ -1,5 +1,15 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-19 — Original Honcho runs web+socketio; corrected DEV shutdown v2 committed
+
+**Latest owner read-only output:** `ARGUMENT COUNT: 5`, `HONCHO START PRESENT: True`, `EXTRA ARGUMENT COUNT: 2`, and both extra args were redacted by the earlier classifier. Historical verified GitHub handoff already documents **original `543180` executed `honcho start web socketio`** (2026-11-17 failed duplicate `bench start` diagnostic). This accounts for the two extra service names, and explains why original v1 graceful shutdown script's `['start']` argv-tail guard rejected the original manager. Previous standalone field check confirms original script path, owner, PPID 0, PGID/SID PID, working directory and active process all match. The separate `546647` `honcho start worker` signature passed. Do not weaken/skip remaining identity or RQ idle checks.
+
+**NEW corrected one-shot V2 script, reviewed and re-fetched in GitHub:** `scripts/development/operator/ccpc_dev_dual_honcho_stop_v2_20261119.sh` on branch `review/pr33-dev-acceptance-2026-11-16`; source commit **`7342f5265d3243a84a1255c808a04dffba176fec`**, blob **`0fc0e8356b1b17ddc8fdd2b9e86570691b0a54e9`**, SHA256 **`c35dc347df66185f0a42f420ed3d9fdeddb9eb63010302d1ab27bff8d43ad5ce`**. Only safe identity guard expected tail changed to `['start', 'web', 'socketio']` for BENCH; added header note. Worker-only exact command, protected code+backup guards, one registered idle RQ worker pre- and between stops, single SIGINT per manager, bounded wait, and no force kill/PROD/DB/source operations retained. Re-fetched source matches authored bytes; SHA256 computed with independently checked SHA-256 algorithm on ASCII source. **NOT EXECUTED on host**, and no successful shutdown is claimed.
+
+**Next operator action:** Privately stage V2 from exact pinned documentation review branch head with commit SHA and SHA256 match; only after staging PASS execute **V2 once**. Never rerun the previous v1; do not run `bench start`, send manual signals or start new workers. If V2 gates fail or partial shutdown, do not auto-retry; inspect both managers' current states. Both DEV sites are under owner-confirmed maintenance availability, not PROD. Phase1 source activation/migration still pending and separately controlled.
+
+---
+
 ## 2026-11-19 — Original Honcho arg count and exact-tail checks failed
 
 **Owner-reported read-only field-level check of original DEV Honcho PID 543180:** `ARGUMENT COUNT: MISMATCH`, `HONCHO SCRIPT PATH: PASS`, `START ARGUMENT: MISMATCH` (the actual check compared the **whole argument tail** to exactly `['start']`, so this does **not** establish that `start` itself was absent); `PROCESS OWNER: PASS`, `PARENT PID: PASS`, `PROCESS GROUP: PASS`, `SESSION ID: PASS`, `PROCESS ACTIVE: PASS`, `WORKING DIRECTORY: PASS`, `NO SIGNALS OR SERVICE CHANGES`. This strongly suggests additional args or other tail difference, and confirms the existing shutdown script's **exact argument-tail gate** would reject the original manager, assuming the PID state has not since changed.
