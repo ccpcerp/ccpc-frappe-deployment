@@ -393,3 +393,93 @@ HOST
 ```
 
 **Risk gate:** If parent remains zero or Honcho cwd is not confirmed, do not guess a safe signal, shutdown mechanism, or agent ownership. Review the output and verify Honcho supervisor/restart mechanism and absence of site transactions/critical queued jobs before any maintenance stop. For actual cutover, the source-only directory swap still requires the site-specific patch log and `setup.after_migrate` review, a planned DEV outage for both sites, and a rollback strategy that may require both databases/files (not merely the Git code). Absolutely no `docker compose down`, global `pkill`, automatic restart, `--site all migrate` or PRODUCTION involvement.
+
+
+## November 19 — Honcho topology PASS; detached exec provenance and SQL read-only patch/masters gate
+
+**Owner supplied actual process census** (no mutation):
+```text
+DEV CONTAINER PID MODE: PRIVATE_OR_DEFAULT
+HONCHO PROCESS IDENTITY: VERIFIED
+HONCHO PID: 543180
+HONCHO REPORTED PPID: 0
+HONCHO SESSION/GROUP LEADER: YES
+HONCHO CWD BENCH MATCH: YES
+PROCFILE SERVICE LABELS: web socketio watch schedule worker
+HONCHO SAME-SESSION GROUP PROCESSES: 5
+HONCHO DESCENDANT PROCESSES: 11
+HONCHO DESCENDANT PROCESS GROUPS: 3
+HONCHO GROUP/TREE OWNER CHECK: FRAPPE ONLY
+DEV HONCHO TOPOLOGY READ-ONLY: PASS
+```
+
+**Provenance check from existing deployment docs:** `docs/ccpc-project/DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md` documents a DEV-only `docker exec -d --user frappe ... exec /home/frappe/.local/bin/honcho start` launch and observed past detached Honcho PID **380905 PPID 0**. The current **PPID 0** is consistent with this precedent, although today's exact launch mechanism and later shutdown/restart are not directly proved. Honcho CWD matches exact bench and all process group/tree owners were reported as `frappe`; no service has been signalled. These checks are topology, not site health or migration acceptance.
+
+**Next Gate C prerequisite (READ ONLY):** Given that the currently staged Phase1 `ccpcerp/patches.txt` matches the old source list but numerous `setup.after_migrate` operations can update site tables and permissions, check the actual *two site's* Patch Log and presence of prerequisite masters before stopping DEV services. The older runbook documents a corrected Frappe read-only inspection launched **from `frappe-bench/sites`** with `sites_path="."` and `FRAPPE_STREAM_LOGGING=1` to avoid an invalid logging CWD. Do **not** run `bench migrate`, touch the broken third site, create missing master data, or assign Finance roles based on these counts.
+
+Run at `gani@ccpcerpserver`:
+
+```bash
+bash <<'HOST'
+set -euo pipefail
+test "$(hostname -s)" = ccpcerpserver && test "$(id -un)" = gani || { echo 'STOP: WRONG HOST OR OPERATOR'; exit 1; }
+dev=frappe_docker_devcontainer-frappe-1
+test "$(sudo docker inspect --format '{{.State.Running}}' "$dev")" = true || { echo 'STOP: DEV CONTAINER DOWN'; exit 1; }
+test "$(sudo docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}}' "$dev")" = frappe_docker_devcontainer || { echo 'STOP: WRONG DEV COMPOSE PROJECT'; exit 1; }
+sudo docker exec -i --user frappe --workdir /workspace/development/frappe-bench/sites "$dev"  env FRAPPE_STREAM_LOGGING=1 /workspace/development/frappe-bench/env/bin/python -B - <<'PY'
+from pathlib import Path
+import frappe
+import subprocess
+
+base = Path("/workspace/development/frappe-bench")
+old = "25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87"
+release = "55eb10b86a57de55a97e293a78228d9dd17b809a"
+def git_head(path):
+    p = subprocess.run(["git","-C",str(path),"rev-parse","HEAD"],
+                       capture_output=True,text=True,timeout=30,check=True)
+    return p.stdout.strip()
+if git_head(base/"apps/ccpcerp") != old or    git_head(base/".ccpc-phase1-release-stage-20261119-55eb10b86a57") != release:
+    raise SystemExit("STOP: SOURCE OR STAGING CHANGED")
+patch_list = [
+    x.strip() for x in (base/"apps/ccpcerp/ccpcerp/patches.txt").read_text().splitlines()
+    if x.strip().startswith("ccpcerp.patches.")
+]
+release_patch_list = [
+    x.strip() for x in (base/".ccpc-phase1-release-stage-20261119-55eb10b86a57/ccpcerp/patches.txt").read_text().splitlines()
+    if x.strip().startswith("ccpcerp.patches.")
+]
+if patch_list != release_patch_list or len(patch_list) != 8:
+    raise SystemExit("STOP: PATCH LIST CHANGED")
+databases = []
+for site in ("development.localhost", "ccpc-integration2.localhost"):
+    frappe.init(site=site, sites_path=".")
+    try:
+        frappe.connect()
+        frappe.db.sql("START TRANSACTION READ ONLY")
+        dbname = frappe.db.sql("SELECT DATABASE()")[0][0]
+        if not dbname:
+            raise RuntimeError("DATABASE NAME EMPTY")
+        databases.append(dbname)
+        recorded = {r[0] for r in frappe.db.sql("SELECT patch FROM `tabPatch Log`", as_list=True)}
+        print("DEV SITE PATCH INVENTORY:", site)
+        for patch in patch_list:
+            print("  " + patch.rsplit(".",1)[-1] + ":", "RECORDED" if patch in recorded else "NOT RECORDED")
+        for table in ("tabCompany", "tabAccount", "tabCustomer", "tabSupplier"):
+            count = int(frappe.db.sql("SELECT COUNT(*) FROM `" + table + "`")[0][0])
+            print("  " + table + " COUNT:", count)
+    finally:
+        try:
+            if frappe.db:
+                frappe.db.rollback()
+        finally:
+            frappe.destroy()
+if len(set(databases)) != 2:
+    raise SystemExit("STOP: DEV SITES SHARE SAME DATABASE")
+print("TWO DEV SITES: SEPARATE DATABASE CONNECTIONS VERIFIED")
+print("DEV PATCH LOG + MASTER COUNTS READ-ONLY: PASS")
+print("SOURCE SWITCH / MIGRATION / STOP: NOT PERFORMED")
+PY
+HOST
+```
+
+**Important limits:** A `PASS` here proves that SQL reads and patch history can be queried with two distinct active site connections, **not** that required Chart of Accounts branches, canonical Company names, intercompany Customer/Supplier relationships, permission mappings or patch side effects are safe. A `NOT RECORDED` patch must be evaluated against its actual patch source and live master config before a migration. If a read-only inspection fails, STOP rather than adding missing accounting masters or enabling `--site all`. End-user DEVELOPMENT traffic and queued job quiescence must still be established before any Honcho stop, and a code-only rollback after DB migration remains unsafe.
