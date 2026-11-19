@@ -304,6 +304,23 @@ Operator ran a hostname-guarded, read-only `docker compose config --format json 
 
 **Next single read-only check:** inspect the same Compose source for CPU, memory and PID limits of **all lab services** (agent, DB, Redis), reporting only service names and boolean limit presence, not raw Compose configuration, paths or environment values. Do not run `docker compose up`, recreate containers, pull images, or restart services. Design approved and reviewed changes in GitHub before any lab-only host operation, protecting cohosted workloads.
 
+## Step 32 — four laboratory services and extra Compose service (2026-11-19)
+
+Operator ran a hostname-guarded, read-only parse of the current Compose source for the stopped laboratory agent. Reported `agent_running=False`, `expected_services_present=True`, `extra_service_count=1`, and these resource-limit presence flags:
+
+| Compose service | Memory limit present | CPU limit present | PID limit present |
+| --- | --- | --- | --- |
+| `agent` | false | false | true |
+| `db` | false | false | false |
+| `redis-cache` | false | false | false |
+| `redis-queue` | false | false | false |
+
+**Important:** The Compose source contains **one additional service** beyond these four; it was not named or investigated in Step 32. It is not proof of a fifth running container. Earlier runtime checks also showed no CPU/memory caps on the four corresponding containers. No Docker or host mutations occurred.
+
+**User preference:** operator wants Codex to access maximum resources and questions whether any caps are needed. This is a performance preference, **not approval to launch Codex or risk cohosted protected services**. A possible compromise is generous CPU availability without a hard quota *after* checking host capacity/contention, while retaining a protective memory ceiling, PID caps, and limits on DB/Redis as appropriate. A dedicated Codex machine/VM may support a less restricted policy without competing with CCPC services. Actual bounds require review of host resource headroom, protected workloads and rollback approach; no caps have been agreed or applied. **NO-GO remains** until isolation, authentication, sandbox, and availability risks have been addressed or explicitly resolved without weakening protected-environment safeguards.
+
+**Next step:** identify the extra Compose service using a sanitized, read-only classification without disclosing paths, credentials or configuration values; then inspect aggregate host resources, if needed, before proposing any GitHub-first resource plan. Keep agent stopped; do not run `docker compose up` or change DEV, OLD/NEW PROD or UAT.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
