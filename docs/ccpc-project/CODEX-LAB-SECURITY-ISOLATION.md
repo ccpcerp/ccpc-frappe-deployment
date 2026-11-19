@@ -246,6 +246,14 @@ Operator ran a hostname-guarded read-only parse of Docker `.Config.Entrypoint` a
 
 **Next single read-only check:** classify the agent startup command interpreter/executable and shell-mode flags without printing its raw argv, commands, host paths or values. Do not launch the container or agent to inspect this.
 
+## Step 27 — configured agent keepalive startup (2026-11-19)
+
+Operator's read-only classification of the stopped agent's Docker Entrypoint/Cmd reported `program_category=KEEPALIVE`, `shell_command_mode=False`, `known_idle_keepalive=True`. The classifier recognizes the exact Docker command arrays `["sleep","infinity"]` or `["tail","-f","/dev/null"]`. Its two command arguments match a recognized idle keepalive pattern, so Docker's **direct configured startup command** is not a Codex agent or a shell `-c` expression. The prior stopped/restart=no result remains the latest reported runtime state.
+
+**Limit:** This does **not** establish which CLI tools are installed in the image, whether Codex configuration/sandbox would be safe if invoked manually, or whether any other process can start it. No running agent or additional process was inspected or executed. It is **not permission to start the container**.
+
+**Next diagnostic:** read-only review of the stopped agent's immutable image ID, local image tag match and repository-digest availability, without printing labels, image history, Docker args, env values, paths or secrets. A mutable `frappe/bench:latest` tag was observed earlier; pinning/provenance must be reviewed before execution. Then evaluate Codex executable/sandbox by a separate approved plan.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
