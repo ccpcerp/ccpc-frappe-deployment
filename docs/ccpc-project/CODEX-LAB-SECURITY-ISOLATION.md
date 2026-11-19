@@ -617,6 +617,14 @@ The operator ran a hostname-guarded read-only check of the inactive optional Squ
 
 **Next single read-only diagnostic:** safely classify only the first arguments of `cache`, `cache_store_log`, and `access_log` into enabled/disabled/path-like/stdout classifications, without disclosing destinations or raw configuration lines; additionally classify four Compose `tmpfs` mount destinations against conventional Squid runtime directory categories without displaying paths or any environment variable value. Strictly stop on changed Compose or missing evidence. No proxy, image or Docker activation.
 
+## Step 59 — Squid caching disabled and access logs to stdout (2026-11-19)
+
+Operator ran a hostname-guarded, read-only parser of the optional Squid configuration and Compose filesystem declarations. Sanitized results: `agent_running=False`, `proxy_read_only_rootfs=True`, `cache_rule_deny_all=True`, `cache_rule_allows_requests=False`, `cache_store_log_class=DISABLED`, `access_log_class=STDOUT`, `tmpfs_mount_count=4`, `tmpfs_known_runtime_directory_count=4`, `tmpfs_other_directory_count=0`, `tmpfs_duplicate_target_count=0`.
+
+**Interpretation:** The source explicitly declares `cache deny all`, disables `cache_store_log`, directs the `access_log` to standard output, and declares four nonduplicated `tmpfs` mounts at conventional runtime paths, alongside a read-only root filesystem. These static choices support nonpersistent cache storage and Docker-compatible logging. They do not prove that the image has no other log files/runtime-write requirements or establish Docker's log retention/driver, and the optional proxy image is still absent under its Compose reference (Step 46). `tmpfs` consumes host memory; its configured sizes/security mount flags and proxy/agent resource governance remain unverified on this shared host. No agent/proxy launch, image acquisition, host or Docker mutation, network probes or DEV/OLD PROD/NEW PROD/UAT changes. Codex stopped; proxy inactive; **NO-GO remains** due to independent blockers.
+
+**Next one read-only diagnostic:** classify all four Compose `tmpfs` mount options and size restrictions (counts of explicit sizes, noexec/nosuid/nodev and unusual flags), using only sanitized counts/booleans and optionally a bounded total-size summary, without mount destinations, raw source, identities or secrets. No changes to services or host. Respect the shared host's availability risk and do not treat unused host memory as a guarantee of future safety.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
