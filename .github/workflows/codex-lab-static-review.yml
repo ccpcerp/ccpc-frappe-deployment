@@ -1,0 +1,28 @@
+name: Codex lab source-only security tests
+
+# GitHub-hosted test only. No Docker, Codex, paid API, ERPNext, or host access.
+on:
+  pull_request:
+    branches:
+      - review/pr33-dev-acceptance-2026-11-16
+    paths:
+      - 'codex-dev-agent/**'
+      - '.github/workflows/codex-lab-static-review.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  policy-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - name: Check out review-only source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Run stdlib-only negative security regressions
+        run: python3 -m unittest discover -s codex-dev-agent/tests -p 'test_*.py' -v
