@@ -491,6 +491,14 @@ The operator used a hostname-guarded, read-only classifier of the inactive optio
 
 **Next sanitized read-only diagnostic:** characterize the depth of each allowed domain suffix (number of DNS labels after leading dot), confirm none is a one-label/public-suffix-like pattern, and check for duplicates or suffix overlaps without publishing actual names, domains or proxy destinations. This *cannot* fully validate eTLD/public suffix or trustworthiness without controlled review of the exact patterns. Keep secrets and raw config private and do not start the proxy.
 
+## Step 45 — Squid allowlist suffix depth and overlap (2026-11-19)
+
+Operator ran a hostname-guarded, read-only parser of the inactive Squid proxy's allowlist without printing the permitted domains, ACL names, host paths, or secrets. Sanitized results: `agent_running=False`, `domain_pattern_count=10`, `all_domain_labels_valid=True`, `minimum_domain_label_count=2`, `maximum_domain_label_count=2`, `single_label_pattern_count=0`, `two_label_pattern_count=10`, `three_or_more_label_pattern_count=0`, `duplicate_pattern_count=0`, `nested_suffix_overlap_pairs=0`.
+
+**Interpretation:** all ten entries are syntactically valid leading-dot **two-label suffix patterns**, with no duplicate or nested overlapping suffix entries under case-normalized comparison. This gives useful structural evidence, but does **not** establish that each suffix is a privately administered organization/service domain, rather than a registry/public suffix, nor does it prove safe DNS resolution or narrow host access. A leading-dot Squid `dstdomain` entry may match the parent domain and its subdomains. All actual suffix values were withheld and need a separately controlled, privacy-safe review before approval. No proxy/agent execution, network traffic, host changes, or DEV/OLD/NEW PROD/UAT modifications; Codex and the optional proxy remain inactive/NO-GO.
+
+**Next read-only check:** determine whether the *locally available* image declared for the optional Squid proxy specifies a non-root default user. Use Docker image metadata only; no image pull, creation, build or execution; report only default-user classification, not image reference, labels, paths, or environment. An absent image is an acceptable finding, not an instruction to pull it. Review image trust, proxy domain safety/DNS and cohosted resource controls separately before any activation.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
