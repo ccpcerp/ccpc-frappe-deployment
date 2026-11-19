@@ -114,6 +114,22 @@ Operator ran a host-guarded read-only inspection of all current Docker container
 
 **Next diagnostic:** read-only check whether Docker's laboratory bridge has a host-side network interface/gateway and whether host IPv4 forwarding is enabled, without printing IP addresses. Then separately examine effective firewall policy. Neither check by itself proves connectivity or isolation.
 
+## Step 19 — host-side Docker bridge and IPv4 forwarding (2026-11-19)
+
+Operator executed a read-only, hostname-guarded query of the `ccpc_codex_dev_agent_lab` network and the host's IPv4 bridge and forwarding metadata. Output was:
+
+| Field | Operator-reported value |
+| --- | --- |
+| `network_internal` | `True` |
+| `host_bridge_present` | `True` |
+| `host_bridge_ipv4_present` | `True` |
+| `docker_gateway_defined` | `True` |
+| `host_ipv4_forwarding` | `1` |
+
+**Interpretation:** the lab uses Docker's internal-network setting but the host has a bridge-side IPv4 interface/gateway and kernel forwarding enabled. This is **not evidence that firewall rules permit traffic** from the lab to the host, protected Docker networks, LAN, or Internet. Conversely, `internal=true` alone is not proof those paths are unreachable. Firewall implementation, effective INPUT/FORWARD filtering, proxy routing, DNS, and controlled negative reachability tests remain pending. No agent execution or host/network changes occurred.
+
+**Next diagnostic:** inventory the effective host firewall rule implementation and hook policies via read-only, *sanitized* counts before examining scoped lab-bridge INPUT/FORWARD handling. Do not print IP addresses or rule targets containing sensitive host details.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
