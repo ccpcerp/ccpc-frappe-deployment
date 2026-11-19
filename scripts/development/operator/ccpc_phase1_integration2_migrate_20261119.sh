@@ -107,11 +107,11 @@ try:
         for line in (APP / "ccpcerp/patches.txt").read_text().splitlines()
         if line.strip().startswith("ccpcerp.patches.")
     }
-    recorded = set(frappe.db.get_all("Patch Log", pluck="patch"))
+    recorded = {row[0] for row in frappe.db.sql("SELECT patch FROM " + chr(96) + "tabPatch Log" + chr(96), as_list=True)}
     if len(patches) != 8 or not patches.issubset(recorded):
         stop("CCPC PATCH INVENTORY DEVIATED FROM 8/8")
     counts = {
-        name: int(frappe.db.count(name))
+        name: int(frappe.db.sql("SELECT COUNT(*) FROM " + chr(96) + "tab" + name + chr(96))[0][0])
         for name in ("Company", "MRS", "Purchase Order", "Withdrawal Slip", "CCPC Personnel")
     }
     expected = {"Company": 2, "MRS": 0, "Purchase Order": 0, "Withdrawal Slip": 1, "CCPC Personnel": 0}
