@@ -1095,3 +1095,118 @@ HOST
 ```
 
 **Before any deletion:** This limited survey must be followed by full Doctype Link, Dynamic Link, default-value, nested Company and custom CCPC references plus GL/SLE/Stock/Financial document verification, separately protected backups, test-fixture preservation strategy, human-reviewed explicit 21-Company deletion authorization and an operations plan. Some linked standard Company documents must not be cascaded or force-deleted at all. GSL/WFC **already exist on MAIN**; do not create duplicate names, abbreviations or accounting trees. Existing DEV worker backlog remains ON HOLD (`Workers online: 0` both sites; queued contact creation and route builds). Phase1 maintenance/checkout/migrate is also ON HOLD. No PRODUCTION action.
+
+
+## November 19 — All four real Companies confirmed in MAIN; every one of 21 cleanup candidates has linked masters
+
+**Owner-provided actual read-only 15-table Company link screening:** 25 Companies total. Protected four `Cagayan Corn Products Corporation` (CCPC), `Ricor Mills Corporation` (RMC), `GSL Realty Corporation` (GSL), and `Woodland Farms Corporation` (WFC) all report `country=Philippines`, `default_currency=PHP`, `is_group=0`, `parent=NONE`. Their selected direct-link record totals were 393, 194, 193 and 193 respectively. These are correct *configured names/abbreviations* but do not independently establish owner legal approval for GSL/WFC.
+
+**All 21 non-protected candidates have Company-linked `tabAccount`, `tabCost Center` and `tabWarehouse` master records**, in most cases about 94–135 Accounts plus 2 Cost Centers and 5 Warehouses. Critically, `_Test Company` has **132 Accounts, 6 Cost Centers, 16 Warehouses, 2 Stock Ledger Entries, 2 Stock Entries, and 2 Material Requests**. The other 20 candidates had no additional direct references among the fifteen screened table `company` columns, but the audit is explicitly LIMITED and cannot prove absence of other DocTypes, Dynamic Links, custom CCPC records or defaults. Group/child dependencies described previously still exist. **Do not delete ANY Company, master or transaction** or use Frappe ignore-links/forced deletion to remove obstacles. The Phase1 cutover remains HOLD due to 0 workers and queued jobs.
+
+**Next read-only linked-reference inventory:** Inspect physical Frappe tables which have a `company` column or are described in DocField/Custom Field metadata as having a `Link` to `Company`. Return aggregate counts for the 21 candidates, plus docstatus distribution of `_Test Company` stock entries and cancellation distribution of its stock ledger entries. *This is extended screening, NOT a complete Delete safety proof*: Dynamic Link records, single-value defaults, arbitrary custom SQL, cross-site test dependencies and indirect references still need a separate examination before deletion. On `gani@ccpcerpserver`, run:
+
+```bash
+bash <<'HOST'
+set -euo pipefail
+test "$(hostname -s)" = ccpcerpserver && test "$(id -un)" = gani || { echo "STOP: WRONG HOST OR USER"; exit 1; }
+dev=frappe_docker_devcontainer-frappe-1
+test "$(sudo docker inspect --format '{{.State.Running}}' "$dev")" = true || { echo "STOP: DEV CONTAINER DOWN"; exit 1; }
+test "$(sudo docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}}' "$dev")" = frappe_docker_devcontainer || { echo "STOP: WRONG DEV PROJECT"; exit 1; }
+sudo docker exec -i --user frappe --workdir /workspace/development/frappe-bench/sites "$dev" \
+  env FRAPPE_STREAM_LOGGING=1 /workspace/development/frappe-bench/env/bin/python -B - <<'PY'
+from collections import defaultdict
+from pathlib import Path
+import subprocess
+import frappe
+
+B=Path("/workspace/development/frappe-bench")
+for directory,sha in (
+    (B/"apps/ccpcerp","25a7b6be1801a54f7ed39fef54f4ea4e3a1cea87"),
+    (B/".ccpc-phase1-release-stage-20261119-55eb10b86a57",
+     "55eb10b86a57de55a97e293a78228d9dd17b809a"),
+):
+    p=subprocess.run(["git","-C",str(directory),"rev-parse","HEAD"],
+                     capture_output=True,text=True,timeout=20)
+    if p.returncode or p.stdout.strip()!=sha:
+        raise SystemExit("STOP: SOURCE PIN CHANGED")
+keep={"Cagayan Corn Products Corporation","Ricor Mills Corporation",
+      "GSL Realty Corporation","Woodland Farms Corporation"}
+
+def qid(s):
+    return "`"+s.replace("`","``")+"`"
+
+frappe.init(site="development.localhost",sites_path=".")
+try:
+    frappe.connect()
+    frappe.db.sql("START TRANSACTION READ ONLY")
+    names=[x[0] for x in frappe.db.sql("SELECT name FROM `tabCompany` ORDER BY name")]
+    if len(names)!=25 or not keep.issubset(names):
+        raise SystemExit("STOP: COMPANY INVENTORY CHANGED")
+    targets=[x for x in names if x not in keep]
+    if len(targets)!=21:
+        raise SystemExit("STOP: CANDIDATE COUNT CHANGED")
+    cols=defaultdict(set)
+    for table,col in frappe.db.sql(
+        "SELECT TABLE_NAME,COLUMN_NAME FROM information_schema.COLUMNS "
+        "WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME LIKE 'tab%'",
+        as_list=True):
+        cols[table].add(col)
+    links=frappe.db.sql("""
+        SELECT parent,fieldname FROM `tabDocField`
+        WHERE fieldtype='Link' AND options='Company'
+        UNION
+        SELECT dt,fieldname FROM `tabCustom Field`
+        WHERE fieldtype='Link' AND options='Company'
+    """,as_list=True)
+    fields={(t,"company") for t,cc in cols.items() if "company" in cc}
+    fields.update(("tab"+dt,field) for dt,field in links
+                  if dt and field and field in cols.get("tab"+dt,set()))
+    results=defaultdict(list)
+    params=tuple(targets)
+    for table,field in sorted(fields):
+        sql=("SELECT "+qid(field)+",COUNT(*) FROM "+qid(table)+" WHERE "
+             +qid(field)+" IN ("+",".join(["%s"]*len(targets))+") GROUP BY "+qid(field))
+        for value,n in frappe.db.sql(sql,params,as_list=True):
+            results[value].append((table[3:],field,int(n)))
+    print("MAIN DEV PROTECTED COMPANY COUNT:",len(keep))
+    print("MAIN DEV CLEANUP CANDIDATES:",len(targets))
+    print("PHYSICAL COMPANY-LINK FIELD PAIRS SCANNED:",len(fields))
+    for name in targets:
+        matches=results.get(name,[])
+        masters=[(dt,n) for dt,field,n in matches
+                 if dt in {"Account","Cost Center","Warehouse"} and field=="company"]
+        other=[dt+"."+field+"="+str(n) for dt,field,n in matches
+               if not (dt in {"Account","Cost Center","Warehouse"} and field=="company")]
+        print("CANDIDATE:",name)
+        print("  ACCOUNT/COST CENTER/WAREHOUSE DIRECT COUNTS:",
+              " ".join(dt+"="+str(n) for dt,n in masters) or "NONE")
+        print("  OTHER DIRECT COMPANY REFERENCES:",
+              ", ".join(other) or "NONE FOUND IN SCANNED FIELDS")
+    if "tabStock Entry" in cols and {"company","docstatus"}.issubset(cols["tabStock Entry"]):
+        print("TEST COMPANY STOCK ENTRY DOCSTATUS COUNTS:",
+              frappe.db.sql("""
+                  SELECT docstatus,COUNT(*) FROM `tabStock Entry`
+                  WHERE company=%s GROUP BY docstatus ORDER BY docstatus
+              """,("_Test Company",),as_list=True))
+    if "tabStock Ledger Entry" in cols and "company" in cols["tabStock Ledger Entry"]:
+        if "is_cancelled" in cols["tabStock Ledger Entry"]:
+            print("TEST COMPANY STOCK LEDGER CANCELLATION COUNTS:",
+                  frappe.db.sql("""
+                      SELECT is_cancelled,COUNT(*) FROM `tabStock Ledger Entry`
+                      WHERE company=%s GROUP BY is_cancelled ORDER BY is_cancelled
+                  """,("_Test Company",),as_list=True))
+        else:
+            print("TEST COMPANY STOCK LEDGER is_cancelled COLUMN: NOT PRESENT")
+    print("EXTENDED MAIN COMPANY DIRECT-LINK AUDIT: PASS")
+finally:
+    try:
+        if frappe.db:
+            frappe.db.rollback()
+    finally:
+        frappe.destroy()
+print("NO COMPANY / LEDGER / SERVICE MODIFICATION")
+PY
+HOST
+```
+
+**Guardrail:** This covers physical `company` columns and declared direct Link→Company fields, not all dynamic/indirect links or every accounting constraint. The `Stock Ledger Entry` entries warrant particular care; never erase/modify these to make a Company deletable. Record output and evaluate deeper dependencies before an explicit, separately authorized cleanup plan. No PRODUCTION or Integration2 cleanup. Worker backlog/Phase1 source-switch HOLD remains a separate problem.
