@@ -1,5 +1,15 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-19 — Two DEVELOPMENT Honcho managers identified; approved maintenance stop staged
+
+**Owner-reported fresh read-only process inventory:** `HONCHO PROCESS COUNT: 2`; original bench-manager `PID=543180 PPID=0 PGID=543180 SID=543180 STATE=S DESCENDANTS=11`; recovered worker-only manager `PID=546647 PPID=0 PGID=546647 SID=546647 STATE=S DESCENDANTS=5`. Inventory reported `NO SERVICES OR DATABASES MODIFIED`. This confirms two distinct managers under the named DEV container, not separate site workers. Owner previously confirmed being the only DEV user and fully logged out.
+
+**Reviewed operator script created and re-fetched in GitHub (not executed):** `scripts/development/operator/ccpc_dev_dual_honcho_stop_20261119.sh` on deployment docs branch `review/pr33-dev-acceptance-2026-11-16`; source commit `3102cce8376a70b181b98f0ff9af3183ec58f714`; blob `65cd56376a6d8187fa23702d1b0b85c19faa7140`; source UTF-8 SHA256 `d5a32b29f4b43aeb3ebf8fc94838e98f402aaafda7bf7c5f316d05d64dc78e0c`. Local Bash syntax and embedded Python compile checks PASS, GitHub fetched contents matched authored source. **No live-server execution/behavior validation yet.** The operator must stage independently from exact immutable GitHub commit and verify SHA256 before one manual execution.
+
+**Planned DEVELOPMENT-only graceful stop:** Verify exact host/operator, Docker Compose project and container, original PR33/staged Phase1 source SHA and cleanliness, protected AGENTS and both Nov19 site backup manifests, exact two Honcho PIDs/owners/commands/process groups/CWD, and **single idle, jobless RQ worker**. If any gate fails, do not signal anything. On PASS, send first SIGINT only to original bench-manager PID; wait boundedly for it and original descendants to exit. Then recheck worker-only process and idle RQ, send one SIGINT only to that manager, and wait for its children to exit; no force kill, `docker compose down`, broad group signal, Redis flush or code switch. If unexpected state or timeout, STOP, report actual output and no blind retry. The procedure is a controlled DEV-only service interruption and may temporarily make both valid DEVELOPMENT sites unavailable. No app source move/migrate/PROD action is included; separate guarded source activation/migration review and recovery decision remain next.
+
+---
+
 ## 2026-11-19 — Owner confirms DEVELOPMENT sites free of users for Phase1 maintenance
 
 **Owner explicitly reports:** "I'm the only user of all development and i just log-out now." Both valid DEVELOPMENT sites can be treated as **user-quiescent for a controlled maintenance window**, subject to fresh process/job/backup/source checks immediately before any code switch. This establishes the operator's logout/user-availability confirmation only; it is **not** proof that no background jobs, writes or external integrations exist. Do not claim Phase1 source activation or migrations complete.
