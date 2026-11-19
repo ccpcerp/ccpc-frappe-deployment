@@ -871,3 +871,36 @@ HOST
 ```
 
 **Interpretation and further action:** Return the full scheduler/worker/queue diagnostic output with any sensitive user data redacted if unexpectedly printed. If `bench doctor` exits nonzero, reports pending/enqueued/running jobs, no active worker, site exceptions, scheduler errors or a broken-site crossover, STOP for analysis. If both doctor invocations pass, ask the operator explicitly whether **both valid DEV sites are free of active users and unsaved transactions** and whether a DEV-only maintenance outage can start now; this cannot be inferred from the queue diagnostics. Recheck exact stopped Honcho identity immediately before sending a scoped graceful signal. Preserve original PR33 repo `AGENTS.md`, separate release stage, 2-site Nov19 + Nov17 backups and verified NAS copies; never use broad Docker/Compose shutdowns or production services. Full site migration still requires controlled ordered site scope and post-acceptance tests, and the original two-site isolated SQL/files recovery does not prove full app-site recovery.
+
+
+## November 19 — DEV workers zero with pending jobs: pre-maintenance NO-GO; test Company deletion deferred
+
+**Owner's actual site-scoped `bench doctor` output** (read-only, after previous five-record classification):
+
+```text
+DEV DOCTOR SITE: development.localhost
+-----Checking scheduler status-----
+Workers online: 0
+-----development.localhost Jobs-----
+Queue: default
+Number of Jobs: 18
+Methods: frappe.core.doctype.user.user.create_contact : 18
+Queue: long
+Number of Jobs: 2
+Methods: build_index_for_all_routes : 2
+DEV DOCTOR SITE: ccpc-integration2.localhost
+-----Checking scheduler status-----
+Workers online: 0
+-----ccpc-integration2.localhost Jobs-----
+Queue: long
+Number of Jobs: 2
+Methods: build_index_for_all_routes : 2
+BOTH DEV SITES BENCH DOCTOR INVOCATIONS: PASS
+NO HONCHO STOP / APP SWITCH / SITE MIGRATION PERFORMED
+```
+
+**Interpretation:** Commands returned success, but current scheduler/queue operational acceptance is **NOT PASS**. Both site-specific diagnostics reported **0 registered online workers** with pending jobs: MAIN 18 User contact creation jobs in default + 2 long route index builds, Integration2 2 long route index builds. Queue counts are **reported per site**; do not assume independent Redis queue ownership or distinct unique jobs until validated (shared bench, shared worker queues). Do not assume jobs are stale or safe to discard, requeue, force-run, purge, or restart anything. These jobs might include delayed user/contact records that must be preserved; another site may be affected by shared queues. Frappe official documentation confirms `bench doctor` reports worker counts and pending tasks; `bench purge-jobs` would delete queued work and is not authorized.
+
+**Maintenance decision:** **HOLD** DEVELOPMENT Honcho shutdown, Stage→live app source swap and both site migrations until present worker processes/Redis queue state, job ages and ownership, queue recovery needs and site user quiescence are reviewed. Specifically avoid `bench purge-jobs`, `docker compose down`, broad Redis flush, force-kill, and premature migration. Protected two-site local/NAS Nov19 and earlier Nov17 backups and original PR33 `AGENTS.md` stay preserved. This is not evidence of a deployment failure: there has not been a Phase1 deployment yet.
+
+**Owner follow-up:** Owner asked `Can i delete the default test company`. No Company name or target site identified, and no delete operation authorized/executed. Company master deletion is **distinct** from ERPNext's `Delete Transactions` action, which is destructive and leaves masters; the latter is not a way to safely remove Company. Ask owner for the **exact Company name and target DEVELOPMENT site**, then perform a site-scoped read-only Company dependency audit (default setting, account/warehouse/cost center and custom CCPC links, transactions/stock/GL), with explicit approval before any master/data removal. Never delete a production Company or clear linked objects merely to bypass Frappe link constraints. Do not clean test Company as a workaround for the backlog or use data cleanup to remove jobs.
