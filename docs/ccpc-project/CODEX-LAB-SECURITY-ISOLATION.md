@@ -593,6 +593,14 @@ Operator ran a hostname-guarded, read-only inspection of the inactive optional S
 
 **Next one read-only diagnostic:** classify the three group-writable parent directories' owning-group nonowner membership (including interactive accounts), whether their group write+execute permissions can permit rename/replacement, sticky bits, and any POSIX ACL/default ACL indicators, using sanitized counts/booleans only—no paths, identities, group names, UID/GID, file content or raw ACL entries. Do not start proxy/agent or alter existing services.
 
+## Step 56 — writable parent directories operator-owned without extra local group members (2026-11-19)
+
+The operator ran a hostname-guarded, read-only check of the three group-writable ancestors of the optional inactive Squid proxy policy file. Sanitized output: `agent_running=False`, `group_writable=3`, `group_write_and_search=3`, `nonsticky_group_write_and_search=3`, `writable_owned_by_operator=3`, `writable_owned_by_root=0`, `with_nonowner_group_members=0`, `with_interactive_nonowner_members=0`, `with_access_acl=0`, `with_default_acl=0`, `acl_unknown=0`, and `world_writable=0`.
+
+**Interpretation:** All three parent directories have POSIX group write+search bits and are not sticky, but they are owned by the operator, with no **enumerated local nonowner group members**, no detected POSIX ACL or default ACL, and no world-writable parents. No demonstrated unauthorized replace/rename opportunity via the evaluated group permissions. However, this does not exhaust NSS/central directory accounts, privileged users, file-server access, Docker daemon operators, or parent bind-mount exposure. Avoid unnecessary permission changes; `chmod`/`chown` not authorized or performed. Codex stopped; Squid proxy inactive; no Docker changes, network probes or DEV/OLD PROD/NEW PROD/UAT operations; overall **NO-GO** remains due to independent blockers (all-interface listener with no source ACL, missing mutable image provenance/user, DNS/address policy edge cases, resource limits and runtime validation).
+
+**Next one read-only diagnostic:** inspect the current local Squid policy for proxy behaviors that could alter the intended simple outbound CONNECT design (redirectors, cache peers, alternate routing, authentication, TLS bump, named DNS resolvers). Report only boolean presence and sanitized counts without raw directive values, paths, hostnames, secrets or extra host/network operations. No proxy activation or file edit.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
