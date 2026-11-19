@@ -19,6 +19,10 @@ def module(name, file):
 
 gate = module("codex_dev_compose_gate", "check_compose.py")
 secrets = module("codex_dev_local_secrets", "init_local_secrets.py")
+proxy_bridge = module(
+    "ccpc_codex_proxy_bridge_readonly",
+    "../../scripts/security/ccpc_codex_proxy_bridge_preflight.py",
+)
 
 
 def safe_config():
@@ -352,6 +356,45 @@ class TestProxyPolicy(unittest.TestCase):
 
     def test_upstream_proxy_override_denied(self):
         self.denies(self.policy + "\ncache_peer 192.0.2.9 parent 3128 0\n")
+
+
+class TestReviewOnlyProxyBridgeFirewall(unittest.TestCase):
+    """Pure source-based checks: never call Docker, sudo or iptables."""
+
+    def setUp(self):
+        self.specs = proxy_bridge.rules_for_new_bridge()
+
+    def test_three_tightly_scoped_drop_specs(self):
+        self.assertEqual(set(self.specs), {"host", "outbound", "inbound"})
+        for chain, tokens in self.specs.values():
+            self.assertIn(chain, {"INPUT", "DOCKER-USER"})
+            self.assertEqual(tokens[-2:], ["-j", "DROP"])
+            self.assertIn(proxy_bridge.BRIDGE, tokens)
+
+    def test_host_input_covers_spoofed_sources(self):
+        chain, rule = self.specs["host"]
+        self.assertEqual(chain, "INPUT")
+        self.assertEqual(rule[:2], ["-i", proxy_bridge.BRIDGE])
+        self.assertNotIn("-s", rule)
+
+    def test_forward_outbound_cannot_reach_other_bridges(self):
+        chain, rule = self.specs["outbound"]
+        self.assertEqual(chain, "DOCKER-USER")
+        self.assertEqual(rule[:5], [
+            "-i", proxy_bridge.BRIDGE, "!", "-o", proxy_bridge.BRIDGE
+        ])
+
+    def test_forward_inbound_cannot_enter_client_bridge(self):
+        chain, rule = self.specs["inbound"]
+        self.assertEqual(chain, "DOCKER-USER")
+        self.assertEqual(rule[:5], [
+            "!", "-i", proxy_bridge.BRIDGE, "-o", proxy_bridge.BRIDGE
+        ])
+
+    def test_review_helper_rejects_apply_or_rollback_modes(self):
+        for requested in ("apply", "rollback", "up"):
+            with self.assertRaises(SystemExit):
+                proxy_bridge.main([requested])
 
 
 class TestSecretSafety(unittest.TestCase):
