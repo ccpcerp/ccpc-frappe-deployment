@@ -278,6 +278,14 @@ Operator ran a hostname-guarded read-only Docker inspection against the stopped 
 
 **Next read-only diagnostic:** classify the container's Compose provenance labels and whether it refers to an explicitly tracked source configuration, without displaying source paths, labels' values, startup arguments, environment or secrets. Then use that provenance to examine planned installation/invocation without starting the agent.
 
+## Step 30 — stopped agent Compose provenance (2026-11-19)
+
+The operator ran a hostname-guarded, read-only Docker metadata check for the stopped laboratory agent, reporting: `agent_running=False`, `compose_project_expected=True`, `compose_service_expected=True`, `compose_workdir_recorded=True`, `compose_workdir_exists=True`, `compose_config_files_recorded=1`, `compose_config_files_existing=1`.
+
+**Interpretation:** Docker's Compose project/service labels correspond to the expected `ccpc_codex_dev_agent` / `agent`. One recorded Compose file and the working directory currently exist on the host. Their names/paths and contents were not printed. The file is a suitable candidate for **read-only source configuration inspection**, but existence alone does not prove the source file is unchanged from the container's original creation, matches its current configuration, or contains no sensitive information. The container was not started or modified. Codex remains **NO-GO**.
+
+**Next single read-only check:** parse the agent service in the recorded Compose file and report only security-relevant key presence/type and resource-limit presence (never raw paths, environment or secret values). First guard against a moving file or ambiguous service. Do not run `docker compose up`, pull images, or execute the agent.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
