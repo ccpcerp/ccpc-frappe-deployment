@@ -483,6 +483,14 @@ Each coverage check returned true: IPv4 private `10/8`, `172.16/12`, `192.168/16
 
 **Next single diagnostic:** safely classify actual method and port ACL values (e.g. CONNECT-only, 443-only), and destination-name pattern shapes (exact-name versus suffix, IP literals, potentially overly broad entries), outputting only booleans and counts. No raw allowed domains, proxy endpoints, paths, configuration text, credentials, or network probes. Continue separately to evaluate DNS/IPv6 edge cases and file integrity before any activation.
 
+## Step 44 — Squid method port and suffix-allowlist inspection (2026-11-19)
+
+The operator used a hostname-guarded, read-only classifier of the inactive optional proxy's current host-mounted Squid configuration. Sanitized reported results: `agent_running=False`, `method_value_count=1`, `method_connect_only=True`, `port_value_count=1`, `port_443_only=True`, `allowed_domain_pattern_count=10`, `allowed_leading_dot_patterns=10`, `allowed_single_label_patterns=0`, `allowed_ip_literal_patterns=0`, `allowed_pathlike_patterns=0`, `allowed_nonstandard_patterns=0`, `terminal_deny_all=True`.
+
+**Interpretation:** The configured method and port ACL values are CONNECT-only and destination port 443 only. The allowlist contains 10 syntactically conventional **leading-dot domain suffix patterns**, not 10 verified exact-host matches. In Squid `dstdomain`, such entries can match the domain and its subdomains. There are no literal IP, path-like or syntactically unusual allow patterns from the checks performed. This supports a restricted HTTPS proxy *design*, but **the actual allowlist breadth is still unknown**, as are TLS CONNECT handling, DNS rebinding/forward resolution behavior, special-use IP coverage beyond Step 43, proxy default user, and runtime enforcement. The source ACL logic has not been validated with live negative tests. No proxy activation, container launch, networking/host modifications or protected CCPC environment changes. The agent and optional proxy remain inactive, **NO-GO**.
+
+**Next sanitized read-only diagnostic:** characterize the depth of each allowed domain suffix (number of DNS labels after leading dot), confirm none is a one-label/public-suffix-like pattern, and check for duplicates or suffix overlaps without publishing actual names, domains or proxy destinations. This *cannot* fully validate eTLD/public suffix or trustworthiness without controlled review of the exact patterns. Keep secrets and raw config private and do not start the proxy.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
