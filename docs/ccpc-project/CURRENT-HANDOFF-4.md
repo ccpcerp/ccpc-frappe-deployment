@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-19 — MAIN DEV Finance mapping Role list visibly confirms both required roles Enabled
+
+**Owner supplied exact MAIN DEVELOPMENT ERPNext Role List entries (browser-side `http://development.localhost:8001/desk`):** `CCPC Accounting Mapping Approver` — Enabled and `CCPC Mapping Preparer` — Enabled, both visible under Role (not Role Profile). Also `CCPC Billing Preparer` is visible and Enabled but is a **different** role, not a mapping-preparer substitute. This confirms Role definitions in browser, consistent with previous successful MAIN post-migration database metadata validation. The prior `An enabled named Finance mapping user is required.` while signed in as Administrator remains expected, because current Phase1 source explicitly rejects Administrator. **No named Finance actor login or Company permission/role assignment has yet been verified; no mapping proposal or approval was performed.**
+
+**Next operator step:** identify existing real enabled named Finance preparer and independent Finance approver user accounts via the MAIN DEV User List; only then review actual role assignment and Company-specific User Permission configuration in a controlled manner with owner-approved actor/Company choices. Do not assign both roles to Administrator, confuse `CCPC Billing Preparer` with `CCPC Mapping Preparer`, create arbitrary signatories or perform real Finance approval merely as a UAT shortcut. No PRODUCTION operation.
+
+---
+
 ## 2026-11-19 — Authenticated Phase1 Finance Page reached; Administrator intentionally denied
 
 **Owner's MAIN DEVELOPMENT browser finding:** owner accessed `http://development.localhost:8001/desk`, followed the direct Finance Page `/app/ccpc-phase1-finance`, and received `An enabled named Finance mapping user is required.` while logged in as `Administrator`. This is evidence the page route/client called the Finance onboarding endpoint and received an intentional policy rejection, **not** a missing Page, a migration failure, or a successful named-Finance UAT. The previously observed `development.localhost:8001` is owner's browser-side access route; in-container smoke tested loopback port 8000. Do not infer a port misconfiguration.
