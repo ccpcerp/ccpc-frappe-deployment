@@ -1,5 +1,17 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-19 — Owner explicitly authorizes guarded one-worker DEVELOPMENT recovery
+
+**Owner instruction:** "if its zero then just create one, sence where in development, dont hold back". This authorizes restoring one DEV background worker, NOT creating another UAT/Company, purging queued jobs or affecting PROD. The existing Procfile has a Honcho worker service; both valid DEV sites last reported 0 online registered workers. This does not prove that no worker process already exists.
+
+**Committed one-shot operator script:** scripts/development/operator/ccpc_dev_one_worker_recovery_20261119.sh, commit 673eee512493df676f97cdbfbe8f428f4ef9d13f, blob bda719dd96adb8385c72e7192c46b4dde2e60d14, authored file SHA256 43cbad377f6102aed2d73b35b3074a9bd0c73e87463025d9771cd8feda68626e. Locally bash -n syntax checked, GitHub readback matched authored source; script has NOT been run or tested against actual host.
+
+**Owner operator procedure:** Use REVIEWED-SCRIPT-DELIVERY-TO-DEVELOPMENT.md to stage the script privately from exact pinned GitHub branch HEAD with SHA256 verification, then manually execute one time on gani@ccpcerpserver. Script requires correct DEVELOPMENT container/project, protected live/staged source SHAs, Procfile worker, zero registered worker count in both valid DEV sites and zero matching worker processes. If a worker already runs but is unregistered, STOP without creating a duplicate. On PASS it launches one separate TEMPORARY Honcho worker using the existing DEV Procfile, then re-checks both site registries. This may process already queued create_contact/route-index jobs in the persistent shared DEV bench, so it is a user-authorized DEV-only operational data change. No automatic retries, no queue clearing, no migration, source swap, other service restarts, Docker cleanup, UAT provisioning or Company deletion. The temporary worker is NOT a permanent supervised repair, and subsequent source cutover still requires controlled worker/queue lifecycle review.
+
+**Status:** GitHub operator script ready; host execution and resulting worker health NOT YET VERIFIED. Both PRODUCTION environments unchanged by this documentation action.
+
+---
+
 ## 2026-11-19 — Owner re-prioritizes: FINISH DEVELOPMENT FIRST; defer separate four-Company UAT
 
 **New owner clarification superseding the earlier UAT go-ahead as the immediate workstream:** The goal is earliest safe completion of CCPC ERPNext development; reducing 25 existing DEVELOPMENT Companies to four is optional and should not divert time. **DEFER provisioning** the new isolated four-Company UAT bench/site/DB/Redis/volumes. Preserve its approved design for later targeted acceptance only if justified; no new UAT environment was created. **Do not delete** any of the 21 demo/test Companies, their linked masters, or posted stock/ledger history. All four intended real Company masters (CCPC, RMC, GSL, WFC) already exist on MAIN. No DEVELOPMENT/PRODUCTION changes authorized by this reprioritization.
