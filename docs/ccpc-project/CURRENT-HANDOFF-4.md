@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-19 — MAIN DEV worker registry recovered: 1 online
+
+**Owner-reported host result after executing the previously staged one-shot DEV worker script:** initial terminal printed `ONE DEVELOPMENT WORKER LAUNCH REQUESTED`, with no printed `AFTER LAUNCH WORKERS` lines. Subsequent separate read-only check on named container `frappe_docker_devcontainer-frappe-1`, `frappe` user and bench path ran `FRAPPE_STREAM_LOGGING=1 timeout 25s bench --site development.localhost doctor` and returned `Workers online: 1` followed by `-----development.localhost Jobs-----` with **no jobs listed**. The prompt returned normally. Thus **MAIN worker registry recovery verified from operator-provided diagnostic** and MAIN reported no pending jobs *at that moment*. The empty listing alone does NOT establish that every previously queued default/long job ran successfully or that no failed jobs exist; no separate RQ failure review performed yet.
+
+**NEXT ONE READ-ONLY ACTION:** run the same bounded site-scoped `bench doctor` against `ccpc-integration2.localhost` to confirm shared-bench worker registration and absence/presence of pending Integration2 jobs; do not launch/relaunch workers or clear Redis. The launched Honcho worker is currently a separately detached, **temporary** process, not a verified persistent/supervised service; inspect lifecycle/supervision before a maintenance source-switch that could disrupt it. Original PR33 live checkout, staged Phase1 checkout and protected two-site backups remain preserved; no source switch, migration, PROD or Company operation was part of worker recovery. Source switch and migrations remain separately gated pending DEV-only quiescence/recovery and worker/job review.
+
+---
+
 ## 2026-11-19 — Owner explicitly authorizes guarded one-worker DEVELOPMENT recovery
 
 **Owner instruction:** "if its zero then just create one, sence where in development, dont hold back". This authorizes restoring one DEV background worker, NOT creating another UAT/Company, purging queued jobs or affecting PROD. The existing Procfile has a Honcho worker service; both valid DEV sites last reported 0 online registered workers. This does not prove that no worker process already exists.
