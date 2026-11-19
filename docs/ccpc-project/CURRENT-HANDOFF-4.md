@@ -1,5 +1,15 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-19 — Both valid DEV site doctors report one worker and no pending jobs
+
+**New operator-reported read-only status on 2026-11-19:** Following the one-worker recovery launch, `bench --site development.localhost doctor` and `bench --site ccpc-integration2.localhost doctor` were each invoked separately inside exact `frappe_docker_devcontainer-frappe-1` with Frappe user/bench and both returned **Workers online: 1**. For each site, the `-----<site> Jobs-----` heading had **no jobs listed**. This is evidence that the previous *zero registered worker* and *visible queued job* conditions are no longer present at those observation times. The two reports reflect a **shared bench** and do not establish two workers. **Do not claim successful completion of old create_contact/route-index jobs without checking failures or effects**; do not claim detached worker persistence across Honcho/bench/container restart. Both PROD environments are out of scope.
+
+**Next critical path:** move back to Phase1 DEV source integration, not 21-Company cleanup or new UAT. Before any DEV-only code source switch/migration, verify that both sites have no active users/unsaved transactions, whether any RQ failures require recovery, lifecycle and safe shutdown/restart of the temporary worker alongside the primary Honcho service, exact original PR33/staged release SHAs/status, the approved two-site snapshots/restore boundary, and scoped `setup.after_migrate()` side effects. Execute only a newly reviewed, explicitly scoped DEV maintenance procedure; do not perform `--site all`, touch the broken third site, clear Redis, or affect either PROD. Continue GitHub/Codex Cloud code/test review in parallel.
+
+**Status:** Original zero-worker blockage operationally **cleared at registration/visible queue level**. Phase1 source switch, migrations and persistent acceptance testing **NOT YET PERFORMED**. Source protection and UAT deferment unchanged.
+
+---
+
 ## 2026-11-19 — MAIN DEV worker registry recovered: 1 online
 
 **Owner-reported host result after executing the previously staged one-shot DEV worker script:** initial terminal printed `ONE DEVELOPMENT WORKER LAUNCH REQUESTED`, with no printed `AFTER LAUNCH WORKERS` lines. Subsequent separate read-only check on named container `frappe_docker_devcontainer-frappe-1`, `frappe` user and bench path ran `FRAPPE_STREAM_LOGGING=1 timeout 25s bench --site development.localhost doctor` and returned `Workers online: 1` followed by `-----development.localhost Jobs-----` with **no jobs listed**. The prompt returned normally. Thus **MAIN worker registry recovery verified from operator-provided diagnostic** and MAIN reported no pending jobs *at that moment*. The empty listing alone does NOT establish that every previously queued default/long job ran successfully or that no failed jobs exist; no separate RQ failure review performed yet.
