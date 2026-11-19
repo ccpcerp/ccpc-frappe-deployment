@@ -515,6 +515,28 @@ The operator's hostname-guarded read-only Compose check produced: `agent_running
 
 **Next one read-only diagnostic:** inspect the configured Squid policy's **proxy listener interface scope** (`http_port` / `https_port`, wildcard versus loopback versus explicit bind) and whether transparent/intercept/reverse-proxy modes are configured. Report only classification/booleans and counts, no host addresses, raw config, domain suffixes, credentials, image refs or paths. Since the optional proxy is on two networks and has no source ACL (Step 42), listener accessibility to the proxy-only network is a distinct exposure risk requiring examination before any activation. Do not download/start services.
 
+## Step 48 — Squid listener bound on all container interfaces (2026-11-19)
+
+The operator ran a hostname-guarded, read-only parser of the optional/inactive Squid configuration and reported:
+
+| Setting | Operator-reported value |
+| --- | --- |
+| Agent running | `False` |
+| Policy include directives | `0` |
+| `http_port` listeners | `1` |
+| `https_port` listeners | `0` |
+| All-interfaces listeners | **`1`** |
+| Loopback-bound listeners | `0` |
+| Explicit-address-bound listeners | `0` |
+| Named/unknown listeners | `0` |
+| Intercept/transparent, accel, tproxy listeners | `0` each |
+
+**Risk and interpretation:** The optional Squid service declares a general HTTP proxy listener on all interfaces, rather than restricting it to the isolated laboratory side. Steps 35–36 showed that if activated, this proxy would attach to both the internal lab bridge and another non-internal Compose-managed bridge; Step 42 found no source-address ACL in `http_access`. Consequently, unless additional network controls intervene, other peers on the second bridge (and potentially host-side networking) could reach and use the proxy, even with **no published Docker host ports**. The destination allowlist, CONNECT/443 restriction and deny-all remain useful, but do not substitute for *who may access* the proxy. **This is a pre-activation security blocker**, not a confirmed current exposure: Step 34 found no proxy container, the source uses `pull_policy: never`, Step 46 found no configured image locally, and the Codex agent is stopped. No probe or mutation occurred, and DEV, OLD/NEW PRODUCTION and UAT remain untouched.
+
+**Required design direction before activation:** enforce an explicit lab-source allow rule followed by source deny (carefully ordered before destination allows), and evaluate binding exclusively to the lab-facing interface/address plus Docker/firewall network controls. Do not assume these alone are sufficient: DNS resolution, private destinations, listener reachability and current image behavior require validation in a separate controlled test using synthetic targets. Review image provenance/user and resource limits first. No change is authorized yet.
+
+**Next one read-only diagnostic:** determine whether the proxy's *second* declared Compose network has been instantiated, and whether any current containers are attached to it, with no raw names, IPs, ports, commands, environment or network addresses reported. Never start Squid or Codex to perform this check.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
