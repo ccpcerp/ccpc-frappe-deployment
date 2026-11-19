@@ -117,6 +117,15 @@ print("DEV WEB/SOCKETIO SOURCE, BACKUPS, PROCFILE AND STOPPED-SERVICE GUARDS: PA
 print("DEV BROKEN THIRD SITE: EXCLUDED FROM SELECTED HONCHO SERVICES")
 PY
 
+for prior in \
+  "$HOME/ccpc-reviewed-scripts/migration-logs/phase1-main-migrate-20261119.attempted" \
+  "$HOME/ccpc-reviewed-scripts/migration-logs/phase1-integration2-migrate-20261119.attempted"; do
+    if [[ ! -f "$prior" ]]; then
+        echo "STOP: REQUIRED DEV SITE MIGRATION ATTEMPT MARKER ABSENT"; exit 1
+    fi
+done
+echo "BOTH DEV SITE MIGRATION ATTEMPT MARKERS: PRESENT"
+
 marker="$HOME/ccpc-reviewed-scripts/phase1-web-socketio-start-20261119.attempted"
 log="$bench/logs/ccpc-phase1-web-socketio-20261119.log"
 if [[ -e "$marker" ]]; then
