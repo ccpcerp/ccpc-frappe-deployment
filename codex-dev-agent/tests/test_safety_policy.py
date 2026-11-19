@@ -43,6 +43,7 @@ def safe_config():
         "services": {
             "agent": {
                 "user": "1000:1000", "read_only": True,
+                "command": ["sleep", "infinity"],
                 "cap_drop": ["ALL"], "security_opt": ["no-new-privileges:true"],
                 "networks": {"lab": None,
                              "proxy_clients": {"ipv4_address": gate.AGENT_CLIENT_IP}},
@@ -66,6 +67,7 @@ def safe_config():
             "egress-proxy": {
                 "cap_drop": ["ALL"], "security_opt": ["no-new-privileges:true"],
                 "read_only": True, "profiles": ["online"],
+                "command": ["squid", "-N", "-f", "/etc/squid/squid.conf"],
                 "networks": {
                     "proxy_clients": {"ipv4_address": gate.PROXY_CLIENT_IP},
                     "outgoing": None,
@@ -220,6 +222,31 @@ class TestProxyNetworkIsolation(unittest.TestCase):
 
     def test_lowercase_proxy_env_override_denied(self):
         self.config["services"]["agent"]["environment"]["http_proxy"] = "http://other:3128"
+        self.rejected()
+
+
+    def test_unreviewed_proxy_entrypoint_denied(self):
+        self.config["services"]["egress-proxy"]["entrypoint"] = ["/bin/sh", "-c"]
+        self.rejected()
+
+    def test_unreviewed_proxy_command_denied(self):
+        self.config["services"]["egress-proxy"]["command"] = ["sleep", "infinity"]
+        self.rejected()
+
+    def test_unreviewed_proxy_environment_denied(self):
+        self.config["services"]["egress-proxy"]["environment"] = {"HTTP_PROXY": "http://other"}
+        self.rejected()
+
+    def test_unreviewed_host_ipc_denied(self):
+        self.config["services"]["agent"]["ipc"] = "host"
+        self.rejected()
+
+    def test_unreviewed_security_opt_denied(self):
+        self.config["services"]["egress-proxy"]["security_opt"].append("seccomp:unconfined")
+        self.rejected()
+
+    def test_application_ipam_mutation_denied(self):
+        self.config["networks"]["lab"]["ipam"] = {"config": [{"subnet": "172.30.123.0/24"}]}
         self.rejected()
 
 
