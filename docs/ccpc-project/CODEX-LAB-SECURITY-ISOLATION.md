@@ -625,6 +625,14 @@ Operator ran a hostname-guarded, read-only parser of the optional Squid configur
 
 **Next one read-only diagnostic:** classify all four Compose `tmpfs` mount options and size restrictions (counts of explicit sizes, noexec/nosuid/nodev and unusual flags), using only sanitized counts/booleans and optionally a bounded total-size summary, without mount destinations, raw source, identities or secrets. No changes to services or host. Respect the shared host's availability risk and do not treat unused host memory as a guarantee of future safety.
 
+## Step 60 — Squid tmpfs size and mount options (2026-11-19)
+
+The operator ran a hostname-guarded, read-only inspection of the inactive optional Squid proxy's Compose `tmpfs` declaration. Sanitized findings: `agent_running=False`, `proxy_read_only_rootfs=True`, `tmpfs_mount_count=4`, `size_option_count=4`, `mounts_without_size_option=0`, `unparseable_size_count=0`, `total_declared_size_mib=144.0`, `noexec_mount_count=2`, `nosuid_mount_count=4`, `nodev_mount_count=0`, `explicit_exec_mount_count=0`, `explicit_suid_mount_count=0`, `explicit_dev_mount_count=0`, `mode_option_mount_count=0`, `unknown_mount_option_count=0`.
+
+**Interpretation:** all four tmpfs mounts specify parseable capacity maxima, totaling **144 MiB**, rather than leaving each at an unspecified default. This is a combined configured ceiling, not pre-allocated RAM and not an overall process memory cap. All four explicitly use `nosuid`, two explicitly use `noexec`, and none explicitly declares `nodev` (whether it is effective as a Docker/kernel default was **not tested**). No suspicious unknown options were reported. Combined with Step 59, these are favorable source-level storage controls, but the actual image's default behavior and mounts are untested; Step 46 found no locally available proxy image. **Resource governance remains a blocker:** Step 32 found no CPU/RAM limits on the four main lab services, and Step 37 found no proxy CPU/RAM/PID limits; capped `tmpfs` does not cap Squid process memory on the shared production host. No docker/container start, image pull, network probes, host file change, or DEV/OLD/NEW PROD/UAT action. Codex stopped, proxy inactive, **NO-GO**.
+
+**Next single read-only diagnostic:** reclassify the *current* Compose source's per-service CPU, memory, swap, OOM and PID controls for the agent/db/redis pair and optional proxy. Return classifications only; no raw host paths, container identities other than generic service classes, resource values, image references, credentials, environment variables or config contents. Afterward assess a resource protection plan that respects operator performance preference while preserving OLD PRODUCTION, with explicit approval before any changes.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
