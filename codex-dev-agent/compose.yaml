@@ -126,6 +126,10 @@ networks:
     internal: true
     attachable: false
     enable_ipv6: false
+    # Deterministic Linux device name for pre-enforced host INPUT/FORWARD policy.
+    # Step 86 verified name available at inspection time, not reserved.
+    driver_opts:
+      com.docker.network.bridge.name: br-ccpc-cdxpx
     ipam:
       config:
         - subnet: 172.30.250.0/29
