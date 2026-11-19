@@ -147,6 +147,26 @@ The operator's read-only `iptables --version` and `nft -j list ruleset` metadata
 
 **Next diagnostic:** read-only and sanitized scoped nftables analysis for the Codex bridge: count rules with exact bridge-interface references, show their family/table/chain and action types (never IPs, CIDRs, addresses, proxy values, or raw rule bodies), and print input/forward base-chain priorities. Keep Codex stopped. No production, DEVELOPMENT or UAT activity is authorized.
 
+## Step 21 — nftables lab bridge rule inventory (2026-11-19)
+
+The operator's read-only network-scoped firewall query produced these sanitized results:
+
+| Observation | Reported value |
+| --- | --- |
+| Network internal | `True` |
+| IPv4 `ip filter` INPUT base chain | priority 0, policy `accept` |
+| IPv4 `ip filter` FORWARD base chain | priority 0, policy `drop` |
+| IPv6 `ip6 filter` FORWARD base chain | priority 0, policy `accept` |
+| Rules explicitly matching laboratory bridge name | 6 |
+| `DOCKER-FORWARD` | 1 rule containing `accept` |
+| `DOCKER-INTERNAL` | 2 rules containing `drop` |
+| `DOCKER-USER` | 2 rules containing `drop` |
+| `INPUT` | 1 rule containing `drop` |
+
+These rules provide promising evidence that Docker's network separation has additional explicit firewall protection, including an INPUT drop against at least some host-bound lab packets. **This audit has not yet verified interface direction, full match predicates, rule ordering, jump reachability or whether exceptions precede drops.** The DOCKER-FORWARD ACCEPT may be legitimate within-lab traffic or may have conditions not yet inspected. The INPUT default accept and FORWARD drop/accept interactions cannot be interpreted without these details. **Not a connectivity test; no proof of isolation or exposure.** No host, container, network or environment changes occurred.
+
+**Next:** one read-only sanitized rule-order/direction review for the six lab-matching rules and the jump path from FORWARD to Docker chains, without printing IP addresses, CIDRs, proxy values or raw firewall expressions. Codex stays stopped/NO-GO.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
