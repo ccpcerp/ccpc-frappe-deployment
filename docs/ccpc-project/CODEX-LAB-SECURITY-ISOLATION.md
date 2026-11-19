@@ -633,6 +633,14 @@ The operator ran a hostname-guarded, read-only inspection of the inactive option
 
 **Next single read-only diagnostic:** reclassify the *current* Compose source's per-service CPU, memory, swap, OOM and PID controls for the agent/db/redis pair and optional proxy. Return classifications only; no raw host paths, container identities other than generic service classes, resource values, image references, credentials, environment variables or config contents. Afterward assess a resource protection plan that respects operator performance preference while preserving OLD PRODUCTION, with explicit approval before any changes.
 
+## Step 61 — resource controls absent for all five lab services (2026-11-19)
+
+The operator ran the hostname-guarded read-only Compose-source resource controls check across `agent`, `db`, `redis-cache`, `redis-queue`, and the optional `egress-proxy`. Reported `agent_running=False`, `service_count_checked=5`. **For all five services** the following were `False`: `memory_limit_declared`, `cpu_limit_declared`, `cpu_affinity_declared`, `swap_control_declared`, `memory_reservation_declared`, and `oom_kill_disabled`. Only `agent_pid_limit_declared=True`; the other four services reported `pid_limit_declared=False`.
+
+**Interpretation:** The current **Compose source** lacks per-service CPU, memory, swap, reservations, and affinity constraints; the only declared process-count cap is for the stopped agent. This independently confirms and extends Steps 31–32 and 37. OOM protection is **not explicitly disabled**, but that does not ensure production availability against lab overconsumption. The bounded 144 MiB Squid tmpfs (Step 60) does **not** bound process or other lab services' memory. The host co-runs OLD PRODUCTION and related ERPNext environments: **resource governance is an outstanding availability gate** before any lab/proxy activation. Operator prefers maximum Codex performance with no CPU slowdown; consider unrestricted CPU only after understanding cohost peak capacity and workload priorities, while recommending protective memory/process caps to preserve production. This is a planning recommendation, **not authorization** to change host/Compose settings.
+
+**Next one read-only diagnostic:** inspect the already-existing four lab containers' effective Docker HostConfig resource ceilings, their running/stopped states, plus host current total/available/swap memory, outputting only sanitized booleans and rounded capacity metrics. Do not inspect or alter production containers, start agent/proxy, pull images, modify Docker, host configs or protected DEV/OLD PROD/NEW PROD/UAT data. A single memory snapshot is not a safe capacity allocation proof; dynamic loads need separate review.
+
 ## Gate status as of 2026-11-19
 
 | Gate | Status |
