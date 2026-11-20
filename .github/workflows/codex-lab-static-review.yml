@@ -44,5 +44,27 @@ jobs:
           print("139 source-only security regressions discovered")
           PY
 
+      - name: Syntax-check proposed nftables deny layer (disposable runner only)
+        timeout-minutes: 3
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends nftables
+          sudo python3 - <<'PY'
+          import subprocess
+          import sys
+          sys.path.insert(0, "scripts/security")
+          from ccpc_codex_nft_guard_review import render_candidate
+          candidate = render_candidate("br-123456789abc")
+          result = subprocess.run(
+              ["nft", "--check", "--file", "-"],
+              input=candidate, text=True, capture_output=True, timeout=25,
+          )
+          if result.returncode:
+              print(result.stderr.strip()[:1200])
+              raise SystemExit("STOP: nft candidate failed native check-only parser")
+          print("nftables_check_only_candidate_syntax_passed=True")
+          print("no_nft_rules_applied=True")
+          PY
+
       - name: Run stdlib-only negative security regressions
         run: python3 -m unittest discover -s codex-dev-agent/tests -p 'test_*.py' -v
