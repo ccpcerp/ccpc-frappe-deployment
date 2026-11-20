@@ -11,7 +11,21 @@ This new Compose project is intentionally separate from `frappe_docker_devcontai
 - `init_local_secrets.py`: creates two randomly generated, strictly owner-only passwords for the **new synthetic MariaDB**, without overwriting old values or displaying them. `local-secrets/` is ignored by Git.
 - `check_compose.py`: read-only static validation of actual `docker compose config --format json`, guarding project identity, service/network separation, mounts, secrets, privileges and offline default.
 - `../scripts/security/check_codex_dev_agent_container.sh`: host-side **read-only** Docker inspector for the newly created `agent`, allowing only exact expected private volumes and the synthetic user password secret. It does **not** establish internet or production network safety.
-- `tests/test_safety_policy.py` (60 tests) and `tests/test_lab_firewall_guard.py` (15 tests): 75 Docker-free policy regression and secret-lifecycle tests for unsafe Compose networks, listener/ACL changes, restart/routing bypasses, and secret creation/reuse. They do not prove that Docker containers boot or that the real host is isolated.
+- `tests/test_safety_policy.py` (66 declared tests) and `tests/test_lab_firewall_guard.py` (15 tests): 81 Docker-free policy regression and secret-lifecycle tests for unsafe Compose networks, listener/ACL changes, restart/routing bypasses, and secret creation/reuse. They do not prove that Docker containers boot or that the real host is isolated.
+
+## Resource governance proposal — review source only (2026-11-20)
+
+The draft review branch now proposes **memory, memory+swap and PID ceilings** for every lab service. These are candidate **maximums**, not a reservation, operator-approved sizing or proof of safe capacity on the current shared host:
+
+| Service | Memory ceiling | Memory+swap ceiling | PID ceiling |
+| --- | ---: | ---: | ---: |
+| Stopped Codex agent | 8 GiB | 8 GiB | 512 |
+| Synthetic MariaDB | 2 GiB | 2 GiB | 256 |
+| Redis cache | 384 MiB | 384 MiB | 128 |
+| Redis queue | 384 MiB | 384 MiB | 128 |
+| Optional offline-by-default Squid proxy | 512 MiB | 512 MiB | 128 |
+
+The maximum combined memory budget is **11.25 GiB** if all five services run at their limits. CPU is **not explicitly capped**, consistent with the owner's performance preference; the tradeoff is that CPU contention remains possible. The Compose safety validator now refuses missing/modified memory, swap or PID ceilings. Six additional source-only regression tests are **declared but not yet executed**; historical 75/75 offline pass evidence applies only to the prior test set. Actual Docker Compose schema rendering, Docker host compatibility, resource enforcement and workload sizing remain **unverified**. The lab must not be started or reconfigured based on these review-only edits. All earlier firewall, network, Squid egress, image provenance, credential and sandbox **NO-GO** gates remain.
 
 ## Isolation boundaries
 
