@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-20 — Independent Center draft review matches business proposal; personnel authorization still pending
+
+**Owner-provided review-screen facts (public-safe and deliberately de-identified):** The Expense/Center onboarding page's **Center** Draft review has exactly the intended issuing Company, an eligible same-Company Maintenance beneficiary Department, the existing Company main leaf Cost Center as proposed target, `Draft` status, and effective timing **At approval**. Screen revealed a named maker account, omitted from this public handoff. Revision identifier also omitted. **Technical proposal values matched** the owner's approved business policy, but this is not verification that the preparer belongs to formally appointed Accounting staff, nor that a distinct human Checker has been assigned by authorized Accounting management. The policy requires real two-person Company-scoped maker/checker authority: application role access is necessary but not proof of staff delegation. **STOP before Sign and approve** until named maker and different Checker have actual Finance appointments/Company permissions. Approval would make this mapping effective immediately, not merely mark it reviewed. Expense Account mapping remains separate/not created or signed; capital-use exception must be controlled before release.
+
+**No signed approval, mapping activation, inventory issue, GL posting, DEV deployment, or PRODUCTION changes have been verified.**
+
+---
+
 ## 2026-11-20 — First Phase 1 Center mapping draft visible (unapproved; public-safe)
 
 **Operator-provided ERPNext Desk result:** After selecting the same-Company pilot's Maintenance beneficiary Department under `Cost Center` mapping, the Phase 1 Finance screen displayed `Active mapping: No active mapping` and a **Draft revision identifier**. This indicates a **Center mapping draft exists, not that it is signed, effective, or correct**. The displayed draft identifier and user identities are deliberately omitted from this public repository. Earlier owner authorization selected the existing main Company Cost Center as the pilot proposal; the actual stored revision's target, Company, source, maker identity, and version remain **unverified by an independent Accounting reviewer**.
