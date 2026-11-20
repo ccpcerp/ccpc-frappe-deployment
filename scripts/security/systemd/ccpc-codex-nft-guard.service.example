@@ -1,0 +1,31 @@
+# REVIEW TEMPLATE ONLY. NOT INSTALLED, NOT LOADABLE AT .example PATH.
+# This never invokes stock nftables.service or /etc/nftables.conf, whose
+# existing global-flush lifecycle is unsuitable on the CCPC shared host.
+# There is intentionally NO [Install] section and NO ExecStop/ExecReload.
+# No automatic agent/Compose/online-proxy startup; no Docker/network creation.
+#
+# Future installation needs separately approved exact host commands,
+# second protected SSH/recovery access, private ruleset snapshot, local
+# immutably pinned/root-owned source, and negative nonproduction canaries.
+# Source and marker MUST NOT be fetched live during service execution.
+# The marker is initially absent; no one is authorized to create it yet.
+#
+# Service ordering is PROVISIONAL. It does not establish resilience after
+# Docker/UFW firewall reload, networking changes, or privileged manual starts.
+#
+[Unit]
+Description=CCPC original-lab independent scoped nft DROP guard (review only)
+After=docker.service ufw.service
+AssertPathExists=/etc/ccpc/codex-lab-nft-guard-authorized
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/opt/ccpc/codex-lab-review
+TimeoutStartSec=120
+ExecStartPre=/usr/bin/python3 /opt/ccpc/codex-lab-review/scripts/security/ccpc_codex_nft_scoped_controller.py plan
+ExecStart=/usr/bin/python3 /opt/ccpc/codex-lab-review/scripts/security/ccpc_codex_nft_scoped_controller.py install
+ExecStartPost=/usr/bin/python3 /opt/ccpc/codex-lab-review/scripts/security/ccpc_codex_nft_scoped_controller.py verify
+# Do not add a stop handler that weakens the kernel deny policy.
+# Do not make it WantedBy=multi-user.target without separate boot review.

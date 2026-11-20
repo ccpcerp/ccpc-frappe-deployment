@@ -52,12 +52,14 @@ jobs:
             test -f codex-dev-agent/tests/test_lab_firewall_guard.py
             test -f scripts/security/ccpc_codex_proxy_bridge_preflight.py
             test -f scripts/security/ccpc_codex_lab_firewall_guard.py
+            test -f scripts/security/ccpc_codex_nft_scoped_controller.py
+            test -f scripts/security/systemd/ccpc-codex-nft-guard.service.example
             test -f scripts/security/ccpc_firewall_rule_order.py
             test -f scripts/security/systemd/ccpc-codex-lab-firewall-restore.service.example
             test -z "$(git status --porcelain)"
             echo "Exact reviewed commit and source-only test prerequisites: PASS"
       - run:
-          name: Run 139 stdlib-only regressions without site, Docker or network
+          name: Run 161 stdlib-only regressions without site, Docker or network
           no_output_timeout: 3m
           command: |
             set -euo pipefail
@@ -66,14 +68,14 @@ jobs:
             suite = unittest.defaultTestLoader.discover(
                 "codex-dev-agent/tests", pattern="test_*.py"
             )
-            if suite.countTestCases() != 139:
+            if suite.countTestCases() != 161:
                 raise SystemExit("STOP: unexpected source-only regression count")
-            print("139 source-only regression tests discovered")
+            print("161 source-only regression tests discovered")
             PY
             timeout -s TERM 120s python3 -m unittest discover \
               -s codex-dev-agent/tests -p 'test_*.py' -v
             test -z "$(git status --porcelain)"
-            echo "PASS: exact-SHA 139-test source-only suite; no live isolation asserted"
+            echo "PASS: exact-SHA 161-test source-only suite; no live isolation asserted"
 
 workflows:
   codex-security-manual-only:

@@ -12,6 +12,7 @@ on:
       - 'scripts/security/ccpc_codex_lab_firewall_reconcile.py'
       - 'scripts/security/ccpc_codex_lab_start_interlock.py'
       - 'scripts/security/ccpc_codex_nft_guard_review.py'
+      - 'scripts/security/ccpc_codex_nft_scoped_controller.py'
       - 'scripts/security/ccpc_firewall_rule_order.py'
       - 'scripts/security/ccpc_codex_dev_lab_firewall.sh'
       - 'scripts/security/systemd/**'
@@ -39,9 +40,9 @@ jobs:
           suite = unittest.defaultTestLoader.discover(
               "codex-dev-agent/tests", pattern="test_*.py"
           )
-          if suite.countTestCases() != 139:
-              raise SystemExit("STOP: expected exactly 139 security regression tests")
-          print("139 source-only security regressions discovered")
+          if suite.countTestCases() != 161:
+              raise SystemExit("STOP: expected exactly 161 security regression tests")
+          print("161 source-only security regressions discovered")
           PY
 
       - name: Syntax-check proposed nftables deny layer (disposable runner only)
