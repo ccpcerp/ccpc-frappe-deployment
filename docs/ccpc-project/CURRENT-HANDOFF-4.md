@@ -1,5 +1,17 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-20 — CircleCI package-lock.json exact-byte match committed to PR40
+
+**Received:** Owner pasted the full CircleCI-generated `package-lock.json` as a JSON message in the project chat after Build 149's official Playwright `npm test` **4/4 PASS**. The assistant reconstructed the supplied text with a single final LF, validated it as JSON, and verified the local **SHA-256 `cbe5dc6e71b790d073ba096f18e54ca4fd80dcc56ae16ab6625bc6c352212696`** exactly matched CircleCI Build 149 step 103. File is **2,587 bytes**; lockfile v3 pins `@playwright/test@1.56.0`, `playwright@1.56.0`, `playwright-core@1.56.0`, `jquery@3.7.1` and optional `fsevents@2.3.2`. No secrets or account data in the provided lockfile. Package manifest direct devDependency versions match the lockfile.
+
+**GitHub implementation and re-verification:** Created `tests/phase1-finance-ui/package-lock.json` on PR40 head branch `test/phase1-finance-playwright-ui-2026-11-20` in commit **`ee8482b97444b7d626fc6eb2aeaf75fcefc97c44`**. The GitHub connector re-fetched the committed file with blob SHA **`3308340b0791cfeabdf810c1690f9bae6fe330f7`**, exactly matching locally computed Git blob hash of the byte-verified user text. Updated the test README in commit **`27d504f873989ff075ed65c7ae7dd349a452b01b`** to use `npm ci` on subsequent clean installs and record this evidence. The prior handoff note that lockfile contents were unavailable is superseded by this milestone.
+
+**Validation status:** Official CircleCI test run remains 4/4 PASS at original exact tested SHA **`324e7ae717b238392ee8acfc20e61db3a1862f07`**. Subsequent README and lockfile commits are documentation/dependency pin only; the original tested browser-spec and Finance page source files were not changed. The CircleCI job currently uses `npm install`; README recommends `npm ci` for future clean installs. Do **not** represent `npm ci` execution after the new lockfile commit as already tested, nor re-run expensive CI unnecessarily. PR40 remains draft/open/unmerged pending review/merge decision; no live Finance workflow, DEVELOPMENT pull, PRODUCTION action, database change, account grant or financial posting occurred.
+
+**Next:** Review PR40 test-only diff and consider whether to merge into the Phase 1 release branch as a separate reviewed decision. Authenticated MAIN DEVELOPMENT acceptance and real financial/GL behavior remain independently pending.
+
+---
+
 ## 2026-11-20 — Finance Playwright official CircleCI job build 149: 4/4 PASS
 
 **Evidence:** Owner uploaded CircleCI logs `build_149_step_102_container_0.txt`, `build_149_step_103_container_0.txt`, and `build_149_step_104_container_0.txt`. Reviewed their original text. Step 102: `Reviewed Finance UI source, isolated CI identity, no live credentials: PASS`, checked out exactly `324e7ae717b238392ee8acfc20e61db3a1862f07` (the approved PR40 revision). Step 103: Node **v22.20.0**, npm **10.9.3**, installation of **`@playwright/test@1.56.0` and `jquery@3.7.1`**, `npm run check` **PASS**, **official `npm test` Playwright run 4/4 PASS (3.0 seconds, 1 worker)**, comprising Finance Preparer and independent Finance Controller two-Company/two-mapping-type visibility and stale-selection clearing. Step 103 generated `package-lock.json` SHA256 **`cbe5dc6e71b790d073ba096f18e54ca4fd80dcc56ae16ab6625bc6c352212696`**. Step 104 uploaded the generated non-secret **`ccpc-finance-ui-package-lock.json`** CircleCI artifact (~2.6 kB). **No need to rerun** the offline tests merely for more screenshots.
