@@ -431,6 +431,7 @@ try:
         MARKER,
         os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600
     )
+    info = None
     try:
         os.fchmod(fd, 0o600)
         info = os.fstat(fd)
@@ -438,11 +439,9 @@ try:
         written = os.write(fd, BODY)
         require(written == len(BODY))
         os.fsync(fd)
-    finally:
         os.close(fd)
+        fd = None
 
-    outcome = None
-    try:
         outcome = run(sys.executable, "-B", str(CONTROLLER), "install")
         require("PROJECT_NFT_TABLE_INSTALLED=True" in outcome.splitlines())
         verification = run(sys.executable, "-B", str(CONTROLLER), "verify")
@@ -450,9 +449,14 @@ try:
         run("systemctl", "is-active", "--quiet", "ufw.service")
         run("systemctl", "is-active", "--quiet", "docker.service")
     finally:
+        if fd is not None:
+            os.close(fd)
         current = os.lstat(MARKER)
-        require(current.st_ino == info.st_ino and current.st_dev == info.st_dev
-                and stat.S_ISREG(current.st_mode) and current.st_uid == 0)
+        require(info is not None and
+                current.st_ino == info.st_ino and
+                current.st_dev == info.st_dev and
+                stat.S_ISREG(current.st_mode) and
+                current.st_uid == 0)
         os.unlink(MARKER)
 
     require(not os.path.lexists(MARKER))
