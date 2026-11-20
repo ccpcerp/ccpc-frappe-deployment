@@ -1,5 +1,16 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-20 — MAIN DEVELOPMENT Finance role and Company eligibility counts: 1 preparer / 1 approver per Company
+
+**Operator-provided read-only SQL result:** In live MAIN DEVELOPMENT `development.localhost`, counting enabled named `tabUser` rows with explicit `tabHas Role`, exact Company `tabUser Permission` (`apply_to_all_doctypes=1`, `applicable_for` unset), and exclusion of `Stockroom Personnel` returned:
+
+- Cagayan Corn Products Corporation: `CCPC Mapping Preparer` **1** eligible user, `CCPC Accounting Mapping Approver` **1** eligible user.
+- Ricor Mills Corporation: `CCPC Mapping Preparer` **1** eligible user, `CCPC Accounting Mapping Approver` **1** eligible user.
+
+The first nested-heredoc attempt failed at Python parse time before SQL execution; corrected `docker exec -i` heredoc ran and returned these counts. No user identities, secrets, master data or financial records printed. **Maker/checker independence has NOT yet been proven:** one individual may belong to both roles and be counted in both totals. Next step is a read-only overlap count for each Company; zero overlap alongside 1+1 eligible counts establishes distinct users for the checked predicates. Even distinct membership does not constitute actual signed mapping review or business authorization. Preserve separate approval for real DEV Finance master/proposal/approval writes. No Git checkout/pull, migration, DEV restart, or PRODUCTION action.
+
+---
+
 ## 2026-11-20 — MAIN DEVELOPMENT backup copied and byte-verified on Synology NAS
 
 **User-provided host terminal result:** Synology NAS exact-source CIFS mount verification and write-access test both returned PASS. Operator then completed a **MAIN DEVELOPMENT-only, four-component off-host copy** of the `20261120_091609-development_localhost` Bench backup from the DEV bind-mounted host path to a new uniquely named NAS directory at `/mnt/erpnext_backups/.ccpc-main-dev-20261120_091609.verified.x0XuxekN`. Each copied artifact (`site_config_backup.json`, `database.sql.gz`, `files.tar`, `private-files.tar`) passed immediate `cmp -s` against the original; SHA256SUMS was created and checked on the destination. Output confirmed `NAS BACKUP: PASS`, `ALL FOUR FILES: VERIFIED`, `CHECKSUM MANIFEST: CREATED`. The earlier local file format checks also passed. Existing NAS/older local backups were not deleted or overwritten by the intended script. Operator output is trusted as evidence of command success but no independent restore rehearsal or further remote hash recheck was performed by ChatGPT.
