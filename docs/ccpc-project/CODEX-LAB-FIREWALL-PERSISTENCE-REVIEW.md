@@ -40,8 +40,29 @@ Neither option is approved for host installation. Choose based on **observed** D
 - Check whether protection survives an approved UFW refresh, Docker restart and eventually a planned reboot **only under a verified maintenance/rollback procedure**; do not run these now. Capture the exact persisted rule lifecycle and verify the agent cannot race startup.
 - Run the 60 source-only regression tests and Squid syntax checks in a trusted isolated runner; GitHub Actions PR checks currently fail without any runner steps, so no test pass is available. Pin/check proxy image provenance, runtime UID and resource budget first.
 
+## Step 90 — service startup ordering observations (2026-11-20)
+
+The operator ran the guarded read-only host inspection with stopped-agent and three original-lab firewall-rule checks. Sanitized output:
+
+- `agent_running=False` and `original_lab_three_rules_present=True`.
+- Agent Docker restart policy disabled: `True` (reduces unplanned restart risk but not manual-start or configuration-drift risk).
+- `docker.service` active and enabled: `True`; `docker.socket` enabled: `True`.
+- `ufw.service` active and enabled: `True`.
+- Neither `docker.service After=ufw.service` nor `ufw.service Before=docker.service` nor `ufw.service After=docker.service` was directly declared (`False` for all three).
+- `complete_boot_order_verified=False` and `firewall_reboot_persistence_verified=False`.
+
+These results mean **no explicit direct Docker/UFW ordering relationship was observed**, not proof that the units run in an unsafe order or that no transitive ordering exists. Even if they execute in a favorable sequence, the original lab rules still have no verified persistence mechanism. Docker's presence and enabled socket activation mean a future design must consider both ordinary Docker boot and on-demand daemon activation. Unattended Codex restart remains disabled in the observed container; preserve this safety gate.
+
+### Preferred design to evaluate, NOT approved for installation
+
+Maintain strict separation between *firewall persistence* and *starting Codex*. A **systemd-guarded firewall preparation + independent read-only verification** approach is now the preferred candidate for design review, because the current Docker/UFW direct ordering does not itself establish a safe UFW-native `DOCKER-USER` lifecycle. This is **not a final selection or permission to install anything**. Require a dry-run/graph-level examination before generating operational units, because Docker's chain initialization and possible UFW reloads can erase rules after a oneshot has reported success.
+
+A reliable implementation would require: (1) a root-owned, narrowly scoped idempotent restore operation referencing only the exact audited bridge rules; (2) ordering after needed Docker chain availability and after UFW has reached a settled state, while forbidding agent startup before protection is verifiably installed; (3) an independent fail-closed health gate that continuously or at least at every potential Codex launch/relaunch revalidates `INPUT` and `DOCKER-USER` rule presence/precedence; (4) recovery of protection after a firewall/Docker reload without permitting the lab to run during a gap; (5) no global UFW/Docker service edits, chain flushing or automatic Codex start; (6) isolated-SSH rollback and real negative connectivity tests before release. A simple `After=ufw.service` relationship on Docker, by itself, is **insufficient** because it neither persists the custom rules nor handles subsequent reloads.
+
+**Before implementation:** inspect relevant `systemctl show` unit ordering properties beyond the three direct checks (for example `Requires/Wants/PartOf/ExecStartPost` status as sanitised flags), and check whether UFW is using a rule management hook that could safely restore the exact original lab rules once Docker chains exist. No edits to service files, UFW configuration or host containers are authorized by this review.
+
 ## Immediate next action
 
-Use a single guard-checked **read-only** host inspection to identify whether Docker and UFW are enabled at boot, whether the existing Codex agent has a Docker restart policy, and whether the Docker service is ordered with respect to UFW. Report booleans/status only, no raw unit contents, network details or secrets. This will inform (but not approve) a persistent fail-closed design.
+Use a targeted **read-only** host inspection of relevant `systemctl show` unit dependencies and UFW ordering without printing raw unit text or touching active rules. Then prepare a review-only implementation proposal for guarded persistence and recovery, still requiring separate operator approval for any host mutation.
 
 **Release gate:** NO-GO. Draft PR #39 remains unmerged. Agent stopped, Squid inactive, bridge uncreated, DEVELOPMENT and PRODUCTION untouched.
