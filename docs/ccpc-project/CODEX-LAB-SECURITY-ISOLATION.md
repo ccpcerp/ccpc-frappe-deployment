@@ -728,6 +728,27 @@ Following the operator-reported success of Step 116 read-only per-check verifica
 
 ---
 
+## Step 118 — staged controller plan PASS; no install authorized (2026-11-20)
+
+**Owner-run preflight output:** After explicit Step 117 approval for **read-only `plan`**, the owner ran the staged pinned controller on `ccpcerpserver` and pasted exactly:
+
+```text
+PROJECT_NFT_TABLE_STATE=absent
+agent_launch_authorized=False
+reload_reboot_runtime_enforcement_verified=False
+INSPECTION_COMPLETE
+```
+
+The reviewed controller `plan` verified the intended root/host and Docker network identity, known original-lab bridge, stopped/no-restart Codex agent, UFW active, exact original three iptables DROP rules and safe precedence, stock nftables.service inactive/disabled, and absence of the project-specific `inet ccpc_codex_lab_guard` table. **Read-only guard PASS at this point in time** is supported by operator-supplied status output; ChatGPT did not directly access the host. The earlier Stage A private snapshot and verified Stage B source hashes remain the owner-reported recovery/staging checkpoints.
+
+**Not established:** The separate nft table is **not installed**. No actual kernel isolation, negative network canaries, Docker/UFW reload/reboot persistence, source runtime safety or zero-gap launch enforcement has been shown. The apparent success does **not** authorize any code installation or Codex/Squid start. There was no host mutation in the approved `plan` call.
+
+**Next decision:** Draft a separate **exact, scoped Stage C installation command** which verifies the immutable four-file source, checks restrictive and non-symlinked marker directory, keeps stock nftables.service disabled, applies only one new owned CCPC nft table through the independently approved controller, verifies host health and exact rules, revokes the temporary authorization marker, and leaves project DROP rules in place on unexpected errors while Codex remains stopped. Command execution requires the owner's **separate explicit approval** and an independently working recovery session plus private baseline. Do not run `nft flush ruleset`, restore the whole firewall baseline, restart Docker/UFW or start Codex. Reboot/reload continuity and Codex runtime safety remain **NO-GO**.
+
+Recorded also in [Step 118 scoped recovery plan](https://github.com/ccpcerp/ccpc-frappe-deployment/commit/988bbe859263a7f3084ad09426c2d3c41235ab50).
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
