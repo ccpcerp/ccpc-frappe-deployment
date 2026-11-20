@@ -655,6 +655,27 @@ This proves **only** that the operator's sanitized diagnostic found the agent st
 
 ---
 
+## Step 112 — private firewall baseline captured, operator-reported PASS (2026-11-20)
+
+**Host evidence provenance:** Under the distinct Stage A approval from Step 111, the owner ran the pre-approved, bounded `sudo bash` baseline snapshot command on `ccpcerpserver` and pasted exactly:
+
+```text
+host_verified=True
+agent_stopped=True
+private_baseline_saved=True
+kernel_rules_modified=False
+services_restarted=False
+codex_launch_authorized=False
+```
+
+**Interpretation:** The script's successful completion means hostname, known stopped Codex agent and no-auto-restart, and inactive/disabled stock nftables.service were tested; then `iptables-save`, `ip6tables-save`, `nft -j list ruleset`, `ip -j route show table all`, and selected systemd service state were written to nonempty files inside a fresh, private directory under `/root` (using `umask 077`). By code inspection the authorized command makes **no kernel firewall writes, daemon restarts, Docker/agent operations, or Codex launch**. ChatGPT did not access the host, independently check the snapshot or prove the files would restore safely; owner reported output is the evidence. Do not upload the private data, credentials, raw firewall configuration, or private path to this public repository or chat.
+
+**Recovery checkpoint:** A second working SSH/recovery session was confirmed by the owner at Step 110. Preserve it while doing any further host work. The snapshots are **reference evidence**, not a reviewed `iptables-restore`/`nft -f` procedure: wholesale restoration could overwrite UFW/DEVELOPMENT/Docker rules.
+
+**Next staged boundary — NOT YET APPROVED:** Stage B may eventually stage only the four reviewed Python source files (`ccpc_codex_nft_scoped_controller.py`, `ccpc_codex_nft_guard_review.py`, `ccpc_codex_lab_firewall_guard.py`, `ccpc_firewall_rule_order.py`) from the verified GitHub code commit `66960f73a69b10b59f508cda7bfd4ac9ea5c21af`, under a new root-owned non-symlinked review directory, with per-file Git blob SHA verification. **No Python execution, marker, systemd unit, firewall modification, container start, or service reload**. Do not start this stage until explicit owner approval of exact commands and expected filesystem effects; the owner approved Stage A only. Remaining Stage C firewall installation and runtime tests are separately gated. **Codex/Squid activation remains NO-GO**.
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
