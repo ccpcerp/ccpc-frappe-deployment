@@ -1601,3 +1601,16 @@ The operator ran the hostname-guarded read-only Compose-source resource controls
 ## Documentation maintenance
 
 Update this document with each *verified* security milestone, date and evidence source. Keep it separate from the mutable main delivery handoff; add a short handoff/README link for discoverability. Never commit passwords, keys, tokens, proxy URLs, secret values, sensitive host paths, business records, raw environment or container logs. This audit describes the **operator-reported Docker configuration**, not independently verified runtime connectivity or Codex functional readiness.
+
+
+---
+
+## Step 129 — GitHub-only firewall lifecycle/persistence review, no runtime validation (2026-11-20)
+
+**Review evidence:** The prior approved Step 124 host→lab and Step 126 lab→host gateway tests returned operator-reported IPv4 TCP denials, while their respective synthetic positive controls worked. Step 128 records those narrow passes and explicitly leaves nft-rule causal attribution, other Docker networks, IPv6, reload/reboot survival, bridge-recreation continuity and privileged manual starts **unverified**. They are not full isolation certification.
+
+**Documentation-only result:** The companion Step 129 section in [the scoped nft installation/recovery review](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/review/codex-proxy-network-hardening-2026-11-19/docs/ccpc-project/CODEX-SCOPED-NFT-INSTALL-RECOVERY-REVIEW.md) now contains a proposed lifecycle threat/verification matrix for cold boot, Docker socket activation/daemon restart/bridge recreation, UFW start/reload, the dangerous global-flush stock nftables unit, and manual Docker/Compose/Codex start paths. This is an **unexecuted plan**, not applied host enforcement. The existing project-only `inet` nft table and original lab iptables policies were last reported exact; freshness after lifecycle changes is unknown.
+
+**Nonnegotiable boundaries:** Keep the stock `nftables.service` inactive/disabled (its observed lifecycle flushes global policy); keep the inert project systemd `.service.example` uninstalled and the Codex agent stopped with no auto-restart. Do not infer that a provisional `After=docker.service ufw.service` ordering proves early boot or later reload safety. A privileged Docker/root administrator can bypass a systemd-only prelaunch gate, so an unbypassable security guarantee is not claimed. Any future installation, boot enablement, service reload/restart, bridge/network change, controlled packet probe or agent/proxy launch requires separate exact-scope operator authorization, two protected recovery routes, and a fail-closed test/rollback design. Preserve DEVELOPMENT/UAT and the separately reported PRODUCTION host.
+
+**Next proposed evidence (not authorized to execute):** one sanitized, read-only inspection of effective Docker/UFW/systemd socket and startup/reload paths, without dumping rules, private paths, credentials or raw Compose/configuration. Then review how an independent launch hold and exact policy check could remain effective during those paths before considering a bounded synthetic-only lifecycle test. **NO-GO** for Codex/Squid; PR #39 remains draft/unmerged. No host operation or new source-policy/code change is claimed by Step 129.
