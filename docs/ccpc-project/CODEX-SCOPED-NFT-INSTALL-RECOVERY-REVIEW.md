@@ -762,3 +762,29 @@ PY
 **Observed status:** **APPROVED BUT NOT EXECUTED/NOT YET VERIFIED.** ChatGPT cannot run the host command through GitHub and has no direct SSH. Maintain the second independent admin SSH/recovery session and Stage A private baseline. On `FIRST_FAILED_CHECK=<stage>` STOP immediately, without rerun, deleting any nft table, restarting Docker/UFW or changing original lab settings. Success requires all exact ten lines ending `STEP_124_LIMITED_CANARY_COMPLETE`. A successful test only demonstrates one allowed same-bridge synthetic Redis path and one denied host→lab IPv4 TCP path **under combined existing firewall controls**; it does not attribute denial specifically to the CCPC nft table, or validate other destinations, IPv6, proxy, reload/reboot continuity or manual Docker start prevention. **Codex/Squid startup NO-GO.**
 
 **Still not approved:** any extra network scans/connections, broad probing, Codex/Squid start, firewall modifications/deletion, persistence unit operations, Docker/UFW/nftables restart/reload, reboot, DEVELOPMENT/PRODUCTION changes, or blind reruns.
+
+
+## Step 125 — Step 124 synthetic Redis IPv4 positive/negative canary reported PASS (2026-11-20)
+
+**Operator-supplied output from exactly authorized one-time synthetic-only Step 124 canary:**
+
+```text
+SYNTHETIC_SAME_BRIDGE_REDIS_PING=True
+HOST_TO_SYNTHETIC_REDIS_TCP_DENIED=True
+SYNTHETIC_REDIS_STILL_REACHABLE=True
+CCPC_FIREWALL_STILL_EXACT=True
+CODEX_AGENT_STOPPED=True
+CONFIG_CHANGES_PERFORMED=False
+NFT_RULE_CAUSAL_ATTRIBUTION_VERIFIED=False
+OTHER_PATHS_IPV6_RELOAD_REBOOT_VERIFIED=False
+CODEX_LAUNCH_AUTHORIZED=False
+STEP_124_LIMITED_CANARY_COMPLETE
+```
+
+**Assessment — narrow active packet-path canary PASS, as reported by operator.** The approved code first re-verified root/host, all four immutable source Git blob IDs, original agent stopped/no-auto-restart, specific internal Docker laboratory network/IPv4 subnet and Compose labels for `redis-cache` and `redis-queue`, and exact controller nft rule readback with no temporary marker. Existing synthetic `redis-cache` ran a short `redis-cli PING` to its same-bridge `redis-queue:6379` peer and obtained `PONG` as a *positive allowed-path control*. Then the host attempted one TCP connect to the same Docker-inspected synthetic Redis queue IPv4 address and port 6379 (2-second limit, no data payload). It was denied under the script's strict timeout/policy/route error criteria; a successful connect or connection refusal/reset would not have passed. Positive `PING` again returned `PONG` afterwards. The pinned controller's read-only `verify` still returned exact, and agent remained stopped. **The command did send bounded synthetic-only traffic and briefly executed Redis CLI inside an existing container; it made no intentional host configuration, firewall or container lifecycle changes.**
+
+**Evidence provenance:** These ten terminal lines were pasted by the owner, not independently produced by ChatGPT or instrumented packet traces. Their value is **one allowed same-bridge Redis IPv4 path and one denied host → original laboratory Redis IPv4 TCP path under the combined nft/iptables/UFW/Docker networking state**, without proving which rule caused the denial. A kernel timeout can reflect more than the dedicated CCPC nft table. No broad scanning, production/DEVELOPMENT traffic, DB authentication, Squid or Codex launch is indicated by the approved script. The Stage A private root-only firewall snapshot and second operator-confirmed administrator SSH session should remain available.
+
+**Still NOT VERIFIED:** synthetic lab → host; lab → unrelated Docker bridge/DEVELOPMENT; unrelated bridge → lab; IPv6 traffic or differing protocol/ports; host/DEVELOPMENT service continuity beyond the limited Redis peer; Docker/UFW reload and reboot persistence; Docker bridge recreation; zero-gap kernel enforcement; and privileged operator manual Docker Codex start bypass. Do not declare the firewall comprehensive, Codex deployable or PRODUCTION-ready.
+
+**Step 125 next planning boundary (no new active test approved):** Design separately reviewed, *synthetic-only* additional allowed/forbidden packet paths with destination endpoints and network-source provenance verified in advance; avoid probing SSH, ERPNext, business services, LAN, production or unrelated Docker bridges. A safe host-inbound/lab-outbound test may require a disposable synthetic-only listening endpoint and explicit permission for any new process/namespace. Do not run `docker run/exec`, `iptables`/`nft` mutations, service restarts/reloads, change UFW/Docker, create a proxy network or start Codex without new exact-command authorization. Preserve current installed project table and agent stopped. **Codex launch remains NO-GO.**
