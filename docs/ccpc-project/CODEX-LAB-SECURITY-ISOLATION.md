@@ -847,6 +847,16 @@ READ_ONLY_TOPOLOGY_COMPLETE
 
 ---
 
+## Step 124 — exact bounded synthetic Redis canary approved, operator run pending (2026-11-20)
+
+**Owner authorization:** After the read-only Step 123 original laboratory topology PASS, the owner expressly replied **“Approved”** to the exact proposed Step 124 synthetic-only active IPv4 Redis positive/negative test. The separate approved procedure is on review PR #39 at [commit `24a7952`](https://github.com/ccpcerp/ccpc-frappe-deployment/commit/24a79526255607c449052f5d99fd986875d4dbaa). No host result has been received and ChatGPT has no direct SSH access: **approval is not execution or evidence of packet isolation**.
+
+**Approved action boundary:** On `ccpcerpserver` only, with both administrator sessions and private baseline available, the exact one-time script rechecks pinned GitHub source hashes and deployed original-lab/current nft policy identity; verifies agent stopped/no restart, existing internal Docker bridge `ccpc_codex_dev_agent_lab` and lab-only existing Redis service identities; then executes only `redis-cli PING` twice from running synthetic `redis-cache` to running synthetic `redis-queue`, wrapping one bounded host IPv4 TCP connect attempt to the same synthetic Redis-queue port 6379, with 2-second timeout and no data payload. STOP if the positive control fails, if the host connects, or if the firewall/agent drifts. No new/restarted containers or services, no new policy/authorization marker and no DEVELOPMENT/PRODUCTION or other routes/ports are touched by the script.
+
+**Evidence limits:** This checks a narrow representative allowed Redis bridge path plus a host-to-lab blocked path; timeout/route denial can reflect overlapping existing iptables/UFW controls rather than just new nft table. It cannot certify other traffic paths, IPv6, reload/reboot persistence, ongoing zero-gap safety or readiness to run Codex. Output must remain sanitized fixed status labels; on failure do **not** rerun blindly or weaken firewalls. Keep Codex/Squid **NO-GO**.
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
