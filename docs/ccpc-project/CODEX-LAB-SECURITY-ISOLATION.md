@@ -358,6 +358,20 @@ The owner approved continued **GitHub-only** CI investigation and independent of
 
 **NO-GO remains:** Fixes are source-only; actual combined iptables parser compatibility, firewall reload persistence, unbypassable guarded launch, proxy outbound/DNS/SSRF controls and nonproduction connectivity negative tests remain unresolved. Next owner action: open the GitHub Actions failed run Summary, read its failure annotation and check current free Actions usage/billing state **without enabling paid features**. A specific annotated error will allow targeted CI resolution; until then, avoid irrelevant workflow mutations. The independently passed offline tests permit continued review, not activation.
 
+## Step 94 — owner-supplied GitHub Actions billing annotation confirms pre-run block (2026-11-20)
+
+Operator copied the exact GitHub Actions **Annotations → policy-regression** failure message from [run #44650795584](https://github.com/ccpcerp/ccpc-frappe-deployment/actions/runs/44650795584) on open draft deployment PR #39:
+
+> The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings
+
+Run reports **Failure after 3 seconds**, **1 annotation**, **no artifacts**. Earlier GitHub connector inspection confirmed **0 runner steps and no runner name**; `BlobNotFound` on job-log download is consistent with no job execution. **Diagnosis:** GitHub-hosted Actions is blocked **before any Python execution** by an account **payment/spending-eligibility restriction**. This does *not* identify which of the two offered account-specific conditions (failed payment vs spending limit) applies, nor authorize a payment or settings change. It is not a Python test assertion failure.
+
+**Decision:** As required by the project's no-unrequested-paid-automation policy, do not add payment methods, increase spending limits, change GitHub billing settings, install self-hosted Actions runners, or repeatedly trigger failed workflows. The owner may read Billing & plans themselves if desired; no change is requested. Maintain **GitHub Actions CI = blocked/unexecuted**, distinct from **75/75 offline Python mock/source-only tests successfully executed** using exact GitHub blob-hash-verified files in Step 93. Those offline results do **not** prove Docker, live firewall/host security, Squid parsing, reload resilience, DNS/egress restrictions, or PRODUCTION isolation.
+
+**GitHub-only documentation:** Updated `docs/ccpc-project/CODEX-LAB-FIREWALL-PERSISTENCE-REVIEW.md` on `review/codex-proxy-network-hardening-2026-11-19`, commit `ef21a58a8b2888f0df5bc9126520bddaaae58603` (refetch-verified). No source code, workflow implementation, firewall script or host configuration was modified for this diagnosis. Draft PR #39 remains open, draft and unmerged; last operator-reported Codex agent stopped, Squid inactive, optional second bridge absent; there was no fresh host test or operation. No DEVELOPMENT/PRODUCTION changes.
+
+**Next safe development:** Continue GitHub review and no-cost isolated offline tests. Address launch-gate bypass prevention, reload persistence, egress/DNS controls and isolated negative tests before any separately approved host operation. No server command required for Step 94.
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
