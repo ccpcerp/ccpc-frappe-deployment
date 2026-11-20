@@ -265,3 +265,21 @@ STOP: Stage B post-staging verification failed
 **Result: independent verification FAILED / specific predicate UNKNOWN.** The prior Step 114 staging reported all four exact Git blobs verified and the final root-only path staged, but that does not substitute for the new check. The Python verification used a broad catch-all that prints only a generic STOP. No exception type, failing predicate or raw state was disclosed. It would be incorrect to infer a hash mismatch, permissions error, firewall drift or failed source staging from this output alone. Operator ran a read-only inspector; no mutation is indicated. **Do not rerun Stage B, chmod, delete staged files, change firewall, create a marker or proceed to Stage C.** Codex/Squid remain NO-GO.
 
 **Next operator-safe action:** a separately supplied *read-only* stage-labelled diagnostic using `sudo python3 -I`: (1) verify host and agent stopped/restart disabled, (2) check exact parent and child directory ownership/modes and entries, (3) marker contents and four Git blob hashes, (4) stock nftables.service inactive/disabled, and (5) project nft table absence. It may print **only the first failing fixed diagnostic label** and no raw configuration, permissions, route, credentials or private baseline paths. Do not execute or import staged Python files, write/fix permissions, or run firewall mutation commands. A failed check still blocks Stage C. Further source-side documentation after owner diagnostic is permitted; Stage C would require separate command-level owner authorization and test/recovery review.
+
+
+## Step 116 — Stage B first-failure diagnostic now PASS; previous STOP unresolved (2026-11-20)
+
+After the generic STOP in Step 115, the owner ran the separately provided **read-only first-failed-check diagnostic** on `ccpcerpserver` and supplied:
+
+```text
+PY
+ALL_STAGED_SOURCE_CHECKS_PASSED=True
+NO_CHANGES_PERFORMED=True
+STAGE_C_AUTHORIZED=False
+READ_ONLY_DIAGNOSTIC_COMPLETE
+```
+
+`PY` here is the heredoc terminator copied with the console output, **not** an error. The script used `sudo python3 -I`, checked root/hostname, agent stopped and restart disabled, root-only directory ancestry and exact entries, the pinned commit marker, **all four Git blob IDs and owner-only mode 0400**, stock nftables.service inactive/disabled, and named independent nft table absent. Every labelled assertion completed without failure; the command deliberately did not execute/import staged Python and made **no changes**. This is **operator-supplied** evidence, not direct assistant inspection. The earlier generic STOP's root cause remains **unexplained**; no fault is proven or repaired. Current results restore the **Stage B read-only verification gate to PASS at the observed instant**, not Stage C installation authorization.
+
+**Next bounded review candidate:** a newly authorized **read-only controller `plan` execution**, after separate review of staged source/hash, to validate its actual system/iptables preconditions against the live host. This would execute the reviewed controller source as root but should use `python3 -B` to avoid bytecode writes and `plan` only (never `install`). A passing `plan` is necessary but not sufficient for actual firewall installation. The controller has **no effective ongoing runtime guard** and source-only testing cannot establish kernel packet isolation. No authorization marker, systemd unit, nft table, UFW/Docker reload or Codex start is approved; keep **Codex NO-GO**.
+
