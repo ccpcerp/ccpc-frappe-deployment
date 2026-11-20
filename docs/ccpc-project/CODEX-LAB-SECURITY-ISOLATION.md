@@ -432,6 +432,22 @@ Owner created a new, **public and separate** GitHub test repository, `ccpcerp/cc
 
 ---
 
+## Step 100 — Codex review-only memory and PID ceilings (2026-11-20)
+
+**Scope and authorization:** After confirming that the public ERPNext Actions checks are operating, the owner requested continuation of the local Codex readiness work. Continued **GitHub source-only review** on deployment draft [PR #39](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/39), branch `review/codex-proxy-network-hardening-2026-11-19`. No Docker or server changes, agent/proxy start, firewall reload, source pull, DEVELOPMENT/PRODUCTION operation, or paid CI execution was authorized or performed. PR #39 remains open, draft, **unmerged**.
+
+**Verified GitHub commits** (read after write and checked commit file lists):
+- [`8376fbd`](https://github.com/ccpcerp/ccpc-frappe-deployment/commit/8376fbd29bf8638903a13c4a416cc759c269813a): review-only proposed `codex-dev-agent/compose.yaml` resource ceilings for all five lab services (agent **8 GiB/512 PIDs**; synthetic MariaDB **2 GiB/256 PIDs**; two Redis services **384 MiB/128 PIDs each**; optional Squid **512 MiB/128 PIDs**). `memswap_limit` equals each `mem_limit` to avoid unbounded swap consumption where Docker supports enforcement. The sum of configured maxima is **11.25 GiB**; not a reservation or validated shared-host budget. **No CPU cap** added, consistent with the operator's maximum-performance preference. This does not guarantee host availability under concurrent workloads.
+- [`27cd260`](https://github.com/ccpcerp/ccpc-frappe-deployment/commit/27cd2608f19deec24d8c6c560de7a6718c7fa816): `check_compose.py` now fails closed on missing or changed memory, memory+swap or PID caps; accepts Compose memory-unit strings or normalized positive integer byte counts.
+- [`95bb2a4`](https://github.com/ccpcerp/ccpc-frappe-deployment/commit/95bb2a4b4a1c495df43321bc4d146ce9a9703168): six additional source-only regression methods cover missing/expanded caps, excessive swap, PID omissions and accepted unit formats.
+- [`60ca788`](https://github.com/ccpcerp/ccpc-frappe-deployment/commit/60ca788280030598149a7d0558c36ba0c96e1ece): review README documents candidate ceilings, nondeployment status and execution limits.
+
+**Verification and limits:** Connected GitHub refetch confirmed exactly five `mem_limit`, five `memswap_limit` and five `pids_limit` entries with intended values. Validator includes the bound check, and all six new test methods are present. The `test_safety_policy.py` class now declares 66 test methods; combined with the unchanged 15 firewall-guard tests, **81 source-only tests are declared**. Only the earlier **75/75** tests were independently executed at Step 93; **the six new tests, full 81-test suite, rendered Docker Compose config and actual runtime enforcement have not been executed or verified**. Existing private GitHub-hosted runner eligibility remains separately blocked by the observed Step 94 billing/spending annotation. No source-only check can establish resource behavior on `ccpcerpserver`, image authenticity, effective firewall protection or agent sandboxing.
+
+**NO-GO unchanged:** This commit set is only a review proposal; the host still runs its previously verified Compose configuration and effective runtime caps, with agent stopped at last operator observation. Local Codex CLI installation/authentication, sandbox enforcement, persistent firewall restoration, safe per-launch guard, proposed proxy-client and outward Squid reachability/DNS controls, credential provenance, negative canary tests, resource sizing under host peak load and DEV acceptance remain outstanding. Do not merge/deploy PR #39 or start the agent based on these source changes. Next advance is the exact source-only test execution in an approved isolated runner or trusted offline workspace, followed by a separately authorized host-only dry-run and isolation verification; keep public synthetic ERPNext CI separate from private security source.
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
