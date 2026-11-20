@@ -788,3 +788,217 @@ STEP_124_LIMITED_CANARY_COMPLETE
 **Still NOT VERIFIED:** synthetic lab → host; lab → unrelated Docker bridge/DEVELOPMENT; unrelated bridge → lab; IPv6 traffic or differing protocol/ports; host/DEVELOPMENT service continuity beyond the limited Redis peer; Docker/UFW reload and reboot persistence; Docker bridge recreation; zero-gap kernel enforcement; and privileged operator manual Docker Codex start bypass. Do not declare the firewall comprehensive, Codex deployable or PRODUCTION-ready.
 
 **Step 125 next planning boundary (no new active test approved):** Design separately reviewed, *synthetic-only* additional allowed/forbidden packet paths with destination endpoints and network-source provenance verified in advance; avoid probing SSH, ERPNext, business services, LAN, production or unrelated Docker bridges. A safe host-inbound/lab-outbound test may require a disposable synthetic-only listening endpoint and explicit permission for any new process/namespace. Do not run `docker run/exec`, `iptables`/`nft` mutations, service restarts/reloads, change UFW/Docker, create a proxy network or start Codex without new exact-command authorization. Preserve current installed project table and agent stopped. **Codex launch remains NO-GO.**
+
+
+## Step 126 — general test planning approved; exact lab-to-host canary awaits separate command approval (2026-11-20)
+
+**Owner response:** After Step 125 was recorded as a narrow synthetic Redis IPv4 PASS, the assistant described Step 126 as additional controlled lab-to-host and inter-network isolation tests using synthetic endpoints, explicitly stated that **no further active network testing was authorized yet**, and **did not present an exact command or source/destination pairs**. The owner replied **“aPPROVED”**. This is treated as permission to **design and document Step 126**, but **not as blanket host authorization** for an unspecified listener, namespace process, packet probes, Docker mutations or systemd/firewall changes. The exact command below is a **NEW PROPOSAL, NOT EXECUTABLE UNTIL SEPARATE COMMAND-LEVEL APPROVAL**.
+
+**First narrow test selection:** Address only original synthetic lab → host gateway IPv4, without probing SSH/ERPNext, other Docker bridges, LAN, DEVELOPMENT, PRODUCTION or internet. Use the **already existing `redis-cache` container's verified network namespace** and a short-lived host TCP listener bound solely to `172.21.0.1` (the verified lab bridge gateway) on a kernel-selected ephemeral port. Host local positive controls must connect to the same temporary listener before and after the denied attempt, so “no service listening” cannot masquerade as firewall isolation. Independently confirm existing same-bridge synthetic Redis `PING` still returns `PONG` before and after the test.
+
+**Proposed exact command — NOT YET APPROVED:**
+
+```bash
+sudo python3 -I - <<'PY'
+import errno
+import ipaddress
+import json
+import os
+import shutil
+import socket
+import stat
+import subprocess
+import sys
+from pathlib import Path
+
+PROJECT = "ccpc_codex_dev_agent"
+NETWORK = PROJECT + "_lab"
+AGENT = PROJECT + "-agent-1"
+SOURCE = PROJECT + "-redis-cache-1"
+TARGET = PROJECT + "-redis-queue-1"
+BASE = Path("/opt/ccpc/codex-lab-review/scripts/security")
+CTRL = BASE / "ccpc_codex_nft_scoped_controller.py"
+BLOBS = {
+    "ccpc_codex_nft_scoped_controller.py":
+        "e07b1afcb39761fb0f5613c83c5f97b4aee46d22",
+    "ccpc_codex_nft_guard_review.py":
+        "eabbbfd5d5de4cdcf4e5e0c25732bf3c641ffdc4",
+    "ccpc_codex_lab_firewall_guard.py":
+        "619d8dd962e3c995b53d57ac4c55a85ace2e4eab",
+    "ccpc_firewall_rule_order.py":
+        "af9a63bc8a390905a7e0da78e8c0b20c7f8af537",
+}
+stage = "INITIAL"
+listener = None
+
+def require(ok):
+    if not ok:
+        raise RuntimeError("check failed")
+
+def run(*argv, timeout=20):
+    result = subprocess.run(
+        argv, capture_output=True, text=True, timeout=timeout
+    )
+    require(result.returncode == 0)
+    return result.stdout.strip()
+
+def check_policy():
+    require(not os.path.lexists(
+        "/etc/ccpc/codex-lab-nft-guard-authorized"))
+    report = run(sys.executable, "-B", str(CTRL), "verify")
+    require("PROJECT_NFT_TABLE_EXACT=True" in report.splitlines())
+    require("agent_launch_authorized=False" in report.splitlines())
+
+def redis_control():
+    return run(
+        "docker", "exec", "--user", "redis", SOURCE,
+        "redis-cli", "--raw", "-h", "redis-queue", "-p", "6379", "PING",
+        timeout=10
+    ) == "PONG"
+
+def host_control(gateway, port):
+    probe = socket.create_connection((gateway, port), timeout=2)
+    try:
+        listener.settimeout(2)
+        accepted, _ = listener.accept()
+        accepted.close()
+    finally:
+        probe.close()
+
+CHILD = """
+import errno, socket, sys
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.settimeout(2.0)
+try:
+    s.connect((sys.argv[1], int(sys.argv[2])))
+except TimeoutError:
+    sys.exit(0)
+except OSError as error:
+    sys.exit(0 if error.errno in (
+        errno.EACCES, errno.EPERM, errno.EHOSTUNREACH, errno.ENETUNREACH
+    ) else 3)
+else:
+    sys.exit(4)
+finally:
+    s.close()
+"""
+
+try:
+    stage = "HOST_AND_TOOLS"
+    require(os.geteuid() == 0)
+    require(run("hostname", "-s") == "ccpcerpserver")
+    require(shutil.which("nsenter") is not None)
+
+    stage = "PINNED_CONTROLLER_AND_FIREWALL"
+    require(set(os.listdir(BASE)) == set(BLOBS))
+    for filename, digest in BLOBS.items():
+        path = BASE / filename
+        file = os.lstat(path)
+        require(stat.S_ISREG(file.st_mode) and file.st_uid == 0
+                and file.st_gid == 0 and stat.S_IMODE(file.st_mode) == 0o400)
+        require(run("git", "hash-object", "--", str(path)) == digest)
+    check_policy()
+
+    stage = "LAB_NETWORK"
+    networks = json.loads(run("docker", "network", "inspect", NETWORK))
+    require(len(networks) == 1)
+    net = networks[0]
+    require(net["Name"] == NETWORK and net["Driver"] == "bridge"
+            and net["Internal"] is True
+            and net["EnableIPv6"] is False)
+    config = net["IPAM"]["Config"]
+    require(len(config) == 1)
+    require(config[0]["Subnet"] == "172.21.0.0/16")
+    require(config[0]["Gateway"] == "172.21.0.1")
+    gateway = str(ipaddress.IPv4Address(config[0]["Gateway"]))
+    require(ipaddress.IPv4Address(gateway) in
+            ipaddress.IPv4Network("172.21.0.0/16"))
+    bridge = "br-" + net["Id"][:12]
+    require(len(net["Id"]) >= 12)
+    require(run("ip", "link", "show", "dev", bridge) != "")
+
+    stage = "EXISTING_SYNTHETIC_NAMESPACE"
+    records = json.loads(run("docker", "inspect", AGENT, SOURCE, TARGET))
+    require(len(records) == 3)
+    objects = {item["Name"].lstrip("/"): item for item in records}
+    require(set(objects) == {AGENT, SOURCE, TARGET})
+    agent = objects[AGENT]
+    require(agent["State"]["Running"] is False)
+    require(agent["HostConfig"]["RestartPolicy"]["Name"] in ("", "no"))
+    for name, service in ((SOURCE, "redis-cache"), (TARGET, "redis-queue")):
+        item = objects[name]
+        labels = item["Config"]["Labels"] or {}
+        require(item["State"]["Running"] is True)
+        require(labels.get("com.docker.compose.project") == PROJECT)
+        require(labels.get("com.docker.compose.service") == service)
+        attached = item["NetworkSettings"]["Networks"]
+        require(set(attached) == {NETWORK})
+        require(attached[NETWORK]["NetworkID"] == net["Id"])
+    pid = objects[SOURCE]["State"]["Pid"]
+    require(type(pid) is int and pid > 1)
+    require(os.readlink("/proc/self/ns/net") !=
+            os.readlink(f"/proc/{pid}/ns/net"))
+
+    stage = "ALLOWED_REDIS_CONTROL"
+    require(redis_control())
+
+    stage = "TEMPORARY_HOST_GATEWAY_LISTENER"
+    listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    listener.bind((gateway, 0))
+    listener.listen(4)
+    port = listener.getsockname()[1]
+    require(port > 1024)
+    host_control(gateway, port)
+
+    stage = "DENIED_LAB_TO_HOST_IPV4"
+    # Host Python is run only in the verified synthetic Redis network
+    # namespace. It sends a single TCP connect and no application payload.
+    before = json.loads(run("docker", "inspect", SOURCE))[0]
+    require(before["State"]["Running"] is True
+            and before["State"]["Pid"] == pid)
+    result = subprocess.run([
+        "nsenter", "--target", str(pid), "--net", "--",
+        sys.executable, "-I", "-B", "-c", CHILD, gateway, str(port)
+    ], capture_output=True, text=True, timeout=8)
+    require(result.returncode == 0)
+    host_control(gateway, port)
+
+    stage = "POSTTEST_READ_ONLY_VERIFICATION"
+    require(redis_control())
+    check_policy()
+    agent_state = json.loads(run("docker", "inspect", AGENT))[0]
+    require(agent_state["State"]["Running"] is False)
+    require(agent_state["HostConfig"]["RestartPolicy"]["Name"]
+            in ("", "no"))
+
+    listener.close()
+    listener = None
+    print("HOST_GATEWAY_TEMPORARY_LISTENER_CONTROL=True")
+    print("LAB_TO_HOST_GATEWAY_TCP_DENIED=True")
+    print("SYNTHETIC_REDIS_ALLOWED_PATH_STILL_WORKS=True")
+    print("CCPC_NFT_TABLE_STILL_EXACT=True")
+    print("CODEX_AGENT_STOPPED=True")
+    print("TEMPORARY_LISTENER_CLOSED=True")
+    print("PERSISTENT_CONFIGURATION_CHANGES=False")
+    print("NFT_RULE_CAUSAL_ATTRIBUTION_VERIFIED=False")
+    print("OTHER_NETWORKS_IPV6_RELOAD_REBOOT_VERIFIED=False")
+    print("CODEX_LAUNCH_AUTHORIZED=False")
+    print("STEP_126_SINGLE_PATH_CANARY_COMPLETE")
+except Exception:
+    print("FIRST_FAILED_CHECK=" + stage)
+    print("DO_NOT_REPEAT_OR_CHANGE_FIREWALL=True")
+    print("CODEX_LAUNCH_AUTHORIZED=False")
+    sys.exit(1)
+finally:
+    if listener is not None:
+        listener.close()
+PY
+```
+
+**Expected effect and risk:** This is a real active TCP path test and **temporarily creates a listening socket** bound only to the synthetic bridge gateway (ephemeral kernel port). A host Python subprocess is briefly run under the already-running `redis-cache` container's network namespace via `nsenter --net`; it sends **one** attempted TCP connect with a two-second timeout and no application payload. Prechecks ensure the exact original private Docker network, stopped agent, current nft exact policy, pinned source hashes, and that Redis is the only network-namespace source. Exit status `0` from the short Python child is accepted only for timeout or clear route/policy denials; connection success/refusal/reset fail. This is **not** new Docker container creation, package install, namespace creation, or an enduring host service. The script closes the temporary listener in a `finally` block even on ordinary failure and prints only fixed status labels; a forced host/process interruption closes sockets at process exit.
+
+**Preconditions for exact-command owner approval:** Both independently working SSH administrator sessions must remain available, the private Stage A baseline remains on host (never paste it), existing Docker and UFW are not restarted/reloaded, and the host has the `nsenter` utility. The Redis and original bridge identity must match the reviewed original-lab values. No ephemeral Redis keys or business data are accessed. The command runs Python with `-I`/`-B`, never imports staged code into the wrapper, and uses the pinned controller only in read-only `verify` mode. If any stage fails, **STOP**; do not retry blindly or change firewall policy.
+
+**Interpretation if passed:** One observed lab-source → host-gateway **IPv4 TCP denial** while the tested host listener was live and reachable from host, plus allowed synthetic same-bridge Redis continuity. This does **not** attribute the denial specifically to the new nft table because original iptables/UFW/Docker controls overlap. It also does not prove unrelated bridge restrictions, host SSH protection, IPv6 packet coverage, Docker/UFW reload/reboot persistence, bridge recreation continuity, or privileged Docker manual-start prevention. **Codex/Squid activation remains NO-GO.**
+
+**Further tests postponed:** Cross-bridge source/destination endpoints are not yet specified as safe synthetic-only peers. Do not borrow real DEVELOPMENT/UAT containers as targets. A future isolated disposable synthetic peer would be a separate container/network mutation, requiring dedicated review and explicit approval; avoid conflating it with this limited lab-to-host test.
