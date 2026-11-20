@@ -79,6 +79,16 @@ Offer management a Company-scoped and date-scoped **Department Expense Statement
 
 **Gate 5 — Production:** Explicit separate approval, tested restoration/recovery, current branch/source/permissions verification and release readiness. **No PRODUCTION actions arise from this design.**
 
+## 6A. First live expense GL Department coverage baseline — 2026-11-20
+
+**Owner-supplied aggregate read-only `development.localhost` results:** For `Cagayan Corn Products Corporation`, non-cancelled `tabGL Entry` joined to same-Company `tabAccount` where `root_type='Expense'`: **12** rows, of which **9** have an enabled non-group same-Company Department (**75% row coverage**), **3** have blank/null Department (**25%**), and **0** contain a nonblank invalid/wrong-Company/disabled/group Department. For `Ricor Mills Corporation`: **0** rows in this checked scope, so coverage is **not measurable**, not 100% compliant or failed. These are counts of GL rows, **not monetary materiality or comprehensive all-Company historical coverage**, and do not prove the currently reviewed stock issue controller posted these rows.
+
+**Accounting/reporting interpretation:** Never advertise 100% departmental expense visibility when three expense GL lines lack a Department. Do not silently distribute missing rows across Departments or rewrite historical expense entries; obtain evidence of source/voucher/date/account and Accounting sign-off before any backfill/reclassification. Company-wide/shared expenses may require a separately approved allocation method or an explicit unapportioned bucket; blank GL dimensions must not disappear from reconciliation. Source date and voucher type may explain legacy/system posting. Ricor's empty set needs subsequent authorized test rather than inferred support.
+
+**Next read-only triage:** List **only** the three CCPC missing-Department expense GL rows with posting date, voucher type, voucher number, account, cost center, and optionally stock-entry purpose; no amounts or employee personal information. This identifies which posting process omitted the Department. Check actual source document with same-Company permissions and determine whether the omission is historic, intentional, or needs posting guards. No journal edits, vouchers, accounting revisions, mapping activation, or PRODUCTION actions.
+
+---
+
 ## 7. Controlling project references
 
 - [GitHub-first workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md)
