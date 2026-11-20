@@ -11,7 +11,7 @@ This new Compose project is intentionally separate from `frappe_docker_devcontai
 - `init_local_secrets.py`: creates two randomly generated, strictly owner-only passwords for the **new synthetic MariaDB**, without overwriting old values or displaying them. `local-secrets/` is ignored by Git.
 - `check_compose.py`: read-only static validation of actual `docker compose config --format json`, guarding project identity, service/network separation, mounts, secrets, privileges and offline default.
 - `../scripts/security/check_codex_dev_agent_container.sh`: host-side **read-only** Docker inspector for the newly created `agent`, allowing only exact expected private volumes and the synthetic user password secret. It does **not** establish internet or production network safety.
-- `tests/test_safety_policy.py`: 70 Docker-free policy regression and secret-lifecycle tests for unsafe Compose networks, listener/ACL changes, restart/routing bypasses, and secret creation/reuse. They do not prove that Docker containers boot or that the real host is isolated.
+- `tests/test_safety_policy.py` (60 tests) and `tests/test_lab_firewall_guard.py` (10 tests): 70 Docker-free policy regression and secret-lifecycle tests for unsafe Compose networks, listener/ACL changes, restart/routing bypasses, and secret creation/reuse. They do not prove that Docker containers boot or that the real host is isolated.
 
 ## Isolation boundaries
 
