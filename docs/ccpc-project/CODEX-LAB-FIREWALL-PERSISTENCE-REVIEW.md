@@ -198,3 +198,29 @@ After the owner approved implementation and testing of firewall persistence/star
 **Next single step:** Perform a sanitized, read-only live-host preflight with the agent stopped: verify nftables availability, kernel parser support using nft --check without applying rules, current dedicated-table absence/presence, nftables.service status, and whether the bounded main nftables config contains a global flush statement. No daemon reload or Docker restart. The result informs an exact reviewed maintenance/recovery design. Before any installation/reload, separately approve the precise commands, two-session SSH recovery, private scoped firewall snapshot, rollback of only newly added objects, and nonproduction negative network tests.
 
 **Codex release gate remains NO-GO.**
+
+
+## Step 107 — original-host nftables check-only pass and inactive global-flush risk (2026-11-20)
+
+The owner ran the bounded read-only nftables capability preflight on `ccpcerpserver` and reported:
+```text
+main_nft_config_flush_ruleset=True
+main_nft_config_has_includes=False
+agent_stopped=True
+original_bridge_identity_verified=True
+independent_nft_table_already_present=False
+nft_userspace_and_kernel_query_available=True
+nft_candidate_check_only_passed=True
+nftables_service_active=False
+nftables_service_enabled=False
+nft_reload_persistence_verified=False
+ufw_docker_reload_persistence_verified=False
+agent_launch_authorized=False
+NO_HOST_CHANGES_PERFORMED
+```
+
+The proposed nftables table is **not installed**. Target-host check-only acceptance establishes syntax compatibility, not applied packet filtering, reload survival or a safe Codex launch. The main host nftables configuration contains an active `flush ruleset` directive, while `nftables.service` is inactive/disabled. Starting or reloading a service that loads that file could delete unrelated UFW/Docker-managed kernel firewall rules. These are **operator-supplied observations** rather than direct ChatGPT access, and exact effective systemd unit commands have not been inspected. Do not enable/start/reload/stop nftables.service, run `nft -f /etc/nftables.conf`, reload UFW, restart Docker or start/attach Codex in response.
+
+**Design consequence:** Do not propose enabling the stock nftables.service as the persistence solution. First inspect the **effective systemd ExecStart/ExecReload/ExecStop** paths (and relevant UFW/Docker dependencies) in a read-only host command which returns only boolean status; keep the existing global-flush file untouched. The alternative must have a narrowly scoped independent table policy, install/reconcile only that table, avoid all global flushes, preserve administrative SSH/DEVELOPMENT connections, and be proven against a controlled reload/bridge-recreation sequence with a separate operator-approved recovery plan. A separate table still does not guarantee zero-gap policy during privileged mutation; DO NOT launch Codex until stronger enforcement and isolated negative traffic tests pass.
+
+**Codex activation NO-GO.** PR #39 remains draft/unmerged; no current host installation approved.
