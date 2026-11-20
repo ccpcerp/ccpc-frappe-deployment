@@ -676,6 +676,30 @@ codex_launch_authorized=False
 
 ---
 
+## Step 114 — Stage B source-only GitHub-pinned files staged, operator-reported PASS (2026-11-20)
+
+**Operator output:** Owner pasted the closing shell heredoc marker and nine expected sanitized success lines from the **separately approved Stage B** command on `ccpcerpserver`:
+
+```text
+host_verified=True
+agent_stopped=True
+source_commit_pinned=True
+all_four_git_blobs_verified=True
+root_only_review_source_staged=True
+firewall_modified=False
+services_modified=False
+codex_launch_authorized=False
+STAGE_B_SOURCE_ONLY_COMPLETE
+```
+
+**Verified scope via command review, not direct host inspection:** The approved shell command checked hostname, known stopped/no-restart Codex agent, and stock nftables.service inactive/disabled; required a previously absent final target and root-safe parent; downloaded four Python files from `ccpcerp/ccpc-frappe-deployment` at immutable commit `66960f73a69b10b59f508cda7bfd4ac9ea5c21af`, verified each with the connected GitHub blob ID using `git hash-object`, set them root-read-only, and atomically renamed the private staging directory into `/opt/ccpc/codex-lab-review`. No staged Python code was executed, no systemd unit or root authorization marker installed, no firewall rules changed, and no Docker/UFW service or Codex/Squid process started by the approved script. ChatGPT did **not** independently re-read the host files or service/firewall state. The earlier Stage A root-private firewall snapshot remains a recovery *reference only*. Preserve second SSH/recovery connection.
+
+**GitHub plan record:** [Step 114 recovery-plan checkpoint](https://github.com/ccpcerp/ccpc-frappe-deployment/commit/6ee6edb73f7e434014ead62a2c9510acc8e22f71) on draft PR #39 review branch. This changes documentation only, not the pinned executable source. Next safe operator command is a separate **read-only post-staging verification**: inspect owner/mode/no-symlink, exact four blobs and commit marker, stopped agent/restart policy, stock nftables.service inactive/disabled, and independent nft table absence; never import/execute staged Python for this verification. Keep raw firewall data, private snapshot paths and credentials out of chat and GitHub.
+
+**Release gate:** **NO-GO**. Stage C kernel table install, authorization-marker creation, systemd unit registration, reload/reboot, network canaries and Codex/Squid start remain **unapproved**. Staging does not provide active independent firewall protection or zero-gap continuity.
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
