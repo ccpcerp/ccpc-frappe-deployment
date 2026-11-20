@@ -103,3 +103,13 @@ This block creates a **new root-only directory under /root** and writes referenc
 
 **Separate later installation approval:** Before any attempt to create the marker or run `ccpc_codex_nft_scoped_controller.py install`, verify the exact source SHA/hash on the host, the project path ownership/no symlinks, current original bridge iptables rule checks and nft table absence, and a specific, scoped project-table rollback. Do not enable stock nftables.service, change global rules or start Codex. A dedicated controller is not reload persistence or zero-gap runtime enforcement.
 
+
+
+## Step 111 — Stage A baseline capture approved, execution not yet verified (2026-11-20)
+
+**Explicit owner authorization:** In response to the Step 110 command-level question, the owner replied **“Approved”**. Authorization is limited to executing the **exact private baseline capture** block documented above on `ccpcerpserver`: pre-check host identity, agent stopped/no auto-restart, stock nftables.service inactive/disabled; create a fresh root-only directory under `/root` and save `iptables-save`, `ip6tables-save`, `nft -j list ruleset`, full route JSON and selected service state outputs, then check that the files are nonempty. Keep raw snapshot data local and private. A second independent SSH recovery connection was confirmed in Step 110.
+
+**Execution status:** **NOT EXECUTED BY CHATGPT and NOT YET VERIFIED ON THE HOST.** Connected GitHub does not provide host access; only the operator can run the already approved block and return its sanitized booleans. Snapshot creation writes private local files but makes no kernel firewall changes, service starts, reloads or container operations. If a command fails, preserve the stopped agent and do not proceed to Stage B.
+
+**Still NOT approved:** Copying/pulling source into host paths, creating the authorization marker, installing/running the scoped nft controller or systemd unit, enabling `nftables.service`, restarting/reloading UFW or Docker, any reboot, running Codex/Squid, network probes, or PRODUCTION/DEVELOPMENT changes. A saved snapshot alone is not a verified restore/rollback procedure; never restore it wholesale over UFW/Docker.
+
