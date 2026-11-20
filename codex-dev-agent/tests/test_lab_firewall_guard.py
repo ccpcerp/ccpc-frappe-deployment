@@ -5,11 +5,15 @@ No Docker daemon, iptables, UFW, network access, credentials or root required.
 import contextlib
 import importlib.util
 import io
+import sys
 from pathlib import Path
 import unittest
 from unittest import mock
 
 REPO = Path(__file__).resolve().parents[2]
+SECURITY_DIR = REPO / "scripts/security"
+if str(SECURITY_DIR) not in sys.path:
+    sys.path.insert(0, str(SECURITY_DIR))
 GUARD_FILE = REPO / "scripts/security/ccpc_codex_lab_firewall_guard.py"
 UNIT_FILE = (REPO / "scripts/security/systemd" /
              "ccpc-codex-lab-firewall-restore.service.example")
@@ -77,6 +81,63 @@ class TestOriginalLabFirewallGuard(unittest.TestCase):
             [["-A", "DOCKER-USER", "-j", "ACCEPT"], self.out, self.inbound],
             [self.forward],
         ))
+
+    def test_both_bridges_can_coexist_in_restrictive_prefixes(self):
+        proxy = guard.proxy_rule_specs()
+        p_host = appended(proxy, "host")
+        p_out = appended(proxy, "outbound")
+        p_in = appended(proxy, "inbound")
+        self.assertTrue(guard.precedence_valid(
+            self.specs,
+            [p_host, self.host],
+            [p_out, self.out, p_in, self.inbound],
+            [self.forward],
+        ))
+        self.assertTrue(guard.precedence_valid(
+            self.specs,
+            [self.host, p_host],
+            [self.out, self.inbound, p_in, p_out],
+            [self.forward],
+        ))
+
+    def test_partial_second_bridge_firewall_fails_closed(self):
+        proxy = guard.proxy_rule_specs()
+        self.assertFalse(guard.precedence_valid(
+            self.specs,
+            [appended(proxy, "host"), self.host],
+            [self.out, self.inbound],
+            [self.forward],
+        ))
+
+    def test_second_bridge_rules_after_accept_fail_closed(self):
+        proxy = guard.proxy_rule_specs()
+        self.assertFalse(guard.precedence_valid(
+            self.specs,
+            [self.host, ["-A", "INPUT", "-j", "ACCEPT"],
+             appended(proxy, "host")],
+            [self.out, self.inbound,
+             appended(proxy, "outbound"), appended(proxy, "inbound")],
+            [self.forward],
+        ))
+
+    def test_missing_original_bridge_rule_in_joint_mode_fails_closed(self):
+        proxy = guard.proxy_rule_specs()
+        self.assertFalse(guard.precedence_valid(
+            self.specs,
+            [appended(proxy, "host")],
+            [appended(proxy, "outbound"), appended(proxy, "inbound")],
+            [self.forward],
+        ))
+
+    def test_alternate_inverted_interface_syntax_is_normalized(self):
+        legacy = ["-A", "DOCKER-USER",
+                  "-i", "br-test", "-o", "!", "br-test",
+                  "-m", "comment", "--comment",
+                  "ccpc-codex-deny-outbound", "-j", "DROP"]
+        self.assertEqual(
+            guard.canonical_rule(legacy, "DOCKER-USER"),
+            guard.canonical_rule(self.out, "DOCKER-USER"),
+        )
 
     def test_wrong_forward_jump_fails_closed(self):
         self.assertFalse(guard.precedence_valid(
