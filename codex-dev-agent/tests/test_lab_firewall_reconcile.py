@@ -138,10 +138,32 @@ class TestOriginalLabReconcile(unittest.TestCase):
                         return_value=(self.specs, ["host", "out"])
                     ):
                         with mock.patch.object(guard, "command", side_effect=fake_command):
-                            with self.assertRaises(guard.GuardFailure):
-                                reconcile.restore()
+                            with mock.patch.object(guard, "inspect_host"):
+                                with self.assertRaises(guard.GuardFailure):
+                                    reconcile.restore()
         self.assertEqual([a[3] for a in commands], ["-I", "-I", "-D"])
         self.assertEqual([a[4] for a in commands], ["INPUT", "DOCKER-USER", "INPUT"])
+
+    def test_no_rollback_when_agent_stop_status_cannot_be_reverified(self):
+        calls = []
+        def fake_command(argv):
+            calls.append(argv)
+            if argv[3] == "-I" and argv[4] == "DOCKER-USER":
+                raise guard.GuardFailure()
+        with mock.patch.object(reconcile, "authorization_required"):
+            with mock.patch.object(reconcile, "lock_host", return_value=22):
+                with mock.patch.object(reconcile.os, "close"):
+                    with mock.patch.object(
+                        reconcile, "preflight",
+                        return_value=(self.specs, ["host", "out"])
+                    ):
+                        with mock.patch.object(guard, "command", side_effect=fake_command):
+                            with mock.patch.object(
+                                guard, "inspect_host", side_effect=guard.GuardFailure()
+                            ):
+                                with self.assertRaises(reconcile.ReconcileFailure):
+                                    reconcile.restore()
+        self.assertEqual([a[3] for a in calls], ["-I", "-I"])
 
     def test_verify_refuses_missing_rules(self):
         with mock.patch.object(
