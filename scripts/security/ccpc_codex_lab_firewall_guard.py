@@ -169,6 +169,9 @@ def inspect_host():
     command(["ip", "link", "show", "dev", bridge])
     if "nf_tables" not in command(["iptables", "--version"]):
         raise GuardFailure()
+    # Persisted firewall ordering is not established; at minimum UFW
+    # must currently be active before any separately approved restoration.
+    command(["systemctl", "is-active", "--quiet", "ufw.service"])
 
     # Chain availability and Docker's entry into DOCKER-USER are necessary
     # BEFORE the installer is permitted to modify any project-scoped rules.
