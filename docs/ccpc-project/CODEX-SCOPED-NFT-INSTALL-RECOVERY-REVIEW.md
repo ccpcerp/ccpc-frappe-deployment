@@ -1073,3 +1073,14 @@ STEP_126_SINGLE_PATH_CANARY_COMPLETE
 5. Keep source-only verification, operator-reported host observations and actual runtime packet/reboot results in **different evidence categories**. No complete reload/reboot test has occurred under this milestone.
 
 **Step 129 result:** lifecycle hazards, safe ordering preconditions and missing evidence documented **without modifying source policy or runtime**. This is **not** an implementation or security-pass milestone. The next proposed checkpoint is a separately reviewed, sanitized **read-only inventory** of effective Docker/UFW/systemd launch and reload entry paths (including socket activation and any hooks), plus comparison with the current disabled-restart agent state. No such host command is authorized by Step 129. Do not install/start/reload anything, reboot, create a Docker network/container, change firewall policy, or launch Codex/Squid.
+
+
+## Step 130 — exact read-only lifecycle inventory prepared, NOT EXECUTED (2026-11-20)
+
+**Owner approval interpreted narrowly:** The owner replied “Approved” after a proposal to prepare/review Step 130's narrowly scoped Docker/UFW/systemd read-only inspection and safeguards, before any server command was available. This authorizes GitHub-only procedure preparation, **not execution of an unseen exact command**, firewall/service changes or Codex activation.
+
+**Reviewed operator proposal:** [CODEX-STEP-130-READONLY-LIFECYCLE-INVENTORY.md](CODEX-STEP-130-READONLY-LIFECYCLE-INVENTORY.md) contains a single exact, hostname/root-guarded Python heredoc that uses only `systemctl show` and `docker inspect --format`, returns fixed booleans for Docker socket trigger and direct ordering, UFW/Docker service hooks/reload/drop-ins, stock nftables inactivity, absence of two proposed project units, and stopped Codex agent/no-restart. No secrets, raw unit definitions, paths, command stderr or container data are printed. It is **NOT YET AUTHORIZED TO RUN**; it has not been executed on the host. Its only result to date is source review.
+
+**Caveat:** Docker `inspect` ordinarily reads existing daemon metadata but cannot absolutely exclude socket activation if Docker exits after the active-state check. The new document discloses this small race and offers a systemd-only variant if even that risk is unacceptable. All active unit/lifecycle operations stay prohibited. The two SSH/recovery paths and private Stage A firewall baseline remain prerequisites before future test authorization.
+
+**Next:** Review the exact linked procedure and obtain explicit, exact-command operator consent before a one-time manual read-only run. On STOP, no automatic rerun or remediation. Step 129's lifecycle gaps remain unresolved; PR #39 DRAFT/UNMERGED and Codex/Squid **NO-GO**.
