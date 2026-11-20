@@ -749,6 +749,14 @@ Recorded also in [Step 118 scoped recovery plan](https://github.com/ccpcerp/ccpc
 
 ---
 
+### Step 118 supplement — unapproved one-table Stage C command review
+
+Following owner-reported read-only controller `plan` PASS, the review branch added a **NOT APPROVED** exact Stage C single-project-table installation proposal in `docs/ccpc-project/CODEX-SCOPED-NFT-INSTALL-RECOVERY-REVIEW.md`, finalized at [commit `01dfeac`](https://github.com/ccpcerp/ccpc-frappe-deployment/commit/01dfeace8dda154d32e2260d61f0d3388644ce2d). **This is documentation only** and not a performed host operation. It rechecks pinned source blobs, agent-stopped controller plan and private baseline existence, rejects any existing authorization marker, optionally creates a root-controlled `/etc/ccpc` directory, installs a **temporary** strictly permissioned marker, invokes the reviewed controller's `install` mode (one new inet table only), independently re-verifies the exact table and Docker/UFW availability, then removes the marker on normal completion or caught failure. Controller code itself remains unchanged and mock-tested; the newly proposed wrapper has not been executed on a host. A hard interruption may leave an authorization marker, and a post-transaction failure can leave restrictive rules—**do not blindly rerun or automatically roll back**.
+
+**Approval and operational hold:** The user's prior approval was `plan` only. The new proposed Stage C kernel firewall operation is **not authorized**. It can affect legitimate host-to-synthetic-lab communications, is not reboot/reload persistent and does not prevent privileged manual Docker starts or validate Codex. Keep Codex/Squid stopped, stock nftables.service inactive/disabled, second independent SSH recovery access available, and Stage A private snapshot unshared. Real negative canaries and scoped table-only recovery need separate review. The original bridge and existing UFW/Docker rules must not be globally flushed.
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
