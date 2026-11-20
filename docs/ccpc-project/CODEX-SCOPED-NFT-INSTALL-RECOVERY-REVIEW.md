@@ -578,3 +578,176 @@ READ_ONLY_TOPOLOGY_COMPLETE
 **Next planned active canary — NOT YET APPROVED:** Before sending packets, require a separately approved **exact command** designed for the *existing synthetic lab only*, with both an allowed-path control and a forbidden-path attempt. Suggested first IPv4 pair: (a) short `PING` (Redis protocol, not ICMP) from the synthetic `redis-cache` container to the existing synthetic `redis-queue` service over the same lab bridge, reading only `PONG`; (b) one bounded host TCP connect attempt to the **same synthetic redis-queue IP and port 6379**, retrieved from sanitized Docker inspection, expected to be blocked by currently installed host/bridge firewall rules. The allowed peer test proves the target service is listening through an approved same-bridge route; it does not prove which firewall rule denied a host-to-lab attempt. Do not print IPs or network identifiers, authenticate to MariaDB, use other services, use agent, attach any container to another network, or create/start/restart a container. Both SSH sessions and private snapshot should remain available. Any test must validate source/target Docker compose project and exact Docker lab membership, agent stopped, nft independent table exact and no install marker, and stop on a failed control. Do not accept `ConnectionRefused` as proof of filtering. Passing this one pair does **not** verify lab-to-host, other bridges, IPv6, Docker/UFW reload/reboot persistence, or Codex launch safety.
 
 **Still held:** No active network canaries, firewall mutation/removal, daemon reload/restart, reboot, service/proxy/agent start, DEVELOPMENT or PRODUCTION operations have been approved. Codex **NO-GO**.
+
+
+## Proposed Step 124 — synthetic Redis allowed/denied IPv4 canary (NOT APPROVED)
+
+**Purpose and prerequisites:** Draft exact, **NOT YET AUTHORIZED** host script for one synthetic-only, IPv4 positive/negative path pair after Step 123's read-only topology PASS. The script will run on `ccpcerpserver` only, with two live administrator SSH sessions and the Stage A private firewall reference retained. Recheck the four pinned Python Git blob IDs before executing the known controller in read-only `verify` mode. Confirm the original `ccpc_codex_dev_agent_lab` network is internal bridge with `172.21.0.0/16`, no Docker IPv6 enabled, agent stopped/no-restart, correct Compose project/service labels, and that both Redis services already exist, are running and attached **only** to that lab. The deployed original topology is inspected in real time; do not rely on the proposed three-network source Compose YAML.
+
+**Exact proposed test, separated from any firewall changes:**
+
+1. **Positive same-bridge control:** execute only `redis-cli --raw -h redis-queue -p 6379 PING` inside existing synthetic `redis-cache` container via `docker exec --user redis`. Expect `PONG`. No Redis keys, passwords or database contents are read or changed. STOP before any negative attempt if the positive control fails.
+2. **Negative host-to-lab IPv4 test:** one host Python `socket.create_connection` to that **same synthetic redis-queue container's inspected IPv4 address, TCP port 6379**, with 2-second timeout and **no payload**. A successful TCP connection is a FAIL. `ECONNREFUSED` or connection reset are also failures, not valid evidence of filtering. A timeout or explicit kernel route/policy denial is counted as an observed blocked path—not proof that the new nft table specifically caused it, because existing iptables/UFW rules coexist.
+3. Repeat the same positive Redis PING, reverify the table exactly and stopped Codex agent; print **fixed labels only**, never actual container IP/credentials/firewall contents.
+
+**NOT approved for execution yet:**
+
+```bash
+sudo python3 -I - <<'PY'
+import errno
+import ipaddress
+import json
+import os
+import socket
+import stat
+import subprocess
+import sys
+from pathlib import Path
+
+PROJECT = "ccpc_codex_dev_agent"
+NETWORK = PROJECT + "_lab"
+PREFIX = PROJECT + "-"
+AGENT = PREFIX + "agent-1"
+SOURCE = PREFIX + "redis-cache-1"
+TARGET = PREFIX + "redis-queue-1"
+BASE = Path("/opt/ccpc/codex-lab-review/scripts/security")
+CTRL = BASE / "ccpc_codex_nft_scoped_controller.py"
+EXPECTED = {
+    "ccpc_codex_nft_scoped_controller.py":
+        "e07b1afcb39761fb0f5613c83c5f97b4aee46d22",
+    "ccpc_codex_nft_guard_review.py":
+        "eabbbfd5d5de4cdcf4e5e0c25732bf3c641ffdc4",
+    "ccpc_codex_lab_firewall_guard.py":
+        "619d8dd962e3c995b53d57ac4c55a85ace2e4eab",
+    "ccpc_firewall_rule_order.py":
+        "af9a63bc8a390905a7e0da78e8c0b20c7f8af537",
+}
+stage = "INITIAL"
+
+def require(ok):
+    if not ok:
+        raise RuntimeError("check failed")
+
+def run(*args, timeout=20):
+    p = subprocess.run(
+        args, capture_output=True, text=True, timeout=timeout
+    )
+    require(p.returncode == 0)
+    return p.stdout.strip()
+
+def exact_firewall():
+    require(not os.path.lexists(
+        "/etc/ccpc/codex-lab-nft-guard-authorized"
+    ))
+    output = run(sys.executable, "-B", str(CTRL), "verify")
+    require("PROJECT_NFT_TABLE_EXACT=True" in output.splitlines())
+    require("agent_launch_authorized=False" in output.splitlines())
+
+def ping_peer():
+    # Redis PING is read-only; run only inside existing synthetic Redis cache.
+    return run(
+        "docker", "exec", "--user", "redis", SOURCE,
+        "redis-cli", "--raw", "-h", "redis-queue", "-p", "6379", "PING",
+        timeout=10
+    ) == "PONG"
+
+try:
+    stage = "HOST_AND_ROOT"
+    require(os.geteuid() == 0)
+    require(run("hostname", "-s") == "ccpcerpserver")
+
+    stage = "PINNED_SOURCE"
+    require(set(os.listdir(BASE)) == set(EXPECTED))
+    for filename, blob in EXPECTED.items():
+        path = BASE / filename
+        s = os.lstat(path)
+        require(stat.S_ISREG(s.st_mode) and s.st_uid == 0
+                and s.st_gid == 0 and stat.S_IMODE(s.st_mode) == 0o400)
+        require(run("git", "hash-object", "--", str(path)) == blob)
+
+    stage = "PRETEST_FIREWALL"
+    exact_firewall()
+
+    stage = "LAB_NETWORK"
+    nets = json.loads(run("docker", "network", "inspect", NETWORK))
+    require(len(nets) == 1)
+    net = nets[0]
+    require(net["Name"] == NETWORK and net["Driver"] == "bridge"
+            and net["Internal"] is True
+            and net.get("EnableIPv6") is False)
+    require(any(
+        entry.get("Subnet") == "172.21.0.0/16"
+        and entry.get("Gateway") == "172.21.0.1"
+        for entry in net["IPAM"]["Config"]
+    ))
+
+    stage = "SYNTHETIC_CONTAINER_SCOPE"
+    items = json.loads(run("docker", "inspect", AGENT, SOURCE, TARGET))
+    require(len(items) == 3)
+    containers = {item["Name"].lstrip("/"): item for item in items}
+    require(set(containers) == {AGENT, SOURCE, TARGET})
+    agent = containers[AGENT]
+    require(agent["State"]["Running"] is False)
+    require(agent["HostConfig"]["RestartPolicy"]["Name"] in ("no", ""))
+    for name, service in ((SOURCE, "redis-cache"), (TARGET, "redis-queue")):
+        c = containers[name]
+        labels = c["Config"]["Labels"] or {}
+        require(labels.get("com.docker.compose.project") == PROJECT)
+        require(labels.get("com.docker.compose.service") == service)
+        require(c["State"]["Running"] is True)
+        attached = c["NetworkSettings"]["Networks"]
+        require(set(attached) == {NETWORK})
+        require(attached[NETWORK]["NetworkID"] == net["Id"])
+
+    address = containers[TARGET]["NetworkSettings"]["Networks"][NETWORK]["IPAddress"]
+    ip = ipaddress.ip_address(address)
+    require(isinstance(ip, ipaddress.IPv4Address))
+    require(ip in ipaddress.ip_network("172.21.0.0/16"))
+    require(ip != ipaddress.ip_address("172.21.0.1"))
+
+    stage = "ALLOWED_SAME_BRIDGE_CONTROL"
+    require(ping_peer())
+
+    stage = "DENIED_HOST_TO_LAB_IPV4"
+    denied = False
+    try:
+        conn = socket.create_connection((str(ip), 6379), timeout=2.0)
+    except TimeoutError:
+        denied = True
+    except OSError as exc:
+        # Refused/reset is not proof of blocking: fail for those cases.
+        denied = exc.errno in {
+            errno.EACCES, errno.EPERM, errno.EHOSTUNREACH, errno.ENETUNREACH
+        }
+    else:
+        conn.close()
+    require(denied)
+
+    stage = "ALLOWED_CONTROL_AFTER_PROBE"
+    require(ping_peer())
+
+    stage = "POSTTEST_FIREWALL_AND_AGENT"
+    exact_firewall()
+    agent_check = json.loads(run("docker", "inspect", AGENT))[0]
+    require(agent_check["State"]["Running"] is False)
+    require(agent_check["HostConfig"]["RestartPolicy"]["Name"] in ("no", ""))
+
+    print("SYNTHETIC_SAME_BRIDGE_REDIS_PING=True")
+    print("HOST_TO_SYNTHETIC_REDIS_TCP_DENIED=True")
+    print("SYNTHETIC_REDIS_STILL_REACHABLE=True")
+    print("CCPC_FIREWALL_STILL_EXACT=True")
+    print("CODEX_AGENT_STOPPED=True")
+    print("CONFIG_CHANGES_PERFORMED=False")
+    print("NFT_RULE_CAUSAL_ATTRIBUTION_VERIFIED=False")
+    print("OTHER_PATHS_IPV6_RELOAD_REBOOT_VERIFIED=False")
+    print("CODEX_LAUNCH_AUTHORIZED=False")
+    print("STEP_124_LIMITED_CANARY_COMPLETE")
+except Exception:
+    print("FIRST_FAILED_CHECK=" + stage)
+    print("DO_NOT_RETRY_OR_CHANGE_FIREWALL=True")
+    print("CODEX_LAUNCH_AUTHORIZED=False")
+    sys.exit(1)
+PY
+```
+
+**Safeguards and evidence limits:** Uses **existing synthetic containers only**; `docker exec` starts a short Redis CLI process inside `redis-cache`, and two PINGs plus one host TCP SYN generate bounded **active** test traffic. It does not start/recreate/attach containers, modify Redis keys, create marker, install/delete/flush nftables rules, change Docker/UFW services, alter host files, touch DEVELOPMENT/PRODUCTION, or launch Codex/Squid. It is still a real network test and therefore requires **separate explicit command-level owner approval** before the operator runs it. Nonzero/first-failed-check output means STOP; do not repeat blindly. Passing it would establish only an observed same-bridge reachable Redis path and a denied **host → original-lab** IPv4 TCP path under combined existing firewall controls. It does not verify lab → host, inter-bridge forwarding, IPv6 packet paths, TCP/UDP comprehensiveness, the causal contribution of the nft table, reload/reboot persistence, or unbypassable root/Docker agent startup. No new runtime authorization is implied. **Codex NO-GO.**
