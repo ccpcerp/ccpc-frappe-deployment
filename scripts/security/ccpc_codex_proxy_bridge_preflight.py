@@ -12,6 +12,11 @@ import shlex
 import subprocess
 import sys
 
+from ccpc_firewall_rule_order import (
+    combined_rule_order_valid,
+    proxy_rule_specs,
+)
+
 HOST = "ccpcerpserver"
 PROJECT = "ccpc_codex_dev_agent"
 OLD_LAB = PROJECT + "_lab"
@@ -47,22 +52,8 @@ def check_rule(chain, tokens):
 
 
 def rules_for_new_bridge():
-    # Strictly named, subnet-independent INPUT (no spoofed source exception).
-    # Both FORWARD restrictions are exact interface-scoped matches.
-    return {
-        "host": ("INPUT", [
-            "-i", BRIDGE, "-m", "comment", "--comment",
-            "ccpc-codex-px-deny-host", "-j", "DROP",
-        ]),
-        "outbound": ("DOCKER-USER", [
-            "-i", BRIDGE, "!", "-o", BRIDGE, "-m", "comment", "--comment",
-            "ccpc-codex-px-deny-out", "-j", "DROP",
-        ]),
-        "inbound": ("DOCKER-USER", [
-            "!", "-i", BRIDGE, "-o", BRIDGE, "-m", "comment", "--comment",
-            "ccpc-codex-px-deny-in", "-j", "DROP",
-        ]),
-    }
+    # Shared reviewed source of exact proxy DROP specifications.
+    return proxy_rule_specs()
 
 
 def first_forward_jump_is_docker_user():
@@ -76,8 +67,10 @@ def first_forward_jump_is_docker_user():
     ])
 
 
-def top_rule_order_for_proposed_bridge():
-    # Verified existence with -C and placement using comment tokens.
+def top_rule_order_for_proposed_bridge(old_specs, new_specs):
+    # Old and new bridge rules coexist in contiguous restrictive prefixes:
+    # two INPUT drops and four DOCKER-USER drops, in either relative order.
+    # The original client bridge rules must never be displaced by the new.
     def append_rules(chain):
         return [
             shlex.split(line) for line in
@@ -85,25 +78,11 @@ def top_rule_order_for_proposed_bridge():
             if line.startswith("-A ")
         ]
 
-    input_rules = append_rules("INPUT")
-    user_rules = append_rules("DOCKER-USER")
-
-    def has_tag(rule, tag):
-        try:
-            index = rule.index("--comment")
-        except ValueError:
-            return False
-        return index + 1 < len(rule) and rule[index + 1] == tag
-
-    host_first = bool(input_rules and has_tag(
-        input_rules[0], "ccpc-codex-px-deny-host"
-    ))
-    forward_first_two = (
-        len(user_rules) >= 2 and
-        any(has_tag(r, "ccpc-codex-px-deny-out") for r in user_rules[:2]) and
-        any(has_tag(r, "ccpc-codex-px-deny-in") for r in user_rules[:2])
+    return combined_rule_order_valid(
+        old_specs, new_specs,
+        append_rules("INPUT"), append_rules("DOCKER-USER"),
+        append_rules("FORWARD"), require_proxy=True
     )
-    return host_first and forward_first_two
 
 
 def local_overlap_counts(networks):
@@ -183,6 +162,11 @@ def main(argv=None):
     ]
     if not all(check_rule(chain, rule) for chain, rule in old_rules):
         fail()
+    old_specs = {
+        "host": old_rules[0],
+        "out": old_rules[1],
+        "in": old_rules[2],
+    }
     if not first_forward_jump_is_docker_user():
         fail()
 
@@ -232,7 +216,10 @@ def main(argv=None):
     print("proposed_host_rule_present={}".format(present["host"]))
     print("proposed_outbound_rule_present={}".format(present["outbound"]))
     print("proposed_inbound_rule_present={}".format(present["inbound"]))
-    ordered = top_rule_order_for_proposed_bridge() if all(present.values()) else False
+    ordered = (
+        top_rule_order_for_proposed_bridge(old_specs, specs)
+        if all(present.values()) else False
+    )
     print("proposed_rules_first_in_chains={}".format(ordered))
     ready = all(present.values()) and ordered
     print("pre_enforcement_verified={}".format(ready))
