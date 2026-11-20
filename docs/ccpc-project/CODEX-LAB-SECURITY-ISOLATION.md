@@ -406,6 +406,18 @@ Owner created a new, **public and separate** GitHub test repository, `ccpcerp/cc
 
 ---
 
+## Step 98 — automatic public CI with synthetic MariaDB PASS (2026-11-20)
+
+**Owner authorization:** The owner explicitly requested that the public sandbox testing run automatically, with the intention of considering private visibility later. This authorization was scoped to the **public-safe CI sandbox**; it did not authorize publishing existing private CCPC custom application code, credentials, business data, automatic Codex reporting, or changes to DEVELOPMENT/PRODUCTION.
+
+**GitHub change independently verified:** [commit `84e55ff7581edae7db6447ad3e25dd18940d74f2`](https://github.com/ccpcerp/ccpc-ci-sandbox/commit/84e55ff7581edae7db6447ad3e25dd18940d74f2) on the public `ccpcerp/ccpc-ci-sandbox` `main` branch updated `.github/workflows/public-runner-smoke.yml` to run automatically on `push` to `main` and `pull_request` targeting `main`, while retaining manual `workflow_dispatch`. The workflow uses standard GitHub-hosted `ubuntu-latest`, `permissions: {}`, concurrency cancellation, no private checkout, no secrets or protected resources, and bounded 3-/8-minute job timeouts. It contains the previous two inline Python smoke tests plus two synthetic SQL tests against an isolated `mariadb:10.11` service, checking rollback and database duplicate-reference rejection. The MariaDB root password is an explicitly public, throwaway CI-only fixture, not a CCPC credential.
+
+**Automatic execution verified:** The workflow change itself triggered [run `44664017862`](https://github.com/ccpcerp/ccpc-ci-sandbox/actions/runs/44664017862) on event `push`, SHA `84e55ff7581edae7db6447ad3e25dd18940d74f2`, created 2026-11-20 02:54:08 UTC. GitHub API reported `status=completed`, `conclusion=success`; both jobs `Public standard runner / Python smoke` and `Disposable MariaDB / synthetic SQL transactions` completed with `success`. All four synthetic checks passed under the implemented job steps.
+
+**Limits and next gate:** This is real disposable MariaDB integration, **not** a Frappe installation or CCPC Withdrawal Slip/Material Issue/stock ledger/GL/intercompany acceptance. Adding private application source or real data to public GitHub would create irreversible exposure even if the repository were made private later. Public-runner availability does not establish private-repo billing eligibility. Current lab Codex/Squid activation **NO-GO** and separate DEVELOPMENT/PRODUCTION controls remain unchanged. Next, consider a public-source-only disposable Frappe test before designing a separately authorized private-code testing boundary.
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
