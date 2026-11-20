@@ -1,5 +1,17 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-20 — Finance Playwright official CircleCI job build 149: 4/4 PASS
+
+**Evidence:** Owner uploaded CircleCI logs `build_149_step_102_container_0.txt`, `build_149_step_103_container_0.txt`, and `build_149_step_104_container_0.txt`. Reviewed their original text. Step 102: `Reviewed Finance UI source, isolated CI identity, no live credentials: PASS`, checked out exactly `324e7ae717b238392ee8acfc20e61db3a1862f07` (the approved PR40 revision). Step 103: Node **v22.20.0**, npm **10.9.3**, installation of **`@playwright/test@1.56.0` and `jquery@3.7.1`**, `npm run check` **PASS**, **official `npm test` Playwright run 4/4 PASS (3.0 seconds, 1 worker)**, comprising Finance Preparer and independent Finance Controller two-Company/two-mapping-type visibility and stale-selection clearing. Step 103 generated `package-lock.json` SHA256 **`cbe5dc6e71b790d073ba096f18e54ca4fd80dcc56ae16ab6625bc6c352212696`**. Step 104 uploaded the generated non-secret **`ccpc-finance-ui-package-lock.json`** CircleCI artifact (~2.6 kB). **No need to rerun** the offline tests merely for more screenshots.
+
+**Scope:** These tests execute the reviewed Finance Desk Page JavaScript against a **simulated Frappe role/Company context**. They do not connect to real named users, real database or actual Expense/Center mappings; cannot prove backend permission enforcement, coverage locking behavior, signed approval, Inventory Stock Ledger or Expense GL correctness. No indication of MAIN DEVELOPMENT/PRODUCTION modification in the submitted step logs. The earlier one-shot GitHub Actions failure was a separate no-run runner allocation issue and is superseded for the browser test objective by actual CircleCI PASS.
+
+**GitHub updates:** App PR [#40](https://github.com/ccpcerp/ccpcerp/pull/40) test README updated at app commit **`2f9b49f2da37f73f9f2ab5956f37a2712ff91225`**; app PR remains **draft/open/unmerged**, based on release PR35. CircleCI-generated `package-lock.json` was uploaded as a CircleCI artifact but **the file contents were not among the three uploaded text logs and have not been retrieved or committed**. Its hash is evidence of artifact identity, not proof of its unseen contents. Do not synthesize a lockfile based only on that hash.
+
+**Next safe step:** Retrieve the named lockfile artifact and inspect/commit exact bytes into PR40, then review the test-only diff, prevent re-triggering dormant one-shot CI, and decide whether to merge test-only changes into release review branch under separate merge approval. Test-only code passing does not authorize real MAIN DEV user/data operations, migrations, or PRODUCTION deployment.
+
+---
+
 ## 2026-11-20 — Finance UI runner trial and manual CircleCI fallback (GitHub only)
 
 **Owner authorization:** continue testing Finance UI Playwright suite, install needed test dependencies in a disposable isolated environment, prepare the fastest safe CI path, **no MAIN DEV or PRODUCTION operations**.
