@@ -7,8 +7,10 @@
 # Prerequisites for any eventual approved use:
 # - A separately reviewed root-owned /opt/ccpc/codex-lab-review checkout,
 #   pinned to reviewed source commits, with executable scripts in place
-# - A root-owned /etc/ccpc/codex-lab-firewall-restore-authorized approval
-#   marker intentionally created ONLY as part of that later approval
+# - A root-owned, regular, no-group/world-access
+#   /etc/ccpc/codex-lab-firewall-restore-authorized marker holding exactly
+#   CCPC_CODEX_FIREWALL_RESTORE_EXPLICITLY_APPROVED followed by a newline;
+#   create ONLY under a separately approved host installation procedure
 # - Validated Docker/UFW startup and reload interactions, no agent autorun,
 #   independent negative connectivity tests, manual-start bypass policy
 #
@@ -29,10 +31,12 @@ WorkingDirectory=/opt/ccpc/codex-lab-review
 TimeoutStartSec=120
 # Never start an agent merely because the firewall is restored.
 ExecStartPre=/usr/bin/python3 /opt/ccpc/codex-lab-review/scripts/security/ccpc_codex_lab_firewall_guard.py preflight
-ExecStart=/bin/bash /opt/ccpc/codex-lab-review/scripts/security/ccpc_codex_dev_lab_firewall.sh apply
+ExecStart=/usr/bin/python3 /opt/ccpc/codex-lab-review/scripts/security/ccpc_codex_lab_firewall_reconcile.py restore
 ExecStartPost=/usr/bin/python3 /opt/ccpc/codex-lab-review/scripts/security/ccpc_codex_lab_firewall_guard.py verify
 # No ExecStop=rollback: stopping the unit must not weaken active protection.
 # A oneshot alone does NOT restore rules after later Docker/UFW reload.
+# A separately reviewed per-launch gate and live-loss control are REQUIRED.
+# This unit MUST NOT be enabled or run while those controls are unverified.
 
 [Install]
 WantedBy=multi-user.target
