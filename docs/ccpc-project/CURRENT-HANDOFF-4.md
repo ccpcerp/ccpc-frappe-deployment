@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-20 — Live expense-GL Department coverage: CCPC 9/12; RMC no expense rows
+
+**Operator-supplied MAIN DEV read-only `tabGL Entry` counts** joined to exact-Company Expense-root Accounts, excluding canceled entries: **CCPC: 12 expense GL rows = 9 with eligible exact-Company enabled leaf Department (75%), 3 blank Department (25%), 0 invalid nonblank**. **Ricor: 0 matching expense GL rows**, so Department coverage **not yet measurable**, not demonstrably fully compliant. Note row coverage is not value-weighted and does not prove correct attribution for valid Department labels or successful current withdrawal→GL pilot. There are three unassigned CCPC expense rows to investigate; **no automatic reallocation, GL edit, or retrospective Department rewrite**.
+
+**Operational next step:** ONE narrow, read-only command to list the three missing CCPC rows by date, voucher type/no, Account and Cost Center, without values or employee details; determine whether legacy posting, intentionally shared expenses or a missing dimension in a source process. Maintain an Unassigned Department bucket in future Department Expense Statement; do not drop these rows from the Company expense reconciliation. Confirm Company-specific Accounting policy before any correction and test real controlled stock issue only after independent signed mapping decision and separate DEV write authorization. The [Departmental Expense Architecture](DEPARTMENTAL-EXPENSE-ACCOUNTING-ARCHITECTURE-2026-11-20.md) now includes exact coverage baseline, commit `6de5c05e5a7f140ff6224aa0883895a36200f75f`. Nothing touched MAIN DEV data, Git checkout, PRODUCTION, mappings, or postings.
+
+---
+
 ## 2026-11-20 — Required Department Accounting Dimension metadata PASS; future payroll/claims DocTypes not found
 
 **Owner-provided read-only `development.localhost` results (2026-11-20):** ERPNext `get_accounting_dimensions()` included `department` (**registered PASS**). Frappe metadata `department` field exists in all Phase 1 relevant doctypes: `Stock Entry` **PASS**, `Stock Entry Detail` **PASS**, `GL Entry` **PASS**. Future expense sources `Purchase Invoice Item` and `Journal Entry Account`: Department field **PRESENT**. `Expense Claim Detail` and `Salary Slip`: DocType **NOT FOUND** on this DEV site; these are Phase 2 discovery gaps, not blockers for initial withdrawal. Do not assume HRMS is uninstalled without checking installed apps. Field existence is **NOT evidence** Department is correctly filled in actual posted GL or that historical expense lines are clean.
