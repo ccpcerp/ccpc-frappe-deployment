@@ -757,6 +757,16 @@ Following owner-reported read-only controller `plan` PASS, the review branch add
 
 ---
 
+## Step 119 — owner approval for exact, bounded single-table Stage C nft install; not yet run (2026-11-20)
+
+**Explicit owner approval recorded:** After Stage 118 reported `PROJECT_NFT_TABLE_STATE=absent` from the **read-only** controller `plan`, the user explicitly said **“Approved”** to the already linked [proposed exact Stage C single-project-table installation procedure](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/01dfeace8dda154d32e2260d61f0d3388644ce2d/docs/ccpc-project/CODEX-SCOPED-NFT-INSTALL-RECOVERY-REVIEW.md). This allows the specific reviewed script, **once on `ccpcerpserver`**, and **nothing else**. Exact approval was checkpointed in review PR #39 branch [commit `837a2bb0f40309ff48418d3d147c6f57cbe5ebb4`](https://github.com/ccpcerp/ccpc-frappe-deployment/commit/837a2bb0f40309ff48418d3d147c6f57cbe5ebb4).
+
+**Mutation scope, not execution:** The command would recheck four pinned source hashes, root/stopped agent and original IPTables through the controller `plan`, private snapshot presence, and disabled/inactive stock nftables.service; create a distinct temporary root marker; call only the reviewed controller's `install` for **`inet ccpc_codex_lab_guard`** with four lab-bridge-specific DROP rules; verify the table and UFW/Docker state; and remove the temporary marker on its normal completion/error-handling path. The kernel table installation is a **real active firewall write**, potentially interrupting legitimate host-to-original-lab connections. Avoid global nft flushes, stock nftables.service, Docker/UFW reload/restart and any Codex/Squid agent starts. The second operator-confirmed SSH recovery connection and Stage A private firewall snapshot must remain available. If any unexpected STOP/interruption occurs, do not rerun, clear rules or restore a whole ruleset automatically; independently inspect table and marker before a separately approved scoped rollback.
+
+**Execution status:** The user has **approved**, but has **not yet provided the installation's terminal output**. ChatGPT has **not installed any firewall table or logged into the host**. A future success status from the owner would be only initial installation and exact readback—not proven packet-blocking, reboot/reload persistence, uninterrupted isolation, privileged manual-start prevention, or Codex runtime security. **Codex activation stays NO-GO**. Approval does not extend to systemd unit install/enablement, PRODUCTION/DEVELOPMENT, reboot, UFW/Docker changes, network canaries, Squid or Codex launch.
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
