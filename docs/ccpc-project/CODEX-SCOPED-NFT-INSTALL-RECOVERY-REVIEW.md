@@ -556,3 +556,25 @@ READ_ONLY_VERIFICATION_COMPLETE
 **Proposed next low-impact gate:** Collect a minimal **read-only, sanitized topology inventory** from `ccpcerpserver` by inspecting Docker's existing original lab network `ccpc_codex_dev_agent_lab` and known existing stopped agent plus synthetic MariaDB and two Redis services. Do not execute `docker compose up`, `docker exec`, `docker run`, test connections, query DB/Redis, read environment secrets, print raw routes/firewall/network IDs or expose DEVELOPMENT/PRODUCTION services. A non-mutating status-only inspector can confirm current original bridge internal/driver/subnet identity and whether synthetic service containers are still running, so that the **separately authorized later** traffic canaries use only controlled synthetic endpoints. Avoid assuming the review-branch `codex-dev-agent/compose.yaml` matches currently deployed host topology; its proxy and outgoing networks remain a proposal.
 
 **Hold:** Explicit approval is still required before any active packet-path test, new disposable container, network connection, service restart, UFW/Docker reload, nft policy mutation, persistence service, Codex/Squid activation or PRODUCTION/DEVELOPMENT operation. Positive and negative synthetic-only path checks, IPv4/IPv6 and legitimate service continuity, reboot/reload resilience and unbypassable runtime process restrictions are NOT YET TESTED. **Codex launch NO-GO.**
+
+
+## Step 123 — read-only original-lab Docker topology reported PASS (2026-11-20)
+
+The owner ran the previously provided, limited **read-only topology** command on `ccpcerpserver` after the successful Step 121 independent nft table readback and Step 122 reconfirmation that the second administrator SSH session works. The operator returned the complete expected, sanitized output:
+
+```text
+ORIGINAL_LAB_NETWORK_VERIFIED=True
+LAB_BRIDGE_PRESENT=True
+SYNTHETIC_DB_REDIS_CONTAINERS_RUNNING=True
+CODEX_AGENT_STOPPED=True
+NETWORK_PROBES_PERFORMED=False
+HOST_CHANGES_PERFORMED=False
+CODEX_LAUNCH_AUTHORIZED=False
+READ_ONLY_TOPOLOGY_COMPLETE
+```
+
+**Assessment:** The exact verifier checked host identity, Docker network `ccpc_codex_dev_agent_lab` with internal Linux bridge and expected `172.21.0.0/16` / gateway `172.21.0.1`, existence of the matching Docker bridge interface, known original four project containers, agent stopped and restart disabled, and running synthetic `db`, `redis-cache` and `redis-queue` containers each attached to the original lab. No `docker exec/run`, credential use, network probe or service/firewall change occurred. This is **operator-reported stdout** only; the assistant did not independently access Docker. The latest exact nft table readback (Step 121) and recovery SSH confirmation (Step 122) are prior point-in-time evidence, not guarantees of unchanged state.
+
+**Next planned active canary — NOT YET APPROVED:** Before sending packets, require a separately approved **exact command** designed for the *existing synthetic lab only*, with both an allowed-path control and a forbidden-path attempt. Suggested first IPv4 pair: (a) short `PING` (Redis protocol, not ICMP) from the synthetic `redis-cache` container to the existing synthetic `redis-queue` service over the same lab bridge, reading only `PONG`; (b) one bounded host TCP connect attempt to the **same synthetic redis-queue IP and port 6379**, retrieved from sanitized Docker inspection, expected to be blocked by currently installed host/bridge firewall rules. The allowed peer test proves the target service is listening through an approved same-bridge route; it does not prove which firewall rule denied a host-to-lab attempt. Do not print IPs or network identifiers, authenticate to MariaDB, use other services, use agent, attach any container to another network, or create/start/restart a container. Both SSH sessions and private snapshot should remain available. Any test must validate source/target Docker compose project and exact Docker lab membership, agent stopped, nft independent table exact and no install marker, and stop on a failed control. Do not accept `ConnectionRefused` as proof of filtering. Passing this one pair does **not** verify lab-to-host, other bridges, IPv6, Docker/UFW reload/reboot persistence, or Codex launch safety.
+
+**Still held:** No active network canaries, firewall mutation/removal, daemon reload/restart, reboot, service/proxy/agent start, DEVELOPMENT or PRODUCTION operations have been approved. Codex **NO-GO**.
