@@ -720,6 +720,14 @@ The earlier generic `STOP: Stage B post-staging verification failed` has no know
 
 ---
 
+## Step 117 — owner approves read-only staged nft controller plan (2026-11-20)
+
+Following the operator-reported success of Step 116 read-only per-check verification, the owner replied **“Approved”** to a strictly **read-only staged controller `plan`** execution on `ccpcerpserver`, with Python `-B` to suppress bytecode creation. The exact single command is recorded in [review-plan Step 117](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/review/codex-proxy-network-hardening-2026-11-19/docs/ccpc-project/CODEX-SCOPED-NFT-INSTALL-RECOVERY-REVIEW.md), GitHub commit `d97282e747fd3463905eb536996633ae1dcfba4f`.
+
+**Approval is not execution:** No operator result has yet been received, no new host changes are claimed, and no live nft firewall installation or isolation is confirmed. The exact original host/bridge/iptables and stock nftables.service checks are read-only; expected absent-state output is `PROJECT_NFT_TABLE_STATE=absent`, `agent_launch_authorized=False`, `reload_reboot_runtime_enforcement_verified=False`, `INSPECTION_COMPLETE`. Any failure is STOP for review. Owner has **not approved** creating authorization markers, applying firewall rules, registering/enabling systemd units, restarting Docker/UFW, rebooting, launching Codex/Squid or touching DEVELOPMENT/PRODUCTION. Codex remains **NO-GO**.
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
