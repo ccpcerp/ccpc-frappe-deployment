@@ -95,6 +95,11 @@ def safe_config():
     for name, service in result["services"].items():
         service["image"] = images[name]
         service["pull_policy"] = "never"
+        memory, pids = gate.EXPECTED_RESOURCE_BOUNDS[name]
+        # Model the Docker Compose-rendered integer form; YAML uses unit strings.
+        service["mem_limit"] = memory
+        service["memswap_limit"] = memory
+        service["pids_limit"] = pids
         if name == "db":
             service["cap_add"] = ["CHOWN", "SETUID", "SETGID", "DAC_OVERRIDE", "FOWNER"]
         if name in ("redis-cache", "redis-queue"):
@@ -149,6 +154,42 @@ class TestStaticComposeGate(unittest.TestCase):
         self.config["services"]["agent"]["pull_policy"] = "always"
         with self.assertRaises(ValueError):
             gate.validate(self.config)
+
+    def test_memory_cap_required(self):
+        self.config["services"]["agent"].pop("mem_limit")
+        with self.assertRaises(ValueError):
+            gate.validate(self.config)
+
+    def test_larger_memory_cap_rejected(self):
+        self.config["services"]["agent"]["mem_limit"] = "16g"
+        with self.assertRaises(ValueError):
+            gate.validate(self.config)
+
+    def test_swap_over_memory_ceiling_rejected(self):
+        self.config["services"]["db"]["memswap_limit"] = "4g"
+        with self.assertRaises(ValueError):
+            gate.validate(self.config)
+
+    def test_missing_redis_pid_ceiling_rejected(self):
+        self.config["services"]["redis-queue"].pop("pids_limit")
+        with self.assertRaises(ValueError):
+            gate.validate(self.config)
+
+    def test_proxy_memory_ceiling_missing_rejected(self):
+        self.config["services"]["egress-proxy"]["mem_limit"] = None
+        with self.assertRaises(ValueError):
+            gate.validate(self.config)
+
+    def test_compose_string_units_accepted(self):
+        units = {
+            "agent": "8g", "db": "2g",
+            "redis-cache": "384m", "redis-queue": "384m",
+            "egress-proxy": "512m",
+        }
+        for name, value in units.items():
+            self.config["services"][name]["mem_limit"] = value
+            self.config["services"][name]["memswap_limit"] = value
+        self.assertTrue(gate.validate(self.config))
 
     def test_extra_mariadb_capability_denied(self):
         self.config["services"]["db"]["cap_add"].append("NET_ADMIN")
