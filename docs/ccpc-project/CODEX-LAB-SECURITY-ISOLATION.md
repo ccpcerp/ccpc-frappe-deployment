@@ -476,6 +476,28 @@ Owner created a new, **public and separate** GitHub test repository, `ccpcerp/cc
 
 ---
 
+## Step 103 — host read-only original-lab firewall presence PASS (2026-11-20)
+
+**Owner authorization:** The owner explicitly approved continuing host-isolation and guarded-start validation after the public GitHub-hosted 81/81 source test pass. Initial step was restricted to a read-only operator-run diagnostic on `ccpcerpserver`, not an agent/proxy start, Docker/iptables mutation, UFW reload, DEVELOPMENT/PRODUCTION operation, or code pull. ChatGPT did not have SSH/host access; the verification below is the **owner's supplied terminal stdout**, not an independent host inspection.
+
+**Exact sanitized operator output** (followed by the `gani@ccpcerpserver` prompt):
+
+```text
+agent_stopped=True
+agent_auto_restart_disabled=True
+original_lab_identity_verified=True
+original_lab_three_firewall_rules_present=True
+rule_order_and_reboot_persistence_verified=False
+codex_launch_authorized=False
+READ_ONLY_CHECK_COMPLETE
+```
+
+**Interpretation:** The hostname/Docker identity and stopped-agent/Compose-label/restart-policy checks passed; original internal laboratory bridge metadata was as expected; **all three existing original-laboratory INPUT and DOCKER-USER iptables rules were found by exact `iptables -C`** at the instant of the operator observation. This **does not yet establish rule precedence** ahead of permissive rules, whether FORWARD enters DOCKER-USER first, persistence through UFW/Docker reload or reboot, actual host/network denial, absent proxy/client paths, Codex sandbox/auth, image trust, or a safe launch. The host was not modified and no server secrets, private credentials, raw IPs, container IDs, or firewall table dumps were shared.
+
+**Next single read-only checkpoint:** With the agent still stopped, inspect normalized top-of-chain `INPUT` and `DOCKER-USER` prefixes and the first FORWARD jump to DOCKER-USER, guarding expected lab identity and exact three existing rule semantics. If any unexpected chain order or new proxy candidate appears, **STOP** and review sanitized booleans only; do not insert/reorder rules. If ordered correctly, advance separately to persistence and guarded startup design, with explicit host mutation approval and rollback/recovery planning before any change. Codex activation remains **NO-GO**.
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
