@@ -857,6 +857,33 @@ READ_ONLY_TOPOLOGY_COMPLETE
 
 ---
 
+## Step 125 — Step 124 controlled synthetic Redis network canary PASS (2026-11-20)
+
+**Actual observed terminal result after explicit one-time Step 124 approval:**
+
+```text
+SYNTHETIC_SAME_BRIDGE_REDIS_PING=True
+HOST_TO_SYNTHETIC_REDIS_TCP_DENIED=True
+SYNTHETIC_REDIS_STILL_REACHABLE=True
+CCPC_FIREWALL_STILL_EXACT=True
+CODEX_AGENT_STOPPED=True
+CONFIG_CHANGES_PERFORMED=False
+NFT_RULE_CAUSAL_ATTRIBUTION_VERIFIED=False
+OTHER_PATHS_IPV6_RELOAD_REBOOT_VERIFIED=False
+CODEX_LAUNCH_AUTHORIZED=False
+STEP_124_LIMITED_CANARY_COMPLETE
+```
+
+**Scope of passing result:** The exact bounded Python procedure checked host/controller source integrity, no persistent authorization marker, exact nft table and original protections via `verify`, stopped agent and exact Docker internal lab/network/project/container identities. From existing synthetic `redis-cache`, a `docker exec --user redis redis-cli PING` to the existing same-bridge `redis-queue:6379` returned `PONG` before and after the negative attempt. Between these controls, the host attempted **one** TCP connect to the Docker-inspected *same synthetic Redis queue IPv4* on port 6379 with a two-second timeout and no payload; the attempt was denied in a recognized timeout/policy/route-failure category (connection refusal/reset or success would have failed). The controller nft `verify` remained exact after traffic, Codex agent still stopped, and no configuration change was performed by the approved command.
+
+This result is based on **owner-supplied final stdout**, not ChatGPT-run SSH checks or independent packet captures. It demonstrates a narrow **same-bridge allowed path vs host-to-lab IPv4 denied path** under existing combined nft/iptables/UFW controls. Crucially, it **does not establish causal attribution to the CCPC nft DROP layer**; original firewall controls could also contribute. The test did not probe DEVELOPMENT/PRODUCTION, LAN or unrelated Docker bridges or read Redis keys/DB contents.
+
+**Unverified:** lab-originated host reachability, unrelated-bridge egress/ingress, IPv6, alternate transport/protocols, legitimate host/DEVELOPMENT availability, UFW/Docker reload and reboot survival, bridge recreation, and root-level Docker manual-start denial. An independently confirmed second admin SSH session and Stage A root-private recovery reference remain safety prerequisites for future testing. Only a newly approved exact synthetic-only test with tightly controlled destination/source may expand path coverage; a new listener/container/namespace is a mutation that requires separate explicit review. Do not weaken installed firewall, restart services, enable stock nftables.service, or start Codex/Squid. **Codex launch NO-GO**.
+
+Companion [Step 125 recovery-plan checkpoint](https://github.com/ccpcerp/ccpc-frappe-deployment/commit/f630b528276cf00b2d1a3a52da26902b79078a14) is verified on the PR #39 review branch.
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
