@@ -612,6 +612,37 @@ READ_ONLY_CHECK_COMPLETE
 
 ---
 
+## Step 109 — service name availability, scoped nft source and recovery review (2026-11-20)
+
+**Owner-supplied read-only host checkpoint:** After Step 108 confirmed stock nftables.service references a main global-flush config for start/reload and a global-flush stop action, the owner ran the requested read-only name/path inventory on `ccpcerpserver` and pasted:
+
+```text
+agent_stopped=True
+dedicated_nft_unit_name_available=True
+offline_launch_unit_name_available=True
+review_install_directory_already_exists=False
+host_changes_performed=False
+codex_launch_authorized=False
+READ_ONLY_CHECK_COMPLETE
+```
+
+This proves **only** that the operator's sanitized diagnostic found the agent stopped, proposed systemd unit names unused and the prospective review path absent at that instant. It is not permission to install, reserve the paths permanently, or start containers. ChatGPT has **no SSH access** to the host; no local host modification occurred.
+
+**GitHub engineering on existing PR #39 branch:** At [commit `66960f73a69b10b59f508cda7bfd4ac9ea5c21af`](https://github.com/ccpcerp/ccpc-frappe-deployment/commit/66960f73a69b10b59f508cda7bfd4ac9ea5c21af), added:
+
+- `scripts/security/ccpc_codex_nft_scoped_controller.py`: root-only controller with **read-only `plan` and `verify`**, and review-only uninstalled `install` gated behind a separately created exact-content, root-owned, owner-only marker `/etc/ccpc/codex-lab-nft-guard-authorized` plus a root-owned lock. It reuses strict original Docker/host identity, stopped agent, original three iptables rules/precedence and requires stock nftables.service **inactive and disabled**. Uses `nft -j list tables` to reject ambiguous/colliding existing table identity. If the named independent table is already present and exact, it makes no changes; unknown contents fail closed. If absent, it native-checks `render_candidate` and submits **one `nft --file -` transaction** comprising only the reviewed `inet ccpc_codex_lab_guard` table, then re-verifies exact contents and stopped agent. It **does not** read/run `/etc/nftables.conf`, call stock nftables.service, flush any shared ruleset, change existing UFW/Docker tables or start Codex/Squid. Failure after applying a table does **not** automatically remove restrictive DROP rules.
+- `scripts/security/systemd/ccpc-codex-nft-guard.service.example`: manual-only and **uninstalled** sample unit, with `plan → install → verify`, **no `[Install]` section and no ExecStop/ExecReload**; actual ordering, parser compliance and on-host service installation remain untested. Its existence in GitHub is **not a scheduled/persistent service**.
+- `codex-dev-agent/tests/test_scoped_nft_controller.py`: 22 mock-only tests covering absent/exact/foreign table, nftables-service state, no unauthorized installation, atomic project-only command shape, rollback safety, bridge recreation, refusal of unsafe modes and inert unit structure.
+- `.github/workflows/codex-lab-static-review.yml` and default-off `.circleci/config.yml` now expect **161 discovered source-only regression tests**; GitHub Actions also keeps the already verified native syntax-only `nft --check` step.
+
+**Successful CI at exact code commit:** [GitHub Actions run 44684035488](https://github.com/ccpcerp/ccpc-frappe-deployment/actions/runs/44684035488) `completed/success` and actual decoded job log includes `161 source-only security regressions discovered`, `nftables_check_only_candidate_syntax_passed=True`, `Ran 161 tests in 0.017s`, `OK`. These are **mock/static tests**, not an actual nft install, systemd execution, negative packet test, or reload/reboot persistence verification.
+
+**Documented host installation/recovery design:** [PR head commit `f3b26fb2ebcc5189625cf131cc8454d40f131c93`](https://github.com/ccpcerp/ccpc-frappe-deployment/commit/f3b26fb2ebcc5189625cf131cc8454d40f131c93) adds `docs/ccpc-project/CODEX-SCOPED-NFT-INSTALL-RECOVERY-REVIEW.md` and updates the Codex README and firewall persistence design review. The **exact PR-head** hosted GitHub Actions [run 44684328438](https://github.com/ccpcerp/ccpc-frappe-deployment/actions/runs/44684328438) completed **success**: source discovery **161**, native nft check-only PASS, **161 tests OK**. The recovery document outlines root-owned verified/pinned source, a private firewall state snapshot, two independent SSH/admin recovery channels, exact-table-only application, failure preserving restrictive protection and removal only of newly installed project artifacts under a separate reviewed operation.
+
+**Limits and release disposition:** This is source-tested **project-scoped table installation logic only**, not a live persistence/reload solution. A one-time service call cannot guarantee uninterrupted filtering after UFW/Docker/nftables reload, Docker network recreation or privileged manual agent start. There is **no demonstrated zero-exposure runtime containment** or approved offline/online Codex launch. The original bridge may be recreated and change its interface name, the stock nftables global flush could erase a table, the target host `nft -j` output may differ from mocks, and Squid's separate outbound network is unverified. The agent was last observed stopped; this session did **not** install markers, create directories, write kernel firewall rules, pull Docker images, change DEVELOPMENT/UAT, or touch separate PRODUCTION. **Codex activation remains NO-GO**. Next work requires an operator-approved command-level host installation and recovery procedure plus controlled negative-canary and reload tests, or choosing a dedicated Codex VM/host to avoid shared-host policy continuity risk. Do not advise stock nftables.service start/reload/stop, UFW reload, Docker restart, or agent activation without separate owner authorization and recovery planning.
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
