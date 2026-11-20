@@ -1,5 +1,15 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-20 — Bearings Expense proposal is Draft only; capital-use guard still unresolved (public-safe)
+
+**Operator-provided MAIN DEV Finance page result:** For the owner-approved same-Company Bearings-like maintenance-parts leaf Item Group to eligible repairs-and-maintenance Expense Account, `Active mapping: No active mapping` and `Draft revision` populated. This is evidence of an **Expense proposal Draft**, not proof of exact stored target or authenticated Checker review/approval. Revision ID and sensitive financial master identifiers omitted from this still-public repository. Prior Center mapping is separately effective under a DEV test approval. **No expense mapping activated** and no pilot stock/GL posting verified.
+
+**GitHub source check:** Current pinned `withdrawal_slip_stock._build_material_issue` resolves financial values through `assign_original_issue_b_c` after applying beneficiary Department, and `bc_issue_runtime` resolves Expense scopes by Item Group. The inspected posting sequence does **not show a purpose-specific capital-use block** that would stop this group mapping being used for capitalized / non-maintenance Bearings issues. User business consent to ordinary repairs classification does not constitute blanket capitalization-policy approval. **Keep signed Expense activation on HOLD** pending a verified exception-control plan or further code/data validation. Do not silently generalize from the one-unit pilot to every use of the whole group.
+
+**Next safe step:** Distinct authenticated DEV Accounting Checker uses Desk `/app/ccpc-phase1-finance` Expense type and candidate Item Group, clicks **Check coverage → Review draft** (read only), and verifies exact Company/source/target/revision/preparer/effective time; **do not click Sign and approve** yet. No PRODUCTION changes.
+
+---
+
 ## 2026-11-20 — Center mapping active in DEV after independent test approval (public-safe)
 
 **Owner-provided MAIN DEVELOPMENT ERPNext Desk validation after signed test approval:** For the initial Company-scoped pilot Maintenance beneficiary Department, **Active mapping = the existing main leaf Cost Center** and **Active revision shown** (identifier omitted from this public repository). This is verified by operator screen output, **not** by direct access from assistant to the live DEV DB. In the currently inspected application onboarding code, `get_pilot_coverage` requires an approved, effective revision and enforces approval provenance before returning it as active. This confirms the initial test Center mapping appears active and the configured Company's normal downstream resolution can rely on it, subject to integrated stock/GL UAT.
