@@ -89,6 +89,10 @@ Offer management a Company-scoped and date-scoped **Department Expense Statement
 
 ---
 
+### First exception voucher triage — 2026-11-20
+
+Operator's subsequent MAIN DEV read-only query isolated **all three missing-Department CCPC expense GL rows** as `Stock Entry` voucher origin: `MAT-STE-2026-00007` (2026-09-12, `5400 - Stock Adjustment - CCPC`, `Main - CCPC`), `MAT-STE-2026-00009` (same date/account/center), and `MAT-STE-2026-00019` (2026-10-06, `5140 - Repairs & Maintenance - CCPC`, `Main - CCPC`). No sums/amounts or sensitive data are required for source triage. Their exact Stock Entry purposes, source header/item Department and Withdrawal Slip links are **unverified**. Investigate original Stock Entry and child records **read-only** to distinguish missing-at-source vs missing-only-in-GL dimensions. Keep unassigned GL separate; this does not approve `5400` or `5140` as active Finance mapping, historic correction, or a live stock issue.
+
 ## 7. Controlling project references
 
 - [GitHub-first workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md)
