@@ -327,3 +327,153 @@ INSPECTION_COMPLETE
 
 **Stage C decision hold:** Owner approved only `plan`, **not** authorization-marker creation, root-only filesystem mutations beyond previous Stage B, `install` mode, systemd unit installation, nftables state mutation, Docker/UFW restart, agent/online Squid startup or PRODUCTION/DEVELOPMENT actions. Stage A private baseline and two SSH/admin recovery connections remain the operator-reported prerequisites. Before submitting a bounded Stage C installation command for **separate explicit approval**, review root-marker path/ownership/no-symlink checks, exact immutable source SHA, current host/agent/iptables guard recheck, prior baseline storage, no global `flush ruleset`, limited table-only mutation, preservation of restrictive policy on failure, and an exact, separately authorized project-table-only rollback when agent remains stopped. A one-shot install will not solve future reload loss or Docker manual-start bypass; Codex remains **NO-GO**.
 
+
+
+## Proposed Stage C — single-table install and temporary-marker cleanup (NOT APPROVED)
+
+**Status:** Drafted after the operator's read-only **Step 118 `PROJECT_NFT_TABLE_STATE=absent`** result. **NO AUTHORIZATION TO EXECUTE**. This is a proposed Stage C host mutation, unlike Steps A/B and `plan`. It intentionally excludes systemd installation, unit enablement, Docker or UFW reload, reboot, Codex/Squid startup and any proxy bridge. Owner must separately approve the **exact command** after reviewing possible impact on existing synthetic-lab connections.
+
+**Risk and scope:** The rule transaction adds a new **inet** table with four DROP rules: laboratory-bridge → host INPUT, host → laboratory bridge OUTPUT, and both cross-bridge forwarding directions; same-bridge lab traffic should remain unaffected by these rules but only live tests can prove it. The policy cannot guarantee reload/reboot persistence, protection after bridge recreation, or defense against privileged manual Docker starts. It may affect host-to-lab access; keep a second administrator SSH/recovery session and the Stage A private firewall baseline. Do **not** enable/reload/stop stock `nftables.service` because its effective unit lifecycle uses global `flush ruleset`. No other shared chain/table should be touched by the audited controller.
+
+**Proposed command — NOT YET APPROVED, DO NOT EXECUTE:**
+
+```bash
+sudo python3 -I - <<'PY'
+import os
+import stat
+import subprocess
+import sys
+from pathlib import Path
+
+BASE = Path("/opt/ccpc/codex-lab-review")
+CONTROLLER = BASE / "scripts/security/ccpc_codex_nft_scoped_controller.py"
+MARKER = Path("/etc/ccpc/codex-lab-nft-guard-authorized")
+BODY = b"CCPC_CODEX_NFT_GUARD_INSTALL_APPROVED\n"
+EXPECTED_COMMIT = "66960f73a69b10b59f508cda7bfd4ac9ea5c21af"
+BLOBS = {
+    "ccpc_codex_nft_scoped_controller.py":
+        "e07b1afcb39761fb0f5613c83c5f97b4aee46d22",
+    "ccpc_codex_nft_guard_review.py":
+        "eabbbfd5d5de4cdcf4e5e0c25732bf3c641ffdc4",
+    "ccpc_codex_lab_firewall_guard.py":
+        "619d8dd962e3c995b53d57ac4c55a85ace2e4eab",
+    "ccpc_firewall_rule_order.py":
+        "af9a63bc8a390905a7e0da78e8c0b20c7f8af537",
+}
+
+def require(condition):
+    if not condition:
+        raise RuntimeError("precondition failed")
+
+def run(*argv, timeout=90):
+    p = subprocess.run(argv, capture_output=True, text=True, timeout=timeout)
+    require(p.returncode == 0)
+    return p.stdout.strip()
+
+def root_dir(path, exact_mode=None):
+    st = os.lstat(path)  # Reject symlinks.
+    require(stat.S_ISDIR(st.st_mode) and st.st_uid == 0
+            and st.st_gid == 0 and not (st.st_mode & 0o022))
+    if exact_mode is not None:
+        require(stat.S_IMODE(st.st_mode) == exact_mode)
+
+def root_file(path):
+    st = os.lstat(path)
+    require(stat.S_ISREG(st.st_mode) and st.st_uid == 0
+            and st.st_gid == 0 and stat.S_IMODE(st.st_mode) == 0o400)
+
+try:
+    require(os.geteuid() == 0)
+    require(run("hostname", "-s") == "ccpcerpserver")
+    root_dir("/opt")
+    root_dir("/opt/ccpc", 0o700)
+    root_dir(BASE, 0o700)
+    root_dir(BASE / "scripts", 0o700)
+    root_dir(BASE / "scripts/security", 0o700)
+    root_file(BASE / "REVIEWED_SOURCE_COMMIT")
+    require((BASE / "REVIEWED_SOURCE_COMMIT").read_text()
+            == EXPECTED_COMMIT + "\n")
+    require(set(os.listdir(BASE / "scripts/security")) == set(BLOBS))
+    for filename, sha in BLOBS.items():
+        target = BASE / "scripts/security" / filename
+        root_file(target)
+        require(run("git", "hash-object", "--", str(target)) == sha)
+
+    # Stage A was a private recovery reference, not wholesale restore permission.
+    found_private_snapshot = False
+    for snap in Path("/root").glob("ccpc-codex-nft-preinstall.????????"):
+        try:
+            root_dir(snap, 0o700)
+            if all(
+                (snap / name).is_file() and (snap / name).stat().st_size > 0
+                for name in ("iptables.v4", "iptables.v6",
+                             "nftables.json", "routes.json", "services.txt")
+            ):
+                found_private_snapshot = True
+                break
+        except (OSError, RuntimeError):
+            continue
+    require(found_private_snapshot)
+
+    plan = run(sys.executable, "-B", str(CONTROLLER), "plan")
+    require("PROJECT_NFT_TABLE_STATE=absent" in plan.splitlines())
+    require("agent_launch_authorized=False" in plan.splitlines())
+    require(not os.path.lexists(MARKER))
+    root_dir("/etc")
+    if not os.path.lexists(MARKER.parent):
+        os.mkdir(MARKER.parent, 0o700)
+    root_dir(MARKER.parent)
+    require(not os.path.lexists(MARKER))
+
+    # Exclusive temporary authority. No marker persists on normal completion
+    # or caught failure; after an interruption, inspect before retrying.
+    fd = os.open(
+        MARKER,
+        os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600
+    )
+    try:
+        os.fchmod(fd, 0o600)
+        info = os.fstat(fd)
+        require(info.st_uid == 0 and stat.S_ISREG(info.st_mode))
+        written = os.write(fd, BODY)
+        require(written == len(BODY))
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+
+    outcome = None
+    try:
+        outcome = run(sys.executable, "-B", str(CONTROLLER), "install")
+        require("PROJECT_NFT_TABLE_INSTALLED=True" in outcome.splitlines())
+        verification = run(sys.executable, "-B", str(CONTROLLER), "verify")
+        require("PROJECT_NFT_TABLE_EXACT=True" in verification.splitlines())
+        run("systemctl", "is-active", "--quiet", "ufw.service")
+        run("systemctl", "is-active", "--quiet", "docker.service")
+    finally:
+        current = os.lstat(MARKER)
+        require(current.st_ino == info.st_ino and current.st_dev == info.st_dev
+                and stat.S_ISREG(current.st_mode) and current.st_uid == 0)
+        os.unlink(MARKER)
+
+    require(not os.path.lexists(MARKER))
+    print("source_hashes_reverified=True")
+    print("private_baseline_reference_present=True")
+    print("project_nft_table_installed_and_exact=True")
+    print("temporary_authorization_marker_removed=True")
+    print("ufw_and_docker_still_active=True")
+    print("codex_launch_authorized=False")
+    print("reload_reboot_persistence_verified=False")
+    print("STAGE_C_ONE_TABLE_ONLY_COMPLETE")
+except Exception:
+    print("STOP: Stage C verification or bounded install failed")
+    print("DO_NOT_REPEAT_OR_ROLL_BACK_AUTOMATICALLY")
+    print("codex_launch_authorized=False")
+    sys.exit(1)
+PY
+```
+
+**Success interpretation:** Only if the final `STAGE_C_ONE_TABLE_ONLY_COMPLETE` is printed, the pinned source, private baseline reference, exact project table verification, temporary marker removal and existing Docker/UFW availability were checked. It does **not** establish network negative-canary results or persistence. The controller's own static precondition checks also require stopped agent/no restart and exact existing original-lab firewall rules. The only intended filesystem effects are a possible newly created root-owned `/etc/ccpc` directory and a **temporary** marker that is removed on completion, plus a kernel-owned CCPC-only nft table and controller lock file. The first attempt may leave a new `/run/lock/ccpc-codex-nft-guard.lock` with mode 0600. It will not install any systemd unit or enable any service.
+
+**Failure and recovery:** If a precondition fails, the command is intended to refuse the nft transaction. If nft transaction or postcheck fails after the table was created, the controller **deliberately retains restrictive DROP rules** instead of weakening protection; the shell removes its temporary authorization marker in the normal exception path. If power is lost or the process is forcibly interrupted, the marker may remain and must be inspected privately before any retry. **Never rerun Stage C blindly, globally flush the ruleset, restart Docker/UFW, or restore the entire private snapshot**. A proposed *scoped rollback only if separately approved* would first recheck stopped agent/restart disabled, original three DROP rules and exact dedicated table contents, then delete **only** `table inet ccpc_codex_lab_guard` if its existence is proven and no Codex process depends on it; absence/ambiguous contents must STOP. The exact rollback wrapper and live negative tests remain separate operational steps and require independent approval.
+
+**Approval boundary:** No such command is authorized by the owner's Step 117/118 approval for `plan`. Before approving table creation, the owner should confirm the second recovery session remains working, the original lab services' connectivity dependencies are understood, and a minimal rollback command is acceptable. The faster path is to install this single table without a service and test controlled synthetic negative canaries *while the Codex agent is stopped*. The safer isolation fallback is a dedicated Codex VM/host, avoiding shared-host firewall continuity. Neither path licenses agent startup yet.
