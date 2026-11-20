@@ -812,6 +812,18 @@ READ_ONLY_VERIFICATION_COMPLETE
 
 ---
 
+## Step 122 — second admin SSH recovery session reconfirmed after nft installation (2026-11-20)
+
+**Operator's direct reply:** The owner answered **“Confirmed”** to the specific Step 121 post-install question asking whether the independent second administrator SSH connection to `ccpcerpserver` still works after the newly installed CCPC nftables table. This is operator-attested current accessibility, not ChatGPT-run SSH inspection or a guaranteed out-of-band link. The original SSH and second administrator recovery session should both remain open. The private Stage A baseline has not been exposed or used for global restoration.
+
+**Current known host checkpoint:** Step 120 reported `inet ccpc_codex_lab_guard` installed via separately approved exact code; Step 121 reported independent read-only exact table structural/content verification and other UFW/Docker/iptables/agent state checks. The latter status predates this reconfirmation, so it is not a guarantee after any later reconfiguration. The new second-SSH confirmation involves no firewall, service, Docker, or Codex change.
+
+**Next read-only inventory, not active network test:** Review original Docker lab network identity, existing original stopped Codex agent and synthetic DB/Redis container states using only bounded, sanitized Docker inspections. The review branch's `codex-dev-agent/compose.yaml` includes un-deployed network/proxy proposals; do not mistake it for live host topology. No `docker exec/run/up`, traffic probes, DB authentication or access to DEVELOPMENT/PRODUCTION. Prepare future **synthetic-only, positive and negative canary tests** to assess exact allowed and prohibited packet paths, but obtain separate exact-command approval before running them.
+
+**Still NO-GO:** Codex/Squid startup, proxy bridge configuration, nftables persistence service, stock nftables.service start/reload/stop, UFW/Docker reload/restart, reboot, lab/DEVELOPMENT/PRODUCTION mutations, or firewall rollback. Neither reload/reboot continuity nor zero-gap launch isolation has been proven. Paired [Step 122 recovery checkpoint](https://github.com/ccpcerp/ccpc-frappe-deployment/commit/1eeb99a2e143e94563e053f734b8123020af82b9).
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
