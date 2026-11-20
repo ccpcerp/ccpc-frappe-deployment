@@ -498,6 +498,29 @@ READ_ONLY_CHECK_COMPLETE
 
 ---
 
+## Step 104 — original lab firewall order PASS; persistence/start gate remains NO-GO (2026-11-20)
+
+**Owner-provided read-only host evidence** from the previously reviewed Step 2 Python diagnostic on `ccpcerpserver` (not independently executed by ChatGPT):
+
+```text
+agent_stopped=True
+host_input_rule_priority_verified=True
+docker_user_rule_priority_verified=True
+forward_hook_priority_verified=True
+firewall_persistence_verified=False
+runtime_network_isolation_verified=False
+codex_launch_authorized=False
+READ_ONLY_ORDER_CHECK_COMPLETE
+```
+
+**Interpretation:** With the known-label Codex agent stopped and Docker restart policy disabled, the operator's diagnostic compared normalized `iptables -S INPUT` first appended rule and `iptables -S DOCKER-USER` first two appended rules to the exact expected original-lab tagged DROP specifications, including inverse-match syntaxes and order-independent comparison of the two restrictive `DOCKER-USER` prefix positions. It also required the first `FORWARD` jump to be `DOCKER-USER`. **All reported assertions passed**. Together with Step 103's exact `iptables -C` presence checks, this establishes **presence and rule priority at the observed moment**. It is not proof of actual traffic denial, unbypassability, persistent rules or absence of alternate host paths; direct host/runtime network testing remains pending. No Linux firewall, Docker container/network, Codex process, UFW/systemd service, persistent DEVELOPMENT or separate PRODUCTION change occurred.
+
+**Persistence engineering implication:** Steps 87–91 already checked common UFW saved sources/hooks, selected systemd/cron startup references and direct Docker/UFW ordering, and **did not establish automatic restoration** after reboot, Docker chain rebuild, or UFW reload. Repeating the same static inventory will not prove persistence. PR #39 contains a **review-only, uninstalled** systemd restore template and a read-only guard, but it does not enforce an unbypassable per-launch guard or Squid outgoing egress policy. Its pre-existing original-lab `ccpc_codex_dev_lab_firewall.sh` declares temporary rules; unscoped use of its `rollback` can remove protective rules and is not authorized.
+
+**Next meaningful gate:** Design and review an idempotent, exact-rule, fail-closed original-lab firewall persistence/install transaction and a separately verified **manual Codex launch gate**. Prove recovery/rollback boundaries and that a firewall reload or daemon reinitialization cannot permit Codex to continue running with missing rules. A privileged Docker administrator can bypass a cooperative startup script, so operational restriction/enforcement must be addressed before launch approval. Host changes (UFW/iptables/systemd, reboot, network creation, agent start or proxy image pull) require **separate explicit scoped approval**, admin recovery and negative nonproduction-canary tests. Further host read-only checks may support design only; they cannot alone prove reload persistence. Keep PR #39 open/draft, and **NO-GO** for Codex start.
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
