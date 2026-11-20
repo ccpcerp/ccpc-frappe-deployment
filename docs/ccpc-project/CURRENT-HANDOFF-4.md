@@ -1,5 +1,15 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-20 — Full pilot Item Group name review completed; Finance approval still required (public-safe)
+
+**Operator-provided MAIN DEV read-only Item master list:** The candidate pilot's exact leaf Item Group has **19 enabled stock Items**; the operator provided all 19 names, and each is an identifiable bearing variant (ball, double-row, angular-contact, spherical/tapered roller or thrust bearing). This confirms consistent **naming/product type**, **not** that every issue has the same accounting purpose; some bearing usage could relate to capital projects, production, service contracts or routine equipment maintenance. No new Item records, accounting mappings or stock entries were created.
+
+**Proposed but not authorized:** A narrow **same-Company maintenance Department pilot** may use the existing repairs-and-maintenance expense Account for the **whole exact leaf Item Group** and an existing eligible central Company Cost Center, but first requires a real Finance decision on **all 19 Items' permissible issue purposes**, expense versus capital policy, and the accepted centralized Cost Center allocation. Mapping at exact Item Group level is broad, not single-Item: if mixed financial treatment is required, stop and design a governed more granular categorization/exception before activation. Maker and distinct Accounting Checker must sign exact Company, Item Group→Expense and beneficiary Department→Center revisions under current controls; user approval of architecture in chat is not a substitute. No posting UAT, financial crosswalk activation, inventory consumption or PROD changes. Current GitHub docs repository is public: retain financial master IDs, voucher IDs and quantitative stock data out of this handoff.
+
+**Next milestone:** Finance returns explicit written policy suitability/decision for both proposed maps, then determine separately authorized DEV-only draft/signature/posting procedure with validation of full Department dimension in GL, original Stock Entry/SLE, source-quality report and transaction integrity. Pending signed Accounting decision: **POSTING NO-GO**.
+
+---
+
 ## 2026-11-20 — Historical cross-Company beneficiary/company ownership verified; Phase 1 remains same-Company
 
 **Operator-provided MAIN DEVELOPMENT read-only follow-up (public-safe abstract, no voucher IDs or financial amounts):** The older Withdrawal Slip's `requesting_company` was confirmed to be a **different legal Company** from its issuing Company; both requesting and beneficiary Departments were verified against live `tabDepartment` to belong to that requesting Company, not the issuer. This corroborates the previous legacy cross-Company attribution exception and explains why it cannot be classified as same-Company Department consumption. The current Slip field values are not immutable issue-time attribution evidence. No inference has been made that the beneficiary Company has recognized matching GL expense or payable.
