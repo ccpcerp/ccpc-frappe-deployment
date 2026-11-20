@@ -57,7 +57,7 @@ jobs:
             test -z "$(git status --porcelain)"
             echo "Exact reviewed commit and source-only test prerequisites: PASS"
       - run:
-          name: Run 81 stdlib-only regressions without site, Docker or network
+          name: Run 118 stdlib-only regressions without site, Docker or network
           no_output_timeout: 3m
           command: |
             set -euo pipefail
@@ -66,14 +66,14 @@ jobs:
             suite = unittest.defaultTestLoader.discover(
                 "codex-dev-agent/tests", pattern="test_*.py"
             )
-            if suite.countTestCases() != 81:
+            if suite.countTestCases() != 118:
                 raise SystemExit("STOP: unexpected source-only regression count")
-            print("81 source-only regression tests discovered")
+            print("118 source-only regression tests discovered")
             PY
             timeout -s TERM 120s python3 -m unittest discover \
               -s codex-dev-agent/tests -p 'test_*.py' -v
             test -z "$(git status --porcelain)"
-            echo "PASS: exact-SHA 81-test source-only suite; no live isolation asserted"
+            echo "PASS: exact-SHA 118-test source-only suite; no live isolation asserted"
 
 workflows:
   codex-security-manual-only:
