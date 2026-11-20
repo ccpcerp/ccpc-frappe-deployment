@@ -9,6 +9,7 @@ on:
       - 'codex-dev-agent/**'
       - 'scripts/security/ccpc_codex_proxy_bridge_preflight.py'
       - 'scripts/security/ccpc_codex_lab_firewall_guard.py'
+      - 'scripts/security/ccpc_firewall_rule_order.py'
       - 'scripts/security/ccpc_codex_dev_lab_firewall.sh'
       - 'scripts/security/systemd/**'
       - '.github/workflows/codex-lab-static-review.yml'
