@@ -418,6 +418,20 @@ Owner created a new, **public and separate** GitHub test repository, `ccpcerp/cc
 
 ---
 
+## Step 99 — automatic disposable Frappe/ERPNext v16 PASS (2026-11-20)
+
+**Owner-approved public-only CI extension; completed and verified.** The public repository `ccpcerp/ccpc-ci-sandbox` now has a third automatically triggered GitHub-hosted Actions job: real public Frappe/ERPNext v16 installation plus MariaDB DocType verification. The implementation used review branch `ci/automatic-public-frappe-smoke-2026-11-20`, PR [#1](https://github.com/ccpcerp/ccpc-ci-sandbox/pull/1), and was **squash-merged into public `main`** at verified commit [`3bce6b72296b47e58f4f5e2a72af73f74ec059a1`](https://github.com/ccpcerp/ccpc-ci-sandbox/commit/3bce6b72296b47e58f4f5e2a72af73f74ec059a1). GitHub branch/file reads confirmed the exact merged workflow and Compose stack on `main`.
+
+**Verified passing CI:** The corrected PR [run 44665541094](https://github.com/ccpcerp/ccpc-ci-sandbox/actions/runs/44665541094) completed `success` for all three jobs. Independently, the **automatic push event caused by merging** initiated [run 44665949106](https://github.com/ccpcerp/ccpc-ci-sandbox/actions/runs/44665949106) on the exact merge SHA `3bce6b7`, with `status=completed` and `conclusion=success` for **all three jobs**. The Frappe job output explicitly confirmed the new synthetic `ci.localhost` site, Frappe `16.60.2`, ERPNext `16.60.0`, and actual MariaDB `Sales Invoice` and `Stock Entry` DocTypes. Docker volume and network removals were visible in the successful post-job log. The job uses public `frappe/erpnext:v16.60.0`, public MariaDB 11.8 and Redis 6.2, a synthetic known CI-only password, a private-to-container Docker network with no host-published ports, GitHub-hosted-only runtime guard, cleanup trap, no fork-PR heavy job, and 18-minute timeout. Existing two Python and two MariaDB synthetic tests still passed.
+
+**Failure corrections recorded:** The first PR attempt failed because the `bench new-site` command supplied the site operand twice; fix [`44b5136`](https://github.com/ccpcerp/ccpc-ci-sandbox/commit/44b5136eee5ce9eb695d2349ab2253747f2df2f0) corrected this. The second attempt actually installed ERPNext but incorrectly parsed a Frappe container startup banner together with the generated DB name; fix [`aa024da`](https://github.com/ccpcerp/ccpc-ci-sandbox/commit/aa024da79dff5054b4bfc7701a364e2a4fbd3d8d) extracted only the final result line. Subsequent PR and merge-push executions both passed. Failed historical runs remain visible as evidence; do not describe them as passing.
+
+**Boundaries unchanged:** Public CI carries **no private CCPC application code**, GitHub private credentials, production/business data, server access, or local Codex proxy activation. These checks prove an actual generic Frappe/MariaDB setup, **not** CCPC-specific stock movement/GL/intercompany business acceptance, real concurrency safety, or DEVELOPMENT acceptance. Public repository visibility cannot retroactively protect previously published material if changed to private. This is **not** authorization for private-code publication, Codex/Squid activation, development/production changes, or a paid CI provider. Existing local Codex/Squid security gates remain independent **NO-GO**.
+
+**Next delivery gate:** Scope a secure, private-source-capable CI method for the real CCPC custom app and synthetic transactional acceptance. Retain automatic public-only Frappe smoke tests as reusable preliminary infrastructure validation.
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
