@@ -583,6 +583,35 @@ NO_HOST_CHANGES_PERFORMED
 
 ---
 
+## Step 108 — effective nftables unit loads and flushes global ruleset (2026-11-20)
+
+**Evidence provenance:** Owner pasted the sanitized result of the immediately preceding `python3` read-only `systemctl show` inspection on `ccpcerpserver`; ChatGPT has **not** directly executed any command on that host. The inspection classified the service's effective `ExecStart`, `ExecReload`, `ExecStop`, direct `Requires/Wants/After` dependencies and drop-in state; it did not print raw unit commands or execute them.
+
+```text
+nft_service_active=False
+nft_service_enabled=False
+nft_start_loads_main_config=True
+nft_reload_loads_main_config=True
+nft_stop_flushes_ruleset=True
+nft_service_has_dropins=False
+docker_directly_depends_on_nftables=False
+ufw_directly_depends_on_nftables=False
+effective_unit_properties_inspected=True
+reload_persistence_verified=False
+agent_launch_authorized=False
+READ_ONLY_CHECK_COMPLETE
+```
+
+**Combined with Step 107:** The main nftables configuration contains an active `flush ruleset` directive, and the effective `nftables.service` `ExecStart` and `ExecReload` reference that main configuration; the effective `ExecStop` contains `flush ruleset`. The service is currently **inactive and disabled**, has no observed drop-ins, and the inspected Docker/UFW units have no direct declared `Requires/Wants/After` dependency on nftables.service. This makes the **stock nftables.service unsafe as an installation/reload path** for the proposed CCPC table while UFW/Docker manage other rules: starting/reloading could flush the global ruleset via the main file; stopping could do the same via ExecStop. These read-only booleans do not establish the impact of an actual service action, nor exclude transitive dependencies, out-of-band commands, or other firewall controllers. No active CCPC independent nftables table was found at Step 107. The original iptables laboratory rules were previously checked at Steps 103–104, not rechecked here.
+
+**Design decision:** **Do not use or enable the stock nftables.service** and do not edit its main global-flush file as a shortcut. For a separately authorized next review phase, prefer a **dedicated, root-owned, CCPC-scoped nftables table controller** which reads only an immutable, reviewed per-project policy; never uses `flush ruleset` or `nftables.service`, never touches UFW/Docker-owned tables, and verifies table identity before any mutation. It must have no broad stop/remove handler, be idempotent and fail closed when unexpected rules/table exist, and refuse action unless Codex is stopped with automatic restart disabled and the correct bridge identity is verified. Coupling to Docker/UFW boot/reload events must be reviewed independently; a systemd oneshot is **not proof** of reload persistence.
+
+**Unresolved zero-gap problem:** A dedicated CCPC table or service can still be removed by privileged firewall operations or bypassed by Docker network recreation, and no polling watchdog can guarantee zero traffic exposure. Until offline lab network-path denial, reboot/reload survivability, negative non-PRODUCTION canaries, isolated image/resources and operator-override prevention are validated, **Codex activation remains NO-GO**. Do not start, stop, enable, reload or restart `nftables.service`; do not restart Docker, reload UFW, flush any firewall table, or start/attach Codex/Squid.
+
+**Next safe decision:** complete a review-only scoped-service and rollback plan in GitHub, followed by one bounded operator-safe pre-installation inventory of potential systemd-unit/path conflicts and recovery options. **Separate explicit approval** will be necessary for every actual host installation, authorization-marker creation, kernel rule modification or controlled reload, after a second SSH/recovery channel and private firewall snapshot are established.
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
