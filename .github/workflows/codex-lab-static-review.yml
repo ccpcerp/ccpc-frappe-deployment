@@ -11,6 +11,7 @@ on:
       - 'scripts/security/ccpc_codex_lab_firewall_guard.py'
       - 'scripts/security/ccpc_codex_lab_firewall_reconcile.py'
       - 'scripts/security/ccpc_codex_lab_start_interlock.py'
+      - 'scripts/security/ccpc_codex_nft_guard_review.py'
       - 'scripts/security/ccpc_firewall_rule_order.py'
       - 'scripts/security/ccpc_codex_dev_lab_firewall.sh'
       - 'scripts/security/systemd/**'
@@ -38,9 +39,9 @@ jobs:
           suite = unittest.defaultTestLoader.discover(
               "codex-dev-agent/tests", pattern="test_*.py"
           )
-          if suite.countTestCases() != 118:
+          if suite.countTestCases() != 139:
               raise SystemExit("STOP: expected exactly 118 security regression tests")
-          print("118 source-only security regressions discovered")
+          print("139 source-only security regressions discovered")
           PY
 
       - name: Run stdlib-only negative security regressions

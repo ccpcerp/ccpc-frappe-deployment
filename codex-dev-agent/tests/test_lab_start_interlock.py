@@ -154,6 +154,24 @@ class TestOfflineCodexStartGate(unittest.TestCase):
                 self.assertEqual(gate.main(["verify"]), 0)
         self.assertIn("agent_launch_authorized=False", out.getvalue())
 
+    def test_independent_nft_layer_failure_blocks_launch(self):
+        with mock.patch.object(gate, "authorization_required"):
+            with mock.patch.object(
+                guard, "inspect_host", return_value={"host": ("INPUT", ["-i", "br-test"])}
+            ):
+                with mock.patch.object(guard, "check_current_rules"):
+                    with mock.patch.object(
+                        gate.independent_nft, "verify_kernel",
+                        side_effect=gate.independent_nft.LayerFailure()
+                    ):
+                        with mock.patch.object(
+                            guard, "command", side_effect=AssertionError(
+                                "container inspection must not proceed"
+                            )
+                        ):
+                            with contextlib.redirect_stdout(io.StringIO()):
+                                self.assertEqual(gate.main(["verify"]), 1)
+
     def test_source_never_starts_or_stops_containers(self):
         source = (SECURITY / "ccpc_codex_lab_start_interlock.py").read_text()
         self.assertNotIn('["docker", "start"', source)

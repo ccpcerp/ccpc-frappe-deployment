@@ -4,7 +4,8 @@
 Never starts Codex, a container, a proxy or a Docker network. Returns success
 only for a stopped synthetic agent with verified original-bridge firewall,
 pinned image provenance identifier, bounded effective resources and a separate
-root-owned explicit authorization marker. This is a prerequisite, NOT an
+root-owned explicit authorization marker plus an independent nftables guard.
+This is a prerequisite, NOT an
 unbypassable Docker-launch control or a runtime firewall-loss watchdog.
 """
 import json
@@ -14,6 +15,7 @@ import stat
 import sys
 
 import ccpc_codex_lab_firewall_guard as guard
+import ccpc_codex_nft_guard_review as independent_nft
 
 AGENT = "ccpc_codex_dev_agent-agent-1"
 LAB = "ccpc_codex_dev_agent_lab"
@@ -106,6 +108,7 @@ def verify():
     authorization_required()
     specs = guard.inspect_host()        # Requires stopped agent; host identity.
     guard.check_current_rules(specs)    # Exact three DROP rules and top order.
+    independent_nft.verify_kernel()     # Separate nftables deny layer; fail closed.
     container = json.loads(guard.command(["docker", "inspect", AGENT]))
     network = json.loads(guard.command(["docker", "network", "inspect", LAB]))
     if len(container) != 1 or len(network) != 1:
@@ -120,7 +123,8 @@ def main(argv=None):
         return 2
     try:
         verify()
-    except (GateFailure, guard.GuardFailure, OSError, ValueError,
+    except (GateFailure, guard.GuardFailure, independent_nft.LayerFailure,
+            OSError, ValueError,
             TypeError, KeyError, IndexError, AttributeError):
         print("STOP: offline Codex startup interlock failed")
         return 1
