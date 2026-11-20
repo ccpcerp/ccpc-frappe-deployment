@@ -396,6 +396,16 @@ Owner created a new, **public and separate** GitHub test repository, `ccpcerp/cc
 
 **NO-GO unchanged:** Draft deployment PR #39 unmerged and Codex/Squid stopped at last operator snapshot. Firewall persistence, proxy egress and live isolation remain unverified. No DEVELOPMENT or PRODUCTION changes were performed.
 
+## Step 97 — public GitHub-hosted runner smoke PASS (2026-11-20)
+
+**Verified outcome:** The owner manually dispatched the public standard-runner test. The connected GitHub API independently confirmed exactly one run for `ccpcerp/ccpc-ci-sandbox`: [run 44660189430](https://github.com/ccpcerp/ccpc-ci-sandbox/actions/runs/44660189430), event `workflow_dispatch`, `status=completed`, `conclusion=success`, created 2026-11-20 02:21:24 UTC (10:21:24 Asia/Manila), running commit `78fb63e156915766a7fef510abe2908f0499a678` on `main`. GitHub job `Public standard runner / Python smoke` also concluded `success` (job ID `136036250169`). Operator-provided job logs show both Python standard-library assertions passed, 0 failures.
+
+**What this proves:** A manually dispatched public GitHub-hosted `ubuntu-latest` runner executed successfully for this account/repository at that moment. **What it does not prove:** private CCPC repository Actions eligibility, suitability for Frappe/MariaDB integration, CircleCI availability or free-credit budget, or safety/authorization to activate the local Codex lab. The public repo workflow does not contain or check out private CCPC application code or secrets. No lab/DEV/PRODUCTION changes occurred as part of this verification, and no CI rerun or paid runner was initiated by ChatGPT.
+
+**Disposition:** Public smoke test **PASS**. Existing independent Codex/Squid isolation and shared-host resource blockers remain **NO-GO**; production and protected DEVELOPMENT controls are unchanged. For actual ERPNext integration testing, review the existing private-repository/approved hosted-CI path and its cost/security gates separately.
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
