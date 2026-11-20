@@ -113,3 +113,21 @@ This block creates a **new root-only directory under /root** and writes referenc
 
 **Still NOT approved:** Copying/pulling source into host paths, creating the authorization marker, installing/running the scoped nft controller or systemd unit, enabling `nftables.service`, restarting/reloading UFW or Docker, any reboot, running Codex/Squid, network probes, or PRODUCTION/DEVELOPMENT changes. A saved snapshot alone is not a verified restore/rollback procedure; never restore it wholesale over UFW/Docker.
 
+
+## Step 112 — Stage A private host baseline reported PASS (2026-11-20)
+
+**Operator execution evidence (sanitized stdout pasted directly by owner):** The owner ran the separately authorized Step 111 Stage A baseline command on `ccpcerpserver` and reported the following exact output:
+
+```text
+host_verified=True
+agent_stopped=True
+private_baseline_saved=True
+kernel_rules_modified=False
+services_restarted=False
+codex_launch_authorized=False
+```
+
+**Status: Stage A PASS as reported by the operator.** The command confirmed hostname, stopped known Codex agent, restart policy disabled, and stock nftables.service inactive/disabled before creating a fresh, root-private directory using `mktemp -d` and `umask 077`. It then saved five nonempty private references: IPv4 and IPv6 `iptables-save` output, `nft -j list ruleset`, routes, and selected service states. The command included **no firewall mutation or service restart**. ChatGPT had no direct SSH access; the private saved files and free space/permissions were not independently re-inspected. The owner confirmed a second working recovery session at Step 110. Never upload raw baseline data or even its private filesystem pathname to a public repository or chat.
+
+**Stage B (not yet authorized):** Prepare a pinned, minimal **source-only staging** transaction for the exact GitHub review commit, limited to `ccpc_codex_nft_scoped_controller.py`, `ccpc_codex_nft_guard_review.py`, `ccpc_codex_lab_firewall_guard.py`, and `ccpc_firewall_rule_order.py`. The source staging must create no root approval marker, add no systemd unit, install no kernel nftables table or firewall rule, start/stop no containers, and make no change to DEVELOPMENT/PRODUCTION. Require owner approval of the **exact commands** before staging; do not treat Stage A approval as Stage B authorization. The staged source must have independently verified immutable commit/content provenance and restrictive ownership/mode, no symlinks or existing target overwrite, and a failure path that does not accidentally execute staged code. The source may be reviewed read-only after staging. A later Stage C separate project-table installation remains **NO-GO** until the exact reviewed command, negative canaries, restart/reload lifecycle, trust boundary and rollback are accepted.
+
