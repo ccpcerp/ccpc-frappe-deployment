@@ -7,6 +7,7 @@ Nothing here authorizes bringing up the online proxy or agent.
 """
 import ipaddress
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -27,6 +28,17 @@ EXPECTED_IMAGES = {
     "redis-cache": "redis:7-alpine",
     "redis-queue": "redis:7-alpine",
     "egress-proxy": "ubuntu/squid:latest",
+}
+
+# Proposed REVIEW-ONLY ceiling values; CPU remains unrestricted by preference.
+# Memory+swap equal prevents unbounded swap usage on supported Docker hosts.
+# These are candidate budgets, NOT approved runtime sizing or host readiness.
+EXPECTED_RESOURCE_BOUNDS = {
+    "agent": (8 * 1024**3, 512),
+    "db": (2 * 1024**3, 256),
+    "redis-cache": (384 * 1024**2, 128),
+    "redis-queue": (384 * 1024**2, 128),
+    "egress-proxy": (512 * 1024**2, 128),
 }
 
 # Preserve the existing allowlist pending a separate domain/SSRF review.
@@ -55,6 +67,34 @@ ACCESS_RULES = [
 
 def reject(message):
     raise ValueError(message)
+
+
+def resource_bytes(value):
+    """Accept integer-byte or Docker Compose unit rendering, fail closed."""
+    if isinstance(value, bool):
+        reject("boolean resource ceiling forbidden")
+    if isinstance(value, int) and value > 0:
+        return value
+    if not isinstance(value, str):
+        reject("missing or invalid resource ceiling")
+    match = re.fullmatch(r"([1-9][0-9]*)([kmgt]?)b?", value.strip().lower())
+    if not match:
+        reject("invalid resource ceiling units")
+    power = {"": 0, "k": 1, "m": 2, "g": 3, "t": 4}[match.group(2)]
+    return int(match.group(1)) * (1024 ** power)
+
+
+def validate_resource_bounds(name, service):
+    expected_memory, expected_pids = EXPECTED_RESOURCE_BOUNDS[name]
+    if resource_bytes(service.get("mem_limit")) != expected_memory:
+        reject(f"{name}: unexpected memory ceiling")
+    if resource_bytes(service.get("memswap_limit")) != expected_memory:
+        reject(f"{name}: swap usage must not exceed memory ceiling")
+    pids = service.get("pids_limit")
+    if isinstance(pids, bool) or not isinstance(pids, (int, str)):
+        reject(f"{name}: invalid PID ceiling")
+    if str(pids) != str(expected_pids):
+        reject(f"{name}: unexpected PID ceiling")
 
 
 def network_entries(service):
@@ -206,6 +246,7 @@ def validate(rendered, proxy_policy=None):
             reject(f"{name}: unreviewed image")
         if service.get("pull_policy") != "never":
             reject(f"{name}: image pulls must stay disabled")
+        validate_resource_bounds(name, service)
         expected_caps = (
             {"CHOWN", "SETUID", "SETGID", "DAC_OVERRIDE", "FOWNER"}
             if name == "db" else set()
