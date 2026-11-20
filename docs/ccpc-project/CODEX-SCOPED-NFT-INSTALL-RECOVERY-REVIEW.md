@@ -65,3 +65,41 @@ This design cannot prevent a concurrent privileged system process from recreatin
 - Consider **dedicated VM/host isolation** for Codex if shared-host reload/startup continuity cannot be independently enforced.
 
 **NO-GO for Codex and Squid.** The owner approved continued **GitHub engineering**, not host installation or production changes.
+
+
+## Step 110 — operator-confirmed independent recovery channel and proposed baseline capture (2026-11-20)
+
+The owner explicitly confirmed a **second working SSH/administrator recovery connection** to `ccpcerpserver` after Step 109. This is an **owner attestation**, not a ChatGPT-executed connectivity test or a promise of out-of-band access after total network failure. Keep both sessions open; the second connection must not depend on the Codex container.
+
+**Current PR #39 source checkpoint:** `f3b26fb2ebcc5189625cf131cc8454d40f131c93` (draft/unmerged). GitHub Actions [run 44684328438](https://github.com/ccpcerp/ccpc-frappe-deployment/actions/runs/44684328438) executed **161/161 mocked/source-only tests** and native nftables check-only syntax successfully. No real host table is installed and Codex remains NO-GO.
+
+**Next separate authorization requested: Stage A private baseline snapshot only**, before code staging, project marker creation, installing project nftables policy, any service file, enabling units, UFW/Docker reload, reboot, or Codex start. The following command block is **PROPOSED FOR OWNER REVIEW — DO NOT EXECUTE WITHOUT SPECIFIC STAGE A APPROVAL**:
+
+```bash
+sudo bash <<'CCPC_PRIVATE_BASELINE'
+set -euo pipefail
+test "$(hostname -s)" = "ccpcerpserver"
+test "$(docker inspect --format '{{.State.Running}}' ccpc_codex_dev_agent-agent-1)" = "false"
+test "$(docker inspect --format '{{.HostConfig.RestartPolicy.Name}}' ccpc_codex_dev_agent-agent-1)" = "no"
+test "$(systemctl show --value -p ActiveState nftables.service)" = "inactive"
+test "$(systemctl show --value -p UnitFileState nftables.service)" = "disabled"
+umask 077
+snapshot="$(mktemp -d /root/ccpc-codex-nft-preinstall.XXXXXXXX)"
+iptables-save > "$snapshot/iptables.v4"
+ip6tables-save > "$snapshot/iptables.v6"
+nft -j list ruleset > "$snapshot/nftables.json"
+ip -j route show table all > "$snapshot/routes.json"
+systemctl show --no-pager -p ActiveState -p UnitFileState     nftables.service ufw.service docker.service > "$snapshot/services.txt"
+for file in iptables.v4 iptables.v6 nftables.json routes.json services.txt; do
+    test -s "$snapshot/$file"
+done
+printf 'host_verified=True\nagent_stopped=True\nprivate_baseline_saved=True\n'
+printf 'kernel_rules_modified=False\nservices_restarted=False\n'
+printf 'codex_launch_authorized=False\n'
+CCPC_PRIVATE_BASELINE
+```
+
+This block creates a **new root-only directory under /root** and writes reference snapshots into it; it does **not** install/reload/flush a firewall or start/stop Docker. There is a small storage/I/O footprint and it saves raw firewall, routes and service context that must remain **private on the server**. It is a recovery reference, **not** permission to blindly run `iptables-restore` or `nft -f` against the snapshot: full restoring could overwrite shared DEVELOPMENT/UFW/Docker networking. If any precondition fails, stop and investigate privately; the command may leave a partial, root-only directory for administrator inspection. Do not paste the raw files, the private snapshot path, Docker env, credentials or rule dumps into this public repository or chat. Send back only the six booleans.
+
+**Separate later installation approval:** Before any attempt to create the marker or run `ccpc_codex_nft_scoped_controller.py install`, verify the exact source SHA/hash on the host, the project path ownership/no symlinks, current original bridge iptables rule checks and nft table absence, and a specific, scoped project-table rollback. Do not enable stock nftables.service, change global rules or start Codex. A dedicated controller is not reload persistence or zero-gap runtime enforcement.
+
