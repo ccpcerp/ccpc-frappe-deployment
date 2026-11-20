@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-20 — Finance maker/checker role overlap verified zero in both Companies
+
+**Operator-provided read-only MAIN DEV results:** Follow-up SQL on `development.localhost` counted **enabled, non-Guest/non-Administrator, Company-authorized named users who held BOTH** `CCPC Mapping Preparer` and `CCPC Accounting Mapping Approver` and lacked `Stockroom Personnel`. For **Cagayan Corn Products Corporation** the count was **0**, `Independence: PASS`; for **Ricor Mills Corporation** the count was **0**, `Independence: PASS`. In combination with the previous 1 eligible preparer and 1 eligible approver **per Company**, this establishes distinct eligible maker and checker users **within each Company**, as of the query. It does not prove different users across Companies, formal Accounting business appointments, any signed decision, or backend transaction acceptance. Only counts printed; no identities, secrets, or financial mappings.
+
+**Next action (read-only):** Inspect actual master eligibility and existing Expense/Center mapping scope/Revision status in MAIN DEV without using `get_pilot_coverage` (which locks rows) or invoking proposal/approval. Applicable Finance source contract: a non-group Item Group → same-Company non-group enabled Expense-root Account; or a same-Company non-group enabled beneficiary Department → same-Company non-group enabled Cost Center. Protect exact real financial source/value crosswalk until human Accounting sign-off. No Git pull/switch, migration/restart, user/role grants, financial mapping writes, or PRODUCTION actions authorized.
+
+---
+
 ## 2026-11-20 — MAIN DEVELOPMENT Finance role and Company eligibility counts: 1 preparer / 1 approver per Company
 
 **Operator-provided read-only SQL result:** In live MAIN DEVELOPMENT `development.localhost`, counting enabled named `tabUser` rows with explicit `tabHas Role`, exact Company `tabUser Permission` (`apply_to_all_doctypes=1`, `applicable_for` unset), and exclusion of `Stockroom Personnel` returned:
