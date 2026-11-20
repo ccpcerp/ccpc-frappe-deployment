@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-20 — First Phase 1 Center mapping draft visible (unapproved; public-safe)
+
+**Operator-provided ERPNext Desk result:** After selecting the same-Company pilot's Maintenance beneficiary Department under `Cost Center` mapping, the Phase 1 Finance screen displayed `Active mapping: No active mapping` and a **Draft revision identifier**. This indicates a **Center mapping draft exists, not that it is signed, effective, or correct**. The displayed draft identifier and user identities are deliberately omitted from this public repository. Earlier owner authorization selected the existing main Company Cost Center as the pilot proposal; the actual stored revision's target, Company, source, maker identity, and version remain **unverified by an independent Accounting reviewer**.
+
+**Next controlled step:** The separately authorized, named Company-scoped Accounting Checker (a different user from the preparer) selects the exact Company and Maintenance Department on `/app/ccpc-phase1-finance`, clicks **Check coverage → Review draft**, and verifies proposed target, source, maker, revision, and effective timing. **Do not click Sign and approve** before confirming those exact values, independent authority, and Company scope. No signed Finance decision, active mapping, new Stock Entry/GL, DEVELOPMENT environment change outside the operator's draft proposal, or PRODUCTION action has been verified.
+
+---
+
 ## 2026-11-20 — Owner approved Phase 1 pilot policy; authenticated Finance approval remains gated
 
 **Owner authorization:** Immediately after review of every **19 real Items** in a single maintenance-parts leaf Item Group, the owner replied **"aPPROVED"** to the explicit proposed **same-Company Phase 1 Expense mapping** into an eligible repairs-and-maintenance Expense Account and **beneficiary Maintenance Department → currently configured main leaf Cost Center**. This is explicit business-policy agreement for a narrowly controlled maintenance-consumption pilot; do **not** infer that capital improvements, production capitalization, or unrelated uses of that Item Group qualify for repairs-and-maintenance expense. The full Item Group mapping applies to all 19 Items; there is no verified purpose-specific accounting override. **Before actual activation, Finance must confirm that exceptions are operationally excluded or separately controlled**; otherwise a grouping/purpose redesign is required.
