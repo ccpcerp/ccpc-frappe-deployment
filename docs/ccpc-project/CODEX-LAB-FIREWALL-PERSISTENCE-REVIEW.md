@@ -224,3 +224,43 @@ The proposed nftables table is **not installed**. Target-host check-only accepta
 **Design consequence:** Do not propose enabling the stock nftables.service as the persistence solution. First inspect the **effective systemd ExecStart/ExecReload/ExecStop** paths (and relevant UFW/Docker dependencies) in a read-only host command which returns only boolean status; keep the existing global-flush file untouched. The alternative must have a narrowly scoped independent table policy, install/reconcile only that table, avoid all global flushes, preserve administrative SSH/DEVELOPMENT connections, and be proven against a controlled reload/bridge-recreation sequence with a separate operator-approved recovery plan. A separate table still does not guarantee zero-gap policy during privileged mutation; DO NOT launch Codex until stronger enforcement and isolated negative traffic tests pass.
 
 **Codex activation NO-GO.** PR #39 remains draft/unmerged; no current host installation approved.
+
+
+## Step 108 — stock nftables service is a global-flush hazard; scoped recovery direction (2026-11-20)
+
+Owner-supplied read-only `systemctl show` classifications on `ccpcerpserver`:
+
+```text
+nft_service_active=False
+nft_service_enabled=False
+nft_start_loads_main_config=True
+nft_reload_loads_main_config=True
+nft_stop_flushes_ruleset=True
+nft_service_has_dropins=False
+docker_directly_depends_on_nftables=False
+ufw_directly_depends_on_nftables=False
+effective_unit_properties_inspected=True
+reload_persistence_verified=False
+agent_launch_authorized=False
+READ_ONLY_CHECK_COMPLETE
+```
+
+These operator-reported booleans are consistent with the previous verified main configuration containing an uncommented `flush ruleset`. The **stock nftables.service is NOT suitable for Codex table persistence**: effective start and reload reference that main file and the effective stop command itself contains a global flush; it remains inactive/disabled. No host command executed by ChatGPT, no reload attempted. This inspection checks only direct unit dependencies; it does not prove the entire boot/reload ordering.
+
+### Narrow separate-controller candidate — review contract, not installation instructions
+
+Maintain independent layers: the **existing original lab iptables DROP** protection remains present/ordered; a future **project-only inet nftables table** adds host-input, host-output and cross-bridge denial for the original lab. Do not entrust its lifecycle to `nftables.service`, `/etc/nftables.conf`, `nft flush ruleset`, `ufw reload`, or `systemctl restart docker`.
+
+Before any host write, the proposed separate controller must satisfy all of these design and integration constraints:
+
+1. Refuse to operate on any host other than `ccpcerpserver`; require root, the exact original lab bridge, known stopped Compose agent and disabled auto-restart, current UFW and Docker identity, and unmodified original scoped DROP rules. Reject unexpected nftables table contents, rule/chain priority or a Docker-recreated bridge; do not 'fix' untrusted drift silently.
+2. Use only a *root-owned reviewed, immutable source copy* and a distinct explicit operator authorization marker whose ownership/mode and contents are verified. No unreviewed `git pull`, build, network access, image creation or Codex start as part of restore.
+3. The controller may manage **only** its own `inet ccpc_codex_lab_guard` table and exact expected rules. No `flush ruleset`, blanket delete, UFW reset, Docker chain change, baseline host firewall restore, unmanaged table rewrite or service restart. For its own installation, require a verified **table absent** state, apply a single project-scoped transaction and verify expected kernel JSON. For already installed state, accept only an exact match; otherwise fail. At no point normalize a partial, unknown, or foreign-owned table while Codex might run.
+4. A later dedicated `.service` proposal should be **manual-only and inert by default**. Before any enablement, inspect real service unit dependencies and systemd boot graph, Docker socket activation and both UFW/Docker reload paths. A oneshot alone does not restore after subsequent reloads, and no `ExecStop` should tear down firewall protection.
+5. Record current rules and recovery baseline **privately on the host**, without uploading raw iptables/nftables configurations or host credentials to public GitHub. Use a second SSH or out-of-band recovery path. Rollback may remove **only newly installed project-owned service files/approval markers**, after confirming the Codex agent/proxy are stopped and scoped nft policy is no longer needed; never remove existing original-lab protection or flush shared chains. Missing or uncertain predicates require STOP and preservation of restrictive rules.
+6. Demonstrate negative traffic tests to synthetic non-PRODUCTION canaries, host gateway, other local Docker networks, and controlled non-PRODUCTION LAN where approved. Verify synthetic MariaDB/Redis continue functioning. Repeat under an independently approved UFW reload / Docker daemon restart and network recreation procedure, with particular attention to whether an **unbypassable launch restriction** keeps the agent stopped throughout any protection gap. Tests must not probe PRODUCTION.
+7. A root Docker operator can bypass application-level launch gates. Do not mislabel the read-only interlock, two managed firewall layers or polling monitor as a zero-gap runtime security guarantee. Either prove sufficient host-level operator policy and isolation for this threat model, or isolate the Codex lab on a **dedicated VM/host** rather than depending on shared-host firewall continuity.
+
+**Next concrete read-only host checkpoint:** Check for existing project-scoped service unit names and approved install path occupancy, plus whether the administrative recovery channel exists; return only booleans, with no raw host commands/paths/config dump. This distinguishes conflict-free source development from potential host takeover. It is not permission to install or to start Codex.
+
+The full 139/139 source suite and disposable `nft --check` still stand as evidence for **static policy only**. PR #39 remains draft/unmerged and **Codex activation NO-GO**. Separate command-level host approval and recovery/rollback review remain required.
