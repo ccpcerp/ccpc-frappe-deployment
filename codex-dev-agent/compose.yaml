@@ -17,6 +17,8 @@ services:
     cap_drop: ["ALL"]
     security_opt: ["no-new-privileges:true"]
     pids_limit: 512
+    mem_limit: 8g
+    memswap_limit: 8g
     environment:
       HOME: /home/frappe
       XDG_CACHE_HOME: /home/frappe/.cache
@@ -50,6 +52,9 @@ services:
     image: mariadb:11.8
     pull_policy: never
     restart: "no"
+    mem_limit: 2g
+    memswap_limit: 2g
+    pids_limit: 256
     environment:
       MARIADB_DATABASE: ccpc_codex_synthetic
       MARIADB_USER: ccpc_codex
@@ -72,6 +77,9 @@ services:
   redis-cache:
     image: redis:7-alpine
     pull_policy: never
+    mem_limit: 384m
+    memswap_limit: 384m
+    pids_limit: 128
     user: redis
     command: ["redis-server", "--save", "", "--appendonly", "no"]
     cap_drop: ["ALL"]
@@ -81,6 +89,9 @@ services:
   redis-queue:
     image: redis:7-alpine
     pull_policy: never
+    mem_limit: 384m
+    memswap_limit: 384m
+    pids_limit: 128
     user: redis
     command: ["redis-server", "--save", "", "--appendonly", "no"]
     cap_drop: ["ALL"]
@@ -93,6 +104,9 @@ services:
     profiles: ["online"]
     image: ubuntu/squid:latest
     pull_policy: never
+    mem_limit: 512m
+    memswap_limit: 512m
+    pids_limit: 128
     command: ["squid", "-N", "-f", "/etc/squid/squid.conf"]
     read_only: true
     cap_drop: ["ALL"]
