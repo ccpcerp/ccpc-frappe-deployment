@@ -824,6 +824,29 @@ READ_ONLY_VERIFICATION_COMPLETE
 
 ---
 
+## Step 123 — original laboratory topology read-only check passed; Step 124 IPv4 canary proposed (2026-11-20)
+
+**Owner-supplied Step 123 stdout from separately presented read-only Docker topology inspector:**
+
+```text
+ORIGINAL_LAB_NETWORK_VERIFIED=True
+LAB_BRIDGE_PRESENT=True
+SYNTHETIC_DB_REDIS_CONTAINERS_RUNNING=True
+CODEX_AGENT_STOPPED=True
+NETWORK_PROBES_PERFORMED=False
+HOST_CHANGES_PERFORMED=False
+CODEX_LAUNCH_AUTHORIZED=False
+READ_ONLY_TOPOLOGY_COMPLETE
+```
+
+**Meaning:** On `ccpcerpserver`, the exact command validated expected Docker network `ccpc_codex_dev_agent_lab` internal bridge, IPv4 subnet/gateway identity, actual Linux bridge device, presence of four known project containers, stopped/no-auto-restart Codex agent and running `db`, `redis-cache`, `redis-queue` synthetic containers attached to the intended lab. This is an **operator-reported read-only observation**, not a direct ChatGPT host inspection or traffic test. Second administrator SSH recovery session was separately reconfirmed after nft installation in Step 122. The Stage A private baseline remains available on host, but must not be globally restored without review.
+
+**New next proposed step, separately gated:** The review plan at [Step 123 and Proposed Step 124 commit `7b80866`](https://github.com/ccpcerp/ccpc-frappe-deployment/commit/7b80866b54bb72d9d97c05ba5942c49ba4093d89) contains an exact **NOT APPROVED** synthetic Redis IPv4 canary script. It checks pinned source hashes, project nft table exact, no marker, stopped agent, and correct Docker lab/Redis identity before (a) running an existing same-bridge Redis `PING` from `redis-cache` to `redis-queue` (positive control), (b) attempting exactly one host TCP connect to that same synthetic `redis-queue:6379` target (expected denial, no auth or payload, 2-second timeout), then (c) checking that same-bridge Redis remains reachable and guards remain exact. It prints fixed pass/fail labels without disclosing IPs, credentials or business information.
+
+**Boundaries:** The test is active traffic and a small ephemeral process via `docker exec`; it has not run and is **not** covered by prior source-staging or firewall-install approvals. It only compares one same-bridge allowed path against one host-to-lab denied IPv4 TCP path; it cannot attribute packet drops to a particular nft/iptables/UFW rule and does not prove lab-to-host, inter-bridge, IPv6, reload/reboot or prevention of manual privileged Docker starts. It must not start/restart containers, alter rules, connect to UAT/DEVELOPMENT/PRODUCTION or invoke Codex/Squid. Ask owner for **separate approval of the exact Step 124 test command** before sending executable steps. **Codex activation remains NO-GO.**
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
