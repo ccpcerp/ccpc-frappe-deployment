@@ -131,3 +131,85 @@ codex_launch_authorized=False
 
 **Stage B (not yet authorized):** Prepare a pinned, minimal **source-only staging** transaction for the exact GitHub review commit, limited to `ccpc_codex_nft_scoped_controller.py`, `ccpc_codex_nft_guard_review.py`, `ccpc_codex_lab_firewall_guard.py`, and `ccpc_firewall_rule_order.py`. The source staging must create no root approval marker, add no systemd unit, install no kernel nftables table or firewall rule, start/stop no containers, and make no change to DEVELOPMENT/PRODUCTION. Require owner approval of the **exact commands** before staging; do not treat Stage A approval as Stage B authorization. The staged source must have independently verified immutable commit/content provenance and restrictive ownership/mode, no symlinks or existing target overwrite, and a failure path that does not accidentally execute staged code. The source may be reviewed read-only after staging. A later Stage C separate project-table installation remains **NO-GO** until the exact reviewed command, negative canaries, restart/reload lifecycle, trust boundary and rollback are accepted.
 
+
+## Stage B — exact source-only staging proposal (requires separate approval)
+
+**State:** Stage A baseline reported PASS by the operator. The following is a **candidate for command-level Stage B approval only**; do not run it before the owner explicitly approves Stage B. Stage B is *source-only* and does not authorize kernel firewall changes, creating a marker, adding a systemd unit or Codex/Squid activation.
+
+**Fixed source provenance (checked against connected GitHub by exact immutable code commit):**
+
+- Repository: `ccpcerp/ccpc-frappe-deployment`
+- Pinned source commit: `66960f73a69b10b59f508cda7bfd4ac9ea5c21af`
+- Four exact Git blob IDs are embedded in the script below; it downloads only these four source modules by commit-pinned unauthenticated HTTPS, compares `git hash-object` to the verified GitHub blob IDs and does not execute the downloaded Python.
+- New root-owned staging target: `/opt/ccpc/codex-lab-review/scripts/security/`; require no existing target or symlink, safe root-controlled `/opt` ancestry and a private `/opt/ccpc` directory. No changes to unrelated files; a failed download can leave a **root-only temporary staging directory** for review. No force overwrite or global cleanup.
+- Expected kernel/network effect: **NONE**. `curl` makes a short outbound HTTPS fetch of public code from GitHub; Stage B should be skipped if that host does not have approved outbound network access. No credentials or production information are sent.
+
+```bash
+sudo bash <<'CCPC_STAGE_B'
+set -euo pipefail
+test "$(hostname -s)" = "ccpcerpserver"
+test "$(docker inspect --format '{{.State.Running}}' ccpc_codex_dev_agent-agent-1)" = "false"
+test "$(docker inspect --format '{{.HostConfig.RestartPolicy.Name}}' ccpc_codex_dev_agent-agent-1)" = "no"
+test "$(systemctl show --value -p ActiveState nftables.service)" = "inactive"
+test "$(systemctl show --value -p UnitFileState nftables.service)" = "disabled"
+command -v curl >/dev/null
+command -v git >/dev/null
+test ! -e /opt/ccpc/codex-lab-review
+test ! -L /opt/ccpc/codex-lab-review
+
+python3 - <<'PY'
+import os, stat
+for path in ("/opt", "/opt/ccpc"):
+    if os.path.lexists(path):
+        s = os.lstat(path)
+        if (not stat.S_ISDIR(s.st_mode) or
+                s.st_uid != 0 or s.st_gid != 0 or
+                (stat.S_IMODE(s.st_mode) & 0o022)):
+            raise SystemExit("STOP: unsafe staging parent")
+        if path == "/opt/ccpc" and stat.S_IMODE(s.st_mode) != 0o700:
+            raise SystemExit("STOP: unexpected parent permissions")
+PY
+
+umask 077
+if test ! -d /opt/ccpc; then
+    mkdir -m 0700 /opt/ccpc
+fi
+stage="$(mktemp -d /opt/ccpc/.codex-review-stage.XXXXXXXX)"
+mkdir -m 0700 -p "$stage/scripts/security"
+commit="66960f73a69b10b59f508cda7bfd4ac9ea5c21af"
+
+while read -r filename git_blob; do
+    target="$stage/scripts/security/$filename"
+    curl --fail --silent --show-error --location --proto '=https'         --proto-redir '=https' --tlsv1.2 --connect-timeout 10         --max-time 45 --retry 2         --output "$target"         "https://raw.githubusercontent.com/ccpcerp/ccpc-frappe-deployment/$commit/scripts/security/$filename"
+    test -s "$target"
+    test "$(git hash-object -- "$target")" = "$git_blob"
+    chmod 0400 "$target"
+done <<'CCPC_BLOBS'
+ccpc_codex_nft_scoped_controller.py e07b1afcb39761fb0f5613c83c5f97b4aee46d22
+ccpc_codex_nft_guard_review.py eabbbfd5d5de4cdcf4e5e0c25732bf3c641ffdc4
+ccpc_codex_lab_firewall_guard.py 619d8dd962e3c995b53d57ac4c55a85ace2e4eab
+ccpc_firewall_rule_order.py af9a63bc8a390905a7e0da78e8c0b20c7f8af537
+CCPC_BLOBS
+
+printf '%s\n' "$commit" > "$stage/REVIEWED_SOURCE_COMMIT"
+chmod 0400 "$stage/REVIEWED_SOURCE_COMMIT"
+
+# Refuse to overwrite an existing review installation.
+test ! -e /opt/ccpc/codex-lab-review
+test ! -L /opt/ccpc/codex-lab-review
+mv -T -n -- "$stage" /opt/ccpc/codex-lab-review
+test ! -e "$stage"
+test -d /opt/ccpc/codex-lab-review
+
+printf 'host_verified=True\nagent_stopped=True\n'
+printf 'source_commit_pinned=True\nall_four_git_blobs_verified=True\n'
+printf 'root_only_review_source_staged=True\n'
+printf 'firewall_modified=False\nservices_modified=False\n'
+printf 'codex_launch_authorized=False\nSTAGE_B_SOURCE_ONLY_COMPLETE\n'
+CCPC_STAGE_B
+```
+
+**Proposed successful report:** `host_verified=True`, `agent_stopped=True`, `source_commit_pinned=True`, `all_four_git_blobs_verified=True`, `root_only_review_source_staged=True`, `firewall_modified=False`, `services_modified=False`, `codex_launch_authorized=False`, `STAGE_B_SOURCE_ONLY_COMPLETE`. Do not share a root-only filesystem dump; the status flags suffice.
+
+**Recovery boundary:** If the pinned source cannot be fetched or one blob does not match, STOP. Nothing operational is installed. Do not change permissions on an existing `/opt/ccpc` directory, delete a suspicious existing path, or force a Git branch switch. No host code is executed as part of this stage. Removal of staged files, installation of an approval marker, execution of `install`, any service manipulation, canaries, restart/reload and Codex start each require a new explicitly reviewed action.
+
