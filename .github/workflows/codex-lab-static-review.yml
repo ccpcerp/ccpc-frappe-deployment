@@ -40,7 +40,7 @@ jobs:
               "codex-dev-agent/tests", pattern="test_*.py"
           )
           if suite.countTestCases() != 139:
-              raise SystemExit("STOP: expected exactly 118 security regression tests")
+              raise SystemExit("STOP: expected exactly 139 security regression tests")
           print("139 source-only security regressions discovered")
           PY
 
