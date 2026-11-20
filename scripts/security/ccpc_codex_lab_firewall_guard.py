@@ -17,13 +17,20 @@ import shlex
 import subprocess
 import sys
 
+from ccpc_firewall_rule_order import (
+    canonical_rule,
+    combined_rule_order_valid,
+    proxy_rule_specs,
+)
+
 HOST = "ccpcerpserver"
 PROJECT = "ccpc_codex_dev_agent"
 AGENT = PROJECT + "-agent-1"
 NETWORK = PROJECT + "_lab"
 EXPECTED_SUBNET = ipaddress.ip_network("172.21.0.0/16")
 EXPECTED_GATEWAY = ipaddress.ip_address("172.21.0.1")
-OPTIONS = {"-i", "-o", "-s", "-m", "--comment", "-j"}
+
+
 
 
 class GuardFailure(Exception):
@@ -44,35 +51,6 @@ def command(argv, allow_missing=False):
     if proc.returncode:
         raise GuardFailure()
     return proc.stdout
-
-
-def canonical_rule(tokens, chain):
-    """Canonicalize a small accepted iptables -S rule grammar.
-
-    Reordering the regular match modules is harmless; permissive extra
-    expressions, different targets or unmatched negation fail closed.
-    iptables -C independently checks actual rule existence in the kernel.
-    """
-    if tokens[:2] != ["-A", chain]:
-        return None
-    parts = tokens[2:]
-    parsed = []
-    i = 0
-    while i < len(parts):
-        inverse = False
-        if parts[i] == "!":
-            inverse = True
-            i += 1
-        if i + 1 >= len(parts) or parts[i] not in OPTIONS:
-            return None
-        field, value = parts[i:i + 2]
-        if inverse and field not in {"-i", "-o", "-s"}:
-            return None
-        parsed.append((inverse, field, value))
-        i += 2
-    if len({field for _, field, _ in parsed}) != len(parsed):
-        return None
-    return tuple(sorted(parsed))
 
 
 def rule_specs(bridge, subnet):
@@ -104,25 +82,10 @@ def append_rules(chain):
 
 
 def precedence_valid(specs, input_rules, user_rules, forward_rules):
-    """Require project DROPs before *any* other INPUT or DOCKER-USER rules."""
-    host = canonical_rule(["-A", *specs["host"][0:1],
-                           *specs["host"][1]], "INPUT")
-    out = canonical_rule(["-A", *specs["out"][0:1],
-                          *specs["out"][1]], "DOCKER-USER")
-    inbound = canonical_rule(["-A", *specs["in"][0:1],
-                              *specs["in"][1]], "DOCKER-USER")
-    if not host or not out or not inbound:
-        return False
-    return (
-        bool(input_rules) and
-        canonical_rule(input_rules[0], "INPUT") == host and
-        len(user_rules) >= 2 and
-        {
-            canonical_rule(user_rules[0], "DOCKER-USER"),
-            canonical_rule(user_rules[1], "DOCKER-USER"),
-        } == {out, inbound} and
-        bool(forward_rules) and
-        forward_rules[0] == ["-A", "FORWARD", "-j", "DOCKER-USER"]
+    # The original bridge must remain protected both before and after
+    # separately approved installation of the second proxy-client bridge.
+    return combined_rule_order_valid(
+        specs, proxy_rule_specs(), input_rules, user_rules, forward_rules
     )
 
 
