@@ -250,3 +250,18 @@ STAGE_B_SOURCE_ONLY_COMPLETE
 
 **Still not approved:** Creating `/etc/ccpc/codex-lab-nft-guard-authorized`, running `ccpc_codex_nft_scoped_controller.py install`, installing/enabling a systemd service, nft/iptables mutation, UFW/Docker reload or reboot, host test probes, or Codex/Squid activation. The next firewall installation would require separate exact-command approval with a live negative-canary and scoped rollback plan; a staged controller is not runtime/persistence protection.
 
+
+## Step 115 — independent post-staging verification returned STOP (2026-11-20)
+
+The owner pasted the last lines of the read-only Stage B post-staging verification Python command:
+
+```text
+except Exception:
+    print("STOP: Stage B post-staging verification failed")
+PY
+STOP: Stage B post-staging verification failed
+```
+
+**Result: independent verification FAILED / specific predicate UNKNOWN.** The prior Step 114 staging reported all four exact Git blobs verified and the final root-only path staged, but that does not substitute for the new check. The Python verification used a broad catch-all that prints only a generic STOP. No exception type, failing predicate or raw state was disclosed. It would be incorrect to infer a hash mismatch, permissions error, firewall drift or failed source staging from this output alone. Operator ran a read-only inspector; no mutation is indicated. **Do not rerun Stage B, chmod, delete staged files, change firewall, create a marker or proceed to Stage C.** Codex/Squid remain NO-GO.
+
+**Next operator-safe action:** a separately supplied *read-only* stage-labelled diagnostic using `sudo python3 -I`: (1) verify host and agent stopped/restart disabled, (2) check exact parent and child directory ownership/modes and entries, (3) marker contents and four Git blob hashes, (4) stock nftables.service inactive/disabled, and (5) project nft table absence. It may print **only the first failing fixed diagnostic label** and no raw configuration, permissions, route, credentials or private baseline paths. Do not execute or import staged Python files, write/fix permissions, or run firewall mutation commands. A failed check still blocks Stage C. Further source-side documentation after owner diagnostic is permitted; Stage C would require separate command-level owner authorization and test/recovery review.
