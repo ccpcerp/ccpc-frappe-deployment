@@ -194,7 +194,7 @@ class TestOriginalLabFirewallGuard(unittest.TestCase):
         self.assertIn("Requires=docker.service", text)
         self.assertIn("After=docker.service ufw.service", text)
         self.assertIn("ccpc_codex_lab_firewall_guard.py preflight", text)
-        self.assertIn("ccpc_codex_dev_lab_firewall.sh apply", text)
+        self.assertIn("ccpc_codex_lab_firewall_reconcile.py restore", text)
         self.assertIn("ccpc_codex_lab_firewall_guard.py verify", text)
         self.assertNotIn("\nExecStop=", text)
         self.assertNotIn("\nExecStart=/usr/bin/docker", text)
