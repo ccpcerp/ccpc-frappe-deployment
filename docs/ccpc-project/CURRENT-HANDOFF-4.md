@@ -1,5 +1,15 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-20 — ITEM-00004 stock valuation and CCPC Perpetual Inventory read-only checks PASS
+
+**Operator-supplied MAIN DEV live read-only SQL:** Exact `development.localhost` `tabBin` join `tabItem`/`tabWarehouse`/`tabCompany` reported `ITEM-00004`, name `Bearing, 6406 Z Ball Dg`, `item_group=Bearings`, `stock_uom=Nos`, `is_stock_item=1`, `item_disabled=0`, `warehouse_disabled=0`, warehouse `Warehouse 1 - CCPC`, `actual_qty=8.0`, `reserved_qty=0.0`, `valuation_rate=12000.0`, `stock_value=96000.0`, and `enable_perpetual_inventory=1` for `Cagayan Corn Products Corporation`. Thus one unit is a technically plausible DEV issue subject to fresh checks and authorization, with **illustrative** valuation 12,000 units of Company accounting currency (not independently verified here) and hypothetical 8→7 quantity; actual stock/GL effect not tested.
+
+**Next gating business decision (do not treat as approved):** CCPC designated Accounting maker/checker must determine whether **the entire leaf Item Group `Bearings` (all 19 enabled stock Items)** belongs to `5140 - Repairs & Maintenance - CCPC` for CCPC issue treatment, and whether beneficiary `Maintenance Department - CCPC` should map to shared `Main - CCPC` (aggregates ERPNext Cost Center GL; custom Department field/report may retain Department granularity), or approved separate center. These are candidates only; no signed decision/proposal/approval, no Item Group relabeling, no Cost Center addition, no Stock Entry/SLE/GL record creation. Approval requires actual authenticated independent named Finance maker/checker and signed exact-revision Accounting decision; user chat approval alone is not a substitute. After policy decision and separate DEVELOPMENT-only posting authorization, execute narrowly one unit and reconcile Stock Entry→SLE→Expense GL→Department report with pre/post evidence; restore test still not performed.
+
+**Controls:** Current DEV app clean detached HEAD `55eb10b86a57de55a97e293a78228d9dd17b809a`, both DEV sites share app checkout; no code pull needed for this inspection; main four-part local and independent NAS copy byte-verified 2026-11-20, integration2 Nov19 two-site checkpoint independently present. No PRODUCTION changes.
+
+---
+
 ## 2026-11-20 — CCPC positive Bearings stock located; RMC positive Bearings stock absent
 
 **Operator-supplied read-only `development.localhost` Bin/Warehouse/Item SQL:** In enabled non-group CCPC `Warehouse 1 - CCPC`, positive `Bearings` bin stock was observed for `ITEM-00004` **8 actual / 0 reserved**, `ITEM-00010` **8 / 0**, `ITEM-00008` **1 / 0**, and `ITEM-00018` **1 / 0**, total **18 observed units across four Items**. In `Ricor Mills Corporation`, same query returned **no positive Bearings stock** in eligible warehouses. Query was bounded to ten Bin rows per Company, so do not interpret it as exhaustive inventory for other Item Groups/warehouses or proof of issueable stock; any concurrent changes after query remain possible.
