@@ -521,3 +521,27 @@ STAGE_C_ONE_TABLE_ONLY_COMPLETE
 **Next read-only gate, not new modification approval:** A fresh, bounded operator-owned **read-only** check should confirm exact controller `verify` (without marker or bytecode writes), absent authorization marker, stopped/no-auto-restart agent, independent table/chain/rule count, UFW and Docker active, and stock nftables.service still inactive/disabled. Use fixed output booleans/check labels, do not expose raw host/private rules or snapshot paths. Independently confirm both administrator SSH connections remain working. If the recheck fails, **STOP**; do not remove the table or any other rules, change authorization, run global flush, restart Docker/UFW, or rerun Stage C. Later controlled packet tests, scoped rollback, and any persistence design require separate review and authorization.
 
 **Unapproved:** Enabling/installing a project or stock systemd unit, service reload/reboot, network canaries, changing any existing rule or CCPC table, starting/attaching Codex/Squid, or touching DEVELOPMENT/PRODUCTION workloads. PR #39 remains draft/unmerged. **Codex activation: NO-GO.**
+
+
+## Step 121 — independent post-install read-only verification PASS, operator-reported (2026-11-20)
+
+**Owner-supplied result of the separately initiated read-only post-install verification after Step 120:**
+
+```text
+PROJECT_NFT_TABLE_VERIFIED=True
+ORIGINAL_FIREWALL_GUARDS_VERIFIED=True
+TEMPORARY_AUTH_MARKER_ABSENT=True
+UFW_DOCKER_ACTIVE=True
+AGENT_STOPPED=True
+STOCK_NFT_SERVICE_INACTIVE_DISABLED=True
+HOST_CHANGES_PERFORMED=False
+CODEX_LAUNCH_AUTHORIZED=False
+READ_ONLY_VERIFICATION_COMPLETE
+```
+
+**Assessment — post-install read-only verification PASS based on operator command output.** The precise previously provided `sudo python3 -I` inspector checked: root/hostname, stopped original Codex agent and disabled restart policy, staged controller Git blob integrity, absence of `/etc/ccpc/codex-lab-nft-guard-authorized`, stock nftables.service still inactive/disabled, UFW and Docker active, the staged controller's own **read-only** `verify` result `PROJECT_NFT_TABLE_EXACT=True`, and a separate read-only native `nft -j list table inet ccpc_codex_lab_guard` check for exactly one project inet table, three expected base chains, and four DROP rules at priority -301. The command reported `HOST_CHANGES_PERFORMED=False`. **This is operator-reported host observation, not a ChatGPT-executed SSH inspection or an independent penetration test.** The earlier Step 120 installation and readback has now been followed by a distinct, new read-only observation of the intended kernel table.
+
+**One outstanding recovery prerequisite:** At Step 110 the owner had confirmed two administrator SSH/recovery sessions, but has **not explicitly reconfirmed** that the second one still works after the live nft table installation. Request confirmation before any proposed active network tests. The Stage A private firewall reference remains private and should not be pasted or wholesale restored.
+
+**What remains unverified and unapproved:** Real negative packet-path canaries from controlled synthetic endpoints, legitimate DEVELOPMENT/UAT service connectivity after the DROP rules, IPv4 and IPv6 path coverage, reload/reboot survival, bridge identity following Docker recreation, and denial of privileged manual Codex starts. `reload_reboot_persistence_verified=False` and `CODEX_LAUNCH_AUTHORIZED=False` remain. No new service activation, UFW/Docker restart or reload, nft policy change, scoped rollback, network probes, PRODUCTION/DEVELOPMENT changes, or Codex/Squid launch has been approved. A proper future isolated canary plan must fix both a positive reachable control and a forbidden path while avoiding agent start, sensitive credentials, existing business services and uncontrolled packet traffic; obtain separate exact-script approval. **Codex activation: NO-GO.**
+
