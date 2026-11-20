@@ -1013,3 +1013,30 @@ PY
 **Execution status: NOT YET RUN / NOT VERIFIED.** The owner has approved the command but must run it manually with **both independent administrator SSH/recovery sessions working** and the private Stage A firewall baseline available on host. ChatGPT has not remotely executed commands. On `FIRST_FAILED_CHECK=` STOP and do not rerun or relax the firewall. A successful result must include `HOST_GATEWAY_TEMPORARY_LISTENER_CONTROL=True`, `LAB_TO_HOST_GATEWAY_TCP_DENIED=True`, `TEMPORARY_LISTENER_CLOSED=True` and `STEP_126_SINGLE_PATH_CANARY_COMPLETE`, along with the other fixed labels. No security guarantee beyond that one synthetic **IPv4 lab → host gateway TCP path** follows, and existing overlapping iptables/UFW rules make nft causal attribution impossible from the response alone.
 
 **Codex/Squid NO-GO.** Inter-bridge/DEVELOPMENT, IPv6, UFW/Docker reload and reboot persistence, bridge recreation and manual privileged launch protections remain untested/unauthorized. No stock nftables.service, global flush or rollback action is approved.
+
+
+## Step 128 — approved Step 126 lab-to-host IPv4 canary operator-reported PASS (2026-11-20)
+
+**Operator-supplied complete sanitized output after the once-only exact Step 126 command approved at Step 127:**
+
+```text
+HOST_GATEWAY_TEMPORARY_LISTENER_CONTROL=True
+LAB_TO_HOST_GATEWAY_TCP_DENIED=True
+SYNTHETIC_REDIS_ALLOWED_PATH_STILL_WORKS=True
+CCPC_NFT_TABLE_STILL_EXACT=True
+CODEX_AGENT_STOPPED=True
+TEMPORARY_LISTENER_CLOSED=True
+PERSISTENT_CONFIGURATION_CHANGES=False
+NFT_RULE_CAUSAL_ATTRIBUTION_VERIFIED=False
+OTHER_NETWORKS_IPV6_RELOAD_REBOOT_VERIFIED=False
+CODEX_LAUNCH_AUTHORIZED=False
+STEP_126_SINGLE_PATH_CANARY_COMPLETE
+```
+
+**Assessment — second narrow synthetic IPv4 negative/positive canary PASS on operator-provided evidence.** Following the approved code path, the host re-verified pinned security modules/unchanged authorization marker status, original stopped/no-auto-restart Codex agent, internal original lab bridge and synthetic Redis container provenance, and current exact nft + original iptables guard state before any traffic. The synthetic `redis-cache` → `redis-queue` same-bridge Redis `PING` was required to succeed; an ephemeral TCP listener bound only to the host's original synthetic lab gateway `172.21.0.1` was shown reachable from a host-side client before and after the denied attempt. A short-lived host Python process executed using `nsenter --net` in the **already existing synthetic Redis-cache network namespace**, making one IPv4 TCP connect to that specific temporary listener with a two-second bound and no application payload. The result met the script's strict timeout/kernel-policy/route-denial criteria (success and connection refused/reset were failures). The script then required Redis `PING` still worked and exact controller `verify` and agent-stop checks still passed, and it closed the ephemeral socket. No persistent configuration change was requested or reported.
+
+**Evidence quality / important caveats:** This is the **operator-pasted output**, not independently captured packets, direct ChatGPT SSH access or repeated after-reboot verification. It demonstrates only that a **specific synthetic-lab → host-gateway IPv4 TCP connect was denied while the host had a live listener**, with positive same-bridge Redis and host-listener controls. Step 124 separately observed **host → synthetic lab Redis IPv4 denial**, again with an allowed-path control. Neither test establishes that the **CCPC nft table specifically caused** the denial because original iptables/UFW/networking controls also operate; do not overclaim bidirectional comprehensive isolation. The test did not touch or probe DEVELOPMENT/PRODUCTION or unrelated Docker bridges.
+
+**Residual NO-GO gates:** Original lab ↔ unrelated Docker bridge/DEVELOPMENT isolation, IPv6 and other protocols/destinations, reload/reboot persistence, bridge recreation, maintaining exact policy during any Docker/UFW lifecycle changes, and privileged manual Docker agent-start bypass are still **unverified**. Further tests must be designed against controlled synthetic-only counterpart endpoints; using existing real DEVELOPMENT/UAT containers or hosts as canaries is forbidden without separate review/approval. The installed root-owned CCPC project nft table and original iptables rules should remain unchanged; keep the second working administrator SSH recovery session and private Stage A baseline. No new firewall/service/Docker mutations, persistence unit, stock nftables service start/reload/stop, global flush, rollback, Codex/Squid launch or additional active traffic are authorized by this test result. PR #39 is still draft/unmerged, and **Codex activation remains NO-GO**.
+
+**Next recommendation (planning only):** Prepare a *source-reviewed* approach for cross-bridge isolation using a dedicated disposable synthetic-only network endpoint, with exact ownership/resource bounds, test positive controls and bounded single-packet attempts, cleanup, and independent read-only pre/post policy verification. Alternatively prioritize a persistence/lifecycle design review without any host reload or reboot. Both require new explicit authorization before host execution.
