@@ -555,6 +555,34 @@ READ_ONLY_ORDER_CHECK_COMPLETE
 
 ---
 
+## Step 107 — target-host nftables compatibility and global-flush hazard (2026-11-20)
+
+**Source of evidence:** Owner pasted stdout of the specifically requested *read-only* `sudo python3` nftables preflight on `ccpcerpserver`. ChatGPT has no SSH connection and did not independently execute this host code. The output, sanitized to booleans, was:
+
+```text
+main_nft_config_flush_ruleset=True
+main_nft_config_has_includes=False
+agent_stopped=True
+original_bridge_identity_verified=True
+independent_nft_table_already_present=False
+nft_userspace_and_kernel_query_available=True
+nft_candidate_check_only_passed=True
+nftables_service_active=False
+nftables_service_enabled=False
+nft_reload_persistence_verified=False
+ufw_docker_reload_persistence_verified=False
+agent_launch_authorized=False
+NO_HOST_CHANGES_PERFORMED
+```
+
+**Interpretation:** The original agent was stopped with known Docker/bridge identity at that instant. The host's native `nft` tool accepted the independent rule candidate in **check-only** mode; the review table does **not exist** in the active kernel ruleset, so no independent protection is currently enforced. The *main* `/etc/nftables.conf` contains an uncommented **`flush ruleset`** directive (per bounded Python grep) and has no top-level active `include` line. The `nftables.service` is currently **inactive and disabled**. These results **do not prove** how `systemctl start/reload/stop nftables` or any other wrapper will behave, but if a future command loads the main file with `nft -f`, its global flush can erase nftables rulesets managed by UFW and Docker (which may share the nf_tables kernel backend), cause downtime or remove Codex protections. No reload/reboot persistence or live packet blocking was verified, and a successful `nft --check` is not evidence of applied rules.
+
+**Operational hold:** Do **not** enable, start, reload, restart or stop `nftables.service` or execute `nft -f /etc/nftables.conf`; do not run `nft flush ruleset`, `ufw reload`, `systemctl restart docker` or create/attach/start the Codex network/agent. Do not modify `/etc/nftables.conf` as a shortcut, nor rely on the nftables service for persistence without first inspecting its **effective systemd ExecStart/ExecReload/ExecStop** properties, their input file usage and how they interact with UFW and Docker. The previous original-lab INPUT and DOCKER-USER rules were verified present/ordered in Steps 103–104, but not now rechecked; do not treat those historical observations as a runtime safety guarantee.
+
+**Preferred next step:** Operator-run **read-only**, fail-closed, sanitized effective-unit inspection for nftables.service, UFW and Docker service entrypoints/hook ordering and configuration loading. This must use only `systemctl show`, bounded existence/regular-file checks and no printing of raw service commands, IP addresses, filesystem secrets, network IDs or rules. The relevant property checks can narrow the hazard; no snapshot alone proves reload survival. After that, compare safe scoped independent-table installation options **without activating the stock nftables.service**, require a separate recovery+rollback plan, second SSH session and explicit approval of exact host mutation commands. Static code changes remain draft PR #39, and **Codex launch NO-GO** persists.
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
