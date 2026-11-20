@@ -61,8 +61,33 @@ A reliable implementation would require: (1) a root-owned, narrowly scoped idemp
 
 **Before implementation:** inspect relevant `systemctl show` unit ordering properties beyond the three direct checks (for example `Requires/Wants/PartOf/ExecStartPost` status as sanitised flags), and check whether UFW is using a rule management hook that could safely restore the exact original lab rules once Docker chains exist. No edits to service files, UFW configuration or host containers are authorized by this review.
 
+## Step 91 — dependency and hook precheck (2026-11-20)
+
+The operator ran a guarded **read-only** Docker/UFW/socket systemd property inspection with all three original laboratory firewall rules present and the agent stopped. Sanitized output:
+
+- `docker_requires_ufw=False`, `docker_wants_ufw=False`.
+- `docker_after_network_online=True`, `ufw_before_network_pre=True`.
+- `docker_has_dropins=False`, `ufw_has_dropins=False`.
+- `docker_has_start_pre_hook=False`, `docker_has_start_post_hook=False`.
+- `ufw_has_reload_handler=False`.
+- `docker_socket_requires_service=False`.
+- `complete_dependency_graph_verified=False`, `reboot_persistence_verified=False`.
+
+**Interpretation:** This narrows the observed host design: no Docker dependency on UFW; no inspected service drop-in or Docker pre/post-start hook; UFW reports `Before=network-pre.target` and Docker reports `After=network-online.target`. Those *distinct target relationships* are **not proof** of a full dependency path, successful firewall persistence, nor of an ordering guarantee after a reload. `docker.socket Requires=docker.service` being false does **not** rule out socket activation; systemd socket `Service=` wiring and unit dependencies must be independently reviewed before assuming Docker cannot start on demand. Likewise absence of an `ExecReload` in `ufw.service` does not mean `ufw reload` is impossible or harmless.
+
+### Design decision for the GitHub-only review stage
+
+Adopt a **two-layer candidate design**, strictly for review; **do not install it**:
+
+1. A root-owned, idempotent *original-lab firewall restoration* action, guarded for hostname, Docker daemon and known lab/bridge identity, stopped-agent state, iptables-nft backend, and no change to other chains or namespaces. Intended to run after Docker chains exist and after UFW's initial setup. It must check exact three existing rules before adding only missing ones, and preserve existing tags without duplication.
+2. A separate, fail-closed *manual Codex startup gate*, explicitly invoked **every time** the agent would be launched, not merely once during boot. The gate must verify all original lab INPUT/FORWARD rules **and**, if the proposed second `proxy_clients` network is to be attached, its pre-enforced INPUT/FORWARD rules, precedence and collision checks. If any rule is missing or altered, the agent must remain stopped. Disallow or operationally restrict bypass via unguarded `docker start` or `docker compose up`. Do not create any auto-start systemd unit for Codex itself.
+
+A single systemd oneshot is **insufficient** to make the lab secure after arbitrary later UFW reloads or Docker chain re-creation. Before approving implementation, decide whether the host needs UFW-supported persisted rules, a dedicated post-Docker firewall reconciliation unit plus explicit hooks for reload paths, or a stricter service dependency design. Protect administrative SSH recovery, preserve DEVELOPMENT/UAT networking, and test exact-match rollback. The optional Squid `outgoing` network needs its own enforced egress isolation. No component should silently grant Squid broad internet/host/private-network access.
+
+**Important remaining blockers:** The source-only validator and 60 declared Python tests have not been executed successfully; GitHub Actions has shown pre-run failures. There has been no approved host firewall modification, Docker pull/start, network creation, or controlled negative reachability validation. The proposed systemd/UFW plan is **not production-ready**.
+
 ## Immediate next action
 
-Use a targeted **read-only** host inspection of relevant `systemctl show` unit dependencies and UFW ordering without printing raw unit text or touching active rules. Then prepare a review-only implementation proposal for guarded persistence and recovery, still requiring separate operator approval for any host mutation.
+Prepare a review-only concrete implementation proposal and independent tests for original-lab firewall restoration plus mandatory guarded manual Codex startup. Keep disabled/uninstalled until the operator separately approves a specific host procedure with recovery, backout and negative connectivity tests. Additional host read-only dependency inspection is optional only if needed to resolve a concrete implementation decision.
 
 **Release gate:** NO-GO. Draft PR #39 remains unmerged. Agent stopped, Squid inactive, bridge uncreated, DEVELOPMENT and PRODUCTION untouched.
