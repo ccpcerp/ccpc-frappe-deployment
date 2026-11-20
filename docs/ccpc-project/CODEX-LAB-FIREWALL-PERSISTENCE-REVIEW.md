@@ -131,8 +131,22 @@ Added five `test_lab_firewall_guard.py` regression cases for both ordering permu
 
 **NO-GO unchanged:** Draft PR #39 remains unmerged. No host firewall persistence or reload recovery mechanism installed, no unbypassable runtime launch gate, no second bridge created, no Squid egress/DNS enforcement or actual negative tests. Nothing was deployed to DEVELOPMENT/PRODUCTION. A successful source-only suite is necessary but insufficient for activation.
 
+## Step 94 — GitHub Actions run blocked by account billing or spending eligibility (2026-11-20)
+
+The operator opened [GitHub Actions run #44650795584](https://github.com/ccpcerp/ccpc-frappe-deployment/actions/runs/44650795584) for draft PR #39, branch `review/codex-proxy-network-hardening-2026-11-19`, and supplied its exact job annotation:
+
+> The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings
+
+The run shows `policy-regression`, **Failure**, total duration **3 seconds**, one annotation error, and no generated artifacts. Connected GitHub API inspection previously confirmed no runner allocation, zero job steps, and no retrievable job log. This annotation **resolves the pre-execution diagnosis at the category level**: GitHub Actions blocked the job for an **account payment / spending-limit eligibility condition**, *before* Python ran. It does **not** establish which alternative (recent failed payment versus spending limit) is the actual account-specific cause. Do not present it as an assertion that a particular card charge failed or that the user has exceeded a particular paid budget.
+
+**Owner policy and decision:** Do **not** add a payment method, increase paid spending limits, change GitHub billing settings, activate a self-hosted runner, or repeatedly re-run failing GitHub-hosted jobs. GitHub Actions status remains blocked; there is no CI execution/CI pass to report. The existing **75/75 independent offline Python unittest pass** (source matched against GitHub blob SHAs) remains valid and separately documented in Step 93; it does not satisfy host persistence, Squid parsing, Docker runtime, or negative-network integration gates. Continue code review and no-cost offline validation in authorized isolated environments. The owner may independently review GitHub **Settings → Billing & plans** if they wish to determine the account-specific billing state, but this review document requests **no change**.
+
+No files in the firewall guard, original lab scripts, Compose, Squid policy or CI workflow were modified in response to the annotation. Draft PR #39 must stay **open, draft and unmerged**. Codex agent stopped and Squid inactive at last operator-reported host snapshot; no current host command or fresh host verification. Proposed proxy bridge remains uncreated at last verification. PRODUCTION and DEVELOPMENT not touched.
+
+**Next technical milestone independent of GitHub-hosted runner:** Finish review of unbypassable per-launch enforcement, post-reload persistence, Squid outbound/DNS isolation and network negative-test plan. Only request a separately explicit and scoped host-operation approval after prerequisite documentation, tested source and recovery/rollback procedure are ready.
+
 ## Immediate next action
 
-The offline 75-test suite has passed independently; next resolve the GitHub Actions runner **pre-execution** failure by reading the run Summary/Annotations and Actions usage status without enabling paid services, then address unbypassable runtime startup gating, firewall reload persistence, the second bridge and Squid egress. No host command is requested at this checkpoint.
+The GitHub Actions annotation has identified an account payment/spending-limit eligibility blocker before any runner steps. No billing change is approved or requested. Continue **independent no-cost offline code validation** and review unbypassable startup gating, firewall reload persistence, the second bridge, Squid egress and controlled nonproduction negative tests. No host command is requested at Step 94.
 
 **Release gate:** NO-GO. Draft PR #39 remains unmerged. Agent stopped, Squid inactive, bridge uncreated, DEVELOPMENT and PRODUCTION untouched.
