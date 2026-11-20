@@ -700,6 +700,14 @@ STAGE_B_SOURCE_ONLY_COMPLETE
 
 ---
 
+## Step 115 — read-only independent staged-source verification STOP; cause unknown (2026-11-20)
+
+**Owner-supplied host evidence:** After Step 114 reported source-only Stage B PASS, the owner executed the supplied **read-only** post-staging `sudo python3 -I` inspector. Output contained the generic failure message `STOP: Stage B post-staging verification failed` (preceded by the pasted command's `except Exception` clause). The broad exception handler did not reveal which predicate failed. No raw config, credentials or firewall contents were sent. **This does not establish whether staging, file ownership, exact Git blobs, stopped agent, nftables.service, or table-absence checks caused the STOP.** No server code or firewall was changed by this inspector, and ChatGPT has no direct SSH session.
+
+**Decision:** Stage C is **blocked**. Preserve staged files and Stage A private baseline; **do not** rerun Stage B, change file permissions, delete root-only paths, create the root nft approval marker, run `nft -f`, install units, restart Docker/UFW, or launch Codex/Squid. The next permitted step is a fixed-stage, sanitized **read-only** diagnostic reporting the first failing check label without printing sensitive contents. The [scoped install and recovery review](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/review/codex-proxy-network-hardening-2026-11-19/docs/ccpc-project/CODEX-SCOPED-NFT-INSTALL-RECOVERY-REVIEW.md) was updated in [commit `7eb85cf`](https://github.com/ccpcerp/ccpc-frappe-deployment/commit/7eb85cf13baf77b804b988f0b309d04f587e352e).
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
