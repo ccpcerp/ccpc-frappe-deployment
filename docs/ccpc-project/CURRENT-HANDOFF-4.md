@@ -1,5 +1,17 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-20 — Legacy cross-Company issue exception and GL sign semantics confirmed (public-safe summary)
+
+**Operator-provided MAIN DEVELOPMENT read-only investigation (redacted for public repository):** Three legacy Expense-root GL entries previously found without a Department have been traced to Stock Entries. Two are **Material Receipt** offsets posting **CREDIT** to a Stock Adjustment Expense-root Account with no source row/header Department. The third is a submitted **Material Issue** posting a **DEBIT** to a maintenance-related expense Account and linked to a Withdrawal Slip whose **issuing Company and current beneficiary Department's Company differ**. The linked Slip currently identifies a different-Company requester and beneficiary, has no equipment, is still a Draft DocType (`docstatus=0`) while workflow status reads `Fully Issued`; the posted Stock Entry is `docstatus=1`. No historical beneficiary issue-time snapshot has been established from these mutable Slip fields. **Do not treat this historical cross-Company issue as a same-Company Department cost or assume RMC posted a matching expense; never backfill a foreign Department onto the issuer's GL.**
+
+**Verified code inspection:** Current pinned DEV app source `phase1_release_scope.py` checks exact equality of issuing and requesting Company in `require_same_company_issue`; `withdrawal_slip_stock.py` calls this for normal authorized issue and linked Stock Entry validation. `withdrawal_issue_beneficiary.py` independently validates that the actual Work-for/Equipment beneficiary belongs to the issuing Company. The current Phase 1 source therefore **intends to fail closed on newly requested cross-Company stock issues**, without rewriting older records; code inspection does not substitute for actual DEV posting/negative tests. The legacy Draft/Fully Issued combination alone is not an accounting error; confirm custom lifecycle before evaluating status.
+
+**Accounting/reporting implications:** Expense-root GL inclusion does not imply a positive Department cost: credits and debits must be **netted** with appropriate ERPNext accounting signs, and stock receipts must not be counted as gross material consumption. Retain the historic missing-Department items as an explicit reconciliation exception pending authorized Accounting review. The future Department Expense Statement is based on posted expense GL with an unassigned/invalid bucket; the operational Material Consumption report remains separate gross SLE. No financial master, Expense mapping, Stock Entry, GL, roles, deployment, PROD or DEV transactional changes.
+
+**Next read-only check:** Verify the historical Slip's `requesting_company` and registered Company ownership of its requesting and Work-for Departments (without publishing source IDs or amounts). Then resume Phase 1 **same-Company** Finance crosswalk approval and integrated DEV UAT; do not let deferred intercompany history derail this scope.
+
+---
+
 ## 2026-11-20 — Three CCPC expense GL lines without Department traced to Stock Entry vouchers
 
 **Operator-supplied MAIN DEV read-only `tabGL Entry` detail for the three missing Department expense GL lines (no amounts displayed):**
