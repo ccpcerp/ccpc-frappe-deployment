@@ -643,6 +643,18 @@ This proves **only** that the operator's sanitized diagnostic found the agent st
 
 ---
 
+## Step 110 — second administrator recovery connection confirmed; Stage A private baseline awaits explicit approval (2026-11-20)
+
+**Owner attestation:** After Step 109, the owner replied **“confirmED”** to the request to verify that a second independently working administrator SSH/recovery connection to `ccpcerpserver` exists while the original session remains open. This is **operator-reported**, not an assistant-run connectivity test or a demonstrated out-of-band console in a total network failure. There is no stated authorization yet for privileged filesystem writes, kernel changes or startup; **Codex remains stopped and NO-GO**.
+
+**Exact reviewed GitHub state:** Draft [PR #39](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/39) retains scoped nft source, review-only service template and 161 mocked security tests. Last verified code+docs checkpoint `f3b26fb2ebcc5189625cf131cc8454d40f131c93` passed source-only GitHub Actions [run `44684328438`](https://github.com/ccpcerp/ccpc-frappe-deployment/actions/runs/44684328438), with native `nft --check` on a disposable runner. This is not live host isolation/persistence evidence.
+
+**Next scoped decision — Stage A only:** The revised [installation and recovery review](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/review/codex-proxy-network-hardening-2026-11-19/docs/ccpc-project/CODEX-SCOPED-NFT-INSTALL-RECOVERY-REVIEW.md) at review commit `5d03a5a01b2795c4c9fdb3f70bad19d20efe7da0` contains an **exact proposed, but NOT YET APPROVED** root-only host baseline capture: stopped-agent/restart disabled and stock `nftables.service` inactive/disabled checks, then writes private `iptables-save`, `ip6tables-save`, `nft -j list ruleset`, routing and service-state reference files under a newly created root-owned `/root/ccpc-codex-nft-preinstall.XXXXXXXX` directory with mode restricted by umask. It would make a small local filesystem write but **no iptables/nftables kernel mutation, systemctl action, Docker restart, service enablement or Codex start**. Raw snapshots must remain private on-host; they are **not safe to upload to this public GitHub repository or chat**, and must not be restored wholesale over UFW/Docker. A partial directory may remain if the snapshot aborts. The script is for command-level owner approval **before** use.
+
+**Later stages remain unapproved:** immutable/pinned source staging, install-path ownership, root authorization marker creation, single project-only nft table installation, separate manual-only unit, controlled negative non-PRODUCTION canaries and UFW/Docker reload/reboot validation each require scope-specific approval and recovery verification. **Do not enable or start/reload/stop stock nftables.service** given its global-flush configuration; do not activate Codex/Squid. A second SSH session does not alone prove zero-gap runtime network isolation.
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
