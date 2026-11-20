@@ -1,5 +1,15 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-20 — MAIN DEVELOPMENT backup file-integrity checks PASS
+
+**User-supplied read-only validation:** The 2026-11-20 09:16 four-component `development.localhost` Bench backup set `20261120_091609-development_localhost` passed all listed existence and non-empty file checks, `gzip -t` on the database `.sql.gz`, `tar -xOf ... >/dev/null` on public and private TARs, and `python3 json.load` of the site config. Operator terminal reported: `Four backup files: PASS`, `Database compressed file: PASS`, `Public files archive: PASS`, `Private files archive: PASS`, `Site configuration JSON: PASS`, `Backup file integrity checks completed.` These establish **basic compressed archive/JSON integrity**, not restore usability or SQL semantic completeness. No secret-bearing backup contents were uploaded or printed.
+
+**Previously established separate recovery evidence:** The more specific GitHub [two-site backup execution record](PHASE1-TWO-SITE-DEV-BACKUP-EXECUTION-2026-11-18.md) shows **2026-11-19 operator-reported verified Synology NAS copy** of main `development.localhost` and integration2 `ccpc-integration2.localhost`, with local/NAS hash checks PASS and no restore rehearsal. That Nov19 off-host set is distinct from the fresh Nov20 main-only backup; do not conflate their recovery points.
+
+**Next minimal safe action:** Before copying the new Nov20 backup set, confirm `/mnt/erpnext_backups` is currently an actual `cifs` mount with exact source `//192.168.50.132/erpnext_backups` and suitable access. Backup source maps through DEV container bind `/workspace` to host `/home/gani/deployments/frappe_docker`. Then copy only the four new Nov20 **MAIN DEV** artifacts into a fresh uniquely named DEV-only directory on that verified NAS, preserve originals/older NAS sets, and compare source/destination bytes/checksums; do not copy secrets to chat/GitHub. This is BACKUP-only activity. No code pull/switch, schema migration, Frappe restart, real Finance user or business writes, restore or PRODUCTION action approved by this milestone.
+
+---
+
 ## 2026-11-20 — MAIN DEVELOPMENT full backup reported successful; integrity and separate copy pending
 
 **Operator-reported output:** User explicitly approved a fresh **MAIN DEVELOPMENT-only** backup, then ran a Frappe Bench backup of `development.localhost` with public/private files and `--ignore-backup-conf` in `frappe_docker_devcontainer-frappe-1`. Bench printed `Backup for Site development.localhost has been successfully completed with files` at **2026-11-20 09:16:10**. New backup prefix `20261120_091609-development_localhost` under `/workspace/development/frappe-bench/sites/development.localhost/private/backups/`; site config **234 B**, database `sql.gz` **1,712,880 B**, public files `.tar` **10,240 B**, private files `.tar` **20,480 B**. The storage check showed **683 G available**, 22% used. Prior October 27 four-file backup set was still listed. Shell `find` printed 01:16, whereas Bench printed 09:16; likely differing timezone presentation, not evidence of separate backup sets (matching prefix).
