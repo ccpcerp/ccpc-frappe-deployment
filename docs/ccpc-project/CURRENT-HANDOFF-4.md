@@ -1,5 +1,21 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-20 — Three CCPC expense GL lines without Department traced to Stock Entry vouchers
+
+**Operator-supplied MAIN DEV read-only `tabGL Entry` detail for the three missing Department expense GL lines (no amounts displayed):**
+
+| Posted | Voucher | Expense Account | Cost Center |
+| --- | --- | --- | --- |
+| 2026-09-12 | `Stock Entry MAT-STE-2026-00007` | `5400 - Stock Adjustment - CCPC` | `Main - CCPC` |
+| 2026-09-12 | `Stock Entry MAT-STE-2026-00009` | `5400 - Stock Adjustment - CCPC` | `Main - CCPC` |
+| 2026-10-06 | `Stock Entry MAT-STE-2026-00019` | `5140 - Repairs & Maintenance - CCPC` | `Main - CCPC` |
+
+All three missing-Department expense GL rows are sourced from **Stock Entry** vouchers, not from the examined Purchase Invoice or Journal Entry sources; **Stock Entry purpose, submitted status, Withdrawal Slip linkage, header/item Department, other balanced ledger entries, and historical accounting intent have not yet been inspected**. `5400 - Stock Adjustment` is not authorized as the current controlled withdrawal category mapping merely because it appears historically; `5140` also remains only a proposed `Bearings` candidate. These are postings dated before this Nov20 inspection, but chronology alone does not establish that they predate code fixes, arose from the current custom route, or require correction.
+
+**Next safe diagnostic:** Read-only query of just these three exact `tabStock Entry` headers and `tabStock Entry Detail` rows, listing Company, posting date, purpose, docstatus, Withdrawal Slip linkage, header/row Department, Item and expense account/Cost Center (no amounts or sensitive personal fields). If the original source also lacks Department, investigate transaction provenance/intent; if its header/items contain beneficiary Department but GL lacks it, investigate native GL dimension propagation or customization. Neither finding authorizes historic edits. Keep **Unassigned Department** as a separate reconciliation bucket until Accounting approves explicit treatment. No master-data edit, finance mapping, GL adjustment, transaction cancellation or PRODUCTION operation.
+
+---
+
 ## 2026-11-20 — Live expense-GL Department coverage: CCPC 9/12; RMC no expense rows
 
 **Operator-supplied MAIN DEV read-only `tabGL Entry` counts** joined to exact-Company Expense-root Accounts, excluding canceled entries: **CCPC: 12 expense GL rows = 9 with eligible exact-Company enabled leaf Department (75%), 3 blank Department (25%), 0 invalid nonblank**. **Ricor: 0 matching expense GL rows**, so Department coverage **not yet measurable**, not demonstrably fully compliant. Note row coverage is not value-weighted and does not prove correct attribution for valid Department labels or successful current withdrawal→GL pilot. There are three unassigned CCPC expense rows to investigate; **no automatic reallocation, GL edit, or retrospective Department rewrite**.
