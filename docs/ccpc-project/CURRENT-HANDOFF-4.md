@@ -1,5 +1,15 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-20 — Center mapping active in DEV after independent test approval (public-safe)
+
+**Owner-provided MAIN DEVELOPMENT ERPNext Desk validation after signed test approval:** For the initial Company-scoped pilot Maintenance beneficiary Department, **Active mapping = the existing main leaf Cost Center** and **Active revision shown** (identifier omitted from this public repository). This is verified by operator screen output, **not** by direct access from assistant to the live DEV DB. In the currently inspected application onboarding code, `get_pilot_coverage` requires an approved, effective revision and enforces approval provenance before returning it as active. This confirms the initial test Center mapping appears active and the configured Company's normal downstream resolution can rely on it, subject to integrated stock/GL UAT.
+
+**Accounting control:** Authenticated DEV maker/checker accounts use test email identities; their signing is DEVELOPMENT validation, not PRODUCTION finance appointment. Separate **Expense mapping is still not active**; its initial proposed maintenance-part group → eligible repairs Expense Account remains business-approved for ordinary maintenance consumption only. Do not activate until capital/other-use exception gate and Finance test reviewer scope are acceptable. **No stock entry, SLE/GL issue, DEV app code deployment or PRODUCTION change was performed by this conversation.**
+
+**Immediate next supervised action:** Finance preparer in MAIN DEV opens `/app/ccpc-phase1-finance`, selects `Expense Account`, exact same-Company pilot source group, and existing repairs expense account; use `Check coverage` for any existing active/draft mapping, then `Propose mapping` **Draft only** if no scope conflict. A distinct Checker must review exact proposal without approving until the exception gate is resolved.
+
+---
+
 ## 2026-11-20 — Owner confirms DEV Finance roles use test identities; initial Center signing authorized for DEV verification
 
 **Owner clarification:** Current MAIN DEVELOPMENT Finance preparer and distinct approver accounts are **deliberately test-email identities**, not actual production email addresses. Owner confirms Finance-preparer/independent-approver arrangement, and offers more test users if needed. For **DEV UAT only**, existing separately enabled, exact-Company-permitted test accounts can execute the normal maker/checker workflow; extra accounts are unnecessary if distinct-authority requirements are met. ERPNext authenticated test approvals are development test evidence **only**, not production Accounting staff appointment, real Finance signoff, or authorization for PRODUCTION migrations/deployment.
