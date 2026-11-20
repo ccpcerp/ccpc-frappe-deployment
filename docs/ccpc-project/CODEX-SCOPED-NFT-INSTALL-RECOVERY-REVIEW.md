@@ -224,3 +224,29 @@ CCPC_STAGE_B
 
 **Execution status:** **Awaiting operator's sanitized terminal output.** Success requires all nine output lines ending `STAGE_B_SOURCE_ONLY_COMPLETE`; any failure/partial output is STOP, no cleanup or next stage without review. Do **not** create the root approval marker, invoke `install` or `nft -f`, install/enable a service, reload UFW/Docker, or launch Codex/Squid. Stage C kernel table installation remains separately unapproved. Codex activation remains **NO-GO**.
 
+
+
+## Step 114 — Stage B source-only staging operator-reported PASS (2026-11-20)
+
+The owner returned the terminal echo `CCPC_STAGE_B` and **all nine exact expected completion lines** from the separately approved Stage B source-only procedure on `ccpcerpserver`:
+
+```text
+host_verified=True
+agent_stopped=True
+source_commit_pinned=True
+all_four_git_blobs_verified=True
+root_only_review_source_staged=True
+firewall_modified=False
+services_modified=False
+codex_launch_authorized=False
+STAGE_B_SOURCE_ONLY_COMPLETE
+```
+
+**Interpretation and provenance:** Operator-reported Stage B **PASS**. By the reviewed command, the host checks passed, an originally absent root-controlled `/opt/ccpc/codex-lab-review` directory was created after staging four `scripts/security/*.py` files downloaded by HTTPS at immutable commit `66960f73a69b10b59f508cda7bfd4ac9ea5c21af` and checked by exact Git blob IDs. The files are staged root-read-only, and the commit marker was stored. The last command successfully required the temporary staging path to be absent and the final directory to exist. The operator-reported booleans do **not** equal an independent live host inspection by ChatGPT; file bytes, symlinks/modes after staging, services, and current firewall have not yet been rechecked in this conversation.
+
+**Authorized filesystem effect:** Only review-source files and private parent directories; **no authorization marker, systemd unit, nftables table, original firewall mutation, UFW/Docker reload, or Codex/Squid process start**. Stage A private firewall baseline remains on the host, not uploaded or restored. Keep the second independent administrator recovery connection available.
+
+**Next read-only gate — Stage B post-stage recheck, not Stage C installation:** Independently verify only the precise four files and recorded commit under a root-owned, no-symlink review directory, their Git blob IDs/0400 owner-only modes, stopped-agent/restart disabled and inactive/disabled stock nftables.service; verify the proposed nft table remains absent. Do not import or execute downloaded Python in the validation step. No need to print private paths, raw nft/iptables data or secrets. If any value differs, STOP; do not change permissions or delete files without a reviewed recovery step.
+
+**Still not approved:** Creating `/etc/ccpc/codex-lab-nft-guard-authorized`, running `ccpc_codex_nft_scoped_controller.py install`, installing/enabling a systemd service, nft/iptables mutation, UFW/Docker reload or reboot, host test probes, or Codex/Squid activation. The next firewall installation would require separate exact-command approval with a live negative-canary and scoped rollback plan; a staged controller is not runtime/persistence protection.
+
