@@ -884,6 +884,16 @@ Companion [Step 125 recovery-plan checkpoint](https://github.com/ccpcerp/ccpc-fr
 
 ---
 
+## Step 126 — owner endorses next isolation planning; bounded lab-to-host canary proposal unapproved (2026-11-20)
+
+**Owner response:** The owner replied **“aPPROVED”** immediately after the Step 125 answer describing Step 126's remaining lab-to-host/inter-bridge isolation work and expressly noting **no new active network test had yet been authorized**. Because no command/source/destination identity was specified, the approval is recorded as authorization **to prepare the test procedure**, not blanket permission to execute newly designed root namespace processes, temporary listeners, firewall modifications, or traffic.
+
+**Current design checkpoint:** In [review branch commit `5cceffe56339ef6916db8b765326509a57d4de0f`](https://github.com/ccpcerp/ccpc-frappe-deployment/commit/5cceffe56339ef6916db8b765326509a57d4de0f), the scoped recovery plan proposes an **exact, NOT YET APPROVED** single-path IPv4 lab→host-gateway test with a host-side ephemeral TCP listener bound to the known original synthetic bridge gateway `172.21.0.1` only. It re-verifies pinned Python source hashes, no authorization marker, exact dedicated nft policy and original iptables/agent conditions via the controller `verify`, Docker internal lab network and the existing synthetic Redis-cache and Redis-queue identities; then checks the listener is reachable from the host, attempts one timeout-bounded TCP connection with *no payload* from the already-running synthetic Redis-cache container's Linux network namespace via `nsenter`, confirms the host listener still responds, verifies original Redis-to-Redis `PING` allowed before and after, and ensures the original nft table remains exact and Codex stopped. The host listener is closed in `finally`. Only fixed status lines are printed, no IPs/credentials/business data.
+
+**Operational risk and limits:** `nsenter` runs one privileged, short-lived host Python program with the *existing* synthetic Redis-cache network namespace (it does not attach/create a Docker network or start a container). A temporary TCP listen socket exists on the synthetic bridge host-gateway IP/ephemeral port for the short test duration. This is **active traffic/temporary process creation** and requires distinct explicit owner approval of the exact proposed command before execution. Failure stops immediately without firewall changes. Observing denial establishes only one lab→host IPv4 path blocked by combined nft/iptables/UFW routing; no causal attribution to the new nft table. Cross-bridge probes remain unplanned until synthetic-only other-side endpoints can be proven or separately authorized. Nothing permits Docker/UFW reload, reboot, systemd installation, iptables/nft mutation, Codex/Squid startup, or DEVELOPMENT/PRODUCTION operations. **Codex activation remains NO-GO.**
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
