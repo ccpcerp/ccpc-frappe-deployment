@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-20 — Bearings stocked Item pilot inventory confirmed; Consumable group empty
+
+**Operator-provided MAIN DEV read-only results:** Query against `development.localhost` site `tabItem` found exact leaf Item Group `Bearings`: **19 total Items, all 19 enabled stock Items**; bounded first 12 sample were `ITEM-00001` through `ITEM-00012` and named industrial bearing stock (ball, roller, spherical/taper). `Consumable` Item Group: **0 total Items**, SQL SUM returned `None` due to empty set (not an error), no enabled stock Items. These are Item *master counts*, **not** evidence of positive stock balance, a successful withdrawal or a finance-approved account map.
+
+**Decision gate:** `Bearings` is a plausible first maintenance-issue Item Group for Accounting review of `5140 - Repairs & Maintenance` in the same Company, conditional on real item intended use, policy and stock valuation. A mapping applies to the entire leaf Item Group; it must not be approved merely from a 12-item sample. `Consumable` cannot currently supply a real stock-item issue pilot. Next fast read-only step: query `tabBin` joined to Company-scoped eligible `tabWarehouse` and `tabItem`, count positive `actual_qty` bearing stock per Company and display a bounded inventory sample; distinguish existing inventory from reserved stock. If there is no available bearing stock, choose a different genuinely stocked Item Group or separately approve a controlled DEVELOPMENT-only stock receipt fixture rather than inventing a balance. No real mapping proposal/approval, Cost Center creation, Stock Entry, SLE/GL write, git checkout, service restart or PRODUCTION operation authorized or performed.
+
+---
+
 ## 2026-11-20 — Candidate Expense accounts identified; no mapping or classification approved
 
 **Operator-provided read-only MAIN DEV SQL output:** Searching enabled non-group `root_type='Expense'` Account names with the keyword pattern `consum|suppl|maint|repair|spare|material` returned the following for BOTH Companies, with respective suffixes `- CCPC` and `- RMC`: `5112 - Client Service & Maintenance`, `5140 - Repairs & Maintenance`, `5146 - Stationery & Supplies`, `5149 - Laboratory Supplies`, `5150 - Intercompany Materials Expense`. Initial MySQLdb query with unescaped `%...` LIKE patterns failed before execution due to parameter-format string mismatch; corrected parameterized REGEXP query succeeded. These are **keyword-filtered candidates**, NOT a complete account inventory or Accounting-approved mappings. No financial data write.
