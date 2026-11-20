@@ -309,3 +309,21 @@ INSPECTION_COMPLETE
 If checks fail, the code returns a nonzero exit and prints `STOP: scoped nft controller check failed` without raw firewall configuration. Do not retry through `install`, create a marker, change permissions, restart any service or use a broader shell wrapper. Request the sanitized output and review the cause before any further action.
 
 **Execution state:** **NOT YET RUN / NOT YET VERIFIED**. Owner will run the single command and paste output. Stage C remains unapproved. No host install/service/reload, negative network tests, proxy or Codex start authorized. This plan cannot verify reboot persistence or zero-gap runtime containment.
+
+## Step 118 — staged controller plan passed; Stage C remains unapproved (2026-11-20)
+
+**Operator-supplied result of precisely authorized read-only `plan`:**
+
+```text
+PROJECT_NFT_TABLE_STATE=absent
+agent_launch_authorized=False
+reload_reboot_runtime_enforcement_verified=False
+INSPECTION_COMPLETE
+```
+
+**Assessment:** Stage 117's exact `sudo python3 -B /opt/ccpc/codex-lab-review/scripts/security/ccpc_codex_nft_scoped_controller.py plan` command completed its four expected status lines. The pinned source's `plan` path checks the intended host/root, Docker daemon/bridge/subnet identity, known stopped original agent with restart disabled, correct three original-lab INPUT and DOCKER-USER DROP rules and precedence, UFW active, stock nftables.service inactive/disabled, and the absence of the independent named CCPC table. **Read-only installation prerequisites passed at that instant.** The operator output is the evidence; ChatGPT did not directly connect to the server and did not independently examine any private firewall or snapshot files.
+
+**Critical distinctions:** There is **no independently installed `inet ccpc_codex_lab_guard` table**; `agent_launch_authorized=False` and `reload_reboot_runtime_enforcement_verified=False` correctly remain. A read-only plan checks readiness but does not establish live filtering, negative network-test results, daemon reload/reboot persistence, or any guaranteed uninterrupted isolation under privileged host operations.
+
+**Stage C decision hold:** Owner approved only `plan`, **not** authorization-marker creation, root-only filesystem mutations beyond previous Stage B, `install` mode, systemd unit installation, nftables state mutation, Docker/UFW restart, agent/online Squid startup or PRODUCTION/DEVELOPMENT actions. Stage A private baseline and two SSH/admin recovery connections remain the operator-reported prerequisites. Before submitting a bounded Stage C installation command for **separate explicit approval**, review root-marker path/ownership/no-symlink checks, exact immutable source SHA, current host/agent/iptables guard recheck, prior baseline storage, no global `flush ruleset`, limited table-only mutation, preservation of restrictive policy on failure, and an exact, separately authorized project-table-only rollback when agent remains stopped. A one-shot install will not solve future reload loss or Docker manual-start bypass; Codex remains **NO-GO**.
+
