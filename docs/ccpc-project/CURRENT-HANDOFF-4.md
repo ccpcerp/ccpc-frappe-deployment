@@ -1,5 +1,15 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-20 — Required Department Accounting Dimension metadata PASS; future payroll/claims DocTypes not found
+
+**Owner-provided read-only `development.localhost` results (2026-11-20):** ERPNext `get_accounting_dimensions()` included `department` (**registered PASS**). Frappe metadata `department` field exists in all Phase 1 relevant doctypes: `Stock Entry` **PASS**, `Stock Entry Detail` **PASS**, `GL Entry` **PASS**. Future expense sources `Purchase Invoice Item` and `Journal Entry Account`: Department field **PRESENT**. `Expense Claim Detail` and `Salary Slip`: DocType **NOT FOUND** on this DEV site; these are Phase 2 discovery gaps, not blockers for initial withdrawal. Do not assume HRMS is uninstalled without checking installed apps. Field existence is **NOT evidence** Department is correctly filled in actual posted GL or that historical expense lines are clean.
+
+**Next shortest safe step:** Read-only count of noncanceled, posted expense-Account `tabGL Entry` rows per Company with valid same-Company eligible Department, blank Department and nonblank invalid/wrong-Company Department. Query only aggregates, no amounts or confidential payroll; if zero GL rows, mark coverage untested and proceed to separately approved UAT. Later verify signed maker/checker expense + center mapping and actual Stock Entry→SLE→Expense GL Department and native report in a narrowly controlled, separately authorized DEV pilot. No manual master changes, mappings, transaction postings, Git source pull/restart/migration or PRODUCTION actions.
+
+**Documentation verified:** The selected [Department Expense Accounting Architecture](DEPARTMENTAL-EXPENSE-ACCOUNTING-ARCHITECTURE-2026-11-20.md) Gate 1 was updated for these exact observed checks on docs branch `review/pr33-dev-acceptance-2026-11-16` at commit `4c96681df9172de3c047601a6a33fcf0a39b20b2`.
+
+---
+
 ## 2026-11-20 — Owner-approved Department-first all-expense architecture documented
 
 **Business authorization:** Owner said **"Approved, you can design it yourself"** after confirming long-term management need for **all Company/Department expenses** (stock materials, salaries/payroll, electricity/utilities, maintenance/services and other operating expenses). This approval was applied to **architecture and project documentation**, not authorization for specific Account/Cost Center financial crosswalks, Finance decision signatures, actual source/backend application code changes, new master records, mapping activation, transaction posting, payroll configuration, database migration, DEVELOPMENT checkout/restart, or PRODUCTION action.
