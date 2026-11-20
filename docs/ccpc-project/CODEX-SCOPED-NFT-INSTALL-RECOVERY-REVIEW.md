@@ -283,3 +283,29 @@ READ_ONLY_DIAGNOSTIC_COMPLETE
 
 **Next bounded review candidate:** a newly authorized **read-only controller `plan` execution**, after separate review of staged source/hash, to validate its actual system/iptables preconditions against the live host. This would execute the reviewed controller source as root but should use `python3 -B` to avoid bytecode writes and `plan` only (never `install`). A passing `plan` is necessary but not sufficient for actual firewall installation. The controller has **no effective ongoing runtime guard** and source-only testing cannot establish kernel packet isolation. No authorization marker, systemd unit, nft table, UFW/Docker reload or Codex start is approved; keep **Codex NO-GO**.
 
+
+
+## Step 117 — read-only staged controller plan approved; host execution pending (2026-11-20)
+
+**Owner's explicit authorization:** Following the successful Stage B labelled diagnostic in Step 116, the owner replied **“Approved”** to **read-only staged-controller `plan` mode only**, not Stage C installation or any firewall mutation.
+
+**Exact approved command on `ccpcerpserver` only** (with existing independent administrator recovery connection maintained):
+
+```bash
+sudo python3 -B /opt/ccpc/codex-lab-review/scripts/security/ccpc_codex_nft_scoped_controller.py plan
+```
+
+The GitHub-connected code was re-fetched before this approval was recorded. Its file blob `e07b1afcb39761fb0f5613c83c5f97b4aee46d22` at immutable reviewed code commit `66960f73a69b10b59f508cda7bfd4ac9ea5c21af` matches the staged-file provenance from Step 116. The `plan` branch calls `ready_bridge()` (existing root/host/Docker/known stopped-agent, original bridge identity, original three iptables DROP rules and precedence, stock nftables.service disabled/inactive) and `table_state()` (read-only `nft -j list tables`). If the CCPC table were unexpectedly present, the code additionally verifies its exact contents without changing them. There is no root-authorization marker required in `plan` mode and no `nft -f` transaction. The `-B` flag prevents Python bytecode cache writes.
+
+**Anticipated output only if checks pass and the independent table is still absent:**
+
+```text
+PROJECT_NFT_TABLE_STATE=absent
+agent_launch_authorized=False
+reload_reboot_runtime_enforcement_verified=False
+INSPECTION_COMPLETE
+```
+
+If checks fail, the code returns a nonzero exit and prints `STOP: scoped nft controller check failed` without raw firewall configuration. Do not retry through `install`, create a marker, change permissions, restart any service or use a broader shell wrapper. Request the sanitized output and review the cause before any further action.
+
+**Execution state:** **NOT YET RUN / NOT YET VERIFIED**. Owner will run the single command and paste output. Stage C remains unapproved. No host install/service/reload, negative network tests, proxy or Codex start authorized. This plan cannot verify reboot persistence or zero-gap runtime containment.
