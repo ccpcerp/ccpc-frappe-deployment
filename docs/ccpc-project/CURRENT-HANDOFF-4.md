@@ -1,5 +1,19 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-20 — Finance UI runner trial and manual CircleCI fallback (GitHub only)
+
+**Owner authorization:** continue testing Finance UI Playwright suite, install needed test dependencies in a disposable isolated environment, prepare the fastest safe CI path, **no MAIN DEV or PRODUCTION operations**.
+
+**GitHub one-shot attempt:** PR40 branch `test/phase1-finance-playwright-ui-2026-11-20` received tightly path/branch-filtered GitHub Actions workflow in commit **`334581e56cd7a2fa9ad59d079bb208df4e421b44`**, job timeout 10 minutes, exact known Finance JS/spec blob guards and no permissions beyond repo read. [GitHub Actions run 44643024277](https://github.com/ccpcerp/ccpcerp/actions/runs/44643024277) was **failure before runner allocation**, not a test failure: `runner_id=0`, empty job `steps=[]`, no job logs, GitHub usage timing records `0` billable runner milliseconds. No automatic retry. Exact provider reason inaccessible; do not assert billing failure. npm registry in ChatGPT scratch remains unreachable (`EAI_AGAIN`).
+
+**Fallback prepared, NOT run:** PR40 updated `.circleci/config.yml` with `run_finance_ui` **default false**, new `finance-ui-playwright-isolated` small container (`mcr.microsoft.com/playwright:v1.56.0-noble`), exact repo/branch/checkout/Frappe-page/source blob guards, refusal of live DEV session variables, `timeout -s TERM 420s`, `npm install`, `npm run check`, `npm test`, and lockfile artifact. Workflow `opt-in-finance-ui` is both parameterized and guarded by `finance-ui-manual-approval`, branch-filtered solely to the PR40 test branch; no recurring trigger or CI credentials added. App review source HEAD **`324e7ae717b238392ee8acfc20e61db3a1862f07`** after CircleCI config correction and README updates; PR40 remains **draft/open/unmerged**. Diff verified as additive to existing CircleCI jobs and paths. The official `@playwright/test` run is **pending** a human-triggered CircleCI parameter `run_finance_ui=true` and separately approved manual hold. User should verify free CI credit and cancellation scope before clicking approval; absent access from the connected tools, ChatGPT **cannot initiate that CircleCI pipeline**.
+
+**Retested local evidence:** `npm run check` **PASS**; original four committed Node test functions run with temporary isolated Playwright Core adapter plus Chromium **4/4 PASS**. Do not claim that is the official `npm test` or named-user MAIN DEV acceptance. No real Finance API, DB, mapping proposal, approval, GL, stock ledger, persistent DEV/PRODUCTION code/data, credentials or services contacted.
+
+**Next decisive action:** From the existing CircleCI `ccpcerp` project, manually start a single pipeline on branch `test/phase1-finance-playwright-ui-2026-11-20` with only `run_finance_ui=true`, approve `finance-ui-manual-approval` after reviewing scope and credit availability, then share its exact run URL/output. Do not auto-rerun. On clean **4/4 official PASS**, review and commit generated non-secret `package-lock.json`, consider closing out one-shot CI additions, and review PR40. Persistent MAIN DEV or PRODUCTION remain separate approval decisions.
+
+---
+
 ## 2026-11-20 — Owner-approved Phase 1 Finance UI Playwright regression suite committed (GitHub-only)
 
 ### 2026-11-20 — Original Node PR40 spec functions run via isolated local adapter: 4/4 PASS
