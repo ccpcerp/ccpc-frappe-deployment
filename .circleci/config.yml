@@ -1,0 +1,94 @@
+# CCPC Codex synthetic lab — manual, SOURCE-ONLY security test proposal.
+# Default false: ordinary pushes/PRs do not run this workflow.
+# No Docker daemon, ERPNext, MariaDB, Squid, secret/context, host, or deploy job.
+# Running consumes CircleCI credits; operator must verify plan allowance first.
+# This config applies only if CircleCI is separately connected to THIS repo.
+version: 2.1
+
+parameters:
+  run_codex_source_tests:
+    type: boolean
+    default: false
+  approved_codex_commit:
+    type: string
+    default: ""
+
+jobs:
+  codex-static-review:
+    parameters:
+      approved_sha:
+        type: string
+    docker:
+      - image: cimg/python:3.14
+    resource_class: small
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+      CCPC_CODEX_APPROVED_SHA: << parameters.approved_sha >>
+    steps:
+      - run:
+          name: Reject incorrect CircleCI identity before checkout
+          command: |
+            set -euo pipefail
+            test "${CIRCLECI:-}" = "true"
+            test "${CIRCLE_PROJECT_REPONAME:-}" = "ccpc-frappe-deployment"
+            test "${CIRCLE_BRANCH:-}" = "review/codex-proxy-network-hardening-2026-11-19"
+            test "${CIRCLE_JOB:-}" = "codex-static-review"
+            test -n "${CIRCLE_PIPELINE_ID:-}"
+            test -n "${CIRCLE_WORKFLOW_ID:-}"
+            test -n "${CIRCLE_BUILD_NUM:-}"
+            [[ "${CCPC_CODEX_APPROVED_SHA:-}" =~ ^[0-9a-f]{40}$ ]]
+            echo "CircleCI project, branch and manual approved-SHA format: PASS"
+      - checkout
+      - run:
+          name: Check exact reviewed GitHub commit and standalone test-only scope
+          command: |
+            set -euo pipefail
+            test "$(git rev-parse HEAD)" = "${CIRCLE_SHA1:-}"
+            test "$(git rev-parse HEAD)" = "${CCPC_CODEX_APPROVED_SHA}"
+            test -f codex-dev-agent/check_compose.py
+            test -f codex-dev-agent/init_local_secrets.py
+            test -f codex-dev-agent/proxy/squid.conf
+            test -f codex-dev-agent/tests/test_safety_policy.py
+            test -f codex-dev-agent/tests/test_lab_firewall_guard.py
+            test -f scripts/security/ccpc_codex_proxy_bridge_preflight.py
+            test -f scripts/security/ccpc_codex_lab_firewall_guard.py
+            test -f scripts/security/ccpc_firewall_rule_order.py
+            test -f scripts/security/systemd/ccpc-codex-lab-firewall-restore.service.example
+            test -z "$(git status --porcelain)"
+            echo "Exact reviewed commit and source-only test prerequisites: PASS"
+      - run:
+          name: Run 75 stdlib-only regressions without site, Docker or network
+          no_output_timeout: 3m
+          command: |
+            set -euo pipefail
+            python3 - <<'PY'
+            import unittest
+            suite = unittest.defaultTestLoader.discover(
+                "codex-dev-agent/tests", pattern="test_*.py"
+            )
+            if suite.countTestCases() != 75:
+                raise SystemExit("STOP: unexpected source-only regression count")
+            print("75 source-only regression tests discovered")
+            PY
+            timeout -s TERM 120s python3 -m unittest discover \
+              -s codex-dev-agent/tests -p 'test_*.py' -v
+            test -z "$(git status --porcelain)"
+            echo "PASS: exact-SHA 75-test source-only suite; no live isolation asserted"
+
+workflows:
+  codex-security-manual-only:
+    # Explicit CircleCI pipeline parameter required; NO push/PR auto-run.
+    when: << pipeline.parameters.run_codex_source_tests >>
+    jobs:
+      - authorize-codex-source-tests:
+          type: approval
+          filters:
+            branches:
+              only: review/codex-proxy-network-hardening-2026-11-19
+      - codex-static-review:
+          approved_sha: << pipeline.parameters.approved_codex_commit >>
+          requires:
+            - authorize-codex-source-tests
+          filters:
+            branches:
+              only: review/codex-proxy-network-hardening-2026-11-19
