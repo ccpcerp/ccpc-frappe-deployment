@@ -264,3 +264,24 @@ Before any host write, the proposed separate controller must satisfy all of thes
 **Next concrete read-only host checkpoint:** Check for existing project-scoped service unit names and approved install path occupancy, plus whether the administrative recovery channel exists; return only booleans, with no raw host commands/paths/config dump. This distinguishes conflict-free source development from potential host takeover. It is not permission to install or to start Codex.
 
 The full 139/139 source suite and disposable `nft --check` still stand as evidence for **static policy only**. PR #39 remains draft/unmerged and **Codex activation NO-GO**. Separate command-level host approval and recovery/rollback review remain required.
+
+
+## Step 109 — scoped nftables controller proposed; operator service-name preflight PASS (2026-11-20)
+
+**Read-only host observation, operator supplied:**
+```text
+agent_stopped=True
+dedicated_nft_unit_name_available=True
+offline_launch_unit_name_available=True
+review_install_directory_already_exists=False
+host_changes_performed=False
+codex_launch_authorized=False
+READ_ONLY_CHECK_COMPLETE
+```
+The names are free and the intended review path is absent **at this snapshot only**; no source installation or recovery setup occurred.
+
+**GitHub-only implementation:** Added `scripts/security/ccpc_codex_nft_scoped_controller.py`, 22 new mocked negative/positive tests, and uninstalled `scripts/security/systemd/ccpc-codex-nft-guard.service.example` with no `[Install]`, ExecStop or automatic launch. The controller's read-only plan/verify modes fail closed on incomplete host/original-bridge checks; hypothetical install mode requires exact root-owned restrictive authorization marker and root lock, stock nftables.service inactive/disabled, stable bridge and exact original iptables protection, no unknown project nft table, native check-only parser pass, then a *single project-only table* nft transaction. No global flush, UFW/Docker changes, Codex start, or automatic rollback deleting protective rules.
+
+**Verification:** [GitHub Actions run 44684035488](https://github.com/ccpcerp/ccpc-frappe-deployment/actions/runs/44684035488), exact commit `66960f73a69b10b59f508cda7bfd4ac9ea5c21af`, completed **success**, job log explicitly **161 source-only security regressions discovered; Ran 161 tests; OK**, and **nftables_check_only_candidate_syntax_passed=True** on disposable GitHub-hosted runner. These tests are source-only/mocked and do not test live host reloading or runtime isolation. Source changes remain draft PR #39.
+
+**Review and recovery plan:** `docs/ccpc-project/CODEX-SCOPED-NFT-INSTALL-RECOVERY-REVIEW.md` defines offline source ownership, independent SSH recovery, a private firewall baseline, stopped-agent prerequisites, exact project-only install, no aggressive automatic cleanup and narrowly scoped rollback. **All host writes remain unapproved.** Stock nftables.service remains disabled; do not reload UFW, restart Docker, attach proxy, install the new unit or start Codex based on this document. A project-only oneshot still cannot guarantee persistence after privileged reloads or zero-gap runtime isolation. The next approval must review exact commands and recovery, not merely this high-level design.

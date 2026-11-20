@@ -5,7 +5,15 @@
 This new Compose project is intentionally separate from `frappe_docker_devcontainer` and the old `frappe_docker` stack. The actual production site is now on a dedicated host according to the project owner; that does **not** make old host data or secrets disposable.
 
 
-## Current source-only checkpoint — independent nftables candidate (2026-11-20)
+## Current source-only checkpoint — scoped nftables controller (2026-11-20)
+
+**161/161 source-only security tests passed** on the actual GitHub Actions runner, including **22 new scoped nft controller mock tests**, plus a native **nft --check** syntax validation with no kernel rule application: [CI run 44684035488](https://github.com/ccpcerp/ccpc-frappe-deployment/actions/runs/44684035488), reviewed commit [66960f7](https://github.com/ccpcerp/ccpc-frappe-deployment/commit/66960f73a69b10b59f508cda7bfd4ac9ea5c21af).
+
+The owner's Step 109 read-only preflight on ccpcerpserver reported the stopped agent, two unused service unit names and an absent review install directory. New review-only `../scripts/security/ccpc_codex_nft_scoped_controller.py` provides read-only `plan`/`verify` and a **NOT INSTALLED** root-only marker-guarded `install` mode that checks stopped-agent identity, UFW/Docker original rules and ordering, inactive/disabled stock nftables.service, table collisions and exact independent table contents; if absent, only a single dedicated nftables table is proposed and installed atomically, never a global flush. No rollback automatically deletes restrictive rules if verification fails. `../scripts/security/systemd/ccpc-codex-nft-guard.service.example` is an uninstalled **manual-only** template without an Install or stop action. The main global-flush nftables.service remains prohibited.
+
+Review the [scoped nft installation and recovery decision record](../docs/ccpc-project/CODEX-SCOPED-NFT-INSTALL-RECOVERY-REVIEW.md) before **separately approving exact host operations**. This is still **NOT reload/reboot persistence, zero-gap enforcement or unbypassable Codex startup**. The old host container still has unverified resource/image/mount settings, the Codex agent remains stopped and proxy outgoing/DNS isolation unverified. **Codex activation NO-GO**; no host, DEVELOPMENT or PRODUCTION changes performed in this milestone.
+
+## Prior source-only checkpoint — independent nftables candidate (2026-11-20)
 
 **139/139 source-only security tests passed**, plus a native **nft --check** syntax-only validation on a disposable GitHub-hosted Ubuntu runner: [CI run 44680327848](https://github.com/ccpcerp/ccpc-frappe-deployment/actions/runs/44680327848), exact security code/CI commit [1c2f1f0](https://github.com/ccpcerp/ccpc-frappe-deployment/commit/1c2f1f0195c068f3fe4d119b144d28dc50fe5190).
 
@@ -28,7 +36,7 @@ The `../scripts/security/ccpc_codex_lab_start_interlock.py` is **read-only**. It
 - `init_local_secrets.py`: creates two randomly generated, strictly owner-only passwords for the **new synthetic MariaDB**, without overwriting old values or displaying them. `local-secrets/` is ignored by Git.
 - `check_compose.py`: read-only static validation of actual `docker compose config --format json`, guarding project identity, service/network separation, mounts, secrets, privileges and offline default.
 - `../scripts/security/check_codex_dev_agent_container.sh`: host-side **read-only** Docker inspector for the newly created `agent`, allowing only exact expected private volumes and the synthetic user password secret. It does **not** establish internet or production network safety.
-- `tests/test_safety_policy.py` (66), `tests/test_lab_firewall_guard.py` (15), `tests/test_lab_firewall_reconcile.py` (17), `tests/test_lab_start_interlock.py` (21), and `tests/test_independent_nft_guard.py` (20): 139 Docker-free policy regression and secret-lifecycle tests for unsafe Compose networks, listener/ACL changes, restart/routing bypasses, and secret creation/reuse. They do not prove that Docker containers boot or that the real host is isolated.
+- `tests/test_safety_policy.py` (66), `tests/test_lab_firewall_guard.py` (15), `tests/test_lab_firewall_reconcile.py` (17), `tests/test_lab_start_interlock.py` (21), and `tests/test_independent_nft_guard.py` (20), and `tests/test_scoped_nft_controller.py` (22): 161 Docker-free policy regression and secret-lifecycle tests for unsafe Compose networks, listener/ACL changes, restart/routing bypasses, and secret creation/reuse. They do not prove that Docker containers boot or that the real host is isolated.
 
 ## Resource governance proposal — review source only (2026-11-20)
 
