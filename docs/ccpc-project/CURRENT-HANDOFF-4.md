@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-20 — CCPC positive Bearings stock located; RMC positive Bearings stock absent
+
+**Operator-supplied read-only `development.localhost` Bin/Warehouse/Item SQL:** In enabled non-group CCPC `Warehouse 1 - CCPC`, positive `Bearings` bin stock was observed for `ITEM-00004` **8 actual / 0 reserved**, `ITEM-00010` **8 / 0**, `ITEM-00008` **1 / 0**, and `ITEM-00018` **1 / 0**, total **18 observed units across four Items**. In `Ricor Mills Corporation`, same query returned **no positive Bearings stock** in eligible warehouses. Query was bounded to ten Bin rows per Company, so do not interpret it as exhaustive inventory for other Item Groups/warehouses or proof of issueable stock; any concurrent changes after query remain possible.
+
+**Practical same-Company DEV pilot candidate:** `ITEM-00004` (previous Item master sample name `Bearing, 6406 Z Ball Dg`) in `Warehouse 1 - CCPC`, consider **one unit** only after Company perpetual inventory, current valuation and permissions validation, actual business approved source/Expense mapping and beneficiary Department/Cost Center selection, and separate operator consent for real stock/GL writes. `5140 - Repairs & Maintenance - CCPC` is merely a plausible **Accounting-review candidate** for the **entire Bearings Item Group**, not an authorized mapping; `Maintenance Department - CCPC`→`Main - CCPC` likewise awaits a central-vs-departmental Cost Center decision. Never automatically propose or approve mappings; avoid Company/billing scope leakage. Next read-only query: exact `ITEM-00004` Bin valuation/current quantity, Company `enable_perpetual_inventory`, and Item/Warehouse eligibility. No Stock Entry or financial data changes yet. Restore test remains unperformed. PRODUCTION not touched.
+
+---
+
 ## 2026-11-20 — Bearings stocked Item pilot inventory confirmed; Consumable group empty
 
 **Operator-provided MAIN DEV read-only results:** Query against `development.localhost` site `tabItem` found exact leaf Item Group `Bearings`: **19 total Items, all 19 enabled stock Items**; bounded first 12 sample were `ITEM-00001` through `ITEM-00012` and named industrial bearing stock (ball, roller, spherical/taper). `Consumable` Item Group: **0 total Items**, SQL SUM returned `None` due to empty set (not an error), no enabled stock Items. These are Item *master counts*, **not** evidence of positive stock balance, a successful withdrawal or a finance-approved account map.
