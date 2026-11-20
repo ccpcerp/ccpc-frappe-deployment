@@ -495,3 +495,29 @@ PY
 
 **Unapproved after Stage C:** Installing/enabling a systemd unit or persistence hook, reboot/reload of UFW/Docker/nftables, altering unrelated firewall tables, deleting the table as rollback, starting Codex or Squid, PRODUCTION/DEVELOPMENT operations, or network-probing other services. Each requires separate reviewed authorization. Codex activation remains **NO-GO**.
 
+
+
+## Step 120 — Stage C single-table installation operator-reported PASS (2026-11-20)
+
+**Operator-supplied output from the **once-only** command explicitly approved at Step 119:**
+
+```text
+source_hashes_reverified=True
+private_baseline_reference_present=True
+project_nft_table_installed_and_exact=True
+temporary_authorization_marker_removed=True
+ufw_and_docker_still_active=True
+codex_launch_authorized=False
+reload_reboot_persistence_verified=False
+STAGE_C_ONE_TABLE_ONLY_COMPLETE
+```
+
+**Assessment — Stage C execution PASS as reported by owner, independent recheck PENDING.** The reviewed script's successful exit required the staged four Python source Git blob hashes to match pinned reviewed commit `66960f73a69b10b59f508cda7bfd4ac9ea5c21af`, private Stage A snapshot files to exist/nonempty, and `plan` confirming exact stopped lab and original iptables safeguards with independent table absent. The script then created an exclusive temporary root-only marker, called the *reviewed controller* `install` mode, and independently ran `verify`, checked UFW and Docker active, removed the temporary marker and confirmed it absent. Therefore the owner's output is evidence that **a new, CCPC-only `inet ccpc_codex_lab_guard` kernel nft table with four bridge-specific DROP rules was installed and exactly matched the staged controller's JSON validator at that instant**. The approved command made no request to reload/enable stock nftables.service, restart Docker/UFW, or start Codex/Squid. This GitHub entry is **not** a direct assistant/SSH inspection and should not be treated as permanent state.
+
+**Expected host filesystem artifacts:** One possible newly created `/etc/ccpc` root-owned directory (0700), a now-removed temporary `codex-lab-nft-guard-authorized` marker, and a project controller lock file under `/run/lock`; the read-only/staged source under `/opt/ccpc` and private Stage A snapshot remain. The new independent kernel table is deliberately **not automatically removed** in a rollback because removing a protective DROP layer without determining traffic dependencies is unsafe. The original iptables guards and root marker must remain checked in the next read-only verification.
+
+**Limits:** The host may have been affected by the new rules (host-to-original-lab traffic can be blocked). Only service **active** state was tested, not successful end-to-end UAT/DEVELOPMENT availability. The four nftables DROP rules were validated as *present and exact*, but **no negative packet-path canary tests, legitimate synthetic DB/Redis continuity tests, independent reload/reboot survival, bridge recreation handling or unbypassable Codex process denial have been performed**. `reload_reboot_persistence_verified=False` and `codex_launch_authorized=False` remain authoritative limitations. This is not a production-ready Codex firewall or a permission to start the agent. Operator's previously confirmed second administrator session and private baseline should stay available.
+
+**Next read-only gate, not new modification approval:** A fresh, bounded operator-owned **read-only** check should confirm exact controller `verify` (without marker or bytecode writes), absent authorization marker, stopped/no-auto-restart agent, independent table/chain/rule count, UFW and Docker active, and stock nftables.service still inactive/disabled. Use fixed output booleans/check labels, do not expose raw host/private rules or snapshot paths. Independently confirm both administrator SSH connections remain working. If the recheck fails, **STOP**; do not remove the table or any other rules, change authorization, run global flush, restart Docker/UFW, or rerun Stage C. Later controlled packet tests, scoped rollback, and any persistence design require separate review and authorization.
+
+**Unapproved:** Enabling/installing a project or stock systemd unit, service reload/reboot, network canaries, changing any existing rule or CCPC table, starting/attaching Codex/Squid, or touching DEVELOPMENT/PRODUCTION workloads. PR #39 remains draft/unmerged. **Codex activation: NO-GO.**
