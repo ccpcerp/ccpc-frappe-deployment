@@ -790,6 +790,28 @@ STAGE_C_ONE_TABLE_ONLY_COMPLETE
 
 ---
 
+## Step 121 — operator-reported independent nft post-install read-only verification PASS (2026-11-20)
+
+After Stage C reported a live CCPC-only nft table install at Step 120, the owner ran the separately provided **read-only** post-install verification command. Exactly these nine sanitized status lines were supplied:
+
+```text
+PROJECT_NFT_TABLE_VERIFIED=True
+ORIGINAL_FIREWALL_GUARDS_VERIFIED=True
+TEMPORARY_AUTH_MARKER_ABSENT=True
+UFW_DOCKER_ACTIVE=True
+AGENT_STOPPED=True
+STOCK_NFT_SERVICE_INACTIVE_DISABLED=True
+HOST_CHANGES_PERFORMED=False
+CODEX_LAUNCH_AUTHORIZED=False
+READ_ONLY_VERIFICATION_COMPLETE
+```
+
+**Evidence and scope:** The one-time independent read-only check confirmed the staged controller's Git blob, original stopped agent with no restart, no persistent install marker, stock nftables.service inactive/disabled, UFW/Docker active, the staged controller's `verify` JSON exact match, and a separate `nft -j list table inet ccpc_codex_lab_guard` structural check: exactly one project inet table, three expected named chains (`input`, `output`, `forward` hooks; priority -301) and four DROP rules. This is **operator-reported successful command output**, not direct ChatGPT SSH access or packet-flow verification. No changes were made by the inspection. Recorded with matching [Step 121 recovery-plan commit](https://github.com/ccpcerp/ccpc-frappe-deployment/commit/895cc4fde4554b5f0488fdeb6bf4505d15a8e6c3).
+
+**Critical outstanding prerequisites:** The owner previously confirmed a separate active administrator SSH connection but has **not yet reconfirmed that it still works after the new kernel rules**; check before any traffic test. Real traffic-denial and allowed-path negative/positive canaries, DEVELOPMENT/UAT service continuity, IPv6 coverage, UFW/Docker reload and reboot persistence, Docker bridge recreation handling, and privileged manual-launch bypass remain **NOT TESTED**. The project's table cannot be treated as ongoing reload/reboot enforcement, and `CODEX_LAUNCH_AUTHORIZED=False` remains. No network probes, systemd changes, firewall rollback, reload/restart, Docker/agent/Squid start, or PRODUCTION/DEVELOPMENT modifications are approved. Prepare a bounded **synthetic-only canary proposal with both allowed and forbidden paths** for separately reviewed user authorization. Preserve Stage A private snapshot, independent SSH access, original lab stopped state and stock nftables.service inactive/disabled. **Codex activation remains NO-GO.**
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
