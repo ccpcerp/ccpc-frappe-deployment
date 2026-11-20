@@ -767,6 +767,29 @@ Following owner-reported read-only controller `plan` PASS, the review branch add
 
 ---
 
+## Step 120 — independent CCPC nft firewall table installed, operator-reported PASS (2026-11-20)
+
+**Operator's exact sanitized final output of separately approved, once-only Step 119 installation on `ccpcerpserver`:**
+
+```text
+source_hashes_reverified=True
+private_baseline_reference_present=True
+project_nft_table_installed_and_exact=True
+temporary_authorization_marker_removed=True
+ufw_and_docker_still_active=True
+codex_launch_authorized=False
+reload_reboot_persistence_verified=False
+STAGE_C_ONE_TABLE_ONLY_COMPLETE
+```
+
+**Current evidence:** The owner explicitly executed the reviewed script and reported full successful completion. The exact source hash checks, root-private baseline existence, scoped CCPC table installation and exact validator readback, authorization-marker removal, and continuing UFW/Docker active state are evidenced by the approved command's success path. This represents the **first reported actual kernel nftables mutation** in this security review: installing **only** the project-controlled `inet ccpc_codex_lab_guard` table containing four original-bridge-specific DROP rules. The operator output does **not** prove uninterrupted legitimate traffic, negative packet isolation, permanence after UFW/Docker reload or reboot, or isolation from privileged manual Docker agent starts. ChatGPT did not run any host commands or independently inspect the kernel. The [Step 120 recovery record](https://github.com/ccpcerp/ccpc-frappe-deployment/commit/2cda65b32a72ae11ea508b025f00a3ed5c375bca) is the paired checkpoint.
+
+**Post-install operating hold:** Keep the operator-confirmed second working administrator SSH connection available, Codex stopped with no restart, and private Stage A firewall reference files on host. The temporary root installation marker was reported absent at the end, but its current absence awaits a fresh read-only verification. Do not delete or flush the newly installed table, globally restore the baseline or alter UFW/Docker or stock `nftables.service`. The scoped controller remains manual-only; no systemd service/persistence hook was installed. Next owner step is an independently initiated **read-only** check of table identity and exact rules/chain count, original lab stopped state, stock nftables.service inactive/disabled, UFW/Docker active and marker absence, plus confirmation that both SSH sessions are healthy. On any anomaly STOP and do not rerun Stage C or attempt an unapproved rollback.
+
+**Unresolved release gates:** Controlled synthetic-only packet-path negative canaries, legitimate lab service continuity checks, reload/reboot preservation, bridge-name-recreation handling, separate proxy egress isolation, digest/resource/secret binding, and prevention of privileged manual agent start are all unverified. **Codex/Squid activation NO-GO**. PRODUCTION remains outside the authorized scope, and do not modify DEVELOPMENT services without separate specific approval.
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
