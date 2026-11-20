@@ -904,6 +904,32 @@ Companion [Step 125 recovery-plan checkpoint](https://github.com/ccpcerp/ccpc-fr
 
 ---
 
+## Step 128 — Step 126 synthetic lab-to-host IPv4 canary PASS; no persistence proof (2026-11-20)
+
+**Operator supplied these exact eleven final status lines after running the one-time approved Step 126 synthetic-only lab→host canary:**
+
+```text
+HOST_GATEWAY_TEMPORARY_LISTENER_CONTROL=True
+LAB_TO_HOST_GATEWAY_TCP_DENIED=True
+SYNTHETIC_REDIS_ALLOWED_PATH_STILL_WORKS=True
+CCPC_NFT_TABLE_STILL_EXACT=True
+CODEX_AGENT_STOPPED=True
+TEMPORARY_LISTENER_CLOSED=True
+PERSISTENT_CONFIGURATION_CHANGES=False
+NFT_RULE_CAUSAL_ATTRIBUTION_VERIFIED=False
+OTHER_NETWORKS_IPV6_RELOAD_REBOOT_VERIFIED=False
+CODEX_LAUNCH_AUTHORIZED=False
+STEP_126_SINGLE_PATH_CANARY_COMPLETE
+```
+
+**What is supported:** A host listener bound solely to `172.21.0.1` on a temporary TCP port was reachable from the host before and after the synthetic network-namespace probe. A single short-lived Python child in the already-running `redis-cache` network namespace attempted to connect to that listener with a two-second timeout, no data payload, and was denied under the reviewed test criteria. A separate same-bridge Redis-cache→Redis-queue `PING` returned `PONG` before/after, staged CCPC nft controller exact-table and original iptables checks passed, Codex agent stayed stopped, and the test script closed the temporary listener. These are **operator-reported stdout claims from the reviewed script**, not independent host packet capture or ChatGPT SSH access. No firewall, service, Docker container or persistence configuration mutation was requested or reported.
+
+**Combined narrow evidence:** Step 124's host→original-lab Redis TCP test was denied and Step 126's original-lab→host gateway TCP test was denied, each with specific positive controls and source/destination restrictions. Neither result proves the separate CCPC nft table alone caused the denial (existing original iptables/UFW overlap). These tests **do not cover other networks, IPv6, other ports or protocols, bridge recreation, Docker/UFW reload, reboot persistence, uninterrupted enforcement or privileged manual-start bypass**. A second administrator SSH recovery connection and Stage A private firewall reference were previously confirmed by the owner and should remain available; they have not been retested by ChatGPT. Keep Codex/Squid **NO-GO** and PR #39 draft/unmerged.
+
+**Next boundaries:** Scope cross-bridge testing to a separately controlled synthetic-only counterpart, never DEVELOPMENT/UAT/PRODUCTION services without new explicit approval. New Docker network/container creation, namespaces, active probes, firewall modifications, stock nftables.service operations and reboot/reload are **not** authorized by this result. A no-host-change design review of persistence/reload hooks is an alternative next milestone. Companion recovery record [Step 128 commit `5baea83`](https://github.com/ccpcerp/ccpc-frappe-deployment/commit/5baea83ebe4b66b69ae9763ba82f844a1e19fa02).
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
