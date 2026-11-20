@@ -384,6 +384,18 @@ Added `docs/ccpc-project/CODEX-LAB-CIRCLECI-REVIEW.md`, verified commit `a9fe5b0
 
 **Next one question:** Is the deployment repository **`ccpcerp/ccpc-frappe-deployment`**, distinct from the custom app `ccpcerp/ccpcerp`, already connected/listed in CircleCI? If yes, have operator inspect plan/credits and manual pipeline parameters. If not, review separate onboarding permission and automatic trigger policy before any connection. Draft PR #39 remains OPEN/DRAFT/unmerged; host/Squid/network activation **NO-GO**.
 
+## Step 96 — public runner smoke workflow committed, not executed (2026-11-20)
+
+Owner created a new, **public and separate** GitHub test repository, `ccpcerp/ccpc-ci-sandbox`, to check whether standard GitHub-hosted Actions can start despite the existing private deployment repo's Step 94 account billing/spending eligibility error. Repository visibility verified `public`, default branch `main`, installation connected with permissions after owner explicitly extended the GitHub app's selected-repositories access to include only the sandbox. Prior write attempts were rejected 403 until the owner updated that connection; no bypass occurred.
+
+**Verified GitHub write:** On **only** `ccpcerp/ccpc-ci-sandbox` `main`, created `.github/workflows/public-runner-smoke.yml` and refetched byte-for-byte. Successful commit `78fb63e156915766a7fef510abe2908f0499a678` with content blob `691d2cd6e173fa3e013355fa161bcbdc6235ef8b`. The workflow has **only manual `workflow_dispatch` trigger**, read-only `permissions: {}`, `ubuntu-latest` 3-minute timeout and **two inline Python stdlib test cases** with no checkout, secrets, private CCPC code, Docker, credentials, network requests or deployments. No CircleCI, repository billing or existing workflow modified.
+
+**Verification limit:** GitHub source/commit exist; **the public smoke workflow has not run or produced a pass/failure**. This test cannot prove that account-level billing restrictions do or do not affect a public job until the owner manually dispatches and inspects the result. Public standard-runner usage policy does not supersede a possible account-level eligibility blocker. The 75/75 previously passed offline synthetic Codex source-only suite was **not copied to the public repository**. Keep private deployment and internal firewall/security details private.
+
+**Next operator step:** In the public repo `ccpcerp/ccpc-ci-sandbox`, navigate to **Actions → Public runner smoke test → Run workflow → main → Run workflow**. Operator should report the new run result and any Summary/Annotations error without secrets. Do not enable billing, paid runners or change Actions settings. Public test is manually triggered by the owner, never automated by this milestone.
+
+**NO-GO unchanged:** Draft deployment PR #39 unmerged and Codex/Squid stopped at last operator snapshot. Firewall persistence, proxy egress and live isolation remain unverified. No DEVELOPMENT or PRODUCTION changes were performed.
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
