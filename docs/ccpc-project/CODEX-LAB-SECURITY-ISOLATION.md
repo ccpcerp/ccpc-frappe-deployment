@@ -708,6 +708,18 @@ STAGE_B_SOURCE_ONLY_COMPLETE
 
 ---
 
+## Step 116 — staged-source first-failure diagnostic PASS; prior STOP unexplained (2026-11-20)
+
+**Host evidence from owner:** The owner ran the previously supplied read-only labelled diagnostic and pasted `ALL_STAGED_SOURCE_CHECKS_PASSED=True`, `NO_CHANGES_PERFORMED=True`, `STAGE_C_AUTHORIZED=False`, `READ_ONLY_DIAGNOSTIC_COMPLETE`, preceded by `PY` (the here-document terminator). No `FIRST_FAILED_CHECK` label was reported.
+
+The Python script's successful path verified root and `ccpcerpserver` identity, stopped/no-restart agent, all required review-directory ancestry/ownership/mode and exact four file entries, pinned Git commit marker, all four exact source blob hashes with 0400 root-owned file permissions, stock nftables.service inactive and disabled, and the absence of the CCPC independent nftables table. It **never imports or executes staged Python** and performs no kernel/file/service mutations. Evidence is **operator-reported**, not a direct ChatGPT host inspection.
+
+The earlier generic `STOP: Stage B post-staging verification failed` has no known cause, and the later successful diagnostic does not retroactively explain it. At this observed moment Stage B verification passed all independently labelled checks; **no changes or repairs were made**. The recovery review [Step 116 commit `8e50f3e`](https://github.com/ccpcerp/ccpc-frappe-deployment/commit/8e50f3e43402796dcf9360b95b1ebb52affc5b1c) records the same evidence.
+
+**Next:** Only a separately reviewed, read-only **staged controller `plan`** execution could check the actual original three firewall rules/current bridge by running pinned code with Python bytecode writes disabled. A read-only `plan` result would not authorize firewall installation. **No authorization marker, nftables installation, systemd registration, Docker/UFW reload, reboot, Codex/Squid start, or PRODUCTION/DEVELOPMENT operation is approved. Codex stays NO-GO.**
+
+---
+
 ## Authority, purpose and boundaries
 
 Follow [GitHub-first development workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). This is a **separate, parallel security workstream** from the four-company UAT and OLD/NEW production cutover. GitHub is authoritative for committed application and deployment source; live host behavior must be separately verified by the operator.
