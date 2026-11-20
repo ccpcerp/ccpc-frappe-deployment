@@ -131,6 +131,13 @@ def restore():
             guard.inspect_host()  # Agent must still be stopped after inserts.
             guard.check_current_rules(specs)  # Exact -C + leading order.
         except BaseException:
+            # If the stopped-agent/host identity precondition has changed
+            # (or cannot be rechecked), retain newly added restrictive DROPs.
+            # Never weaken the bridge while an agent could have started.
+            try:
+                guard.inspect_host()
+            except Exception:
+                raise ReconcileFailure() from None
             rollback_incomplete = False
             for chain, args in reversed(inserted):
                 try:
