@@ -1,6 +1,21 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
 
+## 2026-11-21 — Codex sandbox read-only execution PASS; Phase 1 source review NEXT
+
+**Owner-reported proof from `ccpcerpserver` (not a direct SSH inspection):** After successfully installing and verifying `/usr/bin/bwrap` **0.11.1**, the operator restored the Codex CLI PATH in their shell (`/home/gani/.local/bin/codex`, `codex-cli 0.171.0`) and launched a narrowly scoped noninteractive `codex exec --sandbox read-only --ephemeral --color never` session. Codex confirmed `workdir=/home/gani/ccpc-codex-work/ccpcerp`, provider `openai`, `approval: never`, `sandbox: read-only`, and its two permitted tool calls **both succeeded** in 0 ms:
+- `/bin/bash -lc pwd` -> `/home/gani/ccpc-codex-work/ccpcerp`.
+- `/bin/bash -lc 'git status --short --branch'` -> `## codex/phase1-review-2026-11-21` (clean working tree).
+
+**Result:** The prior Bubblewrap error `bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted` did **not** recur in this minimal test. Basic read-only model-issued shell execution is now validated; this does **not** establish complete AppArmor isolation, database integration testing or actual Phase 1 source review. No changes to repository, live bench, Docker, DEVELOPMENT data or PRODUCTION reported.
+
+**NEXT APPROVED TASK:** Use the same isolated local checkout at `codex/phase1-review-2026-11-21`, SHA `034afb1`, to run an **actual focused source-only Codex review** of Withdrawal Slip authorization, Material Issue duplicate/replay/concurrency prevention, original Stock Ledger/Expense GL integrity, and Department Material Consumption report. Ask for the top three **evidence-backed** risks/coverage gaps with specific paths/functions, distinguish already-tested cases from missing integration tests, and one suggested next code task. Maintain `--sandbox read-only --ephemeral`; restrict to local source inspection, no edits/tests, network/PRODUCTION, Docker, migrations or DB calls. The verified GitHub release head remains **`034afb116cf3fe0e3f9315b932eceba6dc961ce6`** (independent compare PASS). PR #35 remains the draft Phase 1 release; preserve same-Company-only restrictions, disabled intercompany billing and separate draft PR #33. Gather Codex output for ChatGPT-to-GitHub review, then update handoff after verified findings.
+
+**Still deferred:** APT previously reported a new installed kernel and deferred Docker/service restarts. Do not reboot, restart Docker/ERPNext, alter host-wide AppArmor settings, or start the stopped Docker/Squid Codex lab as part of this source review. No automatic paid Codex reporting.
+
+---
+
+
 ## 2026-11-21 — Bubblewrap package installed; sandbox retest pending, kernel update deferred
 
 **Owner-reported installation on `ccpcerpserver` (not independently SSH-verified):** `sudo apt-get install --no-install-recommends bubblewrap` completed successfully. APT installed exactly **one new package**, `bubblewrap` **0.11.1-1ubuntu0.3** from Ubuntu 26.04 resolute-updates (51.0 kB download, 136 kB installed), with **zero upgrades and removals**; `Setting up bubblewrap` and `Processing triggers for man-db` completed. Previously verified `/etc/apparmor.d/bwrap-userns-restrict` profile file exists, but **actual profile loaded state and Codex sandbox operation remain unverified**.
