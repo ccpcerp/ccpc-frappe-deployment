@@ -4,6 +4,10 @@
 **Status:** Authorized **direction and workflow planning**; not a claim that Codex is installed, authenticated or running. No server command, Docker action, firewall change, Codex launch, database migration, pull or deployment has occurred as a result of this document.  
 **Primary rule:** **Codex may contribute actively to CCPC ERPNext DEVELOPMENT; PRODUCTION is physically separate and explicitly out of scope.**
 
+## 2026-11-21 operator status — Codex CLI installed, signed in, isolated clone created
+
+**Newer evidence superseding the initial planning-only status above:** The operator reported installing standalone Codex CLI **0.171.0** on `ccpcerpserver` under their non-root account (Linux x86_64), and successfully completing ChatGPT device-code authentication. A fresh source-only `git clone --no-checkout` of `ccpcerp/ccpcerp` into `$HOME/ccpc-codex-work/ccpcerp` succeeded; no checkout was reported yet. GitHub independently confirmed the candidate Phase 1 release branch `release/withdrawal-department-phase1-2026-11-17` at **`034afb116cf3fe0e3f9315b932eceba6dc961ce6`**. The next operator action is the exact **new local review branch checkout + status/SHA check** in [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md). No Codex agent session or code changes are yet reported; no live bench/DB/Docker/PRODUCTION operations were made for onboarding.
+
 ## Why this decision matters
 
 The project owner reaffirmed: “the only restriction for codex is not to involve itsef in production server which is physically separate but for the development codex should be the best asset.” This resets priorities: the development environment exists for code creation, diagnosis and testing; do not require completion of a complex shared-host experimental Docker/Squid firewall project before beginning ordinary Codex-assisted development in a **separate, constrained workspace**.
