@@ -1,6 +1,20 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
 
+## 2026-11-21 — Codex read-only review blocked by Bubblewrap namespace; source and PRODUCTION untouched
+
+**Current operator-reported result:** On `ccpcerpserver`, the user successfully started **Codex CLI 0.171.0** in noninteractive mode from isolated workdir `/home/gani/ccpc-codex-work/ccpcerp`, at Git branch `codex/phase1-review-2026-11-21`, short SHA `034afb1`. Codex confirmed ChatGPT/OpenAI provider, `approval: never`, `sandbox: read-only`, no reasoning summaries, and attempted a read-only Phase 1 Withdrawal Slip → Material Issue → SLE/GL → Department report review.
+
+**BLOCKED, NOT A COMPLETED REVIEW:** Codex emitted a warning that system `bubblewrap` was unavailable on PATH and fell back to bundled Bubblewrap. Its first read-only shell command never started because Bubblewrap failed with **`bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted`**. Codex explicitly stated it inspected no source and could not provide grounded findings. Tokens used: 9,387. Do **not** treat this as a code/test pass or defect finding. No Codex app edit, shell inspection, test, DB/migration/Docker/host service change or PRODUCTION operation was demonstrated.
+
+**Research/uncertainty:** The same error is reported in openai/codex GitHub issues #14919, #15057, #29908; it may be caused by Ubuntu AppArmor/unprivileged user namespace restrictions or sandbox prerequisites, **not yet diagnosed on this host**. Installing system Bubblewrap or creating a narrowly scoped AppArmor profile might eventually be explored after reviewing host evidence and change impact; do not weaken host-wide AppArmor/sysctls, run Codex with danger-full-access, or grant sudo/production access as an immediate bypass.
+
+**NEXT ONE READ-ONLY OPERATOR STEP:** Collect OS name, presence/version of system `bwrap`, and the read-only `kernel.apparmor_restrict_unprivileged_userns` / `kernel.unprivileged_userns_clone` sysctl values. Then choose a minimally disruptive host-safe remedy (separate review/approval for any package or security configuration change). Preserve the isolated source worktree and the GitHub-first release boundary; use ChatGPT's connected GitHub tools for direct source review if host sandbox remains blocked.
+
+**Prior valid state remains:** Local branch checkout at `034afb1` confirmed with clean status; [PR #35](https://github.com/ccpcerp/ccpcerp/pull/35) remains draft, Phase 1 same-Company only, intercompany billing disabled, PR #33 preserved separately; PRODUCTION excluded. No automatic paid Codex reporter or old Docker/Squid agent startup.
+
+---
+
 ## 2026-11-21 — Codex CLI authenticated and separate Phase 1 review checkout COMPLETE; code review next
 
 **User-requested current development handoff.** The owner reauthorized Codex as an active CCPC ERPNext DEVELOPMENT coding/testing assistant, with the physically separate **PRODUCTION server strictly out of Codex scope**. See [Codex DEVELOPMENT operating mode](CODEX-DEVELOPMENT-OPERATING-MODE.md) and [GitHub-first workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md). Earlier security **NO-GO only applies to the specific stopped/unaccepted Docker/Squid laboratory and draft deployment PR #39**; it must not block ordinary supervised, unprivileged Codex CLI work in a separate source workspace. Do not start that old lab agent, remove its firewall rules or change Docker/network settings as part of onboarding. The cancelled automatic/paid Codex-to-GitHub reporter stays cancelled.
