@@ -1,5 +1,15 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-21 — PR42 full offline Python suite passed (operator terminal evidence); DB gate pending
+
+**Confirmed operator terminal output, not witnessed GitHub-hosted CI:** Clean detached offline checkout `~/ccpc-codex-work/ccpcerp-pr42-offline` at exact app PR42 code SHA `43609f1e185d328cc4626d5acb6f413176a0ae4a`. Owner ran `python3 -m compileall -q ccpcerp` followed by the four offline unittest modules (`test_phase1_maintenance_use`, `test_phase1_maintenance_wiring_static`, `test_phase1_release_scope`, `test_phase1_release_wiring_static`); pasted terminal output showed **Ran 24 tests in 0.079s; OK**. `git status --short` had no reported changes. GitHub Actions remains unsuccessful before execution / runner steps (independent CI pass not claimed).
+
+**GitHub bookkeeping:** Private app PR42 design/checkpoint updated, now at documentation-only head `5fb0651d919ca55fff9ab61f22fcb26b54983c53`, PR body verified updated. PR42 remains draft and remains based on PR35 release branch. GitHub's new commit records results but does not mean additional code tests were executed on that updated doc-only commit.
+
+**Hold:** No Frappe/MariaDB or real stock/GL acceptance; no Development pull or schema migration; no Expense mapping signature or activation; no PRODUCTION changes. Next: prepare *disposable isolated site* test plan, verify safety/isolation and backups before authorizing any operations that might affect a shared bench or company data. Negative paths must leave database inventory and accounting intact; review capital material route before wider rollout.
+
+---
+
 ## 2026-11-21 — PR42 browser intent lock fixed; pure policy tests passed locally; DEV still on hold
 
 **Verified private app GitHub update:** Draft app [PR42](https://github.com/ccpcerp/ccpcerp/pull/42) now includes a browser-side request-intent lock for new Withdrawal Slip material-use selector (commit `96e2589b104760951371e726a4afbaaeade14316`) and a static regression assertion for that lock (commit `52aa26886cf6dbb565ef6942480480dfe5a6272a`). Private app design/validation note updated on branch at `43609f1e185d328cc4626d5acb6f413176a0ae4a`. Original release PR35 remains separate; PR42 remains draft and targets the same Phase 1 review/release branch.
