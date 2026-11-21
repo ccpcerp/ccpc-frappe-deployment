@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-21 — Read-only legacy/DEV Docker separation evidence before retirement
+
+**Operator-supplied Docker inspect results (not independently executed against host):** legacy `frappe_docker-db-1`, old Redis services and stopped `frappe_docker-backend-1` are attached to network `frappe_docker_default`, with named volumes `frappe_docker_db-data` at `/var/lib/mysql`, `frappe_docker_redis-queue-data` at `/data`, `frappe_docker_sites` at `/home/frappe/frappe-bench/sites`, plus an anonymous backend logs volume. DEV `frappe_docker_devcontainer-frappe-1` and DEV MariaDB/Redis use network `frappe_docker_devcontainer_default`; DEV MariaDB uses `frappe_docker_devcontainer_mariadb-data`. **Crucial overlap in naming, NOT storage identity:** DEV Frappe bind-mounts host `/home/gani/deployments/frappe_docker` into `/workspace`; do not delete, rename, recursively clean or alter this host path just because its basename is `frappe_docker`. DEV also mounts `/home/gani/.ssh` and `vscode`, which are out of old-stack removal scope.
+
+**Assessment:** These selected containers show distinct networks and DB data volumes, but full cross-container dependencies, existing backups and safe deletion scope are **not verified yet**. No container stop/removal, volume deletion or Docker Compose teardown authorized/executed as of this note. Check volume consumers and backups; explicitly reconfirm exact resources and backup evidence before any irreversible cleanup. Live PRODUCTION is owner-reported on a separate server.
+
+---
+
 ## 2026-11-21 — Host roles clarified: legacy `frappe_docker` is NOT live production
 
 **Owner clarification (reported, not independently verified by host access):** Actual **live PRODUCTION runs on a different physical server**. On the server currently used for MAIN DEVELOPMENT and Codex review, the Docker Compose project named `frappe_docker` is **OLD/LEGACY PRODUCTION**, **NOT LIVE PRODUCTION**. A user-provided `docker ps -a --filter label=com.docker.compose.project=frappe_docker` showed legacy application containers exited, while legacy MariaDB and Redis containers remain running. MAIN DEVELOPMENT is `frappe_docker_devcontainer`, and `ccpc_codex_dev_agent` is a separate observed container project with DB/Redis (actual test-site isolation unverified). **Never describe `frappe_docker-db-1` as the live production database.**
