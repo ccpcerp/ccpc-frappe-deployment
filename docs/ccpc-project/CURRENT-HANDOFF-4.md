@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-21 — Secure local legacy archive verified; exact-container retirement next
+
+**Operator-reported successful archive copy:** Native Linux local secure copy `/home/gani/ccpc-secure-archives/old-production-retirement-20261121T150924/old-production-volumes.tar.gz` exists. On-owner-host offline verification of source/destination hash equality and tar readability ended with `SECURE LOCAL COPY VERIFIED`. `stat` reported containing directory mode **700**, archive mode **600**. Network CIFS backup copy remains at `/mnt/erpnext_backups/old-production-retirement-20261121T150924/old-production-volumes.tar.gz`. No live restore yet; thus archive integrity is proven but full service recoverability not proven. No Docker resources removed as of checkpoint.
+
+**Owner intent:** Remove obsolete legacy Compose project `frappe_docker` on the DEVELOPMENT host (real production is elsewhere). **Immediate next safe operation:** remove only the **10 explicitly named, stopped** legacy Docker containers with exact project label preflight and backup-existence check, using `docker rm` **without `-v` or `-f`** so all old data volumes remain intact for a later restore test. Do not use `docker compose down` or remove any Compose config/source file: host `/home/gani/deployments/frappe_docker` is active DEV's bind-mounted workspace. Separate approval/verification required before volume/network retirement; preserve both backup copies. No container removal was executed by ChatGPT.
+
+---
+
 ## 2026-11-21 — Legacy backup uses CIFS; chmod modes not authoritative
 
 **Operator-reported post-backup permissions:** `chmod 700` on the archival directory and `chmod 600` on archive and checksum returned success but subsequent `stat` reported **755 for all three**. `df -T` reveals that `/mnt/erpnext_backups` is mounted from a **CIFS/SMB NAS share**. CIFS client file modes can be defined by mount settings and may not reflect server-side ACLs; **NAS backup confidentiality cannot be established from this client mode view**. Backup archive integrity remains verified via `sha256sum -c` output `OK`, but that is not a successful Frappe/MariaDB restore test. Do not change mount options or ACLs blindly.
