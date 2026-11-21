@@ -1,5 +1,17 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-21 — PR42 browser intent lock fixed; pure policy tests passed locally; DEV still on hold
+
+**Verified private app GitHub update:** Draft app [PR42](https://github.com/ccpcerp/ccpcerp/pull/42) now includes a browser-side request-intent lock for new Withdrawal Slip material-use selector (commit `96e2589b104760951371e726a4afbaaeade14316`) and a static regression assertion for that lock (commit `52aa26886cf6dbb565ef6942480480dfe5a6272a`). Private app design/validation note updated on branch at `43609f1e185d328cc4626d5acb6f413176a0ae4a`. Original release PR35 remains separate; PR42 remains draft and targets the same Phase 1 review/release branch.
+
+**Verified local test evidence:** Copied exact GitHub-source versions of pure policy and its six-test unit module into isolated local Python; Git blob SHA matches were checked for `phase1_maintenance_use.py` (`4f8b6f0e7e5efb57d1a77bf5025e726ff8fa29ea`) and `test_phase1_maintenance_use.py` (`f214a1db3f912a3023f50dba2ce8308bc0d155b4`). **All six pure offline unit tests PASSED.** A separate read-only connected-GitHub source inspection produced **10/10 textual presence/wiring assertions true**. This is **not** full app Python compilation, AST-test execution, disposable ERPNext/MariaDB ledger acceptance, or MAIN DEV UAT.
+
+**GitHub CI remains unreliable:** Latest observed workflow attempts failed with no assigned runner and zero steps. Do not equate that with a code test failing or passing; cause unresolved.
+
+**Next safe tasks:** independently run full reviewed-checkout offline compilation and AST smoke tests; review potential effect of blocking legitimate native Bearings direct Material Issues; run disposable Frappe/MariaDB tests (successful same-Company routine issue, capital/unclassified/mixed/wrong beneficiary rejection, direct bypass rejection, unchanged stock/GL on failed issue, concurrency and role controls, non-pilot regression). No DEVELOPMENT pull, DocType migration, Expense mapping activation, stock/GL posting, or PRODUCTION changes are authorized or performed yet. Do not request redoing previously completed DEV Finance user creation / Center mapping.
+
+---
+
 ## 2026-11-21 — PR42 GitHub Actions runner unavailable; no code tests executed
 
 **Verified GitHub CI evidence:** Private app draft PR42 head `48782da6fab87835aaeda6108989f9c5ef92d431` launched GitHub Actions attempt [run 44867185905](https://github.com/ccpcerp/ccpcerp/actions/runs/44867185905) for the new 5-minute offline maintenance-use review. GitHub marked the run `failure`, but the job data show **runner_id 0, empty runner name, no steps, ~3-second duration**. Log download returned `BlobNotFound`; **the Python code was not executed and neither compileall nor unit tests ran**. The runner provisioning cause is **not verified**; do not diagnose as code-test failure or assert tests passed. PR description updated with this limitation.
