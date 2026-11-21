@@ -1,5 +1,15 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-21 — PR42 manual GitHub Actions head verified; hosted runner still not assigning
+
+**Verified GitHub branch:** Private app draft PR42 `feature/phase1-maintenance-only-2026-11-21` now at `1c5231a9166571d8ea979cb50f97a71523f4a7f3`. Changes since previously tested code: added manual `pull_request:labeled` Actions workflow, 6 real MariaDB test cases against signed synthetic mappings, 4 offline CI safety assertions, and private design notes. No application production runtime source modifications in this CI preparation. New source inspection of workflow, test paths and PR-only gates passed 10/10 textual checks, but **new suites not executed**.
+
+**GitHub-hosted runner remains blocked/not assigned:** At PR head GitHub Actions run [44881701981](https://github.com/ccpcerp/ccpcerp/actions/runs/44881701981) for the existing cheap maintenance policy workflow was marked `failure` with **no runner / no steps**. This is **not** a code-test failure; the GitHub Actions billing policy, private-repo spending limits, Actions setting or runner assignment cause is unverified. New *expensive* `CCPC PR42 - manual Bearings MariaDB acceptance` workflow was **not started** and must not be misrepresented as passing. GitHub-hosted runner time/billing is independent of ChatGPT Plus token allowance. Review repository Actions/owner Billing & licensing limits before explicitly applying `ccpc-run-pr42-db` label.
+
+**Next:** For assurance, owner can fetch current PR42 into isolated clean Codex worktree and execute Python compileall and four original + new source-only safety test modules (expected total 28). Then separately approve PR label for actual hosted MariaDB acceptance **only when runner can run**. No CircleCI changes or runs; MAIN DEVELOPMENT unchanged, Expense mapping remains Draft, separate LIVE PRODUCTION untouched.
+
+---
+
 ## 2026-11-21 — PR42 GitHub Actions manual disposable MariaDB gate prepared; not run
 
 **Owner-approved CI preference:** Prepare the next Bearings maintenance safeguard integration tests using **GitHub Actions rather than CircleCI**. Completed private application branch additions on PR42: new manually label-gated `.github/workflows/phase1-maintenance-mariadb-manual.yml`, six real MariaDB test methods in `ccpcerp/ccpc_erp/test_phase1_maintenance_real_integration.py`, and four new source-only gating/wiring regression checks in `test_phase1_maintenance_actions_static.py`. Existing CircleCI job left unchanged. Additional CI documentation committed to the private app. PR42 remains **draft**, latest commit to be verified below; no job label applied / no hosted real-DB test run executed.
