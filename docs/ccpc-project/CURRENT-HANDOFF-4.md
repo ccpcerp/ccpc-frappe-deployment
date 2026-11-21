@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-21 — Legacy OLD PRODUCTION containers removed; volumes still pending verification
+
+**Operator-reported execution (not independently inspected on host):** After verifying a separate secure local archival copy (file mode 600, directory mode 700; SHA matched NAS copy), operator ran exact-name, project-label-guarded `docker rm` of the 10 stopped `frappe_docker` **OLD PRODUCTION** containers with **no `-v` and no `-f`**. Terminal output: `=== REMAINING OLD CONTAINERS ===` followed by no names, then `OLD CONTAINER REMOVAL COMPLETED`. This supports that old containers were removed successfully; named legacy volumes and network **should remain**, but are not yet re-inspected after removal. No DEV containers, shared host Compose path or separate-server LIVE PRODUCTION intentionally touched.
+
+**Next read-only gate:** Check three named old data volumes (`frappe_docker_db-data`, `frappe_docker_sites`, `frappe_docker_redis-queue-data`), old network (`frappe_docker_default`), and active DEV container health. Before irreversible volume deletion, assess recoverability with a disposable restore or record explicitly accepted archival-only tradeoff; archive checksum alone does not prove a working MariaDB/Frappe restore. Preserve both backups. **Never delete `/home/gani/deployments/frappe_docker`**, which is DEV's `/workspace`.
+
+---
+
 ## 2026-11-21 — Secure local legacy archive verified; exact-container retirement next
 
 **Operator-reported successful archive copy:** Native Linux local secure copy `/home/gani/ccpc-secure-archives/old-production-retirement-20261121T150924/old-production-volumes.tar.gz` exists. On-owner-host offline verification of source/destination hash equality and tar readability ended with `SECURE LOCAL COPY VERIFIED`. `stat` reported containing directory mode **700**, archive mode **600**. Network CIFS backup copy remains at `/mnt/erpnext_backups/old-production-retirement-20261121T150924/old-production-volumes.tar.gz`. No live restore yet; thus archive integrity is proven but full service recoverability not proven. No Docker resources removed as of checkpoint.
