@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-21 — Host roles clarified: legacy `frappe_docker` is NOT live production
+
+**Owner clarification (reported, not independently verified by host access):** Actual **live PRODUCTION runs on a different physical server**. On the server currently used for MAIN DEVELOPMENT and Codex review, the Docker Compose project named `frappe_docker` is **OLD/LEGACY PRODUCTION**, **NOT LIVE PRODUCTION**. A user-provided `docker ps -a --filter label=com.docker.compose.project=frappe_docker` showed legacy application containers exited, while legacy MariaDB and Redis containers remain running. MAIN DEVELOPMENT is `frappe_docker_devcontainer`, and `ccpc_codex_dev_agent` is a separate observed container project with DB/Redis (actual test-site isolation unverified). **Never describe `frappe_docker-db-1` as the live production database.**
+
+**Owner intent:** Retire and remove the legacy `frappe_docker` stack to prevent confusion and release resources. This is **not authorization for an unchecked destructive removal**: first inventory legacy vs DEV mounts, networks, dependencies and any valuable legacy data; confirm recoverable backup and exact deletion scope before any container/volume removal. No deletion or changes performed as of this checkpoint. Separate-server LIVE PRODUCTION remains outside this task.
+
+---
+
 ## 2026-11-21 — PR42 full offline Python suite passed (operator terminal evidence); DB gate pending
 
 **Confirmed operator terminal output, not witnessed GitHub-hosted CI:** Clean detached offline checkout `~/ccpc-codex-work/ccpcerp-pr42-offline` at exact app PR42 code SHA `43609f1e185d328cc4626d5acb6f413176a0ae4a`. Owner ran `python3 -m compileall -q ccpcerp` followed by the four offline unittest modules (`test_phase1_maintenance_use`, `test_phase1_maintenance_wiring_static`, `test_phase1_release_scope`, `test_phase1_release_wiring_static`); pasted terminal output showed **Ran 24 tests in 0.079s; OK**. `git status --short` had no reported changes. GitHub Actions remains unsuccessful before execution / runner steps (independent CI pass not claimed).
