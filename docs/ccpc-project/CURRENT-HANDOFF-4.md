@@ -1,5 +1,15 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-21 — Final operator readback confirms OLD PRODUCTION Docker retirement
+
+**Owner-provided final read-only Docker inventory after exact old-resource deletion:** `docker ps -a --filter label=com.docker.compose.project=frappe_docker` returned **no legacy containers**. All three targeted legacy named volumes reported **REMOVED** (`frappe_docker_db-data`, `frappe_docker_sites`, `frappe_docker_redis-queue-data`). Legacy network `frappe_docker_default` reported **REMOVED**. All four MAIN DEVELOPMENT containers (`frappe_docker_devcontainer-frappe-1`, its Redis cache and queue, and MariaDB) remained `Up 5 weeks`. **OLD PRODUCTION Docker project retirement is complete and owner-verified**; actual LIVE PRODUCTION is on a different physical server as clarified by owner. This is container availability evidence, not a Frappe HTTP/DB health test.
+
+**Important retention:** Previously integrity-checked NAS/CIFS and secure local cold volume archives are outside deletion scope. Their checksums and tar readability were verified; **restore operability has not been tested**. Preserve `/home/gani/deployments/frappe_docker` (DEV's live `/workspace` bind mount), all `frappe_docker_devcontainer_*` and `ccpc_codex_dev_agent` services, and both archive copies. Don't prune unknown anonymous logs/images without separate inventory.
+
+**Development continuation:** Return to private app draft [PR42](https://github.com/ccpcerp/ccpcerp/pull/42) (currently head `5fb0651d919ca55fff9ab61f22fcb26b54983c53`, last app-code/test commit `43609f1e185d328cc4626d5acb6f413176a0ae4a`). Operator previously reported all 24 offline unittests passing and compileall success. **Real disposable Frappe/MariaDB integration still pending**. Existing CircleCI disposable integration exists but exact branch guard currently expects `review/circleci-isolated-erpnext-phase2-2026-10-26`, so a PR42-specific reviewed, opt-in configuration change is needed before using it; do not run its existing job blindly against PR42. No PR42 merge, DEV pull/migration, Expense mapping signature, or LIVE PRODUCTION change authorized by this retirement operation.
+
+---
+
 ## 2026-11-21 — OLD PRODUCTION targeted Docker retirement complete (owner terminal evidence)
 
 **Owner-reported successful final removal on the DEVELOPMENT host:** Exact-label/preflight-guarded command prompted `DELETE-OLD-PRODUCTION`, owner entered it, and Docker returned successful removals of exactly `frappe_docker_db-data`, `frappe_docker_sites`, `frappe_docker_redis-queue-data` and `frappe_docker_default`, followed by `OLD PRODUCTION NAMED VOLUMES AND NETWORK REMOVED`. The 10 stopped `frappe_docker` containers had already been removed in the previous verified terminal step. The **retired old Docker project resources are removed** per owner terminal output; final independent host readback is still recommended.
