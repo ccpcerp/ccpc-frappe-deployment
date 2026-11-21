@@ -2,6 +2,14 @@
 
 **Adopted 2026-10-12 by the project owner.** This is the current default working rule for the **CCPC custom ERPNext application** and supersedes older proposals to develop primarily inside the Docker DEVELOPMENT container or to restart automatic Codex-reporting work.
 
+## Owner direction — Codex is a DEVELOPMENT asset, PRODUCTION prohibited (2026-11-21)
+
+**Newer explicit owner decision:** Codex should be used as a first-class engineering/testing assistant on the **DEVELOPMENT server**; the owner reports that **PRODUCTION is physically separate** and strictly out of Codex scope. Do not treat the specifically stopped, incompletely reviewed Docker/Squid lab agent's **NO-GO** as a blanket restriction on ordinary Codex source review, supervised code authoring or tests in a separate unprivileged DEVELOPMENT workspace. Do not require a new VM purchase or completion of every proposed PR #39 firewall milestone before ordinary Codex-assisted source development.
+
+**Operating details:** [CODEX-DEVELOPMENT-OPERATING-MODE.md](CODEX-DEVELOPMENT-OPERATING-MODE.md). Codex may work on reviewed GitHub branches and safely test in disposable workspaces/CI; no automatic paid reporter or scheduled publication is being resumed. Separate approvals still apply to live DEVELOPMENT migrations/records, disruptive host changes or destructive operations. Preserve dirty work, credentials and financial data; absolutely no Codex access to, credentials from, or changes on the separate **PRODUCTION** environment. This is an approved **working direction**, not proof that the Codex CLI is installed or permission to start the still-held Docker/Squid laboratory.
+
+**Immediate next step:** Identify whether non-root Codex CLI is available on DEVELOPMENT with a small sanitized **read-only** inspection, then start actual reviewed source and disposable integration work. Keep production out of the execution environment and retain GitHub as the authority for committed code. Do not prolong an unrelated security documentation loop at the expense of ERPNext delivery.
+
 ## Standing decision: manual ChatGPT-to-GitHub updates (2026-10-12)
 
 The owner explicitly **cancelled the automatic Codex report-to-GitHub effort**. Codex findings can be **copied/pasted manually** into chat when necessary; there is no background reporter, scheduled publisher, new API key, paid API requirement, or automatic PR commentary. Do not resume that effort without new explicit instruction.
