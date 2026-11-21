@@ -1,5 +1,33 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
+
+## 2026-11-21 — Codex CLI authenticated on DEVELOPMENT; isolated source clone ready; local checkout PENDING
+
+**User-requested current development handoff.** The owner reauthorized Codex as an active CCPC ERPNext DEVELOPMENT coding/testing assistant, with the physically separate **PRODUCTION server strictly out of Codex scope**. See [Codex DEVELOPMENT operating mode](CODEX-DEVELOPMENT-OPERATING-MODE.md) and [GitHub-first workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md). Earlier security **NO-GO only applies to the specific stopped/unaccepted Docker/Squid laboratory and draft deployment PR #39**; it must not block ordinary supervised, unprivileged Codex CLI work in a separate source workspace. Do not start that old lab agent, remove its firewall rules or change Docker/network settings as part of onboarding. The cancelled automatic/paid Codex-to-GitHub reporter stays cancelled.
+
+**Operator-reported COMPLETED on `ccpcerpserver`, not independently SSH-verified by ChatGPT:**
+- Non-root shell confirmed (`NON_ROOT=True`), Linux `x86_64`; Node/npm unavailable but not required for standalone Codex.
+- Official standalone Codex CLI v**0.171.0** installed for user under their home directory; `command -v codex` returned `/home/gani/.local/bin/codex` and `codex --version` returned `codex-cli 0.171.0`. Temporary terminal exit 127 was resolved by using a new terminal and adding `~/.local/bin` to PATH. Installer reported adding PATH to `.bashrc`.
+- Owner completed `codex login --device-auth` after enabling device-code sign-in in their ChatGPT security settings; terminal displayed **"Signed in to Codex"**. Do not include, repeat or commit authentication codes/tokens.
+- The owner successfully ran `git clone --no-checkout https://github.com/ccpcerp/ccpcerp.git "$HOME/ccpc-codex-work/ccpcerp"`; Git printed all remote review/release branches and `origin/HEAD -> origin/version-16`. **The isolated clone exists, but no local checkout/worktree branch has been confirmed yet.** Do not infer the working tree contains the Phase 1 app code until that checkout is observed.
+
+**Current GitHub source selection (independently verified, 2026-11-21):** `ccpcerp/ccpcerp` branch `release/withdrawal-department-phase1-2026-11-17` HEAD is exactly **`034afb116cf3fe0e3f9315b932eceba6dc961ce6`**, verified via GitHub compare against its SHA (identical). [App PR #35](https://github.com/ccpcerp/ccpcerp/pull/35) remains DRAFT/open/unmerged and includes merged Finance UI test-only [PR #40](https://github.com/ccpcerp/ccpcerp/pull/40); official prior CircleCI Finance UI 4/4 PASS is **historical existing evidence**, not a new test here. Phase 1 is **same-Company-only** with intercompany billing disabled. Preserve separate draft app PR #33 and its diverged history; **do not merge/re-enable intercompany billing** as part of this first Codex review.
+
+**NEXT ONE SAFE OPERATOR STEP — NOT YET EXECUTED/CONFIRMED:** In the fresh, isolated clone only, create a local review branch from the verified remote release head, then show branch/status/SHA:
+
+```bash
+cd "$HOME/ccpc-codex-work/ccpcerp" &&
+git switch --no-track -c codex/phase1-review-2026-11-21 origin/release/withdrawal-department-phase1-2026-11-17 &&
+git status --short --branch &&
+git rev-parse --short HEAD
+```
+
+Expected short SHA `034afb1`. If it fails or another branch/worktree already exists, **STOP, do not reset/force-clean**. Return only sanitized status. This changes only the newly cloned user workspace, not the live bench, Docker, DEVELOPMENT database or PRODUCTION. After verification, guide a **read-only initial Codex code-review task** with production excluded, no broad automatic command approvals, and no live DEV migrations or financial writes. Prioritize Withdrawal Slip → Material Issue → stock/GL → departmental reporting and independently gated intercompany billing. Use GitHub for commits and disposable CircleCI/Frappe/MariaDB for approved integration checks.
+
+**Unchanged safety and evidence:** Existing live MAIN DEVELOPMENT checkout/status and any uncommitted files are protected and **not inspected or modified** in this onboarding. Previous large handoff contains independent OLD/NEW PRODUCTION cutover history; this Codex-specific update **does not supersede any unresolved production recovery, writer-fencing or cutover restrictions**. No fresh PRODUCTION host verification occurred and no production command was authorized. No Codex session, deployment, DB test, workspace checkout, CI run, or app code change has yet been demonstrated by this chat.
+
+---
+
 ## 2026-11-15 — OLD six app services all STOPPED with auto-restart disabled; NEW cutover check pending
 
 - **Owner-reported final OLD WebSocket stop verified**: `sudo docker stop --time=30 frappe_docker-websocket-1` printed a deprecation warning recommending `--timeout`, then returned container name. Subsequent independent owner-run `sudo docker inspect --format 'running={{.State.Running}} restart={{.HostConfig.RestartPolicy.Name}}' frappe_docker-websocket-1` showed **`running=false restart=no`**. Earlier read-only six-service inventory showed frontend, backend, scheduler, queue-short and queue-long all `running=false restart=no`; WebSocket was the only holdout, and now also confirmed stopped. Taken together **all six named OLD PROD application services are stopped and cannot auto-restart by Docker policy alone** (owner-reported shell observations, not direct remote SSH). Backend and WebSocket previously set `restart=no`. Frontend/scheduler exit codes were 137, worker exits 0; neither code proves underlying financial/inventory transaction state.
