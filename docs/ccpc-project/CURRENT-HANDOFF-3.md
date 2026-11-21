@@ -1,6 +1,17 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
 
+## 2026-11-21 — Ubuntu sandbox prerequisites: AppArmor restrictions active; system bwrap missing
+
+**Owner-reported read-only diagnostics from `ccpcerpserver`:** Ubuntu **26.04 LTS**, kernel **7.0.0-38-generic**; `command -v bwrap` reports **not installed**; `kernel.apparmor_restrict_unprivileged_userns=1`, `kernel.apparmor_restrict_unprivileged_unconfined=1`, `kernel.unprivileged_userns_clone=1`. These reinforce an AppArmor/unprivileged namespace compatibility explanation for Codex's earlier **`bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted`** failure; they do **not** confirm an AppArmor denial log or independently prove the exact cause.
+
+**External guidance checked:** Current [OpenAI Codex sandbox prerequisites](https://developers.openai.com/codex/concepts/sandboxing#prerequisites) recommend installing Ubuntu's `bubblewrap` distribution package; Ubuntu 25.04+ ships `/etc/apparmor.d/bwrap-userns-restrict` via the `apparmor` package and can load a scoped bwrap profile. Ubuntu's [AppArmor namespace restriction explanation](https://discourse.ubuntu.com/t/understanding-apparmor-user-namespace-restriction/58007) notes a security tradeoff and warns against unnecessary broad bypasses. **Do not turn either AppArmor hardening sysctl from 1 to 0, do not run Codex danger-full-access, and do not restart Docker/services or touch PRODUCTION.**
+
+**NEXT ONE SAFE OPERATOR STEP — READ ONLY:** Check Ubuntu package candidate and simulated installation changes (`apt-cache policy bubblewrap`, `apt-get -s install bubblewrap`) and whether `/etc/apparmor.d/bwrap-userns-restrict` exists. Based on results, separately review/approve a narrow system package installation or profile remediation. The package/profile is **not installed or modified by this documentation update**. Initial Codex Phase 1 source review remains BLOCKED/NOT RUN, with separate clean worktree `codex/phase1-review-2026-11-21` at `034afb1`. PRODUCTION explicitly excluded.
+
+---
+
+
 ## 2026-11-21 — Codex read-only review blocked by Bubblewrap namespace; source and PRODUCTION untouched
 
 **Current operator-reported result:** On `ccpcerpserver`, the user successfully started **Codex CLI 0.171.0** in noninteractive mode from isolated workdir `/home/gani/ccpc-codex-work/ccpcerp`, at Git branch `codex/phase1-review-2026-11-21`, short SHA `034afb1`. Codex confirmed ChatGPT/OpenAI provider, `approval: never`, `sandbox: read-only`, no reasoning summaries, and attempted a read-only Phase 1 Withdrawal Slip → Material Issue → SLE/GL → Department report review.
