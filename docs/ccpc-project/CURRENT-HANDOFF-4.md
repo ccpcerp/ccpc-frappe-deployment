@@ -1,5 +1,15 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-21 — Separate DEV Checker successfully reviewed proposed Expense mapping; unsigned (public-safe)
+
+**Operator-provided MAIN DEV read-only Finance page review:** The newly provisioned separate DEV Accounting Checker (whose access was corrected by removing the conflicting Stockroom Personnel role) can open the exact **Expense Account** mapping Draft. The review shows the exact issuing Company, candidate maintenance-part **Item Group**, intended eligible repairs-and-maintenance Expense Account, a draft revision, a **different recorded preparer**, `Status: Draft`, and `Effective from: At approval`. This verifies the displayed business proposal and maker/checker distinction, **not** a signed/active approval or historical role audit. Exact User emails/revision identifiers omitted from this public repository. The DEV-only Center mapping previously showed active.
+
+**Remaining blocking design decision:** Current pinned issue path constructs Withdrawal Slip Material Issue and resolves Expense Account by Item Group. No explicit server-side check was located distinguishing routine maintenance from capital-project or other uses in this flow. Signing the draft `At approval` would activate the group mapping, not merely the singled-out pilot Item. Treat Expense activation as **HOLD pending a separately authorized capital-exception control**, e.g. server-enforced maintenance-only eligibility with explicit fail-closed handling of other purposes, independently reviewed/tested on DEV; or a formal documented alternative finance governance decision. Avoid a mere UI warning or manual-only distinction for a generally active mapping. Do not modify or reclassify any posted historical transactions.
+
+**Suggested next active-development task:** Obtain owner authorization for a narrow GitHub branch implementation of the purpose/exception guard, with negative tests proving that capital/non-maintenance requests cannot post via routine expense mapping, then review and follow safe checked DEV pull/test procedure before signing and issuing a one-unit pilot. No mapping signature, application code change, DEVELOPMENT pull, stock/GL posting or PRODUCTION operation executed by assistant in this turn.
+
+---
+
 ## 2026-11-21 — DEV Checker Stockroom-role conflict corrected by operator (public-safe)
 
 **Operator report:** The new separate DEV Accounting Checker test account initially received `An explicit Finance mapping role is required` on the pilot Finance page. The operator subsequently **unchecked the conflicting `Stockroom Personnel` role** and reports access is now okay. Current pinned GitHub code's `phase1_finance_onboarding._actor_roles` explicitly rejects Stockroom Personnel even when a Finance role is assigned; this explains the role gate without granting System Manager/Administrator privileges. This is an operator-reported fix, not an independent DB audit of final roles and Company User Permission.
