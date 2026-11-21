@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-21 — PR42 GitHub Actions runner unavailable; no code tests executed
+
+**Verified GitHub CI evidence:** Private app draft PR42 head `48782da6fab87835aaeda6108989f9c5ef92d431` launched GitHub Actions attempt [run 44867185905](https://github.com/ccpcerp/ccpcerp/actions/runs/44867185905) for the new 5-minute offline maintenance-use review. GitHub marked the run `failure`, but the job data show **runner_id 0, empty runner name, no steps, ~3-second duration**. Log download returned `BlobNotFound`; **the Python code was not executed and neither compileall nor unit tests ran**. The runner provisioning cause is **not verified**; do not diagnose as code-test failure or assert tests passed. PR description updated with this limitation.
+
+**Hold:** Do not merge PR42, pull to MAIN DEVELOPMENT, run schema migrations, activate Expense mapping or post materials based on this CI. Need an independently executed isolated source checkout `python3 -m compileall -q ccpcerp` and `python3 -m unittest -v ccpcerp.ccpc_erp.test_phase1_maintenance_use ccpcerp.ccpc_erp.test_phase1_maintenance_wiring_static ccpcerp.ccpc_erp.test_phase1_release_scope ccpcerp.ccpc_erp.test_phase1_release_wiring_static` or working GitHub CI, **plus** disposable MariaDB acceptance for all negative/positive paths. The new Slip field is schema-changing and requires separate migration authorization; deploying app code without field migration makes locked Slip SQL fail, intentionally fail-closed but potentially disrupts unrelated issue workflows.
+
+---
+
 ## 2026-11-21 — Owner-approved maintenance-only Bearings safeguard implemented in GitHub draft PR42
 
 **Owner approval:** Following independent DEV Checker review of the proposed maintenance-parts Expense mapping, owner explicitly **approved implementing the capital/non-maintenance safeguard in GitHub**, and asked for a reminder about Expense Account Mapping. Explanation given: approved Item Group→Expense Account determines **expense nature** on a posted original Material Issue, while Department is beneficiary and Cost Center is a separate financial allocation dimension. A group-wide mapping is not in itself proof of routine expense versus capitalization.
