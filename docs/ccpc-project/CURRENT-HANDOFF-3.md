@@ -1,5 +1,20 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
+## 2026-11-21 — Codex Phase 1 final source review received; GitHub spot-check
+
+**Input provenance:** Owner pasted the final part of a noninteractive local Codex CLI review, ending `tokens used 33,021`. The submitted review is a read-only source analysis of exact app commit `034afb116cf3fe0e3f9315b932eceba6dc961ce6`, not a new integration test or direct ChatGPT terminal session. User-visible output was sufficient; the full transcript need not be copied or re-run.
+
+**Independently GitHub-checked source findings:**
+1. **Approval-policy ambiguity, not yet an approved correction:** `ccpcerp/setup.py` `WORKFLOW_TRANSITIONS` (around 387–415) allows `allow_self_approval=1` for `Approve & Send to Stockroom` and `Re-Approve`. `test_phase1_withdrawal_disposable.py::_review_slip` (around 58–84) uses a free-text `requestor`, and the same authenticated named supervisor creates and transitions the slip. Thus the workflow does **not** independently enforce a second authenticated approval identity. Codex labeled this a confirmed defect against its separate-user acceptance text, but existing code may intentionally distinguish the human material requestor from the authenticated preparer and independently authenticated Stockroom issuer. Do **not** impose a new approval policy, role, or site migration without reconciling approved operational semantics and specific owner authorization.
+2. **HTTP transaction rollback integration coverage gap:** `withdrawal_slip_stock.py::issue_withdrawal_slip` relies on Frappe POST exception rollback; `test_phase1_withdrawal_disposable.py::test_posting_failure_rolls_back_stock_issue_ledgers_and_slip` (around 347) uses an explicit savepoint, and existing tests cover concurrency/replay separately. Need isolated authenticated HTTP POST exception, separate DB session verification of unchanged Bin/slip, zero new Stock Entry/SLE/GL and exactly one successful retry.
+3. **Cancelled/reissued Department report integration coverage gap:** `report/ccpc_department_material_consumption.py::_source_sql` filters submitted Stock Entries (`docstatus=1`) and active outbound SLEs; existing tests separately cover positive report and stock/GL reversal. Need one isolated cancellation + replacement + report test ensuring cancelled original disappears and replacement appears exactly once with correct Department/valuation.
+
+**Status:** Read-only Codex review evidence received, main file/line assertions spot-checked against GitHub. No fixes, tests, migrations, Docker actions, source branch merge, MAIN DEVELOPMENT records or PRODUCTION changes performed or claimed. PR #35 remains draft same-Company Phase 1; intercompany billing remains disabled; draft PR #33 is independent.
+
+**Next useful DEVELOPMENT milestone:** Clarify exact Withdrawal Slip maker/approver policy before any business authorization change; then implement a narrowly scoped review-branch test/correction and validate against disposable actual Frappe/ERPNext/MariaDB (prefer HTTP rollback and report cancellation/reissue coverage regardless of policy choice). Review before release-branch merge or protected MAIN DEVELOPMENT pull.
+
+---
+
 
 ## 2026-11-21 — Codex sandbox read-only execution PASS; Phase 1 source review NEXT
 
