@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-21 — Legacy backup uses CIFS; chmod modes not authoritative
+
+**Operator-reported post-backup permissions:** `chmod 700` on the archival directory and `chmod 600` on archive and checksum returned success but subsequent `stat` reported **755 for all three**. `df -T` reveals that `/mnt/erpnext_backups` is mounted from a **CIFS/SMB NAS share**. CIFS client file modes can be defined by mount settings and may not reflect server-side ACLs; **NAS backup confidentiality cannot be established from this client mode view**. Backup archive integrity remains verified via `sha256sum -c` output `OK`, but that is not a successful Frappe/MariaDB restore test. Do not change mount options or ACLs blindly.
+
+**Next safe step:** Create a separately permission-restricted copy of the verified `old-production-volumes.tar.gz` on a confirmed native local Linux filesystem (such as ext4/xfs/btrfs) with adequate free space. Verify its checksum and 600 file / 700 directory permissions. Keep NAS copy until its server-side access can be verified and backup retention decided. No legacy container/volume deletion authorized or performed by assistant; host working directory `/home/gani/deployments/frappe_docker` remains essential for DEVELOPMENT and must not be removed.
+
+---
+
 ## 2026-11-21 — Owner-verified legacy cold archive; file-mode anomaly before deletion
 
 **Operator-reported archive milestone:** After stopping the legacy `frappe_docker-db-1` and planned legacy Redis services, a cold `tar.gz` of the old project's `frappe_docker_db-data`, `frappe_docker_sites`, and `frappe_docker_redis-queue-data` volumes was created under `/mnt/erpnext_backups/old-production-retirement-20261121T150924/`. Operator output showed a **33 MB compressed archive**, a SHA-256 sidecar, and `BACKUP VERIFIED` after tar-listing and checksum verification. This verifies readability/checksum, **not successful restore or completeness of a full Frappe recovery**. No destructive cleanup has been performed yet.
