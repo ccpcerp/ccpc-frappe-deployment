@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-21 — Verified DB endpoint separation before legacy shutdown
+
+**Owner-supplied read-only evidence:** `docker port frappe_docker-db-1` returned no published mappings. In MAIN DEVELOPMENT Frappe site configuration, both common and `development.localhost` configurations returned `db_host: mariadb` and default DB port. Coupled with earlier `docker inspect` evidence of separate DEV `frappe_docker_devcontainer_default` and OLD/LEGACY `frappe_docker_default` networks and distinct database volumes, this strongly supports DB separation. It does not conclusively rule out every external dependency. No credentials were displayed.
+
+**Safe retirement plan:** Owner wishes to delete only OLD PRODUCTION. After verification, stop **only legacy MariaDB container** to obtain a consistent cold backup of legacy database and sites volumes, verify archive integrity/checksums and preserved location, then request precise scope approval before irreversible removal of legacy Docker containers, network and volumes. DEV host working directory `/home/gani/deployments/frappe_docker` is bind-mounted by DEV and MUST NOT be deleted. No shutdown/removal executed or independently verified by ChatGPT.
+
+---
+
 ## 2026-11-21 — Legacy volume size and Compose-path inventory; archival backup needed
 
 **Owner-supplied inspection (read-only):** Legacy Compose project `frappe_docker` has configuration file locations `/home/gani/deployments/frappe_docker/compose.yaml`, `overrides/compose.mariadb.yaml`, `overrides/compose.redis.yaml`, and `overrides/compose.noproxy.yaml`, working directory `/home/gani/deployments/frappe_docker`. **Preserve this whole host directory** because the active MAIN DEVELOPMENT container bind-mounts it at `/workspace`. The legacy named volume sizes reported by `sudo du -sh`: `frappe_docker_db-data` **349 MB**, `frappe_docker_sites` **3.2 MB**, `frappe_docker_redis-queue-data` **8 KB**.
