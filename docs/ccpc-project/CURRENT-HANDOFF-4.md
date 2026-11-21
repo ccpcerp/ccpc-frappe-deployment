@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-21 — Legacy volume size and Compose-path inventory; archival backup needed
+
+**Owner-supplied inspection (read-only):** Legacy Compose project `frappe_docker` has configuration file locations `/home/gani/deployments/frappe_docker/compose.yaml`, `overrides/compose.mariadb.yaml`, `overrides/compose.redis.yaml`, and `overrides/compose.noproxy.yaml`, working directory `/home/gani/deployments/frappe_docker`. **Preserve this whole host directory** because the active MAIN DEVELOPMENT container bind-mounts it at `/workspace`. The legacy named volume sizes reported by `sudo du -sh`: `frappe_docker_db-data` **349 MB**, `frappe_docker_sites` **3.2 MB**, `frappe_docker_redis-queue-data` **8 KB**.
+
+**Backup status:** `/mnt/erpnext_backups` contains recent `development.localhost` and older `ccpcerp.local` database SQL.gz backups. Their provenance and whether they fully cover OLD PRODUCTION remain **unverified**; filenames alone are not sufficient. Plan a **new explicitly labeled, recoverable legacy database/sites archival backup** before volume deletion, ideally a cold copy after stopping only the known retired legacy containers and confirming that DEV does not use the legacy DB via published ports. Record backup file and verification, then require final exact-resource removal confirmation. No stop, backup, Compose teardown, volume removal or PRODUCTION change executed by ChatGPT at this checkpoint.
+
+---
+
 ## 2026-11-21 — Legacy Docker volume-consumer inventory (read-only)
 
 **Owner-reported read-only `docker ps -aq | docker inspect` inventory:** Every container shown using network `frappe_docker_default` or named volumes `frappe_docker_db-data`, `frappe_docker_sites`, `frappe_docker_redis-queue-data` belongs to the **legacy** Compose project `frappe_docker`. The matching 10 observed containers are legacy frontend, queue-short, backend, queue-long, websocket, scheduler, configurator, redis-queue, redis-cache and DB. Several legacy application containers also hold distinct **anonymous logs volumes**; these must not be discarded inadvertently if preserving historic logs is required. The user did not report a DEVELOPMENT container consuming those old named volumes/network. This supports Docker-resource separation but does **not** prove host-path or operational independence, backup restorability, or that legacy data is expendable.
