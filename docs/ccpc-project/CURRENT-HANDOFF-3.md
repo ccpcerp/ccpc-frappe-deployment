@@ -1,6 +1,19 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
 
+## 2026-11-21 — Bubblewrap package installed; sandbox retest pending, kernel update deferred
+
+**Owner-reported installation on `ccpcerpserver` (not independently SSH-verified):** `sudo apt-get install --no-install-recommends bubblewrap` completed successfully. APT installed exactly **one new package**, `bubblewrap` **0.11.1-1ubuntu0.3** from Ubuntu 26.04 resolute-updates (51.0 kB download, 136 kB installed), with **zero upgrades and removals**; `Setting up bubblewrap` and `Processing triggers for man-db` completed. Previously verified `/etc/apparmor.d/bwrap-userns-restrict` profile file exists, but **actual profile loaded state and Codex sandbox operation remain unverified**.
+
+**Important independent host warning surfaced by APT/needrestart:** Host is **running kernel `7.0.0-38-generic`**, while a newer installed kernel **`7.0.0-43-generic`** is pending a future reboot. needrestart reported deferred restarts including `docker.service`, `dbus.service`, `getty@tty1.service`, `networkd-dispatcher.service`, `systemd-logind.service`, `unattended-upgrades.service`, and `wpa_supplicant.service`, and stated `No containers need to be restarted`. This is **not authorization** to restart any service or host. **DO NOT REBOOT, restart Docker, migrate or alter ERPNext, or perform PRODUCTION operations** under this Codex troubleshooting step; plan kernel/service maintenance independently only after full DEV and PROD impact/rollback review.
+
+**NEXT read-only operator step:** `command -v bwrap` and `bwrap --version` in a normal shell, with expected `/usr/bin/bwrap` and version `0.11.1`. Then, if confirmed, conduct a **minimal read-only Codex sandbox command test** on the already clean isolated local repo `$HOME/ccpc-codex-work/ccpcerp` / `codex/phase1-review-2026-11-21` (`034afb1`). AppArmor's two hardening sysctls were last observed at `1` and must remain enabled. Previous `bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted` is **NOT yet confirmed resolved**. Do not use Codex danger-full-access or restart the old stopped Docker/Squid lab agent.
+
+**Status:** Bubblewrap package installation completed (owner shell output); Codex installation/authentication/isolated source clone checkout previously complete. **Phase 1 source review remains BLOCKED/NOT RUN**, no verified test findings, no code changes and no MAIN DEVELOPMENT database action. GitHub release candidate `release/withdrawal-department-phase1-2026-11-17` HEAD `034afb116cf3fe0e3f9315b932eceba6dc961ce6`, draft PR #35, same-Company posting only; intercompany billing disabled and PR #33 preserved separately. PRODUCTION excluded.
+
+---
+
+
 ## 2026-11-21 — Ubuntu sandbox prerequisites: AppArmor restrictions active; system bwrap missing
 
 **Owner-reported read-only diagnostics from `ccpcerpserver`:** Ubuntu **26.04 LTS**, kernel **7.0.0-38-generic**; `command -v bwrap` reports **not installed**; `kernel.apparmor_restrict_unprivileged_userns=1`, `kernel.apparmor_restrict_unprivileged_unconfined=1`, `kernel.unprivileged_userns_clone=1`. These reinforce an AppArmor/unprivileged namespace compatibility explanation for Codex's earlier **`bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted`** failure; they do **not** confirm an AppArmor denial log or independently prove the exact cause.
