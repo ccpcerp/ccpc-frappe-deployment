@@ -1,5 +1,15 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-21 — New DEV Checker login fails Finance role gate; read-only Has Role diagnostic pending
+
+**Operator-provided MAIN DEV observation:** A newly created separate Finance Checker test user has been saved, and the operator reports that the `CCPC Accounting Mapping Approver` role is displayed on that user's User form and a Company User Permission is saved with `Apply To All Document Types` checked. After login, visiting `/app/ccpc-phase1-finance` fails at `An explicit Finance mapping role is required.` **Do not assert successful role persistence or Company authorization from the UI alone.**
+
+**GitHub pinned code inspection:** `phase1_finance_onboarding._actor_roles()` reads exact `tabHas Role` children for the current session User where `parenttype='User'`, demands at least one of `CCPC Mapping Preparer`/`CCPC Accounting Mapping Approver`, and blocks `Stockroom Personnel`. This error is emitted before checking the Company grant. Next safe operator action is a **read-only** query of exact new test user's enabled flag, direct Has Role rows for checker/preparer/Stockroom, and exact Company User Permission. Interpret results before changing roles and retrying login; no privilege broadening, no Administrator/System Manager grant, no automatic account regeneration. Exact login ID omitted because deployment documentation repository is currently public.
+
+**Finance status:** Cost Center mapping active in MAIN DEV under test maker/checker; Expense mapping still Draft and on HOLD due capital-use exception control, no Stock Entry posting or PRODUCTION action.
+
+---
+
 ## 2026-11-20 — Bearings Expense proposal is Draft only; capital-use guard still unresolved (public-safe)
 
 **Operator-provided MAIN DEV Finance page result:** For the owner-approved same-Company Bearings-like maintenance-parts leaf Item Group to eligible repairs-and-maintenance Expense Account, `Active mapping: No active mapping` and `Draft revision` populated. This is evidence of an **Expense proposal Draft**, not proof of exact stored target or authenticated Checker review/approval. Revision ID and sensitive financial master identifiers omitted from this still-public repository. Prior Center mapping is separately effective under a DEV test approval. **No expense mapping activated** and no pilot stock/GL posting verified.
