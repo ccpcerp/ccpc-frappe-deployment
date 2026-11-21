@@ -1,5 +1,17 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-21 — Expanded PR42 GitHub-hosted MariaDB acceptance COMPLETE: 29 offline + 10 real SQL passed
+
+**Independent GitHub-hosted CI proof:** [Run 44884746256](https://github.com/ccpcerp/ccpcerp/actions/runs/44884746256) **SUCCESS**, inspecting exact app head `33e2729d6ed010d25f0e38857e541e48c1c72faa`. Retrieved logs explicitly report `Ran 29 tests ... OK` for offline policy/static/CI-safety tests, and `Ran 10 tests ... OK` for all real MariaDB 11.8 Frappe/ERPNext v16 tests, with each ten method marked green. This extends prior six-case signed synthetic Expense/Center posting and maintenance-only denials with: (g) fault injection after actual stock/GL posting and transaction savepoint rollback; (h) native cancellation with real reversing SLE/GL, restored Bin quantity/value and Slip status; (i) real role denial for creator/Guest/Administrator with no financial changes; and (j) two independent MariaDB/Frappe issuer processes competing on the unchanged original `SELECT ... FOR UPDATE` row lock, exactly one submitted Material Issue/SLE and balanced GL and one rejection. This is **real synthetic-site database integration**, not a mock or real CCPC master-data UAT.
+
+**Failed first expanded run [44884053661](https://github.com/ccpcerp/ccpcerp/actions/runs/44884053661):** First nine tests passed. Concurrency worker crashed during spawn importing heavyweight ERPNext test utilities before Frappe init, `AttributeError: new_doc_templates`. Corrected in **CI test-only** helper `ccpcerp/ccpc_erp/ci_pr42_concurrent_issue_worker.py` with exact GitHub PR/ref/site/runner guards and no heavy imports at module-load; the final full run is green. New cheap CI [44884687586](https://github.com/ccpcerp/ccpcerp/actions/runs/44884687586) also passed. Run trigger label `ccpc-run-pr42-db` removed from PR42 to preserve future manual opt-in. No app production/runtime source modifications in this test expansion.
+
+**GitHub record:** App branch `feature/phase1-maintenance-only-2026-11-21` latest **`3fa7c6c81b148dab870949b970e7a19f82ca6b2e`** is documentation-only after the tested code commit. [Draft PR #42](https://github.com/ccpcerp/ccpcerp/pull/42) body updated with complete actual test evidence. Repository currently **public** by owner preference, security audit deferred per owner; do not commit credentials/real business data or automatically run more CI. Keep old production retired; both legacy archives preserved.
+
+**Next high-priority gate:** Actual CCPC DEVELOPMENT environment UAT and Finance signed Expense/Center mapping remain **NOT APPROVED**. Before any DEV deployment/pull/migrate inspect `frappe_docker_devcontainer` host and in-container branch/HEAD, `git status` (including untracked), existing custom-app worktree, backup recovery, schema migration impact and exact approval. Owner prefers one safe read-only command at a time. No DEV or separate LIVE PROD access was used by CI. LIVE PRODUCTION requires its own explicit approval and release plan; PR42 remains Draft.
+
+---
+
 ## 2026-11-21 — Expanded PR42 GitHub Actions: rollback/cancel/roles pass, concurrency rerun pending
 
 **Owner direction:** Prioritize comprehensive disposable GitHub-hosted tests; public app repository visibility is an explicitly accepted temporary risk. Do not change GitHub visibility or risk-mitigating workflow behavior without separate owner direction. Keep ephemeral CI only; no MAIN DEVELOPMENT pull/migration or LIVE PROD changes.
