@@ -1,5 +1,11 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-21 — Legacy database stopped cleanly for archival retirement
+
+**Owner-reported execution:** `docker stop --time 60 frappe_docker-db-1` completed successfully; Docker displayed a harmless deprecation warning recommending `--timeout`, and subsequent `docker inspect` reported **OLD PRODUCTION database status: exited**. This stops only legacy MariaDB in Compose project `frappe_docker`. No DEV database stop, volume deletion, compose teardown or host-path cleanup has occurred. The legacy DB volume remains 349 MB and old site volume remains 3.2 MB according to earlier read-only size checks. Next action: optionally stop only remaining legacy Redis services, make a checksum-verified and access-restricted cold archive of exact old DB/sites/Redis queue volumes in `/mnt/erpnext_backups`; then verify archive before any irreversible removal. Avoid `/home/gani/deployments/frappe_docker` because it is DEVELOPMENT's bind mount.
+
+---
+
 ## 2026-11-21 — Verified DB endpoint separation before legacy shutdown
 
 **Owner-supplied read-only evidence:** `docker port frappe_docker-db-1` returned no published mappings. In MAIN DEVELOPMENT Frappe site configuration, both common and `development.localhost` configurations returned `db_host: mariadb` and default DB port. Coupled with earlier `docker inspect` evidence of separate DEV `frappe_docker_devcontainer_default` and OLD/LEGACY `frappe_docker_default` networks and distinct database volumes, this strongly supports DB separation. It does not conclusively rule out every external dependency. No credentials were displayed.
