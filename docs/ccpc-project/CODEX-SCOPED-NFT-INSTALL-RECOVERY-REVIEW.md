@@ -1,0 +1,1155 @@
+# CCPC scoped nftables controller — installation and recovery review
+
+**Status: DRAFT SOURCE REVIEW ONLY — DO NOT EXECUTE AS HOST INSTRUCTIONS.**
+**Date:** 2026-11-20 (Asia/Manila). **Authoritative review:** PR #39 branch `review/codex-proxy-network-hardening-2026-11-19`.
+**No operational approval yet** to install or run any service, change an iptables/nftables rule, restart Docker or UFW, enable nftables.service, reboot, or start Codex.
+
+## Verified observations and constraints
+
+The owner's read-only Step 109 output from `ccpcerpserver` was:
+
+```text
+agent_stopped=True
+dedicated_nft_unit_name_available=True
+offline_launch_unit_name_available=True
+review_install_directory_already_exists=False
+host_changes_performed=False
+codex_launch_authorized=False
+READ_ONLY_CHECK_COMPLETE
+```
+
+Step 107 confirmed the independent table absent and the candidate `nft --check` syntax valid on the target host; Step 108 found stock `nftables.service` inactive/disabled, **ExecStart and ExecReload use `/etc/nftables.conf` containing a global `flush ruleset`, and ExecStop also flushes the ruleset**. Therefore **never use or enable stock nftables.service** as the Codex persistence mechanism; it might clear unrelated Docker/UFW rules.
+
+Earlier read-only Steps 103–104 verified the original-lab three iptables DROP rules and their precedence while the agent was stopped. No live network negative tests, UFW/Docker reload, reboot or run-time guard have occurred. The agent's resource/image/mount baseline is not yet approved.
+
+## Proposed source package — not installed on the host
+
+| Review-only artifact | Intended role | Operational status |
+|---|---|---|
+| `scripts/security/ccpc_codex_nft_guard_review.py` | Render and strictly verify a four-DROP independent nftables policy | Read-only and GitHub-hosted syntax checked |
+| `scripts/security/ccpc_codex_nft_scoped_controller.py` | Marker-guarded, locked, one-table-only idempotent installation if absent; strict verification if present | Source only; install mode requires an **absent-by-default** approval marker |
+| `scripts/security/systemd/ccpc-codex-nft-guard.service.example` | Manual-only, inert oneshot template with plan/install/verify | **Not a loadable unit**, no `[Install]` or `ExecStop` |
+| `scripts/security/ccpc_codex_lab_firewall_reconcile.py` | Separate original-lab scoped iptables restoration proposal | Uninstalled and not an automatic reload hook |
+| `scripts/security/ccpc_codex_lab_start_interlock.py` | Read-only offline prelaunch policy check, requiring both layers | Not an unbypassable launch controller |
+
+The controller refuses to operate if the stock nftables service is enabled or active; rejects mismatched source/host/bridge, changed original rules, ambiguous table names, or altered project-table contents. For an absent table only it passes the generated project table through native nftables check mode, reruns preconditions, and submits **one `nft --file -` transaction containing only the new `table inet ccpc_codex_lab_guard`**. It does not call the stock service, `flush ruleset`, UFW/Docker restarts, or automatic Codex startup. On failed post-application verification the table is left in place for scoped administrator investigation, rather than removing restrictive policy.
+
+This design cannot prevent a concurrent privileged system process from recreating Docker networking, flushing nftables or starting the stopped agent between checks. A systemd oneshot cannot ensure an ongoing barrier or recovery after arbitrary UFW/Docker reload.
+
+## Pre-installation approval gate — mandatory, currently incomplete
+
+1. Confirm source review PR #39 has an **exact reviewed full commit SHA**, source install path is absent or a pre-approved root-owned target (no symlinks or uncommitted DEV changes), and intended script bytes match GitHub. Keep a private manifest of installed files and hashes. No on-host network fetch in the service.
+2. Confirm root/SSH recovery with a **second independently working administrator session or console**, and a named rollback operator. Verify the current host isn't in a shared infrastructure maintenance operation; preserve other running DEV/UAT services.
+3. Preserve a **private, restorable** pre-change snapshot of original iptables/nftables rules, host route/service states, current network identity, and administrator SSH accessibility. Store securely *on host/private backup*, not this public GitHub repository or chat. Inspect snapshots locally for credentials before dissemination.
+4. Confirm the Codex agent and optional proxy are stopped, auto-restart disabled, original three iptables rules exact and leading, no unapproved proxy-client bridge, stock nftables.service disabled/inactive and original bridge stable. Confirm no existing project nftables table with unknown content.
+5. Approve **individual exact operations** and file ownership/modes (reviewed source checkout, dedicated marker, optional manual-only unit). Never create the marker merely as part of an exploratory read-only diagnostic.
+6. Check effective systemd dependency graph and syntax with a local read-only verification, including Docker socket activation, UFW and Docker reload effects. **Do not enable/start stock nftables.service**. Do not add automatic Codex startup/activation hooks.
+
+## Proposed operator-controlled test and rollback sequence (not authorized)
+
+**Hold before any write:** two recovery channels working, scoped private baseline captured, source verified, agent and proxy stopped, separate command-level approval recorded.
+
+**Bounded test, after approval only:** stage reviewed root-owned source offline; ensure proposed dedicated project service name is unused; add only the exact owner-approved project marker; run controller read-only `plan`; if all prerequisites pass, have the operator run the single project-scoped install action; then independent read-only verification of the exact nft JSON table, original iptables rules, Docker/SSH/DEVELOPMENT health and agent still stopped. Do not set systemd auto-enable or start any agent.
+
+**Failure:** if before the kernel transaction, stop with **no modifications**. If during or after the transaction, stop and retain project-specific restrictive DROP rules until a recovery operator verifies the full exact state. Do not run global nft flush, restore all host firewall rules over UFW/Docker state, restart shared services or undo existing original-lab DROP rules. Do not issue an automatic `ExecStop` deletion.
+
+**Scoped rollback, only after separate approval and exact identity checks:** remove only newly installed project-owned unit/authorization artifacts; if removal of the independently installed *project-only* nft table is specifically required, first independently prove Codex and Squid stopped/restart disabled, existing original-lab firewall protections intact, table contents still match the reviewed policy, no dependency on the table, and recovery access intact. Then authorize an exact deletion of the **single CCPC-owned table** only. If any drift occurs, leave the deny table in place and review rather than guess. Never flush shared chains or alter UFW/Docker service settings.
+
+## Remaining integration and deployment gate
+
+- Validate actual nft JSON representation on the target kernel; strict mock comparison can fail closed on harmless formatting differences.
+- Perform **controlled nonproduction negative packet tests** for original bridge → host, other Docker bridges, and permitted synthetic DB/Redis service continuity, with no PRODUCTION target probes.
+- Separately validate the **actual lifecycle** of UFW/Docker reload and reboot with known recovery procedure. The original bridge's interface name can change on Docker network recreation, invalidating name-based rules.
+- Demonstrate that no Codex process can operate while protection disappears. Cooperative prelaunch checks plus polling do **not** guarantee zero-gap blocking. A privileged Docker/host administrator can bypass these checks.
+- Verify image provenance/digest, memory/process ceilings, secret/volume isolation, user privileges, Codex CLI sandbox and authentication, and Squid outbound/DNS enforcement if an online path is ever proposed.
+- Consider **dedicated VM/host isolation** for Codex if shared-host reload/startup continuity cannot be independently enforced.
+
+**NO-GO for Codex and Squid.** The owner approved continued **GitHub engineering**, not host installation or production changes.
+
+
+## Step 110 — operator-confirmed independent recovery channel and proposed baseline capture (2026-11-20)
+
+The owner explicitly confirmed a **second working SSH/administrator recovery connection** to `ccpcerpserver` after Step 109. This is an **owner attestation**, not a ChatGPT-executed connectivity test or a promise of out-of-band access after total network failure. Keep both sessions open; the second connection must not depend on the Codex container.
+
+**Current PR #39 source checkpoint:** `f3b26fb2ebcc5189625cf131cc8454d40f131c93` (draft/unmerged). GitHub Actions [run 44684328438](https://github.com/ccpcerp/ccpc-frappe-deployment/actions/runs/44684328438) executed **161/161 mocked/source-only tests** and native nftables check-only syntax successfully. No real host table is installed and Codex remains NO-GO.
+
+**Next separate authorization requested: Stage A private baseline snapshot only**, before code staging, project marker creation, installing project nftables policy, any service file, enabling units, UFW/Docker reload, reboot, or Codex start. The following command block is **PROPOSED FOR OWNER REVIEW — DO NOT EXECUTE WITHOUT SPECIFIC STAGE A APPROVAL**:
+
+```bash
+sudo bash <<'CCPC_PRIVATE_BASELINE'
+set -euo pipefail
+test "$(hostname -s)" = "ccpcerpserver"
+test "$(docker inspect --format '{{.State.Running}}' ccpc_codex_dev_agent-agent-1)" = "false"
+test "$(docker inspect --format '{{.HostConfig.RestartPolicy.Name}}' ccpc_codex_dev_agent-agent-1)" = "no"
+test "$(systemctl show --value -p ActiveState nftables.service)" = "inactive"
+test "$(systemctl show --value -p UnitFileState nftables.service)" = "disabled"
+umask 077
+snapshot="$(mktemp -d /root/ccpc-codex-nft-preinstall.XXXXXXXX)"
+iptables-save > "$snapshot/iptables.v4"
+ip6tables-save > "$snapshot/iptables.v6"
+nft -j list ruleset > "$snapshot/nftables.json"
+ip -j route show table all > "$snapshot/routes.json"
+systemctl show --no-pager -p ActiveState -p UnitFileState     nftables.service ufw.service docker.service > "$snapshot/services.txt"
+for file in iptables.v4 iptables.v6 nftables.json routes.json services.txt; do
+    test -s "$snapshot/$file"
+done
+printf 'host_verified=True\nagent_stopped=True\nprivate_baseline_saved=True\n'
+printf 'kernel_rules_modified=False\nservices_restarted=False\n'
+printf 'codex_launch_authorized=False\n'
+CCPC_PRIVATE_BASELINE
+```
+
+This block creates a **new root-only directory under /root** and writes reference snapshots into it; it does **not** install/reload/flush a firewall or start/stop Docker. There is a small storage/I/O footprint and it saves raw firewall, routes and service context that must remain **private on the server**. It is a recovery reference, **not** permission to blindly run `iptables-restore` or `nft -f` against the snapshot: full restoring could overwrite shared DEVELOPMENT/UFW/Docker networking. If any precondition fails, stop and investigate privately; the command may leave a partial, root-only directory for administrator inspection. Do not paste the raw files, the private snapshot path, Docker env, credentials or rule dumps into this public repository or chat. Send back only the six booleans.
+
+**Separate later installation approval:** Before any attempt to create the marker or run `ccpc_codex_nft_scoped_controller.py install`, verify the exact source SHA/hash on the host, the project path ownership/no symlinks, current original bridge iptables rule checks and nft table absence, and a specific, scoped project-table rollback. Do not enable stock nftables.service, change global rules or start Codex. A dedicated controller is not reload persistence or zero-gap runtime enforcement.
+
+
+
+## Step 111 — Stage A baseline capture approved, execution not yet verified (2026-11-20)
+
+**Explicit owner authorization:** In response to the Step 110 command-level question, the owner replied **“Approved”**. Authorization is limited to executing the **exact private baseline capture** block documented above on `ccpcerpserver`: pre-check host identity, agent stopped/no auto-restart, stock nftables.service inactive/disabled; create a fresh root-only directory under `/root` and save `iptables-save`, `ip6tables-save`, `nft -j list ruleset`, full route JSON and selected service state outputs, then check that the files are nonempty. Keep raw snapshot data local and private. A second independent SSH recovery connection was confirmed in Step 110.
+
+**Execution status:** **NOT EXECUTED BY CHATGPT and NOT YET VERIFIED ON THE HOST.** Connected GitHub does not provide host access; only the operator can run the already approved block and return its sanitized booleans. Snapshot creation writes private local files but makes no kernel firewall changes, service starts, reloads or container operations. If a command fails, preserve the stopped agent and do not proceed to Stage B.
+
+**Still NOT approved:** Copying/pulling source into host paths, creating the authorization marker, installing/running the scoped nft controller or systemd unit, enabling `nftables.service`, restarting/reloading UFW or Docker, any reboot, running Codex/Squid, network probes, or PRODUCTION/DEVELOPMENT changes. A saved snapshot alone is not a verified restore/rollback procedure; never restore it wholesale over UFW/Docker.
+
+
+## Step 112 — Stage A private host baseline reported PASS (2026-11-20)
+
+**Operator execution evidence (sanitized stdout pasted directly by owner):** The owner ran the separately authorized Step 111 Stage A baseline command on `ccpcerpserver` and reported the following exact output:
+
+```text
+host_verified=True
+agent_stopped=True
+private_baseline_saved=True
+kernel_rules_modified=False
+services_restarted=False
+codex_launch_authorized=False
+```
+
+**Status: Stage A PASS as reported by the operator.** The command confirmed hostname, stopped known Codex agent, restart policy disabled, and stock nftables.service inactive/disabled before creating a fresh, root-private directory using `mktemp -d` and `umask 077`. It then saved five nonempty private references: IPv4 and IPv6 `iptables-save` output, `nft -j list ruleset`, routes, and selected service states. The command included **no firewall mutation or service restart**. ChatGPT had no direct SSH access; the private saved files and free space/permissions were not independently re-inspected. The owner confirmed a second working recovery session at Step 110. Never upload raw baseline data or even its private filesystem pathname to a public repository or chat.
+
+**Stage B (not yet authorized):** Prepare a pinned, minimal **source-only staging** transaction for the exact GitHub review commit, limited to `ccpc_codex_nft_scoped_controller.py`, `ccpc_codex_nft_guard_review.py`, `ccpc_codex_lab_firewall_guard.py`, and `ccpc_firewall_rule_order.py`. The source staging must create no root approval marker, add no systemd unit, install no kernel nftables table or firewall rule, start/stop no containers, and make no change to DEVELOPMENT/PRODUCTION. Require owner approval of the **exact commands** before staging; do not treat Stage A approval as Stage B authorization. The staged source must have independently verified immutable commit/content provenance and restrictive ownership/mode, no symlinks or existing target overwrite, and a failure path that does not accidentally execute staged code. The source may be reviewed read-only after staging. A later Stage C separate project-table installation remains **NO-GO** until the exact reviewed command, negative canaries, restart/reload lifecycle, trust boundary and rollback are accepted.
+
+
+## Stage B — exact source-only staging proposal (requires separate approval)
+
+**State:** Stage A baseline reported PASS by the operator. The following is a **candidate for command-level Stage B approval only**; do not run it before the owner explicitly approves Stage B. Stage B is *source-only* and does not authorize kernel firewall changes, creating a marker, adding a systemd unit or Codex/Squid activation.
+
+**Fixed source provenance (checked against connected GitHub by exact immutable code commit):**
+
+- Repository: `ccpcerp/ccpc-frappe-deployment`
+- Pinned source commit: `66960f73a69b10b59f508cda7bfd4ac9ea5c21af`
+- Four exact Git blob IDs are embedded in the script below; it downloads only these four source modules by commit-pinned unauthenticated HTTPS, compares `git hash-object` to the verified GitHub blob IDs and does not execute the downloaded Python.
+- New root-owned staging target: `/opt/ccpc/codex-lab-review/scripts/security/`; require no existing target or symlink, safe root-controlled `/opt` ancestry and a private `/opt/ccpc` directory. No changes to unrelated files; a failed download can leave a **root-only temporary staging directory** for review. No force overwrite or global cleanup.
+- Expected kernel/network effect: **NONE**. `curl` makes a short outbound HTTPS fetch of public code from GitHub; Stage B should be skipped if that host does not have approved outbound network access. No credentials or production information are sent.
+
+```bash
+sudo bash <<'CCPC_STAGE_B'
+set -euo pipefail
+test "$(hostname -s)" = "ccpcerpserver"
+test "$(docker inspect --format '{{.State.Running}}' ccpc_codex_dev_agent-agent-1)" = "false"
+test "$(docker inspect --format '{{.HostConfig.RestartPolicy.Name}}' ccpc_codex_dev_agent-agent-1)" = "no"
+test "$(systemctl show --value -p ActiveState nftables.service)" = "inactive"
+test "$(systemctl show --value -p UnitFileState nftables.service)" = "disabled"
+command -v curl >/dev/null
+command -v git >/dev/null
+test ! -e /opt/ccpc/codex-lab-review
+test ! -L /opt/ccpc/codex-lab-review
+
+python3 - <<'PY'
+import os, stat
+for path in ("/opt", "/opt/ccpc"):
+    if os.path.lexists(path):
+        s = os.lstat(path)
+        if (not stat.S_ISDIR(s.st_mode) or
+                s.st_uid != 0 or s.st_gid != 0 or
+                (stat.S_IMODE(s.st_mode) & 0o022)):
+            raise SystemExit("STOP: unsafe staging parent")
+        if path == "/opt/ccpc" and stat.S_IMODE(s.st_mode) != 0o700:
+            raise SystemExit("STOP: unexpected parent permissions")
+PY
+
+umask 077
+if test ! -d /opt/ccpc; then
+    mkdir -m 0700 /opt/ccpc
+fi
+stage="$(mktemp -d /opt/ccpc/.codex-review-stage.XXXXXXXX)"
+mkdir -m 0700 -p "$stage/scripts/security"
+commit="66960f73a69b10b59f508cda7bfd4ac9ea5c21af"
+
+while read -r filename git_blob; do
+    target="$stage/scripts/security/$filename"
+    curl --fail --silent --show-error --location --proto '=https'         --proto-redir '=https' --tlsv1.2 --connect-timeout 10         --max-time 45 --retry 2         --output "$target"         "https://raw.githubusercontent.com/ccpcerp/ccpc-frappe-deployment/$commit/scripts/security/$filename"
+    test -s "$target"
+    test "$(git hash-object -- "$target")" = "$git_blob"
+    chmod 0400 "$target"
+done <<'CCPC_BLOBS'
+ccpc_codex_nft_scoped_controller.py e07b1afcb39761fb0f5613c83c5f97b4aee46d22
+ccpc_codex_nft_guard_review.py eabbbfd5d5de4cdcf4e5e0c25732bf3c641ffdc4
+ccpc_codex_lab_firewall_guard.py 619d8dd962e3c995b53d57ac4c55a85ace2e4eab
+ccpc_firewall_rule_order.py af9a63bc8a390905a7e0da78e8c0b20c7f8af537
+CCPC_BLOBS
+
+printf '%s\n' "$commit" > "$stage/REVIEWED_SOURCE_COMMIT"
+chmod 0400 "$stage/REVIEWED_SOURCE_COMMIT"
+
+# Refuse to overwrite an existing review installation.
+test ! -e /opt/ccpc/codex-lab-review
+test ! -L /opt/ccpc/codex-lab-review
+mv -T -n -- "$stage" /opt/ccpc/codex-lab-review
+test ! -e "$stage"
+test -d /opt/ccpc/codex-lab-review
+
+printf 'host_verified=True\nagent_stopped=True\n'
+printf 'source_commit_pinned=True\nall_four_git_blobs_verified=True\n'
+printf 'root_only_review_source_staged=True\n'
+printf 'firewall_modified=False\nservices_modified=False\n'
+printf 'codex_launch_authorized=False\nSTAGE_B_SOURCE_ONLY_COMPLETE\n'
+CCPC_STAGE_B
+```
+
+**Proposed successful report:** `host_verified=True`, `agent_stopped=True`, `source_commit_pinned=True`, `all_four_git_blobs_verified=True`, `root_only_review_source_staged=True`, `firewall_modified=False`, `services_modified=False`, `codex_launch_authorized=False`, `STAGE_B_SOURCE_ONLY_COMPLETE`. Do not share a root-only filesystem dump; the status flags suffice.
+
+**Recovery boundary:** If the pinned source cannot be fetched or one blob does not match, STOP. Nothing operational is installed. Do not change permissions on an existing `/opt/ccpc` directory, delete a suspicious existing path, or force a Git branch switch. No host code is executed as part of this stage. Removal of staged files, installation of an approval marker, execution of `install`, any service manipulation, canaries, restart/reload and Codex start each require a new explicitly reviewed action.
+
+
+## Step 113 — Stage B pinned source staging approved; host execution pending (2026-11-20)
+
+**Approval:** The owner explicitly responded **“aPPROVED”** to the exact **Stage B source-only staging** procedure already documented in this file. This authorizes running that exact, bounded block on `ccpcerpserver` **once**, while maintaining the previously confirmed second administrator/recovery connection; it does not authorize any new or changed host command not contained in the reviewed Stage B script. The private Stage A baseline was previously reported complete; do not expose its files.
+
+**GitHub verification before execution:** Connected GitHub on current draft PR #39 branch `review/codex-proxy-network-hardening-2026-11-19` returned the same four blob SHA values as embedded in the approved host script, each verified specifically at immutable source commit `66960f73a69b10b59f508cda7bfd4ac9ea5c21af`: controller `e07b1afcb39761fb0f5613c83c5f97b4aee46d22`, nft guard `eabbbfd5d5de4cdcf4e5e0c25732bf3c641ffdc4`, original-lab firewall guard `619d8dd962e3c995b53d57ac4c55a85ace2e4eab`, rule ordering `af9a63bc8a390905a7e0da78e8c0b20c7f8af537`. These are Git **blob** hashes, not SHA-256; Stage B verifies them with `git hash-object` before final rename. Review branch head is documentation-only beyond the immutable pinned code. No host operation has been executed by ChatGPT.
+
+**Authorized effects:** After exact hostname, stopped-agent/no-restart and disabled/inactive stock nftables.service checks, and safe destination root ownership/no existing target, create `/opt/ccpc` if absent with mode 0700, create one root-private temporary staging directory, download only the four pinned files using HTTPS, compare all four Git blob hashes, set source files read-only and atomically move the directory to `/opt/ccpc/codex-lab-review` without overwriting existing files. It generates a short local commit marker file. A failed precondition/download/hash leaves firewall and services unchanged; a root-only temporary staging directory may remain. Do not print downloaded source or dump host details.
+
+**Execution status:** **Awaiting operator's sanitized terminal output.** Success requires all nine output lines ending `STAGE_B_SOURCE_ONLY_COMPLETE`; any failure/partial output is STOP, no cleanup or next stage without review. Do **not** create the root approval marker, invoke `install` or `nft -f`, install/enable a service, reload UFW/Docker, or launch Codex/Squid. Stage C kernel table installation remains separately unapproved. Codex activation remains **NO-GO**.
+
+
+
+## Step 114 — Stage B source-only staging operator-reported PASS (2026-11-20)
+
+The owner returned the terminal echo `CCPC_STAGE_B` and **all nine exact expected completion lines** from the separately approved Stage B source-only procedure on `ccpcerpserver`:
+
+```text
+host_verified=True
+agent_stopped=True
+source_commit_pinned=True
+all_four_git_blobs_verified=True
+root_only_review_source_staged=True
+firewall_modified=False
+services_modified=False
+codex_launch_authorized=False
+STAGE_B_SOURCE_ONLY_COMPLETE
+```
+
+**Interpretation and provenance:** Operator-reported Stage B **PASS**. By the reviewed command, the host checks passed, an originally absent root-controlled `/opt/ccpc/codex-lab-review` directory was created after staging four `scripts/security/*.py` files downloaded by HTTPS at immutable commit `66960f73a69b10b59f508cda7bfd4ac9ea5c21af` and checked by exact Git blob IDs. The files are staged root-read-only, and the commit marker was stored. The last command successfully required the temporary staging path to be absent and the final directory to exist. The operator-reported booleans do **not** equal an independent live host inspection by ChatGPT; file bytes, symlinks/modes after staging, services, and current firewall have not yet been rechecked in this conversation.
+
+**Authorized filesystem effect:** Only review-source files and private parent directories; **no authorization marker, systemd unit, nftables table, original firewall mutation, UFW/Docker reload, or Codex/Squid process start**. Stage A private firewall baseline remains on the host, not uploaded or restored. Keep the second independent administrator recovery connection available.
+
+**Next read-only gate — Stage B post-stage recheck, not Stage C installation:** Independently verify only the precise four files and recorded commit under a root-owned, no-symlink review directory, their Git blob IDs/0400 owner-only modes, stopped-agent/restart disabled and inactive/disabled stock nftables.service; verify the proposed nft table remains absent. Do not import or execute downloaded Python in the validation step. No need to print private paths, raw nft/iptables data or secrets. If any value differs, STOP; do not change permissions or delete files without a reviewed recovery step.
+
+**Still not approved:** Creating `/etc/ccpc/codex-lab-nft-guard-authorized`, running `ccpc_codex_nft_scoped_controller.py install`, installing/enabling a systemd service, nft/iptables mutation, UFW/Docker reload or reboot, host test probes, or Codex/Squid activation. The next firewall installation would require separate exact-command approval with a live negative-canary and scoped rollback plan; a staged controller is not runtime/persistence protection.
+
+
+## Step 115 — independent post-staging verification returned STOP (2026-11-20)
+
+The owner pasted the last lines of the read-only Stage B post-staging verification Python command:
+
+```text
+except Exception:
+    print("STOP: Stage B post-staging verification failed")
+PY
+STOP: Stage B post-staging verification failed
+```
+
+**Result: independent verification FAILED / specific predicate UNKNOWN.** The prior Step 114 staging reported all four exact Git blobs verified and the final root-only path staged, but that does not substitute for the new check. The Python verification used a broad catch-all that prints only a generic STOP. No exception type, failing predicate or raw state was disclosed. It would be incorrect to infer a hash mismatch, permissions error, firewall drift or failed source staging from this output alone. Operator ran a read-only inspector; no mutation is indicated. **Do not rerun Stage B, chmod, delete staged files, change firewall, create a marker or proceed to Stage C.** Codex/Squid remain NO-GO.
+
+**Next operator-safe action:** a separately supplied *read-only* stage-labelled diagnostic using `sudo python3 -I`: (1) verify host and agent stopped/restart disabled, (2) check exact parent and child directory ownership/modes and entries, (3) marker contents and four Git blob hashes, (4) stock nftables.service inactive/disabled, and (5) project nft table absence. It may print **only the first failing fixed diagnostic label** and no raw configuration, permissions, route, credentials or private baseline paths. Do not execute or import staged Python files, write/fix permissions, or run firewall mutation commands. A failed check still blocks Stage C. Further source-side documentation after owner diagnostic is permitted; Stage C would require separate command-level owner authorization and test/recovery review.
+
+
+## Step 116 — Stage B first-failure diagnostic now PASS; previous STOP unresolved (2026-11-20)
+
+After the generic STOP in Step 115, the owner ran the separately provided **read-only first-failed-check diagnostic** on `ccpcerpserver` and supplied:
+
+```text
+PY
+ALL_STAGED_SOURCE_CHECKS_PASSED=True
+NO_CHANGES_PERFORMED=True
+STAGE_C_AUTHORIZED=False
+READ_ONLY_DIAGNOSTIC_COMPLETE
+```
+
+`PY` here is the heredoc terminator copied with the console output, **not** an error. The script used `sudo python3 -I`, checked root/hostname, agent stopped and restart disabled, root-only directory ancestry and exact entries, the pinned commit marker, **all four Git blob IDs and owner-only mode 0400**, stock nftables.service inactive/disabled, and named independent nft table absent. Every labelled assertion completed without failure; the command deliberately did not execute/import staged Python and made **no changes**. This is **operator-supplied** evidence, not direct assistant inspection. The earlier generic STOP's root cause remains **unexplained**; no fault is proven or repaired. Current results restore the **Stage B read-only verification gate to PASS at the observed instant**, not Stage C installation authorization.
+
+**Next bounded review candidate:** a newly authorized **read-only controller `plan` execution**, after separate review of staged source/hash, to validate its actual system/iptables preconditions against the live host. This would execute the reviewed controller source as root but should use `python3 -B` to avoid bytecode writes and `plan` only (never `install`). A passing `plan` is necessary but not sufficient for actual firewall installation. The controller has **no effective ongoing runtime guard** and source-only testing cannot establish kernel packet isolation. No authorization marker, systemd unit, nft table, UFW/Docker reload or Codex start is approved; keep **Codex NO-GO**.
+
+
+
+## Step 117 — read-only staged controller plan approved; host execution pending (2026-11-20)
+
+**Owner's explicit authorization:** Following the successful Stage B labelled diagnostic in Step 116, the owner replied **“Approved”** to **read-only staged-controller `plan` mode only**, not Stage C installation or any firewall mutation.
+
+**Exact approved command on `ccpcerpserver` only** (with existing independent administrator recovery connection maintained):
+
+```bash
+sudo python3 -B /opt/ccpc/codex-lab-review/scripts/security/ccpc_codex_nft_scoped_controller.py plan
+```
+
+The GitHub-connected code was re-fetched before this approval was recorded. Its file blob `e07b1afcb39761fb0f5613c83c5f97b4aee46d22` at immutable reviewed code commit `66960f73a69b10b59f508cda7bfd4ac9ea5c21af` matches the staged-file provenance from Step 116. The `plan` branch calls `ready_bridge()` (existing root/host/Docker/known stopped-agent, original bridge identity, original three iptables DROP rules and precedence, stock nftables.service disabled/inactive) and `table_state()` (read-only `nft -j list tables`). If the CCPC table were unexpectedly present, the code additionally verifies its exact contents without changing them. There is no root-authorization marker required in `plan` mode and no `nft -f` transaction. The `-B` flag prevents Python bytecode cache writes.
+
+**Anticipated output only if checks pass and the independent table is still absent:**
+
+```text
+PROJECT_NFT_TABLE_STATE=absent
+agent_launch_authorized=False
+reload_reboot_runtime_enforcement_verified=False
+INSPECTION_COMPLETE
+```
+
+If checks fail, the code returns a nonzero exit and prints `STOP: scoped nft controller check failed` without raw firewall configuration. Do not retry through `install`, create a marker, change permissions, restart any service or use a broader shell wrapper. Request the sanitized output and review the cause before any further action.
+
+**Execution state:** **NOT YET RUN / NOT YET VERIFIED**. Owner will run the single command and paste output. Stage C remains unapproved. No host install/service/reload, negative network tests, proxy or Codex start authorized. This plan cannot verify reboot persistence or zero-gap runtime containment.
+
+## Step 118 — staged controller plan passed; Stage C remains unapproved (2026-11-20)
+
+**Operator-supplied result of precisely authorized read-only `plan`:**
+
+```text
+PROJECT_NFT_TABLE_STATE=absent
+agent_launch_authorized=False
+reload_reboot_runtime_enforcement_verified=False
+INSPECTION_COMPLETE
+```
+
+**Assessment:** Stage 117's exact `sudo python3 -B /opt/ccpc/codex-lab-review/scripts/security/ccpc_codex_nft_scoped_controller.py plan` command completed its four expected status lines. The pinned source's `plan` path checks the intended host/root, Docker daemon/bridge/subnet identity, known stopped original agent with restart disabled, correct three original-lab INPUT and DOCKER-USER DROP rules and precedence, UFW active, stock nftables.service inactive/disabled, and the absence of the independent named CCPC table. **Read-only installation prerequisites passed at that instant.** The operator output is the evidence; ChatGPT did not directly connect to the server and did not independently examine any private firewall or snapshot files.
+
+**Critical distinctions:** There is **no independently installed `inet ccpc_codex_lab_guard` table**; `agent_launch_authorized=False` and `reload_reboot_runtime_enforcement_verified=False` correctly remain. A read-only plan checks readiness but does not establish live filtering, negative network-test results, daemon reload/reboot persistence, or any guaranteed uninterrupted isolation under privileged host operations.
+
+**Stage C decision hold:** Owner approved only `plan`, **not** authorization-marker creation, root-only filesystem mutations beyond previous Stage B, `install` mode, systemd unit installation, nftables state mutation, Docker/UFW restart, agent/online Squid startup or PRODUCTION/DEVELOPMENT actions. Stage A private baseline and two SSH/admin recovery connections remain the operator-reported prerequisites. Before submitting a bounded Stage C installation command for **separate explicit approval**, review root-marker path/ownership/no-symlink checks, exact immutable source SHA, current host/agent/iptables guard recheck, prior baseline storage, no global `flush ruleset`, limited table-only mutation, preservation of restrictive policy on failure, and an exact, separately authorized project-table-only rollback when agent remains stopped. A one-shot install will not solve future reload loss or Docker manual-start bypass; Codex remains **NO-GO**.
+
+
+
+## Proposed Stage C — single-table install and temporary-marker cleanup (NOT APPROVED)
+
+**Status:** Drafted after the operator's read-only **Step 118 `PROJECT_NFT_TABLE_STATE=absent`** result. **NO AUTHORIZATION TO EXECUTE**. This is a proposed Stage C host mutation, unlike Steps A/B and `plan`. It intentionally excludes systemd installation, unit enablement, Docker or UFW reload, reboot, Codex/Squid startup and any proxy bridge. Owner must separately approve the **exact command** after reviewing possible impact on existing synthetic-lab connections.
+
+**Risk and scope:** The rule transaction adds a new **inet** table with four DROP rules: laboratory-bridge → host INPUT, host → laboratory bridge OUTPUT, and both cross-bridge forwarding directions; same-bridge lab traffic should remain unaffected by these rules but only live tests can prove it. The policy cannot guarantee reload/reboot persistence, protection after bridge recreation, or defense against privileged manual Docker starts. It may affect host-to-lab access; keep a second administrator SSH/recovery session and the Stage A private firewall baseline. Do **not** enable/reload/stop stock `nftables.service` because its effective unit lifecycle uses global `flush ruleset`. No other shared chain/table should be touched by the audited controller.
+
+**Proposed command — NOT YET APPROVED, DO NOT EXECUTE:**
+
+```bash
+sudo python3 -I - <<'PY'
+import os
+import stat
+import subprocess
+import sys
+from pathlib import Path
+
+BASE = Path("/opt/ccpc/codex-lab-review")
+CONTROLLER = BASE / "scripts/security/ccpc_codex_nft_scoped_controller.py"
+MARKER = Path("/etc/ccpc/codex-lab-nft-guard-authorized")
+BODY = b"CCPC_CODEX_NFT_GUARD_INSTALL_APPROVED\n"
+EXPECTED_COMMIT = "66960f73a69b10b59f508cda7bfd4ac9ea5c21af"
+BLOBS = {
+    "ccpc_codex_nft_scoped_controller.py":
+        "e07b1afcb39761fb0f5613c83c5f97b4aee46d22",
+    "ccpc_codex_nft_guard_review.py":
+        "eabbbfd5d5de4cdcf4e5e0c25732bf3c641ffdc4",
+    "ccpc_codex_lab_firewall_guard.py":
+        "619d8dd962e3c995b53d57ac4c55a85ace2e4eab",
+    "ccpc_firewall_rule_order.py":
+        "af9a63bc8a390905a7e0da78e8c0b20c7f8af537",
+}
+
+def require(condition):
+    if not condition:
+        raise RuntimeError("precondition failed")
+
+def run(*argv, timeout=90):
+    p = subprocess.run(argv, capture_output=True, text=True, timeout=timeout)
+    require(p.returncode == 0)
+    return p.stdout.strip()
+
+def root_dir(path, exact_mode=None):
+    st = os.lstat(path)  # Reject symlinks.
+    require(stat.S_ISDIR(st.st_mode) and st.st_uid == 0
+            and st.st_gid == 0 and not (st.st_mode & 0o022))
+    if exact_mode is not None:
+        require(stat.S_IMODE(st.st_mode) == exact_mode)
+
+def root_file(path):
+    st = os.lstat(path)
+    require(stat.S_ISREG(st.st_mode) and st.st_uid == 0
+            and st.st_gid == 0 and stat.S_IMODE(st.st_mode) == 0o400)
+
+try:
+    require(os.geteuid() == 0)
+    require(run("hostname", "-s") == "ccpcerpserver")
+    root_dir("/opt")
+    root_dir("/opt/ccpc", 0o700)
+    root_dir(BASE, 0o700)
+    root_dir(BASE / "scripts", 0o700)
+    root_dir(BASE / "scripts/security", 0o700)
+    root_file(BASE / "REVIEWED_SOURCE_COMMIT")
+    require((BASE / "REVIEWED_SOURCE_COMMIT").read_text()
+            == EXPECTED_COMMIT + "\n")
+    require(set(os.listdir(BASE / "scripts/security")) == set(BLOBS))
+    for filename, sha in BLOBS.items():
+        target = BASE / "scripts/security" / filename
+        root_file(target)
+        require(run("git", "hash-object", "--", str(target)) == sha)
+
+    # Stage A was a private recovery reference, not wholesale restore permission.
+    found_private_snapshot = False
+    for snap in Path("/root").glob("ccpc-codex-nft-preinstall.????????"):
+        try:
+            root_dir(snap, 0o700)
+            if all(
+                (snap / name).is_file() and (snap / name).stat().st_size > 0
+                for name in ("iptables.v4", "iptables.v6",
+                             "nftables.json", "routes.json", "services.txt")
+            ):
+                found_private_snapshot = True
+                break
+        except (OSError, RuntimeError):
+            continue
+    require(found_private_snapshot)
+
+    plan = run(sys.executable, "-B", str(CONTROLLER), "plan")
+    require("PROJECT_NFT_TABLE_STATE=absent" in plan.splitlines())
+    require("agent_launch_authorized=False" in plan.splitlines())
+    require(not os.path.lexists(MARKER))
+    root_dir("/etc")
+    if not os.path.lexists(MARKER.parent):
+        os.mkdir(MARKER.parent, 0o700)
+    root_dir(MARKER.parent)
+    require(not os.path.lexists(MARKER))
+
+    # Exclusive temporary authority. No marker persists on normal completion
+    # or caught failure; after an interruption, inspect before retrying.
+    fd = os.open(
+        MARKER,
+        os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600
+    )
+    info = None
+    try:
+        os.fchmod(fd, 0o600)
+        info = os.fstat(fd)
+        require(info.st_uid == 0 and stat.S_ISREG(info.st_mode))
+        written = os.write(fd, BODY)
+        require(written == len(BODY))
+        os.fsync(fd)
+        os.close(fd)
+        fd = None
+
+        outcome = run(sys.executable, "-B", str(CONTROLLER), "install")
+        require("PROJECT_NFT_TABLE_INSTALLED=True" in outcome.splitlines())
+        verification = run(sys.executable, "-B", str(CONTROLLER), "verify")
+        require("PROJECT_NFT_TABLE_EXACT=True" in verification.splitlines())
+        run("systemctl", "is-active", "--quiet", "ufw.service")
+        run("systemctl", "is-active", "--quiet", "docker.service")
+    finally:
+        if fd is not None:
+            os.close(fd)
+        current = os.lstat(MARKER)
+        require(info is not None and
+                current.st_ino == info.st_ino and
+                current.st_dev == info.st_dev and
+                stat.S_ISREG(current.st_mode) and
+                current.st_uid == 0)
+        os.unlink(MARKER)
+
+    require(not os.path.lexists(MARKER))
+    print("source_hashes_reverified=True")
+    print("private_baseline_reference_present=True")
+    print("project_nft_table_installed_and_exact=True")
+    print("temporary_authorization_marker_removed=True")
+    print("ufw_and_docker_still_active=True")
+    print("codex_launch_authorized=False")
+    print("reload_reboot_persistence_verified=False")
+    print("STAGE_C_ONE_TABLE_ONLY_COMPLETE")
+except Exception:
+    print("STOP: Stage C verification or bounded install failed")
+    print("DO_NOT_REPEAT_OR_ROLL_BACK_AUTOMATICALLY")
+    print("codex_launch_authorized=False")
+    sys.exit(1)
+PY
+```
+
+**Success interpretation:** Only if the final `STAGE_C_ONE_TABLE_ONLY_COMPLETE` is printed, the pinned source, private baseline reference, exact project table verification, temporary marker removal and existing Docker/UFW availability were checked. It does **not** establish network negative-canary results or persistence. The controller's own static precondition checks also require stopped agent/no restart and exact existing original-lab firewall rules. The only intended filesystem effects are a possible newly created root-owned `/etc/ccpc` directory and a **temporary** marker that is removed on completion, plus a kernel-owned CCPC-only nft table and controller lock file. The first attempt may leave a new `/run/lock/ccpc-codex-nft-guard.lock` with mode 0600. It will not install any systemd unit or enable any service.
+
+**Failure and recovery:** If a precondition fails, the command is intended to refuse the nft transaction. If nft transaction or postcheck fails after the table was created, the controller **deliberately retains restrictive DROP rules** instead of weakening protection; the shell removes its temporary authorization marker in the normal exception path. If power is lost or the process is forcibly interrupted, the marker may remain and must be inspected privately before any retry. **Never rerun Stage C blindly, globally flush the ruleset, restart Docker/UFW, or restore the entire private snapshot**. A proposed *scoped rollback only if separately approved* would first recheck stopped agent/restart disabled, original three DROP rules and exact dedicated table contents, then delete **only** `table inet ccpc_codex_lab_guard` if its existence is proven and no Codex process depends on it; absence/ambiguous contents must STOP. The exact rollback wrapper and live negative tests remain separate operational steps and require independent approval.
+
+**Approval boundary:** No such command is authorized by the owner's Step 117/118 approval for `plan`. Before approving table creation, the owner should confirm the second recovery session remains working, the original lab services' connectivity dependencies are understood, and a minimal rollback command is acceptable. The faster path is to install this single table without a service and test controlled synthetic negative canaries *while the Codex agent is stopped*. The safer isolation fallback is a dedicated Codex VM/host, avoiding shared-host firewall continuity. Neither path licenses agent startup yet.
+
+
+## Step 119 — owner approves exact Stage C one-table installation; execution pending (2026-11-20)
+
+**Approval provenance:** After the operator-reported read-only controller `plan` PASS in Step 118, the assistant provided the [exact Stage C review](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/01dfeace8dda154d32e2260d61f0d3388644ce2d/docs/ccpc-project/CODEX-SCOPED-NFT-INSTALL-RECOVERY-REVIEW.md), explaining that the upcoming operation **would modify the active kernel firewall** by adding an independent CCPC-only nftables table with four lab-bridge-specific DROP rules. The user answered **“Approved”** to the direct question “Do you approve the proposed Stage C single-table firewall installation, using the exact reviewed procedure?” This is **explicit, bounded authorization for that previously reviewed script only**, not blanket approval for further mutation, rollback, daemon/service changes, container/agent startup or PRODUCTION/DEVELOPMENT changes.
+
+**Source and procedure verification immediately after approval:** Reopened the authoritative GitHub-first workflow, draft PR #39, the Stage C proposal on `review/codex-proxy-network-hardening-2026-11-19`, and exact pinned source controller commit `66960f73a69b10b59f508cda7bfd4ac9ea5c21af`. The proposed script is the one finalized in [review commit `01dfeace8dda154d32e2260d61f0d3388644ce2d`](https://github.com/ccpcerp/ccpc-frappe-deployment/commit/01dfeace8dda154d32e2260d61f0d3388644ce2d). No new host-side script variant is authorized; previous `NOT APPROVED` text documents the proposal's earlier state and is superseded **only for exact Stage C execution** by this decision.
+
+**Required operator hold points:** Keep the second working administrator SSH/recovery connection open, original Codex agent/Squid stopped, and the root-private Stage A snapshot available. Execute the reviewed command **once** on `ccpcerpserver` only. The wrapper verifies the root-only staged four-file pinned source, private baseline reference, and read-only `plan` showing table absent; creates an exclusive temporary root authorization marker; invokes only `ccpc_codex_nft_scoped_controller.py install`; checks the exact CCPC independent table and UFW/Docker running state; removes the marker in the normal execution path. It must never invoke `nftables.service`, `nft flush ruleset`, `ufw reload`, `systemctl restart docker`, or start an agent. Source tests were static/mocked; *this wrapper and actual kernel installation have not been tested on the target*.
+
+**Execution status:** **NOT YET REPORTED / NOT VERIFIED**. No GitHub document update is evidence of host installation. An expected exact success end marker is `STAGE_C_ONE_TABLE_ONLY_COMPLETE`; obtain the complete sanitized boolean output from the owner. If a `STOP` message occurs or a session interrupts, **do not rerun** and do **not automatically delete/restore firewall rules**. The temporary authorization marker could remain after a forced interruption; treat any unknown marker/table state as unsafe pending read-only inventory and operator-specific rollback. The approved action can interrupt legitimate host-to-lab traffic; a private snapshot is a recovery reference, not a license to restore UFW/Docker firewall state wholesale. Neither reload/reboot persistence nor packet isolation nor unbypassable startup is established by a successful one-table installation.
+
+**Unapproved after Stage C:** Installing/enabling a systemd unit or persistence hook, reboot/reload of UFW/Docker/nftables, altering unrelated firewall tables, deleting the table as rollback, starting Codex or Squid, PRODUCTION/DEVELOPMENT operations, or network-probing other services. Each requires separate reviewed authorization. Codex activation remains **NO-GO**.
+
+
+
+## Step 120 — Stage C single-table installation operator-reported PASS (2026-11-20)
+
+**Operator-supplied output from the **once-only** command explicitly approved at Step 119:**
+
+```text
+source_hashes_reverified=True
+private_baseline_reference_present=True
+project_nft_table_installed_and_exact=True
+temporary_authorization_marker_removed=True
+ufw_and_docker_still_active=True
+codex_launch_authorized=False
+reload_reboot_persistence_verified=False
+STAGE_C_ONE_TABLE_ONLY_COMPLETE
+```
+
+**Assessment — Stage C execution PASS as reported by owner, independent recheck PENDING.** The reviewed script's successful exit required the staged four Python source Git blob hashes to match pinned reviewed commit `66960f73a69b10b59f508cda7bfd4ac9ea5c21af`, private Stage A snapshot files to exist/nonempty, and `plan` confirming exact stopped lab and original iptables safeguards with independent table absent. The script then created an exclusive temporary root-only marker, called the *reviewed controller* `install` mode, and independently ran `verify`, checked UFW and Docker active, removed the temporary marker and confirmed it absent. Therefore the owner's output is evidence that **a new, CCPC-only `inet ccpc_codex_lab_guard` kernel nft table with four bridge-specific DROP rules was installed and exactly matched the staged controller's JSON validator at that instant**. The approved command made no request to reload/enable stock nftables.service, restart Docker/UFW, or start Codex/Squid. This GitHub entry is **not** a direct assistant/SSH inspection and should not be treated as permanent state.
+
+**Expected host filesystem artifacts:** One possible newly created `/etc/ccpc` root-owned directory (0700), a now-removed temporary `codex-lab-nft-guard-authorized` marker, and a project controller lock file under `/run/lock`; the read-only/staged source under `/opt/ccpc` and private Stage A snapshot remain. The new independent kernel table is deliberately **not automatically removed** in a rollback because removing a protective DROP layer without determining traffic dependencies is unsafe. The original iptables guards and root marker must remain checked in the next read-only verification.
+
+**Limits:** The host may have been affected by the new rules (host-to-original-lab traffic can be blocked). Only service **active** state was tested, not successful end-to-end UAT/DEVELOPMENT availability. The four nftables DROP rules were validated as *present and exact*, but **no negative packet-path canary tests, legitimate synthetic DB/Redis continuity tests, independent reload/reboot survival, bridge recreation handling or unbypassable Codex process denial have been performed**. `reload_reboot_persistence_verified=False` and `codex_launch_authorized=False` remain authoritative limitations. This is not a production-ready Codex firewall or a permission to start the agent. Operator's previously confirmed second administrator session and private baseline should stay available.
+
+**Next read-only gate, not new modification approval:** A fresh, bounded operator-owned **read-only** check should confirm exact controller `verify` (without marker or bytecode writes), absent authorization marker, stopped/no-auto-restart agent, independent table/chain/rule count, UFW and Docker active, and stock nftables.service still inactive/disabled. Use fixed output booleans/check labels, do not expose raw host/private rules or snapshot paths. Independently confirm both administrator SSH connections remain working. If the recheck fails, **STOP**; do not remove the table or any other rules, change authorization, run global flush, restart Docker/UFW, or rerun Stage C. Later controlled packet tests, scoped rollback, and any persistence design require separate review and authorization.
+
+**Unapproved:** Enabling/installing a project or stock systemd unit, service reload/reboot, network canaries, changing any existing rule or CCPC table, starting/attaching Codex/Squid, or touching DEVELOPMENT/PRODUCTION workloads. PR #39 remains draft/unmerged. **Codex activation: NO-GO.**
+
+
+## Step 121 — independent post-install read-only verification PASS, operator-reported (2026-11-20)
+
+**Owner-supplied result of the separately initiated read-only post-install verification after Step 120:**
+
+```text
+PROJECT_NFT_TABLE_VERIFIED=True
+ORIGINAL_FIREWALL_GUARDS_VERIFIED=True
+TEMPORARY_AUTH_MARKER_ABSENT=True
+UFW_DOCKER_ACTIVE=True
+AGENT_STOPPED=True
+STOCK_NFT_SERVICE_INACTIVE_DISABLED=True
+HOST_CHANGES_PERFORMED=False
+CODEX_LAUNCH_AUTHORIZED=False
+READ_ONLY_VERIFICATION_COMPLETE
+```
+
+**Assessment — post-install read-only verification PASS based on operator command output.** The precise previously provided `sudo python3 -I` inspector checked: root/hostname, stopped original Codex agent and disabled restart policy, staged controller Git blob integrity, absence of `/etc/ccpc/codex-lab-nft-guard-authorized`, stock nftables.service still inactive/disabled, UFW and Docker active, the staged controller's own **read-only** `verify` result `PROJECT_NFT_TABLE_EXACT=True`, and a separate read-only native `nft -j list table inet ccpc_codex_lab_guard` check for exactly one project inet table, three expected base chains, and four DROP rules at priority -301. The command reported `HOST_CHANGES_PERFORMED=False`. **This is operator-reported host observation, not a ChatGPT-executed SSH inspection or an independent penetration test.** The earlier Step 120 installation and readback has now been followed by a distinct, new read-only observation of the intended kernel table.
+
+**One outstanding recovery prerequisite:** At Step 110 the owner had confirmed two administrator SSH/recovery sessions, but has **not explicitly reconfirmed** that the second one still works after the live nft table installation. Request confirmation before any proposed active network tests. The Stage A private firewall reference remains private and should not be pasted or wholesale restored.
+
+**What remains unverified and unapproved:** Real negative packet-path canaries from controlled synthetic endpoints, legitimate DEVELOPMENT/UAT service connectivity after the DROP rules, IPv4 and IPv6 path coverage, reload/reboot survival, bridge identity following Docker recreation, and denial of privileged manual Codex starts. `reload_reboot_persistence_verified=False` and `CODEX_LAUNCH_AUTHORIZED=False` remain. No new service activation, UFW/Docker restart or reload, nft policy change, scoped rollback, network probes, PRODUCTION/DEVELOPMENT changes, or Codex/Squid launch has been approved. A proper future isolated canary plan must fix both a positive reachable control and a forbidden path while avoiding agent start, sensitive credentials, existing business services and uncontrolled packet traffic; obtain separate exact-script approval. **Codex activation: NO-GO.**
+
+
+
+## Step 122 — second administrator SSH reconfirmed after nft install; canary planning held (2026-11-20)
+
+**Operator-reported recovery readiness:** The owner explicitly answered **“Confirmed”** to the question: “Can you confirm that your second independent SSH administrator connection to `ccpcerpserver` is still working after the firewall installation?” This is a renewed attestation **after** Stage C table installation (Step 120) and separate read-only exact-table verification (Step 121), not evidence of a physically separate management network or tested total-host recovery. Both administrator sessions should remain open for the next planned checks. The private Stage A snapshot is kept on host as a **reference**, not a wholesale restore script.
+
+**Current observed security state at prior Step 121:** One `inet ccpc_codex_lab_guard` table with three base chains and four lab-bridge DROP rules (priority -301) matched the reviewed source; the temporary `/etc/ccpc/codex-lab-nft-guard-authorized` marker was absent; stopped Codex agent/no auto-restart, original iptables guards, inactive/disabled stock `nftables.service`, and active UFW/Docker were owner-reported. No new firewall change is associated with this SSH confirmation. These are point-in-time observations, not actual packet-denial or reboot persistence evidence.
+
+**Proposed next low-impact gate:** Collect a minimal **read-only, sanitized topology inventory** from `ccpcerpserver` by inspecting Docker's existing original lab network `ccpc_codex_dev_agent_lab` and known existing stopped agent plus synthetic MariaDB and two Redis services. Do not execute `docker compose up`, `docker exec`, `docker run`, test connections, query DB/Redis, read environment secrets, print raw routes/firewall/network IDs or expose DEVELOPMENT/PRODUCTION services. A non-mutating status-only inspector can confirm current original bridge internal/driver/subnet identity and whether synthetic service containers are still running, so that the **separately authorized later** traffic canaries use only controlled synthetic endpoints. Avoid assuming the review-branch `codex-dev-agent/compose.yaml` matches currently deployed host topology; its proxy and outgoing networks remain a proposal.
+
+**Hold:** Explicit approval is still required before any active packet-path test, new disposable container, network connection, service restart, UFW/Docker reload, nft policy mutation, persistence service, Codex/Squid activation or PRODUCTION/DEVELOPMENT operation. Positive and negative synthetic-only path checks, IPv4/IPv6 and legitimate service continuity, reboot/reload resilience and unbypassable runtime process restrictions are NOT YET TESTED. **Codex launch NO-GO.**
+
+
+## Step 123 — read-only original-lab Docker topology reported PASS (2026-11-20)
+
+The owner ran the previously provided, limited **read-only topology** command on `ccpcerpserver` after the successful Step 121 independent nft table readback and Step 122 reconfirmation that the second administrator SSH session works. The operator returned the complete expected, sanitized output:
+
+```text
+ORIGINAL_LAB_NETWORK_VERIFIED=True
+LAB_BRIDGE_PRESENT=True
+SYNTHETIC_DB_REDIS_CONTAINERS_RUNNING=True
+CODEX_AGENT_STOPPED=True
+NETWORK_PROBES_PERFORMED=False
+HOST_CHANGES_PERFORMED=False
+CODEX_LAUNCH_AUTHORIZED=False
+READ_ONLY_TOPOLOGY_COMPLETE
+```
+
+**Assessment:** The exact verifier checked host identity, Docker network `ccpc_codex_dev_agent_lab` with internal Linux bridge and expected `172.21.0.0/16` / gateway `172.21.0.1`, existence of the matching Docker bridge interface, known original four project containers, agent stopped and restart disabled, and running synthetic `db`, `redis-cache` and `redis-queue` containers each attached to the original lab. No `docker exec/run`, credential use, network probe or service/firewall change occurred. This is **operator-reported stdout** only; the assistant did not independently access Docker. The latest exact nft table readback (Step 121) and recovery SSH confirmation (Step 122) are prior point-in-time evidence, not guarantees of unchanged state.
+
+**Next planned active canary — NOT YET APPROVED:** Before sending packets, require a separately approved **exact command** designed for the *existing synthetic lab only*, with both an allowed-path control and a forbidden-path attempt. Suggested first IPv4 pair: (a) short `PING` (Redis protocol, not ICMP) from the synthetic `redis-cache` container to the existing synthetic `redis-queue` service over the same lab bridge, reading only `PONG`; (b) one bounded host TCP connect attempt to the **same synthetic redis-queue IP and port 6379**, retrieved from sanitized Docker inspection, expected to be blocked by currently installed host/bridge firewall rules. The allowed peer test proves the target service is listening through an approved same-bridge route; it does not prove which firewall rule denied a host-to-lab attempt. Do not print IPs or network identifiers, authenticate to MariaDB, use other services, use agent, attach any container to another network, or create/start/restart a container. Both SSH sessions and private snapshot should remain available. Any test must validate source/target Docker compose project and exact Docker lab membership, agent stopped, nft independent table exact and no install marker, and stop on a failed control. Do not accept `ConnectionRefused` as proof of filtering. Passing this one pair does **not** verify lab-to-host, other bridges, IPv6, Docker/UFW reload/reboot persistence, or Codex launch safety.
+
+**Still held:** No active network canaries, firewall mutation/removal, daemon reload/restart, reboot, service/proxy/agent start, DEVELOPMENT or PRODUCTION operations have been approved. Codex **NO-GO**.
+
+
+## Proposed Step 124 — synthetic Redis allowed/denied IPv4 canary (NOT APPROVED)
+
+**Purpose and prerequisites:** Draft exact, **NOT YET AUTHORIZED** host script for one synthetic-only, IPv4 positive/negative path pair after Step 123's read-only topology PASS. The script will run on `ccpcerpserver` only, with two live administrator SSH sessions and the Stage A private firewall reference retained. Recheck the four pinned Python Git blob IDs before executing the known controller in read-only `verify` mode. Confirm the original `ccpc_codex_dev_agent_lab` network is internal bridge with `172.21.0.0/16`, no Docker IPv6 enabled, agent stopped/no-restart, correct Compose project/service labels, and that both Redis services already exist, are running and attached **only** to that lab. The deployed original topology is inspected in real time; do not rely on the proposed three-network source Compose YAML.
+
+**Exact proposed test, separated from any firewall changes:**
+
+1. **Positive same-bridge control:** execute only `redis-cli --raw -h redis-queue -p 6379 PING` inside existing synthetic `redis-cache` container via `docker exec --user redis`. Expect `PONG`. No Redis keys, passwords or database contents are read or changed. STOP before any negative attempt if the positive control fails.
+2. **Negative host-to-lab IPv4 test:** one host Python `socket.create_connection` to that **same synthetic redis-queue container's inspected IPv4 address, TCP port 6379**, with 2-second timeout and **no payload**. A successful TCP connection is a FAIL. `ECONNREFUSED` or connection reset are also failures, not valid evidence of filtering. A timeout or explicit kernel route/policy denial is counted as an observed blocked path—not proof that the new nft table specifically caused it, because existing iptables/UFW rules coexist.
+3. Repeat the same positive Redis PING, reverify the table exactly and stopped Codex agent; print **fixed labels only**, never actual container IP/credentials/firewall contents.
+
+**NOT approved for execution yet:**
+
+```bash
+sudo python3 -I - <<'PY'
+import errno
+import ipaddress
+import json
+import os
+import socket
+import stat
+import subprocess
+import sys
+from pathlib import Path
+
+PROJECT = "ccpc_codex_dev_agent"
+NETWORK = PROJECT + "_lab"
+PREFIX = PROJECT + "-"
+AGENT = PREFIX + "agent-1"
+SOURCE = PREFIX + "redis-cache-1"
+TARGET = PREFIX + "redis-queue-1"
+BASE = Path("/opt/ccpc/codex-lab-review/scripts/security")
+CTRL = BASE / "ccpc_codex_nft_scoped_controller.py"
+EXPECTED = {
+    "ccpc_codex_nft_scoped_controller.py":
+        "e07b1afcb39761fb0f5613c83c5f97b4aee46d22",
+    "ccpc_codex_nft_guard_review.py":
+        "eabbbfd5d5de4cdcf4e5e0c25732bf3c641ffdc4",
+    "ccpc_codex_lab_firewall_guard.py":
+        "619d8dd962e3c995b53d57ac4c55a85ace2e4eab",
+    "ccpc_firewall_rule_order.py":
+        "af9a63bc8a390905a7e0da78e8c0b20c7f8af537",
+}
+stage = "INITIAL"
+
+def require(ok):
+    if not ok:
+        raise RuntimeError("check failed")
+
+def run(*args, timeout=20):
+    p = subprocess.run(
+        args, capture_output=True, text=True, timeout=timeout
+    )
+    require(p.returncode == 0)
+    return p.stdout.strip()
+
+def exact_firewall():
+    require(not os.path.lexists(
+        "/etc/ccpc/codex-lab-nft-guard-authorized"
+    ))
+    output = run(sys.executable, "-B", str(CTRL), "verify")
+    require("PROJECT_NFT_TABLE_EXACT=True" in output.splitlines())
+    require("agent_launch_authorized=False" in output.splitlines())
+
+def ping_peer():
+    # Redis PING is read-only; run only inside existing synthetic Redis cache.
+    return run(
+        "docker", "exec", "--user", "redis", SOURCE,
+        "redis-cli", "--raw", "-h", "redis-queue", "-p", "6379", "PING",
+        timeout=10
+    ) == "PONG"
+
+try:
+    stage = "HOST_AND_ROOT"
+    require(os.geteuid() == 0)
+    require(run("hostname", "-s") == "ccpcerpserver")
+
+    stage = "PINNED_SOURCE"
+    require(set(os.listdir(BASE)) == set(EXPECTED))
+    for filename, blob in EXPECTED.items():
+        path = BASE / filename
+        s = os.lstat(path)
+        require(stat.S_ISREG(s.st_mode) and s.st_uid == 0
+                and s.st_gid == 0 and stat.S_IMODE(s.st_mode) == 0o400)
+        require(run("git", "hash-object", "--", str(path)) == blob)
+
+    stage = "PRETEST_FIREWALL"
+    exact_firewall()
+
+    stage = "LAB_NETWORK"
+    nets = json.loads(run("docker", "network", "inspect", NETWORK))
+    require(len(nets) == 1)
+    net = nets[0]
+    require(net["Name"] == NETWORK and net["Driver"] == "bridge"
+            and net["Internal"] is True
+            and net.get("EnableIPv6") is False)
+    require(any(
+        entry.get("Subnet") == "172.21.0.0/16"
+        and entry.get("Gateway") == "172.21.0.1"
+        for entry in net["IPAM"]["Config"]
+    ))
+
+    stage = "SYNTHETIC_CONTAINER_SCOPE"
+    items = json.loads(run("docker", "inspect", AGENT, SOURCE, TARGET))
+    require(len(items) == 3)
+    containers = {item["Name"].lstrip("/"): item for item in items}
+    require(set(containers) == {AGENT, SOURCE, TARGET})
+    agent = containers[AGENT]
+    require(agent["State"]["Running"] is False)
+    require(agent["HostConfig"]["RestartPolicy"]["Name"] in ("no", ""))
+    for name, service in ((SOURCE, "redis-cache"), (TARGET, "redis-queue")):
+        c = containers[name]
+        labels = c["Config"]["Labels"] or {}
+        require(labels.get("com.docker.compose.project") == PROJECT)
+        require(labels.get("com.docker.compose.service") == service)
+        require(c["State"]["Running"] is True)
+        attached = c["NetworkSettings"]["Networks"]
+        require(set(attached) == {NETWORK})
+        require(attached[NETWORK]["NetworkID"] == net["Id"])
+
+    address = containers[TARGET]["NetworkSettings"]["Networks"][NETWORK]["IPAddress"]
+    ip = ipaddress.ip_address(address)
+    require(isinstance(ip, ipaddress.IPv4Address))
+    require(ip in ipaddress.ip_network("172.21.0.0/16"))
+    require(ip != ipaddress.ip_address("172.21.0.1"))
+
+    stage = "ALLOWED_SAME_BRIDGE_CONTROL"
+    require(ping_peer())
+
+    stage = "DENIED_HOST_TO_LAB_IPV4"
+    denied = False
+    try:
+        conn = socket.create_connection((str(ip), 6379), timeout=2.0)
+    except TimeoutError:
+        denied = True
+    except OSError as exc:
+        # Refused/reset is not proof of blocking: fail for those cases.
+        denied = exc.errno in {
+            errno.EACCES, errno.EPERM, errno.EHOSTUNREACH, errno.ENETUNREACH
+        }
+    else:
+        conn.close()
+    require(denied)
+
+    stage = "ALLOWED_CONTROL_AFTER_PROBE"
+    require(ping_peer())
+
+    stage = "POSTTEST_FIREWALL_AND_AGENT"
+    exact_firewall()
+    agent_check = json.loads(run("docker", "inspect", AGENT))[0]
+    require(agent_check["State"]["Running"] is False)
+    require(agent_check["HostConfig"]["RestartPolicy"]["Name"] in ("no", ""))
+
+    print("SYNTHETIC_SAME_BRIDGE_REDIS_PING=True")
+    print("HOST_TO_SYNTHETIC_REDIS_TCP_DENIED=True")
+    print("SYNTHETIC_REDIS_STILL_REACHABLE=True")
+    print("CCPC_FIREWALL_STILL_EXACT=True")
+    print("CODEX_AGENT_STOPPED=True")
+    print("CONFIG_CHANGES_PERFORMED=False")
+    print("NFT_RULE_CAUSAL_ATTRIBUTION_VERIFIED=False")
+    print("OTHER_PATHS_IPV6_RELOAD_REBOOT_VERIFIED=False")
+    print("CODEX_LAUNCH_AUTHORIZED=False")
+    print("STEP_124_LIMITED_CANARY_COMPLETE")
+except Exception:
+    print("FIRST_FAILED_CHECK=" + stage)
+    print("DO_NOT_RETRY_OR_CHANGE_FIREWALL=True")
+    print("CODEX_LAUNCH_AUTHORIZED=False")
+    sys.exit(1)
+PY
+```
+
+**Safeguards and evidence limits:** Uses **existing synthetic containers only**; `docker exec` starts a short Redis CLI process inside `redis-cache`, and two PINGs plus one host TCP SYN generate bounded **active** test traffic. It does not start/recreate/attach containers, modify Redis keys, create marker, install/delete/flush nftables rules, change Docker/UFW services, alter host files, touch DEVELOPMENT/PRODUCTION, or launch Codex/Squid. It is still a real network test and therefore requires **separate explicit command-level owner approval** before the operator runs it. Nonzero/first-failed-check output means STOP; do not repeat blindly. Passing it would establish only an observed same-bridge reachable Redis path and a denied **host → original-lab** IPv4 TCP path under combined existing firewall controls. It does not verify lab → host, inter-bridge forwarding, IPv6 packet paths, TCP/UDP comprehensiveness, the causal contribution of the nft table, reload/reboot persistence, or unbypassable root/Docker agent startup. No new runtime authorization is implied. **Codex NO-GO.**
+
+
+## Step 124 — owner approves exact synthetic Redis IPv4 canary; execution pending (2026-11-20)
+
+**Explicit command-level owner approval:** After the Step 123 operator-reported read-only topology PASS, the owner replied **“Approved”** to the assistant's direct question: “Do you approve executing the exact proposed Step 124 synthetic-only network-isolation test?” This permits **only the unchanged, exact Bash/Python block in the preceding “Proposed Step 124” section**, one run on `ccpcerpserver`. Its former “NOT APPROVED” label documents the initial proposal; the specific owner approval in this Step 124 entry supersedes that hold **for this exact command only**, not for other active probes or host mutations.
+
+**Pre-execution GitHub verification:** Re-fetched official GitHub-first workflow, draft unmerged PR #39 review branch, exact review plan at commit `7b80866b54bb72d9d97c05ba5942c49ba4093d89`, and pinned controller/guard source blob IDs. The proposed script verifies all four staged Python Git blob hashes, no temporary authorization marker, controller `verify` exact, original internal synthetic Docker bridge/IPv4 range, no Docker IPv6 on lab network, exact synthetic Compose container identities and stopped/no-restart agent. It attempts the positive **Redis protocol PING** from *existing* `redis-cache` container to *existing* `redis-queue` on the same lab bridge and requires `PONG`; if that works, it makes **one** host TCP connect attempt to the same known synthetic Redis-queue target port 6379 (2-second timeout, **no payload**), expecting host-to-lab denial; then repeats the allowed control and verifies exact project firewall/agent stopped. `docker exec` creates only a short-lived Redis CLI process inside existing synthetic service, not a new/restarted container. No database credentials, Redis key values, host routes, firewall rule dumps or container IPs are to be exposed.
+
+**Observed status:** **APPROVED BUT NOT EXECUTED/NOT YET VERIFIED.** ChatGPT cannot run the host command through GitHub and has no direct SSH. Maintain the second independent admin SSH/recovery session and Stage A private baseline. On `FIRST_FAILED_CHECK=<stage>` STOP immediately, without rerun, deleting any nft table, restarting Docker/UFW or changing original lab settings. Success requires all exact ten lines ending `STEP_124_LIMITED_CANARY_COMPLETE`. A successful test only demonstrates one allowed same-bridge synthetic Redis path and one denied host→lab IPv4 TCP path **under combined existing firewall controls**; it does not attribute denial specifically to the CCPC nft table, or validate other destinations, IPv6, proxy, reload/reboot continuity or manual Docker start prevention. **Codex/Squid startup NO-GO.**
+
+**Still not approved:** any extra network scans/connections, broad probing, Codex/Squid start, firewall modifications/deletion, persistence unit operations, Docker/UFW/nftables restart/reload, reboot, DEVELOPMENT/PRODUCTION changes, or blind reruns.
+
+
+## Step 125 — Step 124 synthetic Redis IPv4 positive/negative canary reported PASS (2026-11-20)
+
+**Operator-supplied output from exactly authorized one-time synthetic-only Step 124 canary:**
+
+```text
+SYNTHETIC_SAME_BRIDGE_REDIS_PING=True
+HOST_TO_SYNTHETIC_REDIS_TCP_DENIED=True
+SYNTHETIC_REDIS_STILL_REACHABLE=True
+CCPC_FIREWALL_STILL_EXACT=True
+CODEX_AGENT_STOPPED=True
+CONFIG_CHANGES_PERFORMED=False
+NFT_RULE_CAUSAL_ATTRIBUTION_VERIFIED=False
+OTHER_PATHS_IPV6_RELOAD_REBOOT_VERIFIED=False
+CODEX_LAUNCH_AUTHORIZED=False
+STEP_124_LIMITED_CANARY_COMPLETE
+```
+
+**Assessment — narrow active packet-path canary PASS, as reported by operator.** The approved code first re-verified root/host, all four immutable source Git blob IDs, original agent stopped/no-auto-restart, specific internal Docker laboratory network/IPv4 subnet and Compose labels for `redis-cache` and `redis-queue`, and exact controller nft rule readback with no temporary marker. Existing synthetic `redis-cache` ran a short `redis-cli PING` to its same-bridge `redis-queue:6379` peer and obtained `PONG` as a *positive allowed-path control*. Then the host attempted one TCP connect to the same Docker-inspected synthetic Redis queue IPv4 address and port 6379 (2-second limit, no data payload). It was denied under the script's strict timeout/policy/route error criteria; a successful connect or connection refusal/reset would not have passed. Positive `PING` again returned `PONG` afterwards. The pinned controller's read-only `verify` still returned exact, and agent remained stopped. **The command did send bounded synthetic-only traffic and briefly executed Redis CLI inside an existing container; it made no intentional host configuration, firewall or container lifecycle changes.**
+
+**Evidence provenance:** These ten terminal lines were pasted by the owner, not independently produced by ChatGPT or instrumented packet traces. Their value is **one allowed same-bridge Redis IPv4 path and one denied host → original laboratory Redis IPv4 TCP path under the combined nft/iptables/UFW/Docker networking state**, without proving which rule caused the denial. A kernel timeout can reflect more than the dedicated CCPC nft table. No broad scanning, production/DEVELOPMENT traffic, DB authentication, Squid or Codex launch is indicated by the approved script. The Stage A private root-only firewall snapshot and second operator-confirmed administrator SSH session should remain available.
+
+**Still NOT VERIFIED:** synthetic lab → host; lab → unrelated Docker bridge/DEVELOPMENT; unrelated bridge → lab; IPv6 traffic or differing protocol/ports; host/DEVELOPMENT service continuity beyond the limited Redis peer; Docker/UFW reload and reboot persistence; Docker bridge recreation; zero-gap kernel enforcement; and privileged operator manual Docker Codex start bypass. Do not declare the firewall comprehensive, Codex deployable or PRODUCTION-ready.
+
+**Step 125 next planning boundary (no new active test approved):** Design separately reviewed, *synthetic-only* additional allowed/forbidden packet paths with destination endpoints and network-source provenance verified in advance; avoid probing SSH, ERPNext, business services, LAN, production or unrelated Docker bridges. A safe host-inbound/lab-outbound test may require a disposable synthetic-only listening endpoint and explicit permission for any new process/namespace. Do not run `docker run/exec`, `iptables`/`nft` mutations, service restarts/reloads, change UFW/Docker, create a proxy network or start Codex without new exact-command authorization. Preserve current installed project table and agent stopped. **Codex launch remains NO-GO.**
+
+
+## Step 126 — general test planning approved; exact lab-to-host canary awaits separate command approval (2026-11-20)
+
+**Owner response:** After Step 125 was recorded as a narrow synthetic Redis IPv4 PASS, the assistant described Step 126 as additional controlled lab-to-host and inter-network isolation tests using synthetic endpoints, explicitly stated that **no further active network testing was authorized yet**, and **did not present an exact command or source/destination pairs**. The owner replied **“aPPROVED”**. This is treated as permission to **design and document Step 126**, but **not as blanket host authorization** for an unspecified listener, namespace process, packet probes, Docker mutations or systemd/firewall changes. The exact command below is a **NEW PROPOSAL, NOT EXECUTABLE UNTIL SEPARATE COMMAND-LEVEL APPROVAL**.
+
+**First narrow test selection:** Address only original synthetic lab → host gateway IPv4, without probing SSH/ERPNext, other Docker bridges, LAN, DEVELOPMENT, PRODUCTION or internet. Use the **already existing `redis-cache` container's verified network namespace** and a short-lived host TCP listener bound solely to `172.21.0.1` (the verified lab bridge gateway) on a kernel-selected ephemeral port. Host local positive controls must connect to the same temporary listener before and after the denied attempt, so “no service listening” cannot masquerade as firewall isolation. Independently confirm existing same-bridge synthetic Redis `PING` still returns `PONG` before and after the test.
+
+**Proposed exact command — NOT YET APPROVED:**
+
+```bash
+sudo python3 -I - <<'PY'
+import errno
+import ipaddress
+import json
+import os
+import shutil
+import socket
+import stat
+import subprocess
+import sys
+from pathlib import Path
+
+PROJECT = "ccpc_codex_dev_agent"
+NETWORK = PROJECT + "_lab"
+AGENT = PROJECT + "-agent-1"
+SOURCE = PROJECT + "-redis-cache-1"
+TARGET = PROJECT + "-redis-queue-1"
+BASE = Path("/opt/ccpc/codex-lab-review/scripts/security")
+CTRL = BASE / "ccpc_codex_nft_scoped_controller.py"
+BLOBS = {
+    "ccpc_codex_nft_scoped_controller.py":
+        "e07b1afcb39761fb0f5613c83c5f97b4aee46d22",
+    "ccpc_codex_nft_guard_review.py":
+        "eabbbfd5d5de4cdcf4e5e0c25732bf3c641ffdc4",
+    "ccpc_codex_lab_firewall_guard.py":
+        "619d8dd962e3c995b53d57ac4c55a85ace2e4eab",
+    "ccpc_firewall_rule_order.py":
+        "af9a63bc8a390905a7e0da78e8c0b20c7f8af537",
+}
+stage = "INITIAL"
+listener = None
+
+def require(ok):
+    if not ok:
+        raise RuntimeError("check failed")
+
+def run(*argv, timeout=20):
+    result = subprocess.run(
+        argv, capture_output=True, text=True, timeout=timeout
+    )
+    require(result.returncode == 0)
+    return result.stdout.strip()
+
+def check_policy():
+    require(not os.path.lexists(
+        "/etc/ccpc/codex-lab-nft-guard-authorized"))
+    report = run(sys.executable, "-B", str(CTRL), "verify")
+    require("PROJECT_NFT_TABLE_EXACT=True" in report.splitlines())
+    require("agent_launch_authorized=False" in report.splitlines())
+
+def redis_control():
+    return run(
+        "docker", "exec", "--user", "redis", SOURCE,
+        "redis-cli", "--raw", "-h", "redis-queue", "-p", "6379", "PING",
+        timeout=10
+    ) == "PONG"
+
+def host_control(gateway, port):
+    probe = socket.create_connection((gateway, port), timeout=2)
+    try:
+        listener.settimeout(2)
+        accepted, _ = listener.accept()
+        accepted.close()
+    finally:
+        probe.close()
+
+CHILD = """
+import errno, socket, sys
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.settimeout(2.0)
+try:
+    s.connect((sys.argv[1], int(sys.argv[2])))
+except TimeoutError:
+    sys.exit(0)
+except OSError as error:
+    sys.exit(0 if error.errno in (
+        errno.EACCES, errno.EPERM, errno.EHOSTUNREACH, errno.ENETUNREACH
+    ) else 3)
+else:
+    sys.exit(4)
+finally:
+    s.close()
+"""
+
+try:
+    stage = "HOST_AND_TOOLS"
+    require(os.geteuid() == 0)
+    require(run("hostname", "-s") == "ccpcerpserver")
+    require(shutil.which("nsenter") is not None)
+
+    stage = "PINNED_CONTROLLER_AND_FIREWALL"
+    require(set(os.listdir(BASE)) == set(BLOBS))
+    for filename, digest in BLOBS.items():
+        path = BASE / filename
+        file = os.lstat(path)
+        require(stat.S_ISREG(file.st_mode) and file.st_uid == 0
+                and file.st_gid == 0 and stat.S_IMODE(file.st_mode) == 0o400)
+        require(run("git", "hash-object", "--", str(path)) == digest)
+    check_policy()
+
+    stage = "LAB_NETWORK"
+    networks = json.loads(run("docker", "network", "inspect", NETWORK))
+    require(len(networks) == 1)
+    net = networks[0]
+    require(net["Name"] == NETWORK and net["Driver"] == "bridge"
+            and net["Internal"] is True
+            and net["EnableIPv6"] is False)
+    config = net["IPAM"]["Config"]
+    require(len(config) == 1)
+    require(config[0]["Subnet"] == "172.21.0.0/16")
+    require(config[0]["Gateway"] == "172.21.0.1")
+    gateway = str(ipaddress.IPv4Address(config[0]["Gateway"]))
+    require(ipaddress.IPv4Address(gateway) in
+            ipaddress.IPv4Network("172.21.0.0/16"))
+    bridge = "br-" + net["Id"][:12]
+    require(len(net["Id"]) >= 12)
+    require(run("ip", "link", "show", "dev", bridge) != "")
+
+    stage = "EXISTING_SYNTHETIC_NAMESPACE"
+    records = json.loads(run("docker", "inspect", AGENT, SOURCE, TARGET))
+    require(len(records) == 3)
+    objects = {item["Name"].lstrip("/"): item for item in records}
+    require(set(objects) == {AGENT, SOURCE, TARGET})
+    agent = objects[AGENT]
+    require(agent["State"]["Running"] is False)
+    require(agent["HostConfig"]["RestartPolicy"]["Name"] in ("", "no"))
+    for name, service in ((SOURCE, "redis-cache"), (TARGET, "redis-queue")):
+        item = objects[name]
+        labels = item["Config"]["Labels"] or {}
+        require(item["State"]["Running"] is True)
+        require(labels.get("com.docker.compose.project") == PROJECT)
+        require(labels.get("com.docker.compose.service") == service)
+        attached = item["NetworkSettings"]["Networks"]
+        require(set(attached) == {NETWORK})
+        require(attached[NETWORK]["NetworkID"] == net["Id"])
+    pid = objects[SOURCE]["State"]["Pid"]
+    require(type(pid) is int and pid > 1)
+    require(os.readlink("/proc/self/ns/net") !=
+            os.readlink(f"/proc/{pid}/ns/net"))
+
+    stage = "ALLOWED_REDIS_CONTROL"
+    require(redis_control())
+
+    stage = "TEMPORARY_HOST_GATEWAY_LISTENER"
+    listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    listener.bind((gateway, 0))
+    listener.listen(4)
+    port = listener.getsockname()[1]
+    require(port > 1024)
+    host_control(gateway, port)
+
+    stage = "DENIED_LAB_TO_HOST_IPV4"
+    # Host Python is run only in the verified synthetic Redis network
+    # namespace. It sends a single TCP connect and no application payload.
+    before = json.loads(run("docker", "inspect", SOURCE))[0]
+    require(before["State"]["Running"] is True
+            and before["State"]["Pid"] == pid)
+    result = subprocess.run([
+        "nsenter", "--target", str(pid), "--net", "--",
+        sys.executable, "-I", "-B", "-c", CHILD, gateway, str(port)
+    ], capture_output=True, text=True, timeout=8)
+    require(result.returncode == 0)
+    host_control(gateway, port)
+
+    stage = "POSTTEST_READ_ONLY_VERIFICATION"
+    require(redis_control())
+    check_policy()
+    agent_state = json.loads(run("docker", "inspect", AGENT))[0]
+    require(agent_state["State"]["Running"] is False)
+    require(agent_state["HostConfig"]["RestartPolicy"]["Name"]
+            in ("", "no"))
+
+    listener.close()
+    listener = None
+    print("HOST_GATEWAY_TEMPORARY_LISTENER_CONTROL=True")
+    print("LAB_TO_HOST_GATEWAY_TCP_DENIED=True")
+    print("SYNTHETIC_REDIS_ALLOWED_PATH_STILL_WORKS=True")
+    print("CCPC_NFT_TABLE_STILL_EXACT=True")
+    print("CODEX_AGENT_STOPPED=True")
+    print("TEMPORARY_LISTENER_CLOSED=True")
+    print("PERSISTENT_CONFIGURATION_CHANGES=False")
+    print("NFT_RULE_CAUSAL_ATTRIBUTION_VERIFIED=False")
+    print("OTHER_NETWORKS_IPV6_RELOAD_REBOOT_VERIFIED=False")
+    print("CODEX_LAUNCH_AUTHORIZED=False")
+    print("STEP_126_SINGLE_PATH_CANARY_COMPLETE")
+except Exception:
+    print("FIRST_FAILED_CHECK=" + stage)
+    print("DO_NOT_REPEAT_OR_CHANGE_FIREWALL=True")
+    print("CODEX_LAUNCH_AUTHORIZED=False")
+    sys.exit(1)
+finally:
+    if listener is not None:
+        listener.close()
+PY
+```
+
+**Expected effect and risk:** This is a real active TCP path test and **temporarily creates a listening socket** bound only to the synthetic bridge gateway (ephemeral kernel port). A host Python subprocess is briefly run under the already-running `redis-cache` container's network namespace via `nsenter --net`; it sends **one** attempted TCP connect with a two-second timeout and no application payload. Prechecks ensure the exact original private Docker network, stopped agent, current nft exact policy, pinned source hashes, and that Redis is the only network-namespace source. Exit status `0` from the short Python child is accepted only for timeout or clear route/policy denials; connection success/refusal/reset fail. This is **not** new Docker container creation, package install, namespace creation, or an enduring host service. The script closes the temporary listener in a `finally` block even on ordinary failure and prints only fixed status labels; a forced host/process interruption closes sockets at process exit.
+
+**Preconditions for exact-command owner approval:** Both independently working SSH administrator sessions must remain available, the private Stage A baseline remains on host (never paste it), existing Docker and UFW are not restarted/reloaded, and the host has the `nsenter` utility. The Redis and original bridge identity must match the reviewed original-lab values. No ephemeral Redis keys or business data are accessed. The command runs Python with `-I`/`-B`, never imports staged code into the wrapper, and uses the pinned controller only in read-only `verify` mode. If any stage fails, **STOP**; do not retry blindly or change firewall policy.
+
+**Interpretation if passed:** One observed lab-source → host-gateway **IPv4 TCP denial** while the tested host listener was live and reachable from host, plus allowed synthetic same-bridge Redis continuity. This does **not** attribute the denial specifically to the new nft table because original iptables/UFW/Docker controls overlap. It also does not prove unrelated bridge restrictions, host SSH protection, IPv6 packet coverage, Docker/UFW reload/reboot persistence, bridge recreation continuity, or privileged Docker manual-start prevention. **Codex/Squid activation remains NO-GO.**
+
+**Further tests postponed:** Cross-bridge source/destination endpoints are not yet specified as safe synthetic-only peers. Do not borrow real DEVELOPMENT/UAT containers as targets. A future isolated disposable synthetic peer would be a separate container/network mutation, requiring dedicated review and explicit approval; avoid conflating it with this limited lab-to-host test.
+
+
+## Step 127 — exact Step 126 lab-to-host IPv4 canary owner-approved, execution pending (2026-11-20)
+
+**Explicit operator approval of the precise script:** After Step 126 documented the **exact**, previously unapproved one-path lab → host temporary-listener canary, the assistant asked “Do you approve the specific Step 126 lab-to-host TCP test documented above, including its temporary host listener and one network-namespace connection attempt?” The owner responded **“aPPROVED”**. This is separately scoped, exact-command approval for the preceding **unchanged** `sudo python3 -I - <<'PY'` script in Step 126, **once on `ccpcerpserver`**. The Step 126 section's former “NOT YET APPROVED” designation is historical and superseded only for this exact bounded script. The approval does not extend to additional cross-bridge tests, new containers, extra traffic, services, Docker/UFW/nft rule changes, or Codex launch.
+
+**GitHub-first source review immediately before this record:** Reopened the authoritative GitHub-first workflow, PR #39 (OPEN/DRAFT/UNMERGED), exact proposal on `review/codex-proxy-network-hardening-2026-11-19` committed at `5cceffe56339ef6916db8b765326509a57d4de0f`, and the original pinned staged controller/guard source at commit `66960f73a69b10b59f508cda7bfd4ac9ea5c21af`. The exact script checks its four Git hash pins, root/hostname, current stopped agent/no restart, original synthetic Docker network `ccpc_codex_dev_agent_lab`, verified container labels and memberships, no temporary nft installer marker, and the controller's **read-only** `verify` confirming original iptables guards and exact new nft project table. The exact script then confirms existing synthetic Redis cache → Redis queue `PING` works; opens a host Python TCP listener bound **only to lab gateway `172.21.0.1` on an ephemeral port**; confirms host-side reachable control; uses `nsenter --net` on the verified existing synthetic Redis-cache container's live netns to run **one short-lived host Python child** sending a single TCP connect toward that listener, two-second timeout and no data payload; confirms host listener still accepts from host, Redis remains reachable, original nft/iptables policy remains exact and Codex stopped. Its `finally` closes the temporary listener; it does not create a Docker container, update existing container settings, restart services or apply/remove firewall rules. Output is sanitized label-only.
+
+**Execution status: NOT YET RUN / NOT VERIFIED.** The owner has approved the command but must run it manually with **both independent administrator SSH/recovery sessions working** and the private Stage A firewall baseline available on host. ChatGPT has not remotely executed commands. On `FIRST_FAILED_CHECK=` STOP and do not rerun or relax the firewall. A successful result must include `HOST_GATEWAY_TEMPORARY_LISTENER_CONTROL=True`, `LAB_TO_HOST_GATEWAY_TCP_DENIED=True`, `TEMPORARY_LISTENER_CLOSED=True` and `STEP_126_SINGLE_PATH_CANARY_COMPLETE`, along with the other fixed labels. No security guarantee beyond that one synthetic **IPv4 lab → host gateway TCP path** follows, and existing overlapping iptables/UFW rules make nft causal attribution impossible from the response alone.
+
+**Codex/Squid NO-GO.** Inter-bridge/DEVELOPMENT, IPv6, UFW/Docker reload and reboot persistence, bridge recreation and manual privileged launch protections remain untested/unauthorized. No stock nftables.service, global flush or rollback action is approved.
+
+
+## Step 128 — approved Step 126 lab-to-host IPv4 canary operator-reported PASS (2026-11-20)
+
+**Operator-supplied complete sanitized output after the once-only exact Step 126 command approved at Step 127:**
+
+```text
+HOST_GATEWAY_TEMPORARY_LISTENER_CONTROL=True
+LAB_TO_HOST_GATEWAY_TCP_DENIED=True
+SYNTHETIC_REDIS_ALLOWED_PATH_STILL_WORKS=True
+CCPC_NFT_TABLE_STILL_EXACT=True
+CODEX_AGENT_STOPPED=True
+TEMPORARY_LISTENER_CLOSED=True
+PERSISTENT_CONFIGURATION_CHANGES=False
+NFT_RULE_CAUSAL_ATTRIBUTION_VERIFIED=False
+OTHER_NETWORKS_IPV6_RELOAD_REBOOT_VERIFIED=False
+CODEX_LAUNCH_AUTHORIZED=False
+STEP_126_SINGLE_PATH_CANARY_COMPLETE
+```
+
+**Assessment — second narrow synthetic IPv4 negative/positive canary PASS on operator-provided evidence.** Following the approved code path, the host re-verified pinned security modules/unchanged authorization marker status, original stopped/no-auto-restart Codex agent, internal original lab bridge and synthetic Redis container provenance, and current exact nft + original iptables guard state before any traffic. The synthetic `redis-cache` → `redis-queue` same-bridge Redis `PING` was required to succeed; an ephemeral TCP listener bound only to the host's original synthetic lab gateway `172.21.0.1` was shown reachable from a host-side client before and after the denied attempt. A short-lived host Python process executed using `nsenter --net` in the **already existing synthetic Redis-cache network namespace**, making one IPv4 TCP connect to that specific temporary listener with a two-second bound and no application payload. The result met the script's strict timeout/kernel-policy/route-denial criteria (success and connection refused/reset were failures). The script then required Redis `PING` still worked and exact controller `verify` and agent-stop checks still passed, and it closed the ephemeral socket. No persistent configuration change was requested or reported.
+
+**Evidence quality / important caveats:** This is the **operator-pasted output**, not independently captured packets, direct ChatGPT SSH access or repeated after-reboot verification. It demonstrates only that a **specific synthetic-lab → host-gateway IPv4 TCP connect was denied while the host had a live listener**, with positive same-bridge Redis and host-listener controls. Step 124 separately observed **host → synthetic lab Redis IPv4 denial**, again with an allowed-path control. Neither test establishes that the **CCPC nft table specifically caused** the denial because original iptables/UFW/networking controls also operate; do not overclaim bidirectional comprehensive isolation. The test did not touch or probe DEVELOPMENT/PRODUCTION or unrelated Docker bridges.
+
+**Residual NO-GO gates:** Original lab ↔ unrelated Docker bridge/DEVELOPMENT isolation, IPv6 and other protocols/destinations, reload/reboot persistence, bridge recreation, maintaining exact policy during any Docker/UFW lifecycle changes, and privileged manual Docker agent-start bypass are still **unverified**. Further tests must be designed against controlled synthetic-only counterpart endpoints; using existing real DEVELOPMENT/UAT containers or hosts as canaries is forbidden without separate review/approval. The installed root-owned CCPC project nft table and original iptables rules should remain unchanged; keep the second working administrator SSH recovery session and private Stage A baseline. No new firewall/service/Docker mutations, persistence unit, stock nftables service start/reload/stop, global flush, rollback, Codex/Squid launch or additional active traffic are authorized by this test result. PR #39 is still draft/unmerged, and **Codex activation remains NO-GO**.
+
+**Next recommendation (planning only):** Prepare a *source-reviewed* approach for cross-bridge isolation using a dedicated disposable synthetic-only network endpoint, with exact ownership/resource bounds, test positive controls and bounded single-packet attempts, cleanup, and independent read-only pre/post policy verification. Alternatively prioritize a persistence/lifecycle design review without any host reload or reboot. Both require new explicit authorization before host execution.
+
+
+## Step 129 — source-only firewall persistence and lifecycle safety review (2026-11-20)
+
+**Status: DESIGN REVIEW ONLY — no command-level host authorization, unit installation, service reload, reboot, new traffic probe, or Codex launch.** This milestone follows the operator-reported Step 124 host→lab and Step 126 lab→host *single-path IPv4* canaries recorded in Step 128. Both had positive controls; neither attributes packet denial uniquely to nftables nor proves persistence. PR #39 stays draft/unmerged and Codex/Squid activation is **NO-GO**.
+
+### Evidence and risk boundaries retained
+
+- The original lab's iptables/Docker protections and separately installed project-only `inet` nft table were reported exact in the previous controlled checks. This is point-in-time evidence, not proof of boot/reload persistence, zero-gap enforcement, or IPv6/cross-bridge isolation.
+- The proposed `scripts/security/systemd/ccpc-codex-nft-guard.service.example` is an **uninstalled, inert template** with provisional `After=docker.service ufw.service`, no `[Install]`, no stop/reload action and no automatic agent start. This ordering does **not** guarantee that all Docker bridges and chains exist, that policy precedes a manual container launch, or that reloading either service restores rules.
+- The host's stock `nftables.service` was reported inactive/disabled; its effective start, reload and stop paths use global-flush behavior. **Do not activate it, invoke the host's global `/etc/nftables.conf`, or use `nft flush ruleset`** as a restoration mechanism.
+- The existing stopped agent had auto-restart disabled at the last check. This does not prevent a privileged Docker administrator or other startup path from bypassing a systemd-only guard. A root/Docker-privileged actor is inside the administrative trust boundary; do not promise an unbypassable control against that actor.
+
+### Lifecycle threat/verification matrix — proposed, not executed
+
+| Event or entry path | Main failure mode to examine | Required fail-closed condition before *any* future launch |
+| --- | --- | --- |
+| Cold boot and Docker socket activation | Firewall service/bridge/Docker chains may be unavailable or ordered differently; persistent rules may not reload | Agent stays stopped through boot; re-establish exact original protections and project nft policy, then independently verify both before release of any launch hold |
+| `docker.service` restart or Docker bridge recreation | Bridge identity and interface bindings may change; Docker-managed iptables chains may be rebuilt | Do not trust a stale interface name or old successful verification; prevent launches, check actual network identity and rule ordering, and require fresh exact verification |
+| UFW start/reload or firewall reconciliation | Shared iptables/nft state may be reordered or flushed; enforcement gap could occur | No automatic agent starts; preserve unrelated SSH/DEVELOPMENT access; independently check original and project policy after any change |
+| Stock nftables unit start/reload/stop | Global-flush lifecycle could delete unrelated Docker/UFW kernel rules | Keep stock unit inactive/disabled; do not use its lifecycle for this project; stop the rollout on any conflicting activation or unknown state |
+| Manual `docker start`, Compose up, Codex CLI or alternate start route | Bypasses a guard that runs only when an optional systemd unit starts | Document every authorized launch path and an operator-controlled mandatory prelaunch verification/hold; do not call the gate technically unbypassable by root/Docker administrators |
+| IPv6, alternate bridges, other protocols and destinations | Untested paths remain outside the two successful IPv4 canaries | Retain NO-GO; design separate synthetic-only negative/positive tests with fresh approval, not DEV/UAT/PRODUCTION targets |
+
+### Design constraints for any future controller/service integration
+
+1. Preserve the **independent original lab DROP rules** and the existing exact project-owned nft table. Reconciliation must be narrowly scoped, idempotent, no global flush and never delete protective rules on failure. Any unknown table, changed bridge, altered Docker/UFW state, missing marker, missing recovery path, or ambiguous start order must STOP rather than silently repair.
+2. Keep installation, boot enablement, reload hooks, bridge/network recreation, test traffic and activation as **separate future approvals**. The current systemd example must remain inert. Do not add a broad `WantedBy`, automatic service start or agent auto-restart based only on this source review.
+3. For any eventual controlled lifecycle exercise, require two independently working administrator/recovery paths, a privately preserved Stage A firewall baseline, an exact stop/rollback plan, proof that Codex and Squid cannot start during the exercise, and scope limits that preserve unrelated host services. Do not upload raw rulesets, secrets or business data to GitHub.
+4. Static checks cannot prove rule continuity during privileged reload/reboot. Design a **read-only, timestamped before/after verification gate** and, only when explicitly authorized, bounded synthetic-only allowed/denied control traffic with no real DEVELOPMENT, UAT or PRODUCTION peers. If any transition can produce an unguarded launch window, the release is blocked until an enforceable operational start boundary is independently demonstrated.
+5. Keep source-only verification, operator-reported host observations and actual runtime packet/reboot results in **different evidence categories**. No complete reload/reboot test has occurred under this milestone.
+
+**Step 129 result:** lifecycle hazards, safe ordering preconditions and missing evidence documented **without modifying source policy or runtime**. This is **not** an implementation or security-pass milestone. The next proposed checkpoint is a separately reviewed, sanitized **read-only inventory** of effective Docker/UFW/systemd launch and reload entry paths (including socket activation and any hooks), plus comparison with the current disabled-restart agent state. No such host command is authorized by Step 129. Do not install/start/reload anything, reboot, create a Docker network/container, change firewall policy, or launch Codex/Squid.
+
+
+## Step 130 — exact read-only lifecycle inventory prepared, NOT EXECUTED (2026-11-20)
+
+**Owner approval interpreted narrowly:** The owner replied “Approved” after a proposal to prepare/review Step 130's narrowly scoped Docker/UFW/systemd read-only inspection and safeguards, before any server command was available. This authorizes GitHub-only procedure preparation, **not execution of an unseen exact command**, firewall/service changes or Codex activation.
+
+**Reviewed operator proposal:** [CODEX-STEP-130-READONLY-LIFECYCLE-INVENTORY.md](CODEX-STEP-130-READONLY-LIFECYCLE-INVENTORY.md) contains a single exact, hostname/root-guarded Python heredoc that uses only `systemctl show` and `docker inspect --format`, returns fixed booleans for Docker socket trigger and direct ordering, UFW/Docker service hooks/reload/drop-ins, stock nftables inactivity, absence of two proposed project units, and stopped Codex agent/no-restart. No secrets, raw unit definitions, paths, command stderr or container data are printed. It is **NOT YET AUTHORIZED TO RUN**; it has not been executed on the host. Its only result to date is source review.
+
+**Caveat:** Docker `inspect` ordinarily reads existing daemon metadata but cannot absolutely exclude socket activation if Docker exits after the active-state check. The new document discloses this small race and offers a systemd-only variant if even that risk is unacceptable. All active unit/lifecycle operations stay prohibited. The two SSH/recovery paths and private Stage A firewall baseline remain prerequisites before future test authorization.
+
+**Next:** Review the exact linked procedure and obtain explicit, exact-command operator consent before a one-time manual read-only run. On STOP, no automatic rerun or remediation. Step 129's lifecycle gaps remain unresolved; PR #39 DRAFT/UNMERGED and Codex/Squid **NO-GO**.
+
+
+### Step 130A — owner approves one exact read-only inventory command; host execution pending (2026-11-20)
+
+**Explicit separate approval:** After the assistant linked the **exact Step 130 command** and asked “Do you approve running the exact Step 130 command linked above once on `ccpcerpserver`, including the disclosed Docker socket-activation risk?”, the owner replied **“Approved”**. This authorizes the **single reviewed command block only**, from [Step 130 immutable source commit `83c3a2a2fcb1a918d835b53d9bb02894e47c961d`](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/83c3a2a2fcb1a918d835b53d9bb02894e47c961d/docs/ccpc-project/CODEX-STEP-130-READONLY-LIFECYCLE-INVENTORY.md). No expanded inspection, variant, automatic rerun, packet test, service/network/firewall change or Codex/Squid startup is authorized.
+
+**Execution state: NOT EXECUTED by ChatGPT; operator manual run pending.** The GitHub-linked script remains unaltered, and the approval covers its explicitly disclosed possible Docker socket activation if the Docker daemon exits after the unit-state precheck. Before executing, owner should ensure both independent administrative SSH/recovery connections are working, the private Stage A baseline remains available, and no Docker/UFW maintenance is underway. Do not run if these preconditions are unmet. If output contains `STOP:` or lacks `STEP_130_READ_ONLY_METADATA_COMPLETE`, do not retry or change guards; return sanitized output for review.
+
+**Interpretation:** Even a successful Step 130 inventory would provide only current declared systemd/Docker metadata, not operational proof of firewall persistence across Docker/UFW reload, bridge recreation or reboot. All firewall protections stay installed/unchanged, stock `nftables.service` stays disabled, the optional unit stays uninstalled, Codex agent stopped and PR #39 DRAFT/UNMERGED. **Codex activation NO-GO.**
+
+
+## Step 131 — Step 130 read-only lifecycle inventory operator-reported PASS (2026-11-21 Asia/Manila)
+
+**Evidence origin:** Operator pasted the entire sanitized output of the *single approved Step 130 command* (immutable code source [`83c3a2a2fcb1a918d835b53d9bb02894e47c961d`](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/83c3a2a2fcb1a918d835b53d9bb02894e47c961d/docs/ccpc-project/CODEX-STEP-130-READONLY-LIFECYCLE-INVENTORY.md)). No direct ChatGPT SSH, journal, Docker inspection or independent host verification occurred. The complete returned status was:
+
+```text
+AGENT_STOPPED_AND_RESTART_DISABLED=True
+DOCKER_SERVICE_ACTIVE=True
+DOCKER_SOCKET_ACTIVE=True
+DOCKER_SOCKET_ENABLED=True
+SOCKET_DECLARED_TRIGGER_TO_DOCKER=True
+DOCKER_DECLARED_TRIGGERED_BY_SOCKET=True
+DOCKER_AFTER_UFW=False
+UFW_BEFORE_DOCKER=False
+DOCKER_REQUIRES_OR_WANTS_UFW=False
+UFW_REQUIRES_OR_WANTS_DOCKER=False
+DOCKER_RELOAD_EXEC_PRESENT=True
+UFW_RELOAD_EXEC_PRESENT=False
+DOCKER_DROPINS_PRESENT=False
+UFW_DROPINS_PRESENT=False
+DOCKER_START_HOOKS_PRESENT=False
+UFW_START_HOOKS_PRESENT=False
+SCOPED_GUARD_UNIT_ABSENT=True
+OFFLINE_LAUNCH_UNIT_ABSENT=True
+STOCK_NFT_SERVICE_INACTIVE_DISABLED=True
+PERSISTENCE_VERIFIED=False
+CODEX_LAUNCH_AUTHORIZED=False
+STEP_130_READ_ONLY_METADATA_COMPLETE
+```
+
+**Assessment — PASS for exactly the checked snapshot/metadata:** The command reached its final marker with no STOP. At that instant the existing lab agent was stopped and Docker restart policy `no`; `docker.service` was active and its socket was active/enabled, with matching declared `Triggers` / `TriggeredBy` relationship. The queried `systemctl show` properties did **not** declare a direct Docker↔UFW `After/Before` ordering or `Requires/Wants` relationship. Docker's systemd unit had an ExecReload handler, UFW's inspected unit had no ExecReload handler. Neither unit had inspected drop-ins or ExecStartPre/ExecStartPost hooks. Both proposed project guard/launch units were absent. Stock `nftables.service` was inactive/disabled. These are *properties of the inspected units*, not a full transitive boot graph or comprehensive inventory of non-systemd scripts, hooks or activation methods.
+
+**Interpretation / NO-GO:** The active and enabled Docker socket creates a service activation path; the metadata does not prove firewall safeguards predate socket or container startups, survive Docker/UFW reload or bridge recreation, or persist after reboot. `UFW_RELOAD_EXEC_PRESENT=False` does **not** prove no possible `ufw reload` command or alternative lifecycle path. `DOCKER_RELOAD_EXEC_PRESENT=True` identifies the existence of a handler, not the effects of invoking it. No reload, reboot, traffic probe, firewall change, Docker change, container start, systemd unit install, DEVELOPMENT/UAT/PRODUCTION action or Codex/Squid activation was authorized or reported in this step. The script does not independently prove that the host's firewall policy remained exact after inspection. The Step 124/126 IPv4 canaries stay separate, narrow evidence.
+
+**Next proposed milestone (GitHub-only, no host action):** Design a fail-closed manual **agent-launch hold and exact prelaunch verification** which requires currently installed original lab iptables controls plus exact CCPC nft policy, validates expected Docker bridge identity and current service/socket state, and blocks launch on any ambiguity. Explicitly inventory startup paths (Docker socket/Compose/manual Docker, UFW/Docker reload and boot), define how policy would be re-verified after lifecycle events, and separate an operator-managed release gate from an unsupported claim of an unbypassable root/Docker security boundary. If zero-gap isolation against privileged operators is required, evaluate dedicated VM/host isolation rather than systemd-only assumptions. Exact runtime tests, service installation/enabling and reload/reboot experiments all require new specific authorization and recovery review. **PR #39 stays DRAFT/UNMERGED; Codex/Squid NO-GO.**
+
+
+## Step 132 — fail-closed Codex manual launch-hold architecture review (2026-11-21 Asia/Manila)
+
+**Owner approval scope:** The owner replied “aPPROVED” to the previous recommendation for a **GitHub-only** design review of a fail-closed Codex launch safeguard after Step 131. This authorizes source/document review and writing a planning record, not implementing a runnable launcher, installing a unit/marker, probing traffic, changing Docker/UFW/nft rules, rebooting, or starting Codex/Squid.
+
+**Source-verified design:** [CODEX-STEP-132-FAIL-CLOSED-LAUNCH-HOLD-DESIGN.md](CODEX-STEP-132-FAIL-CLOSED-LAUNCH-HOLD-DESIGN.md) records the existing exact original-lab iptables verifier and `ccpc_codex_nft_scoped_controller.py verify` behavior, the inert systemd unit example, Step 131 active Docker socket/direct UFW ordering observations, and a proposed fail-closed manual hold state machine. **HELD/NO-GO is the only currently eligible runtime state.** A passing existing verifier is not a launch permit; both source verifiers intentionally enforce a stopped agent and do not monitor a running agent. A future read-only gate would need source integrity, original bridge identity, current original iptables + project nft exactness, Docker socket/lifecycle freshness and **all remaining proxy/credential/egress/runtime acceptance gates** before a separately authorized startup. Missing/stale/conflicting evidence means no start, no automatic repair.
+
+**Critical limitation:** Docker socket activation and Docker/UFW reloads/bridge changes may invalidate checks between inspection and a hypothetical start; direct Docker/root/Compose starts bypass voluntary wrappers. A systemd oneshot, marker and polling cannot certify zero-gap or root-resistant enforcement. The design contrasts a supervised operator-controlled manual workflow (only if privileged host operators are in the trusted computing base) with a dedicated VM/host for stronger separation; neither is implemented.
+
+**Review result:** GitHub-only document authored; **no host or network changes and no new tests/launches**. Existing Step 124/126 synthetic single-path IPv4 observations and Step 131 metadata PASS remain limited evidence. Stock `nftables.service` stays inactive/disabled; new project guard/launch units remain uninstalled. **PR #39 stays draft/unmerged; Codex/Squid activation NO-GO.**
+
+**Next decision before implementation:** Does the owner require resistance to privileged Docker/root bypass (favor dedicated VM/host) or trust the restricted host/Docker administrators (possible future manual review-only gate with separate approval and acceptance)? Do not treat this question as approval to implement or activate either option.
+
+
+## Step 133 — owner redirects Codex toward productive DEVELOPMENT use (2026-11-21 Asia/Manila)
+
+**New explicit owner decision:** “Approved, I think the only restriction for codex is not to involve itsef in production server which is physically separate but for the development codex should be the best asset.” The owner approved revising the prior restrictive approach into a simpler development workflow. The [GitHub-first workflow](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/docs/ccpc-checkpoint-2026-10-10/docs/ccpc-project/GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) now links the authoritative [Codex DEVELOPMENT operating mode](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/docs/ccpc-checkpoint-2026-10-10/docs/ccpc-project/CODEX-DEVELOPMENT-OPERATING-MODE.md).
+
+**Critical distinction:** The prior NO-GO verdict **continues for this exact existing, stopped, unvalidated Codex Docker/Squid lab container and proxy setup**, including the PR #39 launch design. It **does not prohibit** ordinary supervised Codex CLI/editor work in a separate restricted DEVELOPMENT source workspace or disposable test environment. PRODUCTION is explicitly off limits, as stated by the owner; no production credentials, mounts, network probes, SSH, database, deploys or production service changes are permitted in Codex's development task environment.
+
+**Practical priority:** Avoid further speculative shared-host firewall redesign as the default next work. First use a narrowly scoped sanitized **read-only** check to discover whether a non-root Codex CLI and appropriate source workspace are available; if present, begin actual CCPC custom-app GitHub review and source/test work. Keep code changes auditable in GitHub and use disposable CircleCI for genuine Frappe/MariaDB acceptance. Retain normal safeguards for dirty DEVELOPMENT state, real database records, migrations, host disruption, secrets and financial transaction integrity. The owner decision is **not** blanket permission for destructive DEVELOPMENT action or resumption of the canceled automatic Codex reporting.
+
+**Verification:** This Step 133 note records an approved policy/priority change only; it does not establish CLI installation, authenticate a user, start Codex, change Docker/network/firewall policy, run tests, modify DEV/PROD or merge PR #39. Existing original lab protections and stopped/no-restart status remain the last **operator-reported** observations, not freshly verified state.
