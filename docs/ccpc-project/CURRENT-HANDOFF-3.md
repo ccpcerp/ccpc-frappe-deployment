@@ -1,5 +1,19 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
+## 2026-11-21 — PR #41 GitHub Actions retry #2: setup PASS, first SQL/HTTP integration FAIL, second SKIPPED
+
+**Authorized execution:** Following the owner's report that the prior GitHub Actions no-runner error cited failed account payments/spending limits, and after independently verifying `ccpcerp/ccpcerp` is now **public**, the connected GitHub tool successfully requested **one failed-job rerun only**. Run [#44865094864](https://github.com/ccpcerp/ccpcerp/actions/runs/44865094864), attempt **2**, exact app commit `7b65eda1510b28a41b8c487f35c6f277dd831851`, job `136794093305`, ended **FAILURE**. No third run was initiated. Exact immutable review-branch source, GitHub-hosted runner, one 50-minute bounded job; no persistent DEVELOPMENT or PRODUCTION operations.
+
+**What actually passed:** hosted runner and MariaDB/Redis startup; checkout and pinned source/blob guard; static syntax and Phase 1 policy checks; Python/Node/bench prerequisites; isolated Frappe/ERPNext v16 bench creation; new `ci-withdrawal.localhost` MariaDB site creation, app installation and migration. This was a **real SQL/HTTP test attempt**, not a runner/billing failure.
+
+**Observed actual failure:** `test_zzz_real_wsgi_method_session_role_and_csrf_enforcement` returned HTTP **500** on the Stockroom POST expected to trigger an injected after-native-ledger failure. But the test's injected `failed_posts` list was **empty**, so line **1010** asserted `0 != 1` with `Failure probe did not reach the posting hook`. The underlying HTTP exception was **not revealed** in the job log, and it is premature to attribute this to ERPNext rollback logic, missing mapping, HTTP-session setup or business runtime code. Consequently **post-ledger rollback/retry/replay are NOT validated** by this run. The second `test_cancelled_issue_excluded_and_reissue_reported_once` was **SKIPPED, NOT RUN**, because the first test step failed. All status facts independently verified using GitHub job steps and decoded logs.
+
+**Narrow source-based hypothesis, unproven:** the test setup creates synthetic Finance B/C mapping approvals only when `is_reviewed_circleci_disposable_site()` is true; the Actions job uses guarded GitHub `ci-withdrawal.localhost`. Missing Finance B/C mapping may cause the POST to fail before posting hooks. Inspect the response safely and verify preconditions without weakening the site guard or casually introducing fake approvals, and preserve current business rules (preparer may self-approve; different authenticated Stockroom issuer). Any fixture or guard change must be test-only and bounded to disposable CI identity.
+
+**Next smallest delivery action:** Prepare a reviewed, source-pinned **test-only** diagnostic/correction in PR #41 for the pre-posting HTTP 500, then obtain bounded approval for **one new** disposable hosted CI execution that can run the first method and, only if it passes, the second cancellation/reissue report test. The earlier one-shot workflow does not authorize repeated runs or changed unreviewed source. Do **not** merge PR #41 or release Phase 1 based on this failure. PR #41 now has an evidence comment documenting attempt #2. MAIN DEVELOPMENT's detached clean checkout `55eb10b`, isolated Codex workspace release SHA `034afb1`, and PRODUCTION remain unchanged.
+
+---
+
 ## 2026-11-21 — GitHub Actions PR41 one-shot NO RUNNER; exact tests still NOT RUN
 
 **Owner authorization:** Use GitHub Actions instead of CircleCI for the two remaining Phase 1 integration coverage gaps; retain preparer self-approval + independent Stockroom issuance. No permission to merge/release or touch persistent DEVELOPMENT/PRODUCTION.
