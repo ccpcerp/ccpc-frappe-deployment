@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-21 — DEV Checker Stockroom-role conflict corrected by operator (public-safe)
+
+**Operator report:** The new separate DEV Accounting Checker test account initially received `An explicit Finance mapping role is required` on the pilot Finance page. The operator subsequently **unchecked the conflicting `Stockroom Personnel` role** and reports access is now okay. Current pinned GitHub code's `phase1_finance_onboarding._actor_roles` explicitly rejects Stockroom Personnel even when a Finance role is assigned; this explains the role gate without granting System Manager/Administrator privileges. This is an operator-reported fix, not an independent DB audit of final roles and Company User Permission.
+
+**Next safe step:** Using the separate DEV checker session, perform **read-only Review draft** for the existing same-Company maintenance-parts Expense Account proposal. Verify Company/source/value/revision/maker/effective timestamp and keep `Sign and approve` on HOLD while capital versus ordinary-maintenance policy enforcement is unresolved. The Center mapping is already active in DEV, and the Expense mapping is still Draft. No stock issue or PRODUCTION action.
+
+---
+
 ## 2026-11-21 — New DEV Checker login fails Finance role gate; read-only Has Role diagnostic pending
 
 **Operator-provided MAIN DEV observation:** A newly created separate Finance Checker test user has been saved, and the operator reports that the `CCPC Accounting Mapping Approver` role is displayed on that user's User form and a Company User Permission is saved with `Apply To All Document Types` checked. After login, visiting `/app/ccpc-phase1-finance` fails at `An explicit Finance mapping role is required.` **Do not assert successful role persistence or Company authorization from the UI alone.**
