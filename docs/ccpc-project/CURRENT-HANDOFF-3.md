@@ -1,5 +1,19 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
+## 2026-11-21 — Owner retained preparer approval; Phase 1 rollback/reissue TEST-ONLY PR #41
+
+**Owner's explicit business-policy decision:** Keep the existing Withdrawal Slip approval workflow: the logged-in preparer may approve their own slip, and a **different authenticated authorized Stockroom employee** must issue materials. Do not treat Codex's self-approval audit observation as an authorization to change Workflow or roles. The material requestor can remain separate from logged-in preparer as currently modeled. No new two-person approval policy or related schema/migration.
+
+**Implemented in connected GitHub, review only:** Draft app [PR #41](https://github.com/ccpcerp/ccpcerp/pull/41) was created against **`release/withdrawal-department-phase1-2026-11-17`**, from branch `test/phase1-http-rollback-reissue-report-2026-11-21` at verified HEAD **`1eefba20f073b962af660bc4cd9c7a7612e66dcc`**, based on exact release SHA `034afb116cf3fe0e3f9315b932eceba6dc961ce6`. Compare: **two commits ahead, zero behind, exactly two changed test files**:
+- `ccpcerp/ccpc_erp/doctype/withdrawal_slip/test_withdrawal_real_ledger_integration.py`: extend existing authenticated Frappe WSGI/CSRF integration test to inject an after-posting exception, then assert HTTP failure, new transaction/no persistent draft or Stock Entry, separate-connection zero active SLE/GL, unchanged Bin/slip, successful retry and replay denial. Existing strict disposable/HTTP/commit flags are preserved.
+- `ccpcerp/ccpc_erp/test_phase1_withdrawal_disposable.py`: add an end-to-end signed-finance-mapping -> original Material Issue -> cancellation -> absent Department report row -> same-slip replacement Material Issue -> exactly one report row with SLE/GL value, Company, Department and Cost Center checked. Existing disposable-site guard retained.
+
+**Verification distinction:** GitHub commits and scope/diff independently verified; **these new tests have NOT RUN** (no ChatGPT access to a disposable installed Frappe v16/MariaDB runner). No verified SQL PASS/FAIL, no new source/controller permissions/approval, schema, CI trigger or billing policy change. No protected MAIN DEVELOPMENT pull/migration/data writes or PRODUCTION action. Phase 1 draft PR #35 and separate unfinished intercompany PR #33 remain untouched. No merge of PR #41 authorized/performed.
+
+**Next concrete acceptance:** Run **one bounded, expressly authorized disposable Frappe/ERPNext v16/MariaDB integration** on reviewed PR #41 SHA, retaining exact source/site-identity guard and CI budget/cancellation controls. Existing historical CircleCI job guard may reject this new branch; do not bypass/loosen older guard or initiate CI spending silently. Diagnose observed failures, revise test-only PR if needed, then review before Phase 1 release-branch merge. Persistent MAIN DEVELOPMENT acceptance remains separately controlled.
+
+---
+
 ## 2026-11-21 — Codex Phase 1 final source review received; GitHub spot-check
 
 **Input provenance:** Owner pasted the final part of a noninteractive local Codex CLI review, ending `tokens used 33,021`. The submitted review is a read-only source analysis of exact app commit `034afb116cf3fe0e3f9315b932eceba6dc961ce6`, not a new integration test or direct ChatGPT terminal session. User-visible output was sufficient; the full transcript need not be copied or re-run.
