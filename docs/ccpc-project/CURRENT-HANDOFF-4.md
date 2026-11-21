@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-21 — Owner-verified legacy cold archive; file-mode anomaly before deletion
+
+**Operator-reported archive milestone:** After stopping the legacy `frappe_docker-db-1` and planned legacy Redis services, a cold `tar.gz` of the old project's `frappe_docker_db-data`, `frappe_docker_sites`, and `frappe_docker_redis-queue-data` volumes was created under `/mnt/erpnext_backups/old-production-retirement-20261121T150924/`. Operator output showed a **33 MB compressed archive**, a SHA-256 sidecar, and `BACKUP VERIFIED` after tar-listing and checksum verification. This verifies readability/checksum, **not successful restore or completeness of a full Frappe recovery**. No destructive cleanup has been performed yet.
+
+**Security anomaly to resolve first:** The displayed `ls -lh` file modes were `-rwxr-xr-x` for both archive and checksum file, despite `sudo chmod 600` in the command. Need to verify and enforce backup-directory mode 700 and archive/manifest modes 600, and whether the underlying filesystem honors mode changes. If not, copy to a secure filesystem with enforced permissions, verify checksum, and only then proceed to precisely scoped deletion. Avoid deleting shared host path `/home/gani/deployments/frappe_docker`, used as DEV `/workspace`.
+
+---
+
 ## 2026-11-21 — Legacy database stopped cleanly for archival retirement
 
 **Owner-reported execution:** `docker stop --time 60 frappe_docker-db-1` completed successfully; Docker displayed a harmless deprecation warning recommending `--timeout`, and subsequent `docker inspect` reported **OLD PRODUCTION database status: exited**. This stops only legacy MariaDB in Compose project `frappe_docker`. No DEV database stop, volume deletion, compose teardown or host-path cleanup has occurred. The legacy DB volume remains 349 MB and old site volume remains 3.2 MB according to earlier read-only size checks. Next action: optionally stop only remaining legacy Redis services, make a checksum-verified and access-restricted cold archive of exact old DB/sites/Redis queue volumes in `/mnt/erpnext_backups`; then verify archive before any irreversible removal. Avoid `/home/gani/deployments/frappe_docker` because it is DEVELOPMENT's bind mount.
