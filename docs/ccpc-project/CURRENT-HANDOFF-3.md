@@ -1,5 +1,17 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
+## 2026-11-21 — GitHub Actions PR41 one-shot NO RUNNER; exact tests still NOT RUN
+
+**Owner authorization:** Use GitHub Actions instead of CircleCI for the two remaining Phase 1 integration coverage gaps; retain preparer self-approval + independent Stockroom issuance. No permission to merge/release or touch persistent DEVELOPMENT/PRODUCTION.
+
+**GitHub implementation:** Draft [app PR #41](https://github.com/ccpcerp/ccpcerp/pull/41) at source HEAD **`7b65eda1510b28a41b8c487f35c6f277dd831851`**, base `release/withdrawal-department-phase1-2026-11-17`. In addition to two new test methods, updated **test-only** `ci_disposable_site_guard.py` to accept the exact one-shot GitHub-hosted PR41 push branch at `ci-withdrawal.localhost`, and `test_phase1_withdrawal_disposable.py` setUp to permit guarded TCP MariaDB on the isolated GitHub runner while preserving existing CircleCI/socket site behavior. Added `.github/workflows/phase1-pr41-one-shot-integration.yml` with path-only push trigger, expected-parent SHA `4e28efca11da6fa6dde21f41118e71fa7ae8a04a`, pinned Git blob hashes for all three test files, Ubuntu 24.04 hosted runner, synthetic MariaDB 11.8, Redis, Frappe/ERPNext v16, two exact test method invocations, no secrets/schedule/deploy, and **50 minute max**.
+
+**Actual run [#44865094864](https://github.com/ccpcerp/ccpcerp/actions/runs/44865094864):** GitHub accepted the push and created the run for commit `7b65eda`, then marked the single job `136726879962` FAILED **before any steps ran**; no assigned runner; job steps API returned `[]`, log fetch returned `BlobNotFound`, and timing API returned **0 Ubuntu billable milliseconds**. This is an unverified GitHub Actions runner/control-plane problem, **not** a Python, SQL, accounting or application-test failure. Neither targeted integration method ran, and none should be marked PASS. Consistent with earlier 0-step failures on Phase 1. **No rerun was initiated.**
+
+**Next one operator action:** Open the GitHub Actions run URL above, identify any error banner explaining why no hosted runner was assigned (potential account/Actions entitlement/billing/repository policy; do not assume cause), and share the banner text or screenshot. After correcting the actual GitHub-side blocker, review a single deliberate exact-source rerun or use the already established, separately controlled disposable CircleCI path with specific authorization. The draft PR is not ready to merge on test evidence. No live MAIN DEVELOPMENT operations or PRODUCTION activity.
+
+---
+
 ## 2026-11-21 — Owner retained preparer approval; Phase 1 rollback/reissue TEST-ONLY PR #41
 
 **Owner's explicit business-policy decision:** Keep the existing Withdrawal Slip approval workflow: the logged-in preparer may approve their own slip, and a **different authenticated authorized Stockroom employee** must issue materials. Do not treat Codex's self-approval audit observation as an authorization to change Workflow or roles. The material requestor can remain separate from logged-in preparer as currently modeled. No new two-person approval policy or related schema/migration.
