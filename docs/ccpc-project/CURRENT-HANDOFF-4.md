@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-21 — Legacy Docker volume-consumer inventory (read-only)
+
+**Owner-reported read-only `docker ps -aq | docker inspect` inventory:** Every container shown using network `frappe_docker_default` or named volumes `frappe_docker_db-data`, `frappe_docker_sites`, `frappe_docker_redis-queue-data` belongs to the **legacy** Compose project `frappe_docker`. The matching 10 observed containers are legacy frontend, queue-short, backend, queue-long, websocket, scheduler, configurator, redis-queue, redis-cache and DB. Several legacy application containers also hold distinct **anonymous logs volumes**; these must not be discarded inadvertently if preserving historic logs is required. The user did not report a DEVELOPMENT container consuming those old named volumes/network. This supports Docker-resource separation but does **not** prove host-path or operational independence, backup restorability, or that legacy data is expendable.
+
+**Hold:** No services or volumes have been removed. Next check legacy Compose config path, old database/sites volume sizes and verified backups before final scope confirmation. **Never delete** host `/home/gani/deployments/frappe_docker`: DEVELOPMENT bind-mounts it as `/workspace`. Live PRODUCTION is on a separate server per owner; `frappe_docker` here is retired OLD PRODUCTION only.
+
+---
+
 ## 2026-11-21 — Read-only legacy/DEV Docker separation evidence before retirement
 
 **Operator-supplied Docker inspect results (not independently executed against host):** legacy `frappe_docker-db-1`, old Redis services and stopped `frappe_docker-backend-1` are attached to network `frappe_docker_default`, with named volumes `frappe_docker_db-data` at `/var/lib/mysql`, `frappe_docker_redis-queue-data` at `/data`, `frappe_docker_sites` at `/home/frappe/frappe-bench/sites`, plus an anonymous backend logs volume. DEV `frappe_docker_devcontainer-frappe-1` and DEV MariaDB/Redis use network `frappe_docker_devcontainer_default`; DEV MariaDB uses `frappe_docker_devcontainer_mariadb-data`. **Crucial overlap in naming, NOT storage identity:** DEV Frappe bind-mounts host `/home/gani/deployments/frappe_docker` into `/workspace`; do not delete, rename, recursively clean or alter this host path just because its basename is `frappe_docker`. DEV also mounts `/home/gani/.ssh` and `vscode`, which are out of old-stack removal scope.
