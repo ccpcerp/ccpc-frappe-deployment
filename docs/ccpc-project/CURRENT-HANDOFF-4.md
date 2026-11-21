@@ -1,5 +1,15 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-21 — GitHub Actions runner recovered; PR42 real MariaDB job explicitly launched
+
+**Owner request in current conversation:** "try to run again in github." Retried previous failed lightweight GHA run [44881701981](https://github.com/ccpcerp/ccpcerp/actions/runs/44881701981); GitHub successfully allocated Ubuntu hosted runner and performed checkout/compiler. It exposed a real **syntax defect in newly authored PR42 test**: literal `\\n` strings at line 64 of `test_phase1_maintenance_real_integration.py`; this was fixed on the private app PR42 feature branch in commit `ff7129f3271b73a2922a6d214f698a77eb9d439a`. Subsequent automatically triggered lightweight [run 44882657682](https://github.com/ccpcerp/ccpcerp/actions/runs/44882657682) **PASSED**, with successful source `compileall` and pre-existing offline policy/static tests. Do not claim it ran the newly added database tests or the separate 4 static CI-safety unit tests.
+
+**Manually opt-in full database test (owner explicitly approved retry):** Same-repo private draft [PR42](https://github.com/ccpcerp/ccpcerp/pull/42) was reverified at head `ff7129f3271b73a2922a6d214f698a77eb9d439a`. Applied exact opt-in label `ccpc-run-pr42-db` through connected GitHub tool; API reported success. GitHub created [run 44882706418](https://github.com/ccpcerp/ccpcerp/actions/runs/44882706418) for workflow `CCPC PR42 - manual Bearings MariaDB acceptance`. First poll showed job `isolated-pr42-ledger` **in_progress**, with `Set up job` successful and Docker MariaDB/Redis **Initialize containers** in progress. This **is a launch, not a test pass**, and run may later fail. The workflow must only use disposable GitHub-hosted services, never MAIN DEVELOPMENT or separate LIVE PRODUCTION.
+
+**Next:** Inspect real GH Actions [run 44882706418](https://github.com/ccpcerp/ccpcerp/actions/runs/44882706418) conclusion and individual step logs after the run progresses, correct any failures on PR42 GitHub branch (retest) and document independently whether real SQL, Stock Ledger and GL acceptance passed. If the job fails or does not finish, retain draft PR and no release. No DEVELOPMENT pull, migration or production change authorized. Existing CircleCI unchanged. Avoid silently spending repeated hosted minutes without user approval for additional costly reruns.
+
+---
+
 ## 2026-11-21 — PR42 manual GitHub Actions head verified; hosted runner still not assigning
 
 **Verified GitHub branch:** Private app draft PR42 `feature/phase1-maintenance-only-2026-11-21` now at `1c5231a9166571d8ea979cb50f97a71523f4a7f3`. Changes since previously tested code: added manual `pull_request:labeled` Actions workflow, 6 real MariaDB test cases against signed synthetic mappings, 4 offline CI safety assertions, and private design notes. No application production runtime source modifications in this CI preparation. New source inspection of workflow, test paths and PR-only gates passed 10/10 textual checks, but **new suites not executed**.
