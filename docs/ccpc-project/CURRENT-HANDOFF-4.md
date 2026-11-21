@@ -1,5 +1,17 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-21 — OLD PRODUCTION targeted Docker retirement complete (owner terminal evidence)
+
+**Owner-reported successful final removal on the DEVELOPMENT host:** Exact-label/preflight-guarded command prompted `DELETE-OLD-PRODUCTION`, owner entered it, and Docker returned successful removals of exactly `frappe_docker_db-data`, `frappe_docker_sites`, `frappe_docker_redis-queue-data` and `frappe_docker_default`, followed by `OLD PRODUCTION NAMED VOLUMES AND NETWORK REMOVED`. The 10 stopped `frappe_docker` containers had already been removed in the previous verified terminal step. The **retired old Docker project resources are removed** per owner terminal output; final independent host readback is still recommended.
+
+**Preserved backups:** Local secure archive `/home/gani/ccpc-secure-archives/old-production-retirement-20261121T150924/old-production-volumes.tar.gz` (directory 700 / archive 600) and NAS/CIFS source `/mnt/erpnext_backups/old-production-retirement-20261121T150924/old-production-volumes.tar.gz` were verified by source/destination checksum match and archive listing prior to removal. This proves archive integrity **not** demonstrated Frappe/MariaDB restore. Keep both until a separate verified restore/retention decision. No secrets or contents uploaded to GitHub.
+
+**Scope safeguards:** LIVE PRODUCTION is on a separate physical server per owner; **this deleted OLD PRODUCTION on the DEVELOPMENT host only**. Do **not** delete `/home/gani/deployments/frappe_docker`: it is the active DEVELOPMENT Frappe container's `/workspace` bind mount and contains shared Compose files. Neither DEVELOPMENT `frappe_docker_devcontainer_*` resources nor `ccpc_codex_dev_agent` were targeted. Leftover old anonymous log volumes/images may exist; **do not run Docker prune or delete unverified volumes**. Post-removal DEV health and exact absence of deleted resources still require operator read-only confirmation.
+
+**Next development priority:** Return to CCPC Bearings draft app PR42; its 24 offline tests passed in operator terminal, but disposable Frappe/MariaDB integration acceptance remains outstanding. Keep Finance Expense mapping Draft and avoid DEV pulls/migrations or production changes without specific separate authorization.
+
+---
+
 ## 2026-11-21 — Legacy resources preserved after container removal; DEV remains running
 
 **Operator-provided post-removal Docker checks:** Exact legacy named volumes `frappe_docker_db-data`, `frappe_docker_sites`, and `frappe_docker_redis-queue-data` still exist at their corresponding `/var/lib/docker/volumes/.../_data` paths. Legacy network `frappe_docker_default` remains with **0 attached containers**. Four MAIN DEVELOPMENT containers (`frappe_docker_devcontainer-frappe-1`, `frappe_docker_devcontainer-redis-cache-1`, `frappe_docker_devcontainer-redis-queue-1`, `frappe_docker_devcontainer-mariadb-1`) continue running (reported `Up 5 weeks`). Live production is on a separate server per owner statement. These checks confirm legacy containers were removed without stopping DEV containers, but do not establish DEV application health or a successful legacy database restore.
