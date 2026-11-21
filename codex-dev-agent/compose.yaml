@@ -1,0 +1,121 @@
+# CCPC Codex DEVELOPMENT-only lab: opt-in, standalone, synthetic data only.
+# No host source, SSH, Docker socket, legacy database, NAS or production mounts.
+# ONLINE PROFILE DISABLED BY DEFAULT; do not enable without egress verification.
+name: ccpc_codex_dev_agent
+
+services:
+  agent:
+    image: frappe/bench:latest
+    pull_policy: never
+    user: "1000:1000"
+    working_dir: /home/frappe
+    command: ["sleep", "infinity"]
+    init: true
+    read_only: true
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 512
+    environment:
+      HOME: /home/frappe
+      XDG_CACHE_HOME: /home/frappe/.cache
+      DB_HOST: db
+      DB_PORT: "3306"
+      REDIS_CACHE: "redis-cache:6379"
+      REDIS_QUEUE: "redis-queue:6379"
+      HTTP_PROXY: http://egress-proxy:3128
+      HTTPS_PROXY: http://egress-proxy:3128
+      ALL_PROXY: ""
+      NO_PROXY: "localhost,127.0.0.1,db,redis-cache,redis-queue"
+    volumes:
+      - agent-home:/home/frappe
+      - agent-cache:/home/frappe/.cache
+    secrets:
+      - db-user-password
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=256m
+      - /run:rw,noexec,nosuid,size=32m
+    networks: [lab]
+    labels:
+      ccpc.scope: dev-only-synthetic
+      ccpc.no-production: "true"
+
+  db:
+    image: mariadb:11.8
+    pull_policy: never
+    restart: "no"
+    environment:
+      MARIADB_DATABASE: ccpc_codex_synthetic
+      MARIADB_USER: ccpc_codex
+      MARIADB_PASSWORD_FILE: /run/secrets/db-user-password
+      MARIADB_ROOT_PASSWORD_FILE: /run/secrets/db-root-password
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    # MariaDB official entrypoint briefly starts as root to chown the
+    # new synthetic volume, then drops to mysql. Give only those
+    # initialization capabilities, never host-level privilege.
+    cap_drop: ["ALL"]
+    cap_add: ["CHOWN", "SETUID", "SETGID", "DAC_OVERRIDE", "FOWNER"]
+    security_opt: ["no-new-privileges:true"]
+    volumes:
+      - db-data:/var/lib/mysql
+    secrets: [db-root-password, db-user-password]
+    networks: [lab]
+
+  redis-cache:
+    image: redis:7-alpine
+    pull_policy: never
+    user: redis
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    networks: [lab]
+
+  redis-queue:
+    image: redis:7-alpine
+    pull_policy: never
+    user: redis
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    networks: [lab]
+
+  # Optional HTTPS-only allowlist proxy. Do NOT start until host-side
+  # production/LAN egress tests and network policy have been reviewed.
+  egress-proxy:
+    profiles: ["online"]
+    image: ubuntu/squid:latest
+    pull_policy: never
+    command: ["squid", "-N", "-f", "/etc/squid/squid.conf"]
+    read_only: true
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    volumes:
+      - ./proxy/squid.conf:/etc/squid/squid.conf:ro
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m
+      - /var/log/squid:rw,nosuid,size=32m
+      - /var/spool/squid:rw,nosuid,size=64m
+      - /run:rw,noexec,nosuid,size=16m
+    networks: [lab, outgoing]
+    labels:
+      ccpc.scope: dev-only-proxy
+      ccpc.no-production: "true"
+
+networks:
+  lab:
+    internal: true
+    driver: bridge
+  outgoing:
+    driver: bridge
+
+volumes:
+  agent-home:
+  agent-cache:
+  db-data:
+
+secrets:
+  db-root-password:
+    file: ./local-secrets/db-root-password
+  db-user-password:
+    file: ./local-secrets/db-user-password

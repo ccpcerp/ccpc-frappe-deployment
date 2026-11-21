@@ -1,0 +1,4 @@
+# Machine-local credentials and synthetic lab artifacts
+local-secrets/
+.env
+*.log
