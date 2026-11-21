@@ -1,5 +1,13 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
+## 2026-11-21 — Legacy resources preserved after container removal; DEV remains running
+
+**Operator-provided post-removal Docker checks:** Exact legacy named volumes `frappe_docker_db-data`, `frappe_docker_sites`, and `frappe_docker_redis-queue-data` still exist at their corresponding `/var/lib/docker/volumes/.../_data` paths. Legacy network `frappe_docker_default` remains with **0 attached containers**. Four MAIN DEVELOPMENT containers (`frappe_docker_devcontainer-frappe-1`, `frappe_docker_devcontainer-redis-cache-1`, `frappe_docker_devcontainer-redis-queue-1`, `frappe_docker_devcontainer-mariadb-1`) continue running (reported `Up 5 weeks`). Live production is on a separate server per owner statement. These checks confirm legacy containers were removed without stopping DEV containers, but do not establish DEV application health or a successful legacy database restore.
+
+**Before irreversible deletion of named volumes:** Preserve both verified archive copies (secure native local mode 600 and NAS), independently check archive manifest coverage and exact project labels/consumers, and explicitly acknowledge that cold archive checksum/integrity does not prove successful MariaDB restore. A disposable MariaDB restore test is preferred if data recovery guarantee matters; owner has approved removing OLD PRODUCTION only, never active DEV or the host path `/home/gani/deployments/frappe_docker`. No volumes/network removed as of this checkpoint.
+
+---
+
 ## 2026-11-21 — Legacy OLD PRODUCTION containers removed; volumes still pending verification
 
 **Operator-reported execution (not independently inspected on host):** After verifying a separate secure local archival copy (file mode 600, directory mode 700; SHA matched NAS copy), operator ran exact-name, project-label-guarded `docker rm` of the 10 stopped `frappe_docker` **OLD PRODUCTION** containers with **no `-v` and no `-f`**. Terminal output: `=== REMAINING OLD CONTAINERS ===` followed by no names, then `OLD CONTAINER REMOVAL COMPLETED`. This supports that old containers were removed successfully; named legacy volumes and network **should remain**, but are not yet re-inspected after removal. No DEV containers, shared host Compose path or separate-server LIVE PRODUCTION intentionally touched.
