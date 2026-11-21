@@ -1,7 +1,7 @@
 # CCPC ERPNext — CURRENT HANDOFF 3
 
 
-## 2026-11-21 — Codex CLI authenticated on DEVELOPMENT; isolated source clone ready; local checkout PENDING
+## 2026-11-21 — Codex CLI authenticated and separate Phase 1 review checkout COMPLETE; code review next
 
 **User-requested current development handoff.** The owner reauthorized Codex as an active CCPC ERPNext DEVELOPMENT coding/testing assistant, with the physically separate **PRODUCTION server strictly out of Codex scope**. See [Codex DEVELOPMENT operating mode](CODEX-DEVELOPMENT-OPERATING-MODE.md) and [GitHub-first workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md). Earlier security **NO-GO only applies to the specific stopped/unaccepted Docker/Squid laboratory and draft deployment PR #39**; it must not block ordinary supervised, unprivileged Codex CLI work in a separate source workspace. Do not start that old lab agent, remove its firewall rules or change Docker/network settings as part of onboarding. The cancelled automatic/paid Codex-to-GitHub reporter stays cancelled.
 
@@ -9,22 +9,15 @@
 - Non-root shell confirmed (`NON_ROOT=True`), Linux `x86_64`; Node/npm unavailable but not required for standalone Codex.
 - Official standalone Codex CLI v**0.171.0** installed for user under their home directory; `command -v codex` returned `/home/gani/.local/bin/codex` and `codex --version` returned `codex-cli 0.171.0`. Temporary terminal exit 127 was resolved by using a new terminal and adding `~/.local/bin` to PATH. Installer reported adding PATH to `.bashrc`.
 - Owner completed `codex login --device-auth` after enabling device-code sign-in in their ChatGPT security settings; terminal displayed **"Signed in to Codex"**. Do not include, repeat or commit authentication codes/tokens.
-- The owner successfully ran `git clone --no-checkout https://github.com/ccpcerp/ccpcerp.git "$HOME/ccpc-codex-work/ccpcerp"`; Git printed all remote review/release branches and `origin/HEAD -> origin/version-16`. **The isolated clone exists, but no local checkout/worktree branch has been confirmed yet.** Do not infer the working tree contains the Phase 1 app code until that checkout is observed.
+- The owner successfully ran `git clone --no-checkout https://github.com/ccpcerp/ccpcerp.git "$HOME/ccpc-codex-work/ccpcerp"`; Git printed all remote review/release branches and `origin/HEAD -> origin/version-16`. **The isolated clone is now checked out on a local review branch**. Owner-reported checkout result: `Switched to a new branch 'codex/phase1-review-2026-11-21'`, then `## codex/phase1-review-2026-11-21` with no changed-file entries, and short commit `034afb1`. These are operator-provided shell results, not ChatGPT SSH inspection. Do not confuse this local clone with the untouched live MAIN DEVELOPMENT checkout.
 
 **Current GitHub source selection (independently verified, 2026-11-21):** `ccpcerp/ccpcerp` branch `release/withdrawal-department-phase1-2026-11-17` HEAD is exactly **`034afb116cf3fe0e3f9315b932eceba6dc961ce6`**, verified via GitHub compare against its SHA (identical). [App PR #35](https://github.com/ccpcerp/ccpcerp/pull/35) remains DRAFT/open/unmerged and includes merged Finance UI test-only [PR #40](https://github.com/ccpcerp/ccpcerp/pull/40); official prior CircleCI Finance UI 4/4 PASS is **historical existing evidence**, not a new test here. Phase 1 is **same-Company-only** with intercompany billing disabled. Preserve separate draft app PR #33 and its diverged history; **do not merge/re-enable intercompany billing** as part of this first Codex review.
 
-**NEXT ONE SAFE OPERATOR STEP — NOT YET EXECUTED/CONFIRMED:** In the fresh, isolated clone only, create a local review branch from the verified remote release head, then show branch/status/SHA:
+**NEXT ONE SAFE OPERATOR STEP — PENDING:** Begin the first **read-only Codex code review** inside `$HOME/ccpc-codex-work/ccpcerp` on local branch `codex/phase1-review-2026-11-21`, after confirming the CLI's actual safe approval/sandbox flags (`codex --help`). Scope Codex strictly to the isolated source checkout; no PRODUCTION credentials/hosts, privileged Docker commands, broad filesystem access, live DEVELOPMENT DB mutations, migrations, unreviewed source pulls or old Docker/Squid agent startup. First ask it to inspect the existing Phase 1 Withdrawal Slip → Material Issue → SLE/GL → departmental report checks, identify one concrete missing acceptance or defect, and propose a focused change. Keep PR #35 draft, preserve separate intercompany PR #33 and its disabled billing gate. Do not make new commits or activate CI until the user has reviewed the proposed source change/test. 
 
-```bash
-cd "$HOME/ccpc-codex-work/ccpcerp" &&
-git switch --no-track -c codex/phase1-review-2026-11-21 origin/release/withdrawal-department-phase1-2026-11-17 &&
-git status --short --branch &&
-git rev-parse --short HEAD
-```
+**Terminal management:** The owner also showed old `git branch -r` output ending with `:`, consistent with the Git pager `less`. Press `q` to leave the pager and then close that old terminal. This does not delete the checked-out worktree, git branch or persisted Codex login.
 
-Expected short SHA `034afb1`. If it fails or another branch/worktree already exists, **STOP, do not reset/force-clean**. Return only sanitized status. This changes only the newly cloned user workspace, not the live bench, Docker, DEVELOPMENT database or PRODUCTION. After verification, guide a **read-only initial Codex code-review task** with production excluded, no broad automatic command approvals, and no live DEV migrations or financial writes. Prioritize Withdrawal Slip → Material Issue → stock/GL → departmental reporting and independently gated intercompany billing. Use GitHub for commits and disposable CircleCI/Frappe/MariaDB for approved integration checks.
-
-**Unchanged safety and evidence:** Existing live MAIN DEVELOPMENT checkout/status and any uncommitted files are protected and **not inspected or modified** in this onboarding. Previous large handoff contains independent OLD/NEW PRODUCTION cutover history; this Codex-specific update **does not supersede any unresolved production recovery, writer-fencing or cutover restrictions**. No fresh PRODUCTION host verification occurred and no production command was authorized. No Codex session, deployment, DB test, workspace checkout, CI run, or app code change has yet been demonstrated by this chat.
+**Unchanged safety and evidence:** Existing live MAIN DEVELOPMENT checkout/status and any uncommitted files are protected and **not inspected or modified** in this onboarding. Previous large handoff contains independent OLD/NEW PRODUCTION cutover history; this Codex-specific update **does not supersede any unresolved production recovery, writer-fencing or cutover restrictions**. No fresh PRODUCTION host verification occurred and no production command was authorized. No Codex interactive coding session, deployment, database test, CI run or application code change has yet been demonstrated by this chat; the **separate source-workspace checkout is now operator-confirmed**.
 
 ---
 
