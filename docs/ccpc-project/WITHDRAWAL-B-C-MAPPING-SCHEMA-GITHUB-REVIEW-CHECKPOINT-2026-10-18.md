@@ -1,0 +1,36 @@
+# CCPC B/C controlled mapping schema — GitHub-only review checkpoint
+
+**Date:** 2026-10-18 Asia/Manila. **Status:** owner-approved four-DocType design implemented as **INERT, DRAFT-ONLY GitHub review**, not a financial approval or release. **POSTING_NO_GO / PRODUCTION NO-GO / DEV_TARGET_ORIGIN_UNKNOWN_STOP.**
+
+## Approval and exact code source
+
+- Owner [approved detailed scope/revision schema and review-only coding](WITHDRAWAL-ISSUE-B-C-SCHEMA-DESIGN-OWNER-APPROVAL-2026-10-18.md), docs commit [`e0ef6dd22dcc73eb6b9280f8843377627816a1ae`](https://github.com/ccpcerp/ccpc-frappe-deployment/commit/e0ef6dd22dcc73eb6b9280f8843377627816a1ae).
+- New [application draft PR #17](https://github.com/ccpcerp/ccpcerp/pull/17), head branch `review/bc-mapping-scopes-revisions-2026-10-18`, **based on exact owner-reviewed A+D draft PR #16 commit `827993e45ae9321e7a936f48f7fc3b17bf842099`**. PR #17 targets the PR #16 head branch, not `main`. PR #16 remains separately draft/unmerged. Verify latest head in GitHub before edits.
+- Current review head after narrow scope hardening: `374b7155e570ff618fff482510fe65a52fd148d0` (verify before any further edits). No application merge, DEVELOPMENT pull/site migration, CI-to-PROD connection, role grant, financial transaction, or original stock/GL posting change.
+
+## Four inert DocTypes defined on GitHub review branch
+
+1. `CCPC Expense Mapping Scope`: Company + exact Item Group, stable deterministic SHA256 `scope_key` with a MariaDB UNIQUE constraint when site schema is created; leaf Item Group check and immutable scope identity; no parent-category inheritance.
+2. `CCPC Expense Mapping Revision`: linked scope, revision number, **proposed** Expense Account/effective interval, stable unique revision key, approval metadata; `validate` intentionally **rejects every state except Draft**, including Administrator attempts at `Approved`, and forbids forging approved-by/at/revoke fields.
+3. `CCPC Center Mapping Scope`: Company + validated actual beneficiary Department + fixed `Department Only` selector scope; stable unique scope key; **explicit multi-center selector mode rejected** until Finance approves the actual selector/location and authority. The requirement for positive selection when multiple centers are approved is preserved, not silently replaced by a default.
+4. `CCPC Center Mapping Revision`: linked scope, revision number, **proposed** Cost Center/effective interval, stable unique revision key; same **draft-only** approval and immutable identity guards.
+
+The four DocTypes currently declare **no role permission grants** and install **no approval workflow**. Normal transaction methods are not wired to them; Frappe Administrator/internal code can inspect or create draft-only data if a schema is installed, but cannot activate approval through the implemented validation. Both scope/Revision controllers forbid renaming and deletion during this review. Deterministic keys live in `ccpcerp/ccpc_erp/mapping_scope_keys.py`.
+
+**Limitations and caveats:** This is not yet an implemented Accounting approval workflow or a guarantee of all eventual business-specific account suitability, SQL locking under concurrent approval, effective-time selection, immutable submitted voucher attribution, B/C GL validation, privilege checks under real non-Admin roles, or full installation-readiness. Current draft master eligibility checks (same Company, active leaf, Expense root type) are only a safe minimum; signed Accounting purpose/category authorization is still missing. Four-DocType JSON/configuration and controllers require genuine site verification and further review before any controlled deployment.
+
+## Test evidence on exact source
+
+- [Initial static schema run 39106507467](https://github.com/ccpcerp/ccpcerp/actions/runs/39106507467): **SUCCESS, 3/3 Python unittest static checks**, independently inspected job log. This run corresponds to earlier commit `8069cb5`, before the genuine test module/workflow was added.
+- **Verified on earlier PR #17 head `b6e2c5d...`:** [static rerun 39106722616](https://github.com/ccpcerp/ccpcerp/actions/runs/39106722616) completed successfully **3/3**; [genuine disposable Frappe v16/ERPNext v16/MariaDB run 39106722706](https://github.com/ccpcerp/ccpcerp/actions/runs/39106722706) **COMPLETED SUCCESS — 4/4 genuine database tests** including installed DocType tables, no role grants, unique mapping identity, beneficiary Company and denied approval activation (verified GitHub test log `Ran 4 tests ... OK`). This is **schema-only test evidence**.
+- **Scoped hardening since that pass (current PR #17 head `374b715...`):** draft Expense mapping scope now checks Company existence, and both revision controllers validate that the Account or Cost Center belongs to its parent scope Company and is an enabled, non-group record; the Account must have `root_type=Expense`. Added two genuine disposable test methods for eligible draft allocation masters, group rejection and revision identity, with test inventory raised to **6 real methods**. [Latest static CI 39107359784](https://github.com/ccpcerp/ccpcerp/actions/runs/39107359784) **COMPLETED SUCCESS, 3/3** (GitHub job log `Ran 3 tests ... OK`). [Latest genuine disposable ERPNext v16/MariaDB CI 39107359756](https://github.com/ccpcerp/ccpcerp/actions/runs/39107359756) **COMPLETED SUCCESS, 6/6 real database tests** (verified full job log `Ran 6 tests ... OK`), including eligible draft Account/Cost Center checks, group/invalid masters rejected, duplicate revision identity refusal and approval activation denial. Both runs verified against exact current review commit `374b7155e570ff618fff482510fe65a52fd148d0`. No stock/GL voucher tests or live CCPC master mappings were executed.
+- Genuine CI uses isolated GitHub-hosted MariaDB/Redis/Frappe bench site `ci-bc-mapping.localhost`, synthetic ERPNext fixtures and strict site/branch/repo guard; includes table metadata/perms, unique Account scope, beneficiary Department scope and refusal to activate a revision. It does **not** test genuine Stock Entry/SLE/GL; no live server access.
+
+## Remaining Accounting and release gates
+
+- Owner/Accounting must supply signed [B/C Company/category Account and Company/beneficiary Department Cost Center mapping rows](WITHDRAWAL-ISSUE-B-C-MAPPING-APPROVAL-WORKSHEET-2026-10-18.md); currently none approved.
+- Exact approval role/users, maker/checker separation, exception procedure, effective-time/retroactivity and approved revision activation; actual positive multi-center selector and Section inclusion, Slip-versus-line selection provenance and row locking; database scope locking under concurrent revision approval, non-overlap enforcement and idempotent migrations/index review.
+- Full B/C builder and `before_submit` fail-closed checks against effective approved revisions, approval provenance on original Stock Entry Detail, actual SLE/GL assertion and original Equipment+beneficiary consistency; corresponding synthetic real Frappe/MariaDB tests.
+- Separate return Option A implementation/controls; independently verified correct DEVELOPMENT target/Git status/backups with express deployment approval, plus **separate PRODUCTION owner release** (backup, rollback and accounting signoff).
+
+No private personal Google Drive data used. GitHub remains the authoritative review source.
