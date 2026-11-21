@@ -1093,3 +1093,39 @@ STEP_126_SINGLE_PATH_CANARY_COMPLETE
 **Execution state: NOT EXECUTED by ChatGPT; operator manual run pending.** The GitHub-linked script remains unaltered, and the approval covers its explicitly disclosed possible Docker socket activation if the Docker daemon exits after the unit-state precheck. Before executing, owner should ensure both independent administrative SSH/recovery connections are working, the private Stage A baseline remains available, and no Docker/UFW maintenance is underway. Do not run if these preconditions are unmet. If output contains `STOP:` or lacks `STEP_130_READ_ONLY_METADATA_COMPLETE`, do not retry or change guards; return sanitized output for review.
 
 **Interpretation:** Even a successful Step 130 inventory would provide only current declared systemd/Docker metadata, not operational proof of firewall persistence across Docker/UFW reload, bridge recreation or reboot. All firewall protections stay installed/unchanged, stock `nftables.service` stays disabled, the optional unit stays uninstalled, Codex agent stopped and PR #39 DRAFT/UNMERGED. **Codex activation NO-GO.**
+
+
+## Step 131 — Step 130 read-only lifecycle inventory operator-reported PASS (2026-11-21 Asia/Manila)
+
+**Evidence origin:** Operator pasted the entire sanitized output of the *single approved Step 130 command* (immutable code source [`83c3a2a2fcb1a918d835b53d9bb02894e47c961d`](https://github.com/ccpcerp/ccpc-frappe-deployment/blob/83c3a2a2fcb1a918d835b53d9bb02894e47c961d/docs/ccpc-project/CODEX-STEP-130-READONLY-LIFECYCLE-INVENTORY.md)). No direct ChatGPT SSH, journal, Docker inspection or independent host verification occurred. The complete returned status was:
+
+```text
+AGENT_STOPPED_AND_RESTART_DISABLED=True
+DOCKER_SERVICE_ACTIVE=True
+DOCKER_SOCKET_ACTIVE=True
+DOCKER_SOCKET_ENABLED=True
+SOCKET_DECLARED_TRIGGER_TO_DOCKER=True
+DOCKER_DECLARED_TRIGGERED_BY_SOCKET=True
+DOCKER_AFTER_UFW=False
+UFW_BEFORE_DOCKER=False
+DOCKER_REQUIRES_OR_WANTS_UFW=False
+UFW_REQUIRES_OR_WANTS_DOCKER=False
+DOCKER_RELOAD_EXEC_PRESENT=True
+UFW_RELOAD_EXEC_PRESENT=False
+DOCKER_DROPINS_PRESENT=False
+UFW_DROPINS_PRESENT=False
+DOCKER_START_HOOKS_PRESENT=False
+UFW_START_HOOKS_PRESENT=False
+SCOPED_GUARD_UNIT_ABSENT=True
+OFFLINE_LAUNCH_UNIT_ABSENT=True
+STOCK_NFT_SERVICE_INACTIVE_DISABLED=True
+PERSISTENCE_VERIFIED=False
+CODEX_LAUNCH_AUTHORIZED=False
+STEP_130_READ_ONLY_METADATA_COMPLETE
+```
+
+**Assessment — PASS for exactly the checked snapshot/metadata:** The command reached its final marker with no STOP. At that instant the existing lab agent was stopped and Docker restart policy `no`; `docker.service` was active and its socket was active/enabled, with matching declared `Triggers` / `TriggeredBy` relationship. The queried `systemctl show` properties did **not** declare a direct Docker↔UFW `After/Before` ordering or `Requires/Wants` relationship. Docker's systemd unit had an ExecReload handler, UFW's inspected unit had no ExecReload handler. Neither unit had inspected drop-ins or ExecStartPre/ExecStartPost hooks. Both proposed project guard/launch units were absent. Stock `nftables.service` was inactive/disabled. These are *properties of the inspected units*, not a full transitive boot graph or comprehensive inventory of non-systemd scripts, hooks or activation methods.
+
+**Interpretation / NO-GO:** The active and enabled Docker socket creates a service activation path; the metadata does not prove firewall safeguards predate socket or container startups, survive Docker/UFW reload or bridge recreation, or persist after reboot. `UFW_RELOAD_EXEC_PRESENT=False` does **not** prove no possible `ufw reload` command or alternative lifecycle path. `DOCKER_RELOAD_EXEC_PRESENT=True` identifies the existence of a handler, not the effects of invoking it. No reload, reboot, traffic probe, firewall change, Docker change, container start, systemd unit install, DEVELOPMENT/UAT/PRODUCTION action or Codex/Squid activation was authorized or reported in this step. The script does not independently prove that the host's firewall policy remained exact after inspection. The Step 124/126 IPv4 canaries stay separate, narrow evidence.
+
+**Next proposed milestone (GitHub-only, no host action):** Design a fail-closed manual **agent-launch hold and exact prelaunch verification** which requires currently installed original lab iptables controls plus exact CCPC nft policy, validates expected Docker bridge identity and current service/socket state, and blocks launch on any ambiguity. Explicitly inventory startup paths (Docker socket/Compose/manual Docker, UFW/Docker reload and boot), define how policy would be re-verified after lifecycle events, and separate an operator-managed release gate from an unsupported claim of an unbypassable root/Docker security boundary. If zero-gap isolation against privileged operators is required, evaluate dedicated VM/host isolation rather than systemd-only assumptions. Exact runtime tests, service installation/enabling and reload/reboot experiments all require new specific authorization and recovery review. **PR #39 stays DRAFT/UNMERGED; Codex/Squid NO-GO.**
