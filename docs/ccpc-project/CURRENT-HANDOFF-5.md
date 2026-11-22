@@ -1,0 +1,26 @@
+# CCPC ERPNext — CURRENT HANDOFF 5
+
+**Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
+
+## TOP: PR #41 merged into Phase 1 release branch; PR #35 remains DRAFT
+
+**Completed and independently verified on 2026-11-22 using the GitHub connector:**
+
+- [Custom-app PR #41](https://github.com/ccpcerp/ccpcerp/pull/41), `test(phase1): verify HTTP rollback and cancellation/reissue consumption`, was reviewed, marked ready and **merged** by the owner-authorized GitHub merge-commit method into `release/withdrawal-department-phase1-2026-11-17`. GitHub PR is **closed/merged**.
+- Reviewed PR head `45c46836e50029e265c6e3d7ca443090c364c0f0`; pre-merge base `034afb116cf3fe0e3f9315b932eceba6dc961ce6`; compare: **6 ahead, 0 behind, four changed paths**: two test modules, disposable test-site guard, and one-shot GitHub Actions workflow. No changes to runtime business/accounting controllers, Finance policies, schemas or permissions.
+- Verified merge commit: **`b0cbe5c13cb68499a7920de2879f65e72cff000a`** ([commit](https://github.com/ccpcerp/ccpcerp/commit/b0cbe5c13cb68499a7920de2879f65e72cff000a)). Independent release-branch read confirmed this exact head. A formal GitHub COMMENT review was submitted (review ID `6010671375`). No merge conflicts or unresolved review threads were reported.
+- Corrected pinned [GitHub Actions run #44888315575](https://github.com/ccpcerp/ccpcerp/actions/runs/44888315575), job `136798369864`, attempt 1, at exact `45c4683` completed **SUCCESS**. Workflow API, step results and actual decoded logs confirmed source/test-blob guard, static policy tests, disposable Frappe/ERPNext v16 with MariaDB 11.8 and Redis, synthetic site migration and cleanup **PASS**. Actual integration methods: `test_cancelled_issue_excluded_and_reissue_reported_once` **Ran 1 test — OK** and `test_zzz_real_wsgi_method_session_role_and_csrf_enforcement` **Ran 1 test — OK**. Coverage includes cancellation/reissue counted once in Department report with actual SLE/GL, and authenticated HTTP/CSRF fault-after-ledger rollback checked via independent SQL, retry and replay rejection. Earlier failed/incomplete runs remain historical; no rerun initiated as part of merge.
+- [Phase 1 PR #35](https://github.com/ccpcerp/ccpcerp/pull/35) was independently checked **open/draft, not merged**, with head `release/withdrawal-department-phase1-2026-11-17` now at `b0cbe5c...` and base `feature/finance-mapping-lifecycle-2026-10-28`.
+
+**Boundary / explicitly not complete:**
+
+- Phase 1 is **same-Company-only**; intercompany billing remains **disabled**, with separate draft [PR #33](https://github.com/ccpcerp/ccpcerp/pull/33) out of scope. The owner-approved policy permits Withdrawal Slip preparer self-approval, but issuance must be by a **different authorized authenticated Stockroom employee**.
+- These two passing synthetic integration tests do **not** equal overall Phase 1 acceptance or persistent MAIN DEVELOPMENT validation. Finance Expense mapping owner sign-off where applicable, remaining release checks, PR #35 review/merge, DEVELOPMENT acceptance, backup/recovery readiness and PRODUCTION deployment are separate gates.
+- No persistent DEVELOPMENT checkout update, schema migration, new business records, service restart, or PRODUCTION action was performed in this PR #41 review/merge. Most recently *reported* MAIN DEVELOPMENT source was a clean detached checkout `55eb10b`, not reverified on the server in this chat. Recheck branch/HEAD/staged/unstaged/untracked work before a safe update.
+- The one-shot GitHub Actions workflow remains committed in release history but is limited by its push trigger to the old test branch and workflow path. Any cleanup should be a separate reviewed source change, not a retroactive modification of tested evidence.
+
+## Next concrete engineering action
+
+**Fastest safe milestone:** Read-only verify the actual MAIN DEVELOPMENT checkout (branch, commit, Git status, protected untracked files) and preserved backup state, then plan a non-destructive pull of the reviewed `b0cbe5c...` release source with **specific operator authorization** for any DEVELOPMENT checkout, migration or persistent site change. Run genuine persistent DEVELOPMENT Phase 1 end-to-end Withdrawal Slip → Material Issue → Stock Ledger and Expense GL → Department consumption acceptance, including rollback/replay and reporting controls. Record real results and push any reviewed fixes back to GitHub. Resolve Finance mapping sign-off; separately review PR #35 for release merge. PRODUCTION requires independent backup, recovery, rollback and explicit deployment approval.
+
+Preserve GitHub-first scope, protected DEVELOPMENT and PRODUCTION data, no automatic Codex publishing or paid scheduled automation. See older handoffs for detailed audit history; do not promote their outdated next actions over this verified milestone.
