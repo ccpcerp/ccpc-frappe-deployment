@@ -1,0 +1,71 @@
+name: Codex lab source-only security tests
+
+# GitHub-hosted test only. No Docker, Codex, paid API, ERPNext, or host access.
+on:
+  pull_request:
+    branches:
+      - review/pr33-dev-acceptance-2026-11-16
+    paths:
+      - 'codex-dev-agent/**'
+      - 'scripts/security/ccpc_codex_proxy_bridge_preflight.py'
+      - 'scripts/security/ccpc_codex_lab_firewall_guard.py'
+      - 'scripts/security/ccpc_codex_lab_firewall_reconcile.py'
+      - 'scripts/security/ccpc_codex_lab_start_interlock.py'
+      - 'scripts/security/ccpc_codex_nft_guard_review.py'
+      - 'scripts/security/ccpc_codex_nft_scoped_controller.py'
+      - 'scripts/security/ccpc_firewall_rule_order.py'
+      - 'scripts/security/ccpc_codex_dev_lab_firewall.sh'
+      - 'scripts/security/systemd/**'
+      - '.github/workflows/codex-lab-static-review.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  policy-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - name: Check out review-only source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Verify expected source-only test count (no runtime services)
+        run: |
+          python3 - <<'PY'
+          import unittest
+          suite = unittest.defaultTestLoader.discover(
+              "codex-dev-agent/tests", pattern="test_*.py"
+          )
+          if suite.countTestCases() != 161:
+              raise SystemExit("STOP: expected exactly 161 security regression tests")
+          print("161 source-only security regressions discovered")
+          PY
+
+      - name: Syntax-check proposed nftables deny layer (disposable runner only)
+        timeout-minutes: 3
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends nftables
+          sudo python3 - <<'PY'
+          import subprocess
+          import sys
+          sys.path.insert(0, "scripts/security")
+          from ccpc_codex_nft_guard_review import render_candidate
+          candidate = render_candidate("br-123456789abc")
+          result = subprocess.run(
+              ["nft", "--check", "--file", "-"],
+              input=candidate, text=True, capture_output=True, timeout=25,
+          )
+          if result.returncode:
+              print(result.stderr.strip()[:1200])
+              raise SystemExit("STOP: nft candidate failed native check-only parser")
+          print("nftables_check_only_candidate_syntax_passed=True")
+          print("no_nft_rules_applied=True")
+          PY
+
+      - name: Run stdlib-only negative security regressions
+        run: python3 -m unittest discover -s codex-dev-agent/tests -p 'test_*.py' -v

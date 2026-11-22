@@ -1,6 +1,8 @@
 # CCPC Codex DEVELOPMENT-only lab: opt-in, standalone, synthetic data only.
 # No host source, SSH, Docker socket, legacy database, NAS or production mounts.
 # ONLINE PROFILE DISABLED BY DEFAULT; do not enable without egress verification.
+# REVIEW ONLY: proposed proxy_client IPAM, listener/ACL and host firewall
+# controls must pass real-host checks before any Docker Compose apply.
 name: ccpc_codex_dev_agent
 
 services:
@@ -15,6 +17,8 @@ services:
     cap_drop: ["ALL"]
     security_opt: ["no-new-privileges:true"]
     pids_limit: 512
+    mem_limit: 8g
+    memswap_limit: 8g
     environment:
       HOME: /home/frappe
       XDG_CACHE_HOME: /home/frappe/.cache
@@ -34,7 +38,12 @@ services:
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=256m
       - /run:rw,noexec,nosuid,size=32m
-    networks: [lab]
+    # Agent remains on the synthetic DB/Redis lab bridge and gains a
+    # second, internal-only client path to Squid (never the outgoing bridge).
+    networks:
+      lab:
+      proxy_clients:
+        ipv4_address: 172.30.250.2
     labels:
       ccpc.scope: dev-only-synthetic
       ccpc.no-production: "true"
@@ -43,6 +52,9 @@ services:
     image: mariadb:11.8
     pull_policy: never
     restart: "no"
+    mem_limit: 2g
+    memswap_limit: 2g
+    pids_limit: 256
     environment:
       MARIADB_DATABASE: ccpc_codex_synthetic
       MARIADB_USER: ccpc_codex
@@ -65,6 +77,9 @@ services:
   redis-cache:
     image: redis:7-alpine
     pull_policy: never
+    mem_limit: 384m
+    memswap_limit: 384m
+    pids_limit: 128
     user: redis
     command: ["redis-server", "--save", "", "--appendonly", "no"]
     cap_drop: ["ALL"]
@@ -74,6 +89,9 @@ services:
   redis-queue:
     image: redis:7-alpine
     pull_policy: never
+    mem_limit: 384m
+    memswap_limit: 384m
+    pids_limit: 128
     user: redis
     command: ["redis-server", "--save", "", "--appendonly", "no"]
     cap_drop: ["ALL"]
@@ -86,6 +104,9 @@ services:
     profiles: ["online"]
     image: ubuntu/squid:latest
     pull_policy: never
+    mem_limit: 512m
+    memswap_limit: 512m
+    pids_limit: 128
     command: ["squid", "-N", "-f", "/etc/squid/squid.conf"]
     read_only: true
     cap_drop: ["ALL"]
@@ -97,7 +118,12 @@ services:
       - /var/log/squid:rw,nosuid,size=32m
       - /var/spool/squid:rw,nosuid,size=64m
       - /run:rw,noexec,nosuid,size=16m
-    networks: [lab, outgoing]
+    # No direct connectivity to the synthetic DB/Redis lab bridge.
+    # Static client-facing address is required for Squid's listener bind.
+    networks:
+      proxy_clients:
+        ipv4_address: 172.30.250.3
+      outgoing:
     labels:
       ccpc.scope: dev-only-proxy
       ccpc.no-production: "true"
@@ -106,8 +132,25 @@ networks:
   lab:
     internal: true
     driver: bridge
+  # REVIEW ONLY: the reserved /29 MUST be checked against actual host Docker
+  # subnets and routes before creating it. Do not run 'up' from this branch.
+  # The client bridge has only agent and Squid; no DB/Redis containers.
+  proxy_clients:
+    driver: bridge
+    internal: true
+    attachable: false
+    enable_ipv6: false
+    # Deterministic Linux device name for pre-enforced host INPUT/FORWARD policy.
+    # Step 86 verified name available at inspection time, not reserved.
+    driver_opts:
+      com.docker.network.bridge.name: br-ccpc-cdxpx
+    ipam:
+      config:
+        - subnet: 172.30.250.0/29
   outgoing:
     driver: bridge
+    attachable: false
+    enable_ipv6: false
 
 volumes:
   agent-home:
