@@ -1,0 +1,22 @@
+# REVIEW ONLY: installation/enabling/reboot require separate explicit approval.
+[Unit]
+Description=CCPC NEW A3 guarded HTTPS startup (existing candidate only)
+After=docker.service containerd.service network-online.target
+Requires=docker.service
+Wants=network-online.target
+ConditionPathExists=/var/lib/ccpc-new-a3-r0-manifest-20261113/manifest.json
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/usr/bin/python3 -B /root/ccpc-new-a3-g1-20261115/ccpc_new_a3_g1_boot_gate.py --manifest /var/lib/ccpc-new-a3-r0-manifest-20261113/manifest.json --gate-once --profile postchange
+TimeoutStartSec=260
+RemainAfterExit=no
+StandardOutput=journal
+StandardError=null
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target
