@@ -873,3 +873,29 @@ install -m 0755 "$D"/* /usr/local/bin/
 /usr/local/bin/dockerd --version
 ```
 This resumes **only the previously failed binary copy** after checking archive extraction; no host/guest Docker daemon changes and no service yet. After version output, inspect/recreate the intended guest-only `/etc/docker/daemon.json` and `ccpc-recovery-docker.service` cleanly and start it once. Never re-run the full installer automatically because the guest now has partially installed prerequisites; preserve guest evidence. No confidential Nov23 backup restore approval yet.
+
+## 2026-11-23 — Manual guest Docker 29.7.2 binary copy PASS; isolated daemon setup pending
+
+Owner executed manually scoped guest-only recovery command after failing shell glob expansion:
+```bash
+sudo sh -c '
+set -eu
+D=/opt/ccpc-recovery-docker-static/docker
+test -x "$D/dockerd"
+test -x "$D/docker"
+test ! -e /usr/local/bin/dockerd
+install -m 0755 "$D"/* /usr/local/bin/
+'
+/usr/local/bin/docker --version
+/usr/local/bin/dockerd --version
+```
+Owner output:
+```text
+Docker version 29.7.2, build a7dcaa6
+Docker version 29.7.2, build 6a43e3d
+```
+**G9 PASS:** guest-only Docker CLI and dockerd testing binaries now installed into `/usr/local/bin/` in isolated Ubuntu 24.04.5 QEMU PID 2717495; **daemon has NOT been configured, started or validated yet**. ISO remains guest read-only `/dev/vdc`, SHA manifest verified, no NIC. No guest MariaDB/Redis/application image load, no live DEVELOPMENT/PRODUCTION work or confidential backup ingress.
+
+**GitHub engineering continuation prepared and refetched:** review branch `review/dev-restore-vm-staging-2026-11-23`, commit **`ceb7f3f8692a8a4771aaebfb80b5bb3744a99f13`**, path `scripts/development/operator/ccpc_dev_recovery_guest_finish_docker_20261123.sh`, Git blob SHA-1 `9263a33cc83cbda52b3c6d54517c0a5bce264f45`. New scoped resume script checks `ccpc-recovery` guest, `ccpc-restore`, pinned CLI+daemon versions, mounted read-only ISO, no existing daemon config/service/socket, only `lo` guest interface, overlayfs; writes guest-only `/etc/docker/daemon.json` with `overlay2` and legacy image storage, no default bridge, no iptables/ip-forward/masquerade; validates via `dockerd --validate --config-file`, creates `ccpc-recovery-docker.service` with `Type=notify` and `Delegate=yes`, starts but does **not enable** service on boot, verifies `sudo docker info` and absence of Docker bridge. May be pasted by owner **inside the guest only**; source content committed first in GitHub. This is not an image export, deployment, backup restore, or production operation. **Guest service start result still PENDING**. On any STOP, do not rerun script because it creates local files; inspect `sudo systemctl status ccpc-recovery-docker.service --no-pager` and `sudo journalctl -u ccpc-recovery-docker.service -n 35 --no-pager` without posting secrets. Do not confuse guest with host shell.
+
+Once guest daemon runs successfully, load three image tags from `images.tgz.part-000` on read-only ISO, verify exact app image ID `sha256:f53cc9ee316f758be669e4844655698b50776cd4cc3ccfb834bc433c1dec9bfb`, MariaDB:11.8 and Redis:alpine, then stand up isolated database/Redis/test app on guest localhost only. Keep Nov23 original confidential NAS backup outside guest until separately approved.
