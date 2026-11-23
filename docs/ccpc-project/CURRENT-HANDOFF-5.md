@@ -928,3 +928,23 @@ echo "GUEST RECOVERY IMAGES: LOADED"
 )
 ```
 This imports only immutable Docker image content from the read-only ISO into **guest** Docker data-root; no other host Docker daemon, no backup transfer, network pull or container launch. On successful image load, compare **full application image ID** against `sha256:f53cc9ee316f758be669e4844655698b50776cd4cc3ccfb834bc433c1dec9bfb`, DB and Redis against host inventory IDs; then prepare guest-only local DB/Redis and application test configuration. Do not claim restore validation until explicit owner approval and genuine isolated DB/site integration checks.
+
+## 2026-11-23 — Three guest images loaded, image IDs differ from original host; provenance check pending
+
+Owner successfully completed `docker image load` inside QEMU isolated no-NIC recovery guest, after SHA-256-verifying the mounted read-only ISO `/dev/vdc`, from `images.tgz.part-000` exported by the reviewed host media helper. Owner reported:
+
+```text
+=== VERIFYING RECOVERY IMAGES ===
+[ccpc-recovery:dev-nov23-b0cbe5c] sha256:ab3a4d20bdc4648291e7cded957874bb80b0dc2f0808b269c726f10b52d311aa
+[mariadb:11.8] sha256:0584f8a9edf68610996bd212f9fa3c45fe4fb85f53f1569de3311a15990227b6
+[redis:alpine] sha256:55563f45704d59e891b6aa643014bb6b562abf21909a44b3b297502415b68e29
+GUEST RECOVERY IMAGES: LOADED
+```
+
+**G11 guest image load PASS, image identity discrepancy OPEN:** all three tags exist in guest image store. The recorded host Docker image IDs were **app `sha256:f53cc9ee316f758be669e4844655698b50776cd4cc3ccfb834bc433c1dec9bfb`, MariaDB prefix `sha256:efb4959ef2c8`, Redis prefix `sha256:9d317178ecea`** (host values explicitly enforced by `scripts/development/operator/ccpc_dev_recovery_offline_media_20261123.sh` prior to `docker save`). In guest, **all three** are changed even though archive SHA verified. Do **not** claim identical image content from tag/ID alone. One plausible technical explanation is image identity differences under containerd vs classic image stores, especially newer Docker versions (see reported Docker CLI issue https://github.com/docker/cli/issues/6670 and Moby issue https://github.com/moby/moby/issues/51934), but **this is unverified for this host/guest pairing**; image ID mismatch must be explicitly reconciled with source metadata and read-only tests.
+
+**Next owner action (read-only guest-only, no container startup yet):** inspect application labels and architecture of the imported image:
+```bash
+sudo docker image inspect --format 'OS={{.Os}} ARCH={{.Architecture}} FRAPPE={{index .Config.Labels "org.ccpc.recovery.frappe-sha"}} ERPNEXT={{index .Config.Labels "org.ccpc.recovery.erpnext-sha"}} CCPC={{index .Config.Labels "org.ccpc.recovery.ccpcerp-sha"}} BUILD={{index .Config.Labels "org.ccpc.recovery.deploy-commit"}}' ccpc-recovery:dev-nov23-b0cbe5c
+```
+Compare exactly FRAPPE `988e54f3c4c291e2077a83809663f123731abe76`, ERPNEXT `4048fb70e14d1843956fcdabb7c3cca75a1cbcdd`, CCPC `b0cbe5c13cb68499a7920de2879f65e72cff000a`, BUILD `23b5f6fbd35bcdfef6d3de8aaa57e4bc5f80d723`, `linux/amd64`. Then separately perform networkless/read-only isolated `bench version` smoke test. For full provenance, compare the archive's image config digests and file hashes against known host originals, not a possibly storage-backend-dependent `.Id` field. No containers launched, guest DB/Redis not configured, confidential backup not imported, no PRODUCTION operation. Do not delete images, rerun image load, or change Docker storage backend in response to this discrepancy.
