@@ -619,3 +619,35 @@ Owner explicitly approved a combined one-time recovery environment setup on the 
 **GitHub code implementation complete, host work pending:** review branch `review/dev-restore-vm-staging-2026-11-23` commit **`78b9c4c99330d6d6b97a6e6a4ff0ce8a8c371261`**, new reviewed script `scripts/development/operator/ccpc_dev_recovery_image_build_20261123.sh`, blob `818df55a056634ff20b84046f074929f80db5b45`, source SHA256 `8d60739f1d2b681b33598f8b6dd3443c9e5e03766c7272b7ba4543ec05fd47be` (GitHub refetched, hash-selftested). It uses a NEW private build context rather than a dirty DEV checkout, pinned existing `images/custom/Containerfile` at deployment commit `23b5f6fbd35bcdfef6d3de8aaa57e4bc5f80d723`, BuildKit secret SSH/known_hosts and private temp apps.json branch `release/withdrawal-department-phase1-2026-11-17` (GitHub-verified HEAD b0cbe5c), and enforces exact Frappe 988e54f, ERPNext 4048fb7, CCPC b0cbe5c, CCPC ERPNext patch+overlay SHA in the existing Dockerfile. Target image `ccpc-recovery:dev-nov23-b0cbe5c`. Source checksum and AST/bash syntax **not yet checked by operator**, no image build run or loaded yet. Image builder may use approved host network/CPU, no deployment or host/guest DB modification, no volumes or secret files copied to image. Private log under `/home/gani/ccpc-restore-labs/ccpc-recovery-image-build-20261123/build.log`, output validated with ephemeral `--network none --read-only` container.
 
 **Next human operator step:** fetch exact script with pinned GitHub commit/blob/hash, `bash -n`, run once as `gani` on `ccpcerpserver` outside Codex (not root). If failure STOP, preserve image/build log, share sanitized last error only. Do not remove/switch current Docker images, restart Docker, change live DEVELOPMENT/PRODUCTION or rerun on same run folder automatically. After image build PASS, complete once-only offline media transfer and guest runtime setup without guest LAN and freeze clean baseline; no actual backup ingress authorized. Docs plan at commit `1d092b619b1dcf6a35b35d803641024e9b1af7d3`. The running persistent guest is Ubuntu 24.04.5 login-capable, 7.8Gi memory, 56Gi free, no NIC, no Docker.
+
+## 2026-11-23 — Exact-Nov23 CCPC recovery Docker image BUILD PASS, local ID f53cc9ee
+
+Owner executed GitHub-pinned shell helper `ccpc_dev_recovery_image_build_20261123.sh` **on normal `gani@ccpcerpserver`, outside Codex**, with SHA-256, Git blob and `bash -n` preflight. Owner's final terminal output:
+
+```text
+/home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_image_build_20261123.sh: OK
+RECOVERY IMAGE BUILD SCRIPT: VERIFIED
+RECOVERY IMAGE: fetching reviewed deployment source privately
+RECOVERY IMAGE: building ONLY new local image tag ccpc-recovery:dev-nov23-b0cbe5c (no container deployment)
+RECOVERY IMAGE: existing DEVELOPMENT image/DB and guest VM are not modified
+RECOVERY IMAGE: build log is private: /home/gani/ccpc-restore-labs/ccpc-recovery-image-build-20261123/build.log
+RECOVERY IMAGE: verifying image without networking, host folders, DB or secrets
+RECOVERY IMAGE BUILD: PASS
+IMAGE TAG: ccpc-recovery:dev-nov23-b0cbe5c
+IMAGE ID: sha256:f53cc9ee316f758be669e4844655698b50776cd4cc3ccfb834bc433c1dec9bfb
+FRAPPE GIT SHA: 988e54f3c4c291e2077a83809663f123731abe76
+ERPNEXT GIT SHA: 4048fb70e14d1843956fcdabb7c3cca75a1cbcdd
+CCPC GIT SHA: b0cbe5c13cb68499a7920de2879f65e72cff000a
+IMAGE APP VERSIONS:
+ccpcerp 0.0.1  ()
+erpnext 16.34.2  ()
+frappe 16.33.1  ()
+PRIVATE AUDIT DIRECTORY: /home/gani/ccpc-restore-labs/ccpc-recovery-image-build-20261123
+NO DEPLOYMENT, IMAGE EXPORT, VM NETWORKING OR BACKUP RESTORE
+```
+
+**Verified G3 milestone from owner evidence: PASS** new, exact-source, backend-stage app image compiled and its immutable SHA/version checks passed, Docker image available only in **host local image cache**, not yet loaded into recovery guest. Reviewed repo `images/custom/Containerfile` enforces upstream SHAs and original ERPNext CCPC overlay SHA. Build log is private; during build, Browserlist/Vite/font/Redis-cache warnings were observed and were nonfatal to overall PASS, but later restored sites still need runtime validation. Running DEVELOPMENT's original images, volumes, DB remain untouched by this operator build; **no deployment**. User approved combined one-time guest baseline setup earlier.
+
+**Next authorized implementation:** create private **non-secret offline guest media** containing `docker image save` of the exact new image (`sha256:f53cc9ee...`), local `mariadb:11.8` (`efb4959e...`) and `redis:alpine` (`9d317178...`), plus a vetted Docker Engine+dependencies for Ubuntu 24.04.5 guest. Guest **still QEMU `-nic none`**, no direct network, no Docker; use a separate bounded read-only attached offline media via QMP or reviewed guest restart controller to deliver. Never export host container filesystem, guest private backup, mounted `/workspace`, `/home/frappe/.ssh`, SSH keys or Docker socket. Original DEVELOPMENT and PRODUCTION untouched, no actual confidential backup ingress or restore under this approval.
+
+Docker's official [binary install docs](https://docs.docker.com/engine/install/binaries) allow test-only static engine installation but caution that distro packages are preferred and binary installs lack automatic security updates. For long-term reuse, pin/checksum engine archive, test offline Docker prerequisites (iptables/cgroup/overlayfs), and ensure no guest host/shared Docker daemon. No guest Docker installation/backup restore result is claimed.
