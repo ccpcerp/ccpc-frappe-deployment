@@ -948,3 +948,29 @@ GUEST RECOVERY IMAGES: LOADED
 sudo docker image inspect --format 'OS={{.Os}} ARCH={{.Architecture}} FRAPPE={{index .Config.Labels "org.ccpc.recovery.frappe-sha"}} ERPNEXT={{index .Config.Labels "org.ccpc.recovery.erpnext-sha"}} CCPC={{index .Config.Labels "org.ccpc.recovery.ccpcerp-sha"}} BUILD={{index .Config.Labels "org.ccpc.recovery.deploy-commit"}}' ccpc-recovery:dev-nov23-b0cbe5c
 ```
 Compare exactly FRAPPE `988e54f3c4c291e2077a83809663f123731abe76`, ERPNEXT `4048fb70e14d1843956fcdabb7c3cca75a1cbcdd`, CCPC `b0cbe5c13cb68499a7920de2879f65e72cff000a`, BUILD `23b5f6fbd35bcdfef6d3de8aaa57e4bc5f80d723`, `linux/amd64`. Then separately perform networkless/read-only isolated `bench version` smoke test. For full provenance, compare the archive's image config digests and file hashes against known host originals, not a possibly storage-backend-dependent `.Id` field. No containers launched, guest DB/Redis not configured, confidential backup not imported, no PRODUCTION operation. Do not delete images, rerun image load, or change Docker storage backend in response to this discrepancy.
+
+## 2026-11-23 — Guest CCPC image provenance labels match exact source SHAs; isolated bench smoke next
+
+Owner ran a guest-only read-only Docker image inspect command after the offline image import. Despite terminal copy/paste artifacts on some input lines, final formatted output was coherent and complete:
+```text
+OS=linux ARCH=amd64
+FRAPPE=988e54f3c4c291e2077a83809663f123731abe76
+ERPNEXT=4048fb70e14d1843956fcdabb7c3cca75a1cbcdd
+CCPC=b0cbe5c13cb68499a7920de2879f65e72cff000a
+BUILD=23b5f6fbd35bcdfef6d3de8aaa57e4bc5f80d723
+```
+**G12 image source-label verification PASS:** inspected imported guest image `ccpc-recovery:dev-nov23-b0cbe5c` has matching four full build-time source/deployment commit labels and platform `linux/amd64`. This reinforces chain of custody from host SHA-gated build through manifest-verified ISO. However Docker image content IDs **still do not match** host image IDs after save/load (all three), so do not claim byte-identical Docker image IDs or that labels alone cryptographically verify the image.
+
+**Next one-time guest-only test:** replicate the host build helper's already reviewed, successfully executed **networkless read-only app smoke** inside the guest (not host) using:
+```bash
+sudo docker run --rm --network none --read-only --user 1000:1000 \
+  --cap-drop ALL --security-opt no-new-privileges --pids-limit 64 \
+  --memory 768m --entrypoint /bin/sh \
+  ccpc-recovery:dev-nov23-b0cbe5c -c '
+    set -e
+    cd /home/frappe/frappe-bench
+    for a in frappe erpnext ccpcerp; do test -d "apps/$a"; done
+    bench version
+  '
+```
+Expected `frappe 16.33.1`, `erpnext 16.34.2`, `ccpcerp 0.0.1`; no guest NIC exists, Docker `--network none`, no host mounts, no DB, no backup restore, no production action. This is a smoke test, NOT real restored-site/database validation. On failure stop, inspect only; do not rerun automatically or change guest storage engine.
