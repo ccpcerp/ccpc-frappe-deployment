@@ -899,3 +899,32 @@ Docker version 29.7.2, build 6a43e3d
 **GitHub engineering continuation prepared and refetched:** review branch `review/dev-restore-vm-staging-2026-11-23`, commit **`ceb7f3f8692a8a4771aaebfb80b5bb3744a99f13`**, path `scripts/development/operator/ccpc_dev_recovery_guest_finish_docker_20261123.sh`, Git blob SHA-1 `9263a33cc83cbda52b3c6d54517c0a5bce264f45`. New scoped resume script checks `ccpc-recovery` guest, `ccpc-restore`, pinned CLI+daemon versions, mounted read-only ISO, no existing daemon config/service/socket, only `lo` guest interface, overlayfs; writes guest-only `/etc/docker/daemon.json` with `overlay2` and legacy image storage, no default bridge, no iptables/ip-forward/masquerade; validates via `dockerd --validate --config-file`, creates `ccpc-recovery-docker.service` with `Type=notify` and `Delegate=yes`, starts but does **not enable** service on boot, verifies `sudo docker info` and absence of Docker bridge. May be pasted by owner **inside the guest only**; source content committed first in GitHub. This is not an image export, deployment, backup restore, or production operation. **Guest service start result still PENDING**. On any STOP, do not rerun script because it creates local files; inspect `sudo systemctl status ccpc-recovery-docker.service --no-pager` and `sudo journalctl -u ccpc-recovery-docker.service -n 35 --no-pager` without posting secrets. Do not confuse guest with host shell.
 
 Once guest daemon runs successfully, load three image tags from `images.tgz.part-000` on read-only ISO, verify exact app image ID `sha256:f53cc9ee316f758be669e4844655698b50776cd4cc3ccfb834bc433c1dec9bfb`, MariaDB:11.8 and Redis:alpine, then stand up isolated database/Redis/test app on guest localhost only. Keep Nov23 original confidential NAS backup outside guest until separately approved.
+
+## 2026-11-23 — Isolated guest Docker daemon STARTED PASS, image import pending
+
+Owner resumed **only the remaining guest-side Docker configuration** from the reviewed `ccpc_finish_docker.sh` script after static CLI/daemon binaries were successfully installed. Output from `ccpc-restore@ccpc-recovery:/mnt/ccpc-recovery-media`:
+
+```text
+configuration OK
+active
+Storage=overlay2 Cgroup=2 Root=/var/lib/ccpc-recovery-docker
+GUEST DOCKER ENGINE: STARTED
+```
+
+**G10 guest Docker Engine STARTED PASS:** daemon config validated, dedicated `ccpc-recovery-docker.service` active, Docker engine running **inside the isolated guest** with storage driver overlay2, cgroup v2, data-root `/var/lib/ccpc-recovery-docker`. Original shell includes guard against unintended guest NICs, checks mounted read-only ISO and no docker0 interface. Guest QEMU media controller started with `-nic none`; no host Docker socket or DEVELOPMENT volumes attached. This did **not** automatically import the application/DB/Redis images or start guest containers; no actual confidential backup ingress/restore or PRODUCTION operation has occurred. The guest Docker service was started, not enabled for boot; after future guest poweroff it will need controlled start or documented setup.
+
+**Immediate approved next operator action, INSIDE GUEST ONLY:** verify signed-from-host ISO manifest again and load exactly approved image archive:
+```bash
+(
+set -euo pipefail
+MEDIA=/mnt/ccpc-recovery-media
+cd "$MEDIA"
+sha256sum -c SHA256SUMS
+cat "$MEDIA"/images.tgz.part-* | gzip -dc | sudo docker image load
+for IMAGE in ccpc-recovery:dev-nov23-b0cbe5c mariadb:11.8 redis:alpine; do
+  sudo docker image inspect --format '{{.RepoTags}} {{.Id}}' "$IMAGE"
+done
+echo "GUEST RECOVERY IMAGES: LOADED"
+)
+```
+This imports only immutable Docker image content from the read-only ISO into **guest** Docker data-root; no other host Docker daemon, no backup transfer, network pull or container launch. On successful image load, compare **full application image ID** against `sha256:f53cc9ee316f758be669e4844655698b50776cd4cc3ccfb834bc433c1dec9bfb`, DB and Redis against host inventory IDs; then prepare guest-only local DB/Redis and application test configuration. Do not claim restore validation until explicit owner approval and genuine isolated DB/site integration checks.
