@@ -779,3 +779,27 @@ ccpc-restore@ccpc-recovery:~$
 lsblk -o NAME,SIZE,RO,FSTYPE,LABEL,MOUNTPOINTS
 ```
 Look for separate virtio block ISO9660 device `CCPCRECOVERY2026`; do not assume a fixed `/dev/vdc` prior to evidence. After confirmation, safely mount image read-only, verify payload manifest, evaluate Docker runtime dependencies offline, then load only the three verified image tags to guest. Host Docker remains untouched and PRODUCTION never operated on. Media image size=1127800832 bytes, owner-verified SHA256=32ac13073a0383a75c6bc0df7b93a8b7995750cfa0406e05133084aad9eb84b4.
+
+## 2026-11-23 — Guest recognizes CCPC recovery ISO as read-only /dev/vdc, checksum check pending
+
+Owner ran `lsblk -o NAME,SIZE,RO,FSTYPE,LABEL,MOUNTPOINTS` from successfully logged-in `ccpc-restore@ccpc-recovery` in QEMU media guest PID **2717495**:
+```text
+NAME     SIZE RO FSTYPE  LABEL            MOUNTPOINTS
+vda       60G  0
+├─vda1    59G  0 ext4    cloudimg-rootfs  /
+├─vda14    4M  0
+├─vda15  106M  0 vfat    UEFI             /boot/efi
+└─vda16  913M  0 ext4    BOOT             /boot
+vdb      366K  1 iso9660 cidata
+vdc      1.1G  1 iso9660 CCPCRECOVERY2026
+```
+**G6 guest media recognition PASS:** only the intended extra read-only `iso9660` QEMU drive appears, labeled `CCPCRECOVERY2026`, at **`/dev/vdc`**. Persistent root filesystem `/dev/vda1`, preexisting cloud-init seed `/dev/vdb`. **Not yet mounted, manifest-verified, or installed** as of this operator response; no guest Docker daemon or MariaDB/Redis/ERPNext containers running; no private backup transferred/restored, no guest network.
+
+**Immediate next action in guest (allowed under approved combined one-time lab setup):**
+```bash
+sudo mkdir -p /mnt/ccpc-recovery-media
+sudo mount -t iso9660 -o ro,nosuid,nodev,noexec /dev/vdc /mnt/ccpc-recovery-media
+cd /mnt/ccpc-recovery-media
+sha256sum -c SHA256SUMS
+```
+Expected pass: `docker-29.7.2.tgz: OK` and all `images.tgz.part-*` files `OK`. This validates contents after SHA-verified host ISO construction, without extracting/executing anything. No installation until owner sends digest check result. If mount already in place, inspect first; do not mount unknown devices. The next step after PASS is verifying available guest host prerequisites for standalone Docker testing binaries, installing and loading only isolated images into guest disk; no host or PRODUCTION Docker changes.
