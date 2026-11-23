@@ -467,3 +467,24 @@ The matching custom app `ccpcerp` release source HEAD was separately checked in 
 
 **Next operator step:** fetch pinned script into private `~/ccpc-reviewed-scripts`, Python AST preflight, then one `sg kvm -c 'python3 -B ... --start'` in normal Ubuntu terminal, outside Codex. Do not rerun script if it reports `STOP`/one-shot folder exists. After report, attach `--console` to cloud-init guest, login with local protected guest password **never pasted into ChatGPT/GitHub**, confirm `ccpc-restore` account and OS. Guest dependency provisioning and confidential Nov23 backup ingress **remain pending** and require separate exact verified method. Speed preference: install guest recovery app stack **once**, then disposable overlays per future backup; avoid repeating smoke tests/reinstall.
 **Plan docs** updated and verified at commit `0b6a97a96e06bbd1fbad8167e17a58335456d78a`.
+
+## 2026-11-23 — Persistent guest VM requested and QEMU PID 2701670 reported; login pending
+
+Owner ran the exact pinned reviewed `ccpc_dev_recovery_guest_control_20261123.py --start` script on normal trusted `gani@ccpcerpserver` host via `sg kvm`. Terminal output:
+```text
+/home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_guest_control_20261123.py: OK
+PYTHON SYNTAX: PASS
+PERSISTENT GUEST CONTROL: VERIFIED
+PERSISTENT GUEST START: REQUESTED; QEMU PID: 2701670
+NETWORK: NONE; BACKUP TRANSFER: NONE
+PERSISTENT GUEST DISK: /home/gani/ccpc-restore-labs/ccpc-dev-recovery-baseline-20261123/ubuntu-recovery-baseline.qcow2
+GUEST LOGIN: ccpc-restore (password in private host-only file)
+CONSOLE: python3 -B <this-script> --console
+SHUTDOWN: python3 -B <this-script> --shutdown
+NO DOCKER / DEVELOPMENT DB / PRODUCTION OPERATION
+```
+**Verified status:** reviewed file SHA256 and AST PASS on owner's machine; QEMU launch requested and virtual machine process assigned PID **2701670**; separate guest disk and private guest seed were previously owner-verified staged; QEMU controlled via Unix sockets with `-nic none` and no backups/host mounts. **Do not yet report guest cloud-init success, login, running app stack, backup recovery, or shutdown** without new operator evidence. The QEMU process may run across SSH disconnect until manual guest ACPI shutdown; 8 GiB RAM and four vCPUs budgeted.
+
+**Next action (normal host outside Codex):** `python3 -B /home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_guest_control_20261123.py --status` if needing read-only state, then `python3 -B /home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_guest_control_20261123.py --console` in interactive terminal to reach `ccpc-recovery login:`. Username `ccpc-restore`, password stored only in local private file `/home/gani/ccpc-restore-labs/ccpc-dev-recovery-baseline-20261123/guest-console-password.txt` mode0600. **Do not disclose password, its hash, user-data or credentials in GitHub, tools, shared logs or ChatGPT**. Console exits with Ctrl+] without stopping VM; ACPI `--shutdown` only on actual owner request. If console rejects password/cloud-init failed, review sanitized outputs; never reboot/recreate host or touch live DEV/PROD.
+
+Next: guest-only one-time package provisioning and matched app revisions: Frappe 16.33.1 `988e54f3c4c291e2077a83809663f123731abe76`; ERPNext 16.34.2 `4048fb70e14d1843956fcdabb7c3cca75a1cbcdd`; CCPC 0.0.1 `b0cbe5c13cb68499a7920de2879f65e72cff000a`. Preserve the clean baseline for reuse, limit any temporary provisioning connectivity, and do not access November23 NAS backup until carefully scoped guest import and restore plan. User's explicit preference: fast, repeatable backup tests without repeated long staging approval loops.
