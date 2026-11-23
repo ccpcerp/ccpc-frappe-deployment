@@ -1009,3 +1009,18 @@ sudo ss -lnt '( sport = :3306 )'
 )
 ```
 Official MariaDB image provides `healthcheck.sh --connect --innodb_initialized` (https://mariadb.com/docs/server/server-management/automated-mariadb-deployment-and-administration/docker-and-mariadb/using-healthcheck-sh); it verifies TCP connectivity and InnoDB initialization without printing root password. The `ss` output should show listening **127.0.0.1:3306**, not `0.0.0.0` or IPv6 all-address. If healthcheck returns nonzero, preserve guest logs/state and diagnose rather than rerunning one-shot script. **No Redis yet** until MariaDB readiness and listener scope verified.
+
+## 2026-11-24 — Guest MariaDB healthcheck and loopback-only bind PASS; Redis staged on GitHub
+
+Owner successfully ran guest MariaDB readiness test and guest-only socket inspection:
+```text
+MARIADB HEALTHCHECK: PASS
+State    Recv-Q   Send-Q     Local Address:Port     Peer Address:Port  Process
+LISTEN   0        80             127.0.0.1:3306          0.0.0.0:*
+ccpc-restore@ccpc-recovery:/mnt/ccpc-recovery-media$
+```
+**G15 MariaDB readiness PASS:** MariaDB 11.8's `healthcheck.sh --connect --innodb_initialized` verified readiness and InnoDB startup; guest socket binds **only** `127.0.0.1:3306`. Peer wildcard `0.0.0.0:*` in `ss` is LISTEN's *possible remote peer* placeholder, **not an externally bound local address**. QEMU `-nic none` unchanged. MariaDB volume contains a new empty instance, no confidential November23 backup imported/restored, no live DEVELOPMENT/PRODUCTION action. Three application app versions have already passed isolated `bench version` smoke; host vs guest Docker `.Id` discrepancy from `docker save/load` remains open but full source metadata and app versions match.
+
+**Reviewed Redis implementation now available on GitHub:** `scripts/development/operator/ccpc_dev_recovery_guest_start_redis_20261124.sh` on review branch `review/dev-restore-vm-staging-2026-11-23` at commit **`e89f5222e849fbf7d2b47a6b45270719f89b3f23`**, Git blob `9963798f0c090bc03c860e7dcf39919b87852d39`, refetched/verified. The owner-approved guest-only setup script refuses any guest interface beyond `lo`, unexpected Docker daemon root, unexpected container/volume, missing MariaDB health, non-loopback 3306 listener, occupied Redis ports, or absent offline `redis:alpine`. It starts new cache `ccpc-recovery-redis-cache` at guest **127.0.0.1:13000** with no persistence, non-root `redis` user and bounded 256MB evictable LRU memory, `--network host` referring ONLY to QEMU guest. It starts `ccpc-recovery-redis-queue` at guest **127.0.0.1:11000**, AOF everysec in new guest-only named `ccpc-recovery-redis-queue-data` volume, no eviction; both `--pull=never`, read-only image root, no restarts, memory/pid limits and no ports exposed to host. Frappe site config docs https://docs.frappe.io/framework/user/en/basics/site_config lists cache 13000, queue 11000. Redis Docker docs support local-only binding, AOF volume. **Redis service setup not yet executed by operator, readiness and security verification pending**. No host Docker or PRODUCTION changes; no actual backup ingress/restoration. On partial failure do not rerun script; inspect guest Docker state.
+
+**Next one-time step:** Owner run reviewed script contents inside `ccpc-restore@ccpc-recovery` (guest console, not host shell), then verify via `sudo docker exec ccpc-recovery-redis-cache redis-cli -h 127.0.0.1 -p 13000 ping`, queue 11000 likewise, and `sudo ss -lnt` confirm only 127.0.0.1 addresses for 3306/11000/13000. No external traffic. After services pass, complete clean baseline guest shutdown/clone plan; backup still excluded under prior approval.
