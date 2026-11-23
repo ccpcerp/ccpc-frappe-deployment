@@ -663,3 +663,17 @@ After operator-reported **exact-source recovery Docker image BUILD PASS** `sha25
 - Remaining: attach media through **reviewed QMP hotplug** or guest-only controlled graceful stop/restart path; verify ISO, guest prerequisites (especially `iptables`), install runtime only inside guest, `docker load` exactly approved images, start guest MariaDB/Redis/app and freeze baseline. No backup ingress or restore yet. Do not infer media preparation or guest Docker install succeeded until owner terminal confirms it. Original guest still launched `-nic none` with no shared resources. Avoid repeated provisioning or adding guest network.
 
 Operator workflow: fetch immutable script by commit, check exact Git blob and SHA256 and `bash -n` once, then execute in host terminal. Do not rerun if one-shot folder exists; preserve evidence on error. User has approved the combined installation, no per-step approval needed for guest-only work, but no production or confidential backup restore approval.
+
+## 2026-11-23 — Offline-media script initial run blocked at line 39; fix committed, rerun pending
+
+Owner fetched GitHub-reviewed offline ISO prep script `ccpc_dev_recovery_offline_media_20261123.sh`, verified original SHA and `bash -n`, but first attempt failed before ISO creation:
+```text
+/home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_offline_media_20261123.sh: OK
+OFFLINE MEDIA SCRIPT: VERIFIED
+/home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_offline_media_20261123.sh: line 39: test: b0cbe5c13cb68499a7920de2879f65e72cff000a: unary operator expected
+```
+**Root cause exactly reviewed in connected GitHub source:** `test "$(docker image inspect ...)" =` incorrectly ended the shell line before its expected SHA argument, so Bash ran `test` with missing operand. User-reported error shows image label itself returned the expected Nov22 SHA. The script failed **before** one-shot directory `/home/gani/ccpc-restore-labs/ccpc-recovery-offline-media-20261123` is made (creation is after this check). It made no media/download/export or guest change. Original successful Frappe/ERPNext/CCPC image ID `sha256:f53cc9ee316f758be669e4844655698b50776cd4cc3ccfb834bc433c1dec9bfb` remains intact as far as evidence shows.
+
+**GitHub fix committed and verified**, branch `review/dev-restore-vm-staging-2026-11-23`, path `scripts/development/operator/ccpc_dev_recovery_offline_media_20261123.sh`, commit **`9f30830565feeaa08067cb3b43db88bc5b293501`**, new blob SHA-1 **`eaa06809b5d84b5f110f65697e219efc34a73550`**, full script SHA-256 **`f765d08f2390c98f6a508050a45478f13516a70b9248108f1158ae2ca14e03d6`** (JS hash algorithm known-vector verified). Fixed by explicit `if test "$(docker image inspect ...label...)" != "b0cbe5c..."; then stop ...; fi`, no split test operands. Only source repair, original active DEV and guest unaffected.
+
+**Next owner action**, normal host only: verify original local script hash `a35ddbc348b19badbf855df64586c6826875c8a43c86d4e084a31bab1039e9b9`, fetch corrected exact GitHub commit and blob into private temp directory, verify new SHA256 and `bash -n`, atomically replace prior local reviewed script, verify one-shot media directory absent, execute **only corrected ISO/media script** again. The original code-correct application Docker build should **never be repeated**. As yet no corrected media run result or guest VM import. If one-shot folder exists unexpectedly, STOP and inspect rather than delete. No PRODUCTION or private backup.
