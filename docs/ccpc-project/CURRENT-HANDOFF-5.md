@@ -1024,3 +1024,34 @@ ccpc-restore@ccpc-recovery:/mnt/ccpc-recovery-media$
 **Reviewed Redis implementation now available on GitHub:** `scripts/development/operator/ccpc_dev_recovery_guest_start_redis_20261124.sh` on review branch `review/dev-restore-vm-staging-2026-11-23` at commit **`e89f5222e849fbf7d2b47a6b45270719f89b3f23`**, Git blob `9963798f0c090bc03c860e7dcf39919b87852d39`, refetched/verified. The owner-approved guest-only setup script refuses any guest interface beyond `lo`, unexpected Docker daemon root, unexpected container/volume, missing MariaDB health, non-loopback 3306 listener, occupied Redis ports, or absent offline `redis:alpine`. It starts new cache `ccpc-recovery-redis-cache` at guest **127.0.0.1:13000** with no persistence, non-root `redis` user and bounded 256MB evictable LRU memory, `--network host` referring ONLY to QEMU guest. It starts `ccpc-recovery-redis-queue` at guest **127.0.0.1:11000**, AOF everysec in new guest-only named `ccpc-recovery-redis-queue-data` volume, no eviction; both `--pull=never`, read-only image root, no restarts, memory/pid limits and no ports exposed to host. Frappe site config docs https://docs.frappe.io/framework/user/en/basics/site_config lists cache 13000, queue 11000. Redis Docker docs support local-only binding, AOF volume. **Redis service setup not yet executed by operator, readiness and security verification pending**. No host Docker or PRODUCTION changes; no actual backup ingress/restoration. On partial failure do not rerun script; inspect guest Docker state.
 
 **Next one-time step:** Owner run reviewed script contents inside `ccpc-restore@ccpc-recovery` (guest console, not host shell), then verify via `sudo docker exec ccpc-recovery-redis-cache redis-cli -h 127.0.0.1 -p 13000 ping`, queue 11000 likewise, and `sudo ss -lnt` confirm only 127.0.0.1 addresses for 3306/11000/13000. No external traffic. After services pass, complete clean baseline guest shutdown/clone plan; backup still excluded under prior approval.
+
+## 2026-11-24 — Guest Redis containers started; cache/queue PING and loopback checks pending
+
+Owner ran previously reviewed `ccpc_start_redis.sh` inside the networkless recovery guest `ccpc-restore@ccpc-recovery`, corresponding to GitHub source `scripts/development/operator/ccpc_dev_recovery_guest_start_redis_20261124.sh` on `review/dev-restore-vm-staging-2026-11-23`, reviewed commit `e89f5222e849fbf7d2b47a6b45270719f89b3f23`. Output:
+```text
+=== STARTING REDIS CACHE ===
+[64-hex container ID, omitted]
+=== STARTING REDIS QUEUE ===
+[64-hex container ID, omitted]
+=== GUEST CONTAINER STATUS ===
+ccpc-recovery-redis-queue  Up Less than a second
+ccpc-recovery-redis-cache  Up Less than a second
+ccpc-recovery-mariadb  Up 9 minutes
+REDIS CONTAINERS: START REQUESTED
+```
+**G16 guest Redis cache/queue container startup PASS, readiness PENDING:** both Redis containers created from preloaded `redis:alpine` image and observed Up in Docker immediately after start. Proposed config guest-only cache `127.0.0.1:13000`, no persistence, and guest-only queue `127.0.0.1:11000`, AOF in guest Docker volume. Containers use `--network host` only in QEMU **guest** network namespace, which has `-nic none`, no Docker host socket share and no external forwarding. Existing guest-only MariaDB container observed Up 9 minutes; prior `healthcheck.sh --connect --innodb_initialized` PASS and guest local address `127.0.0.1:3306`. All three **container start** statuses are not yet evidence of two Redis `PONG` responses. No confidential backups copied/restored, no site data, no physical DEVELOPMENT or PRODUCTION service change.
+
+**Next one-step guest-only read-only check:**
+```bash
+(
+set -e
+echo '=== REDIS CACHE ==='
+sudo docker exec ccpc-recovery-redis-cache redis-cli -h 127.0.0.1 -p 13000 ping
+echo '=== REDIS QUEUE ==='
+sudo docker exec ccpc-recovery-redis-queue redis-cli -h 127.0.0.1 -p 11000 ping
+echo '=== LOCAL LISTENING PORTS ==='
+sudo ss -lnt '( sport = :3306 or sport = :11000 or sport = :13000 )'
+echo 'REDIS CONNECTIVITY CHECKS: PASS'
+)
+```
+Expected `PONG` twice, all three listening addresses exactly `127.0.0.1` at ports 3306, 11000 and 13000. Note the displayed `Peer Address:Port=0.0.0.0:*` under `LISTEN` is not a wildcard local bind. On any failure do not rerun one-shot Redis script or delete containers/volumes; inspect the stopped container and logs without secrets. A healthy Redis check alone does not complete Frappe site creation or independently validate backup restore. Once cache and queue pass, prepare clean reusable recovery baseline with appropriate guarded guest shutdown and qcow2 snapshot overlay workflow; user's approval **excludes confidential backup transfer and restoration**.
