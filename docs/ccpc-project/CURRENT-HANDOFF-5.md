@@ -758,3 +758,24 @@ echo "=== OFFLINE RECOVERY MEDIA ==="
 lsblk -o NAME,SIZE,RO,FSTYPE,LABEL,MOUNTPOINTS
 ```
 Confirm separate read-only `iso9660` VirtIO device label `CCPCRECOVERY2026`. Do not assume `/dev/vdc` until verified; original cloud-init ISO may occupy `/dev/vdb`. After guest media recognition, perform source checksum verification and guest-only Docker runtime prerequisites/installation and `docker load` with no network. Guest ACPI QMP `--shutdown` uses same vulnerable simplistic response reader as old controller; may incorrectly reject an asynchronous event; use guest-native `sudo systemctl poweroff` if appropriate, and verify stopped before any guest disk clone. No confidential backup ingress or actual restore authorized.
+
+## 2026-11-23 — Offline ISO guest successfully booted and logged in; lsblk pending
+
+Owner attached to the exact reviewed **ISO-equipped recovery guest** via `ccpc_dev_recovery_guest_media_control_20261123.py --console` and reported:
+```text
+OFFLINE-MEDIA GUEST: RUNNING; PID: 2717495
+QEMU NETWORK: NONE; ISO: READ-ONLY (launch argument)
+NO HOST SHARES / PORT FORWARDS
+GUEST CONSOLE ATTACHED. Ctrl+] to detach.
+ccpc-recovery login: ccpc-restore
+Password: [not shared]
+Welcome to Ubuntu 24.04.5 LTS (GNU/Linux 6.8.0-147-generic x86_64)
+ccpc-restore@ccpc-recovery:~$
+```
+**Verified:** previous persistent guest's baseline qcow2 successfully boots with additional **SHA-256-verified, read-only offline ISO as QEMU drive**; console login as `ccpc-restore` PASS; no NIC, no host shares/port forwards. Ubuntu reports inability to access changelogs over the Internet, which is expected without guest networking. No actual guest ISO filesystem read or mount verified yet, no guest Docker installed, no MariaDB/Redis/Frappe containers started, no confidential backup transfer or restore. No password disclosed.
+
+**Next owner action** read-only inside `ccpc-restore@ccpc-recovery:~$`:
+```bash
+lsblk -o NAME,SIZE,RO,FSTYPE,LABEL,MOUNTPOINTS
+```
+Look for separate virtio block ISO9660 device `CCPCRECOVERY2026`; do not assume a fixed `/dev/vdc` prior to evidence. After confirmation, safely mount image read-only, verify payload manifest, evaluate Docker runtime dependencies offline, then load only the three verified image tags to guest. Host Docker remains untouched and PRODUCTION never operated on. Media image size=1127800832 bytes, owner-verified SHA256=32ac13073a0383a75c6bc0df7b93a8b7995750cfa0406e05133084aad9eb84b4.
