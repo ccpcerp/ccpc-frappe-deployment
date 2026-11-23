@@ -563,3 +563,29 @@ Thus the active VS Code development container **uses external bind mounts**, inc
 **GitHub source inspection:** `images/custom/Containerfile` on branch `review/dev-restore-vm-staging-2026-11-23` builds a complete `/home/frappe/frappe-bench` in its builder, verifies `EXPECTED_FRAPPE_SHA`, `EXPECTED_ERPNEXT_SHA`, `EXPECTED_CCPC_SHA` at build time, then **removes all `.git` folders** and copies the bench into the final backend image. Consequently, local `ccpcerp:v16.34.0` (~3.82GB) and `ccpcerp:v16.50.0` (~4.11GB) are *potentially reusable complete app images*, but **their tags/size alone do not establish their actual app versions or SHA pins**. Image history/git metadata may be absent. Any necessary Frappe/ERPNext/CCPC image verification should use immutable source/build attestation and read-only app version checks before doing an offline export; note Docker images often define anonymous `VOLUME` locations, which `--rm` cleans up.
 
 **Immediate owner-host next operation (low-impact, disposable, no guest networking or secret access):** inspect `ccpcerp:v16.34.0` and `ccpcerp:v16.50.0` via `docker run --rm --network none --read-only --user 1000:1000 --cap-drop ALL --security-opt no-new-privileges --pids-limit 64 --memory 768m --entrypoint /bin/sh` (no host mounts, no Docker socket and no published ports). Read only app folder presence and `bench version`, if available. No image save, database/volume mount, backup ingress, Docker restart or PRODUCTION changes. If versions match Nov23, plan one-time guest Docker runtime setup and sealed image transfer. If not, build/pin suitable image once using verified app refs, then reuse a guest baseline. Live DEV currently remains Frappe 16.33.1 `988e54f3...`, ERPNext 16.34.2 `4048fb70...`, CCPC 0.0.1 `b0cbe5c...`; restore compatibility not yet proved.
+
+## 2026-11-23 — Offline disposable image check confirms matching app versions in ccpcerp:v16.50.0
+
+Owner ran the reviewed local-image check with **ephemeral** `docker run --rm --network none --read-only --user 1000:1000 --cap-drop ALL --security-opt no-new-privileges`, no volume/host shares:
+```text
+=== CHECKING ccpcerp:v16.34.0 ===
+frappe: PRESENT
+erpnext: PRESENT
+ccpcerp: PRESENT
+ccpcerp 0.0.1  ()
+erpnext 16.29.0  ()
+frappe 16.28.0  ()
+=== CHECKING ccpcerp:v16.50.0 ===
+frappe: PRESENT
+erpnext: PRESENT
+ccpcerp: PRESENT
+ccpcerp 0.0.1  ()
+erpnext 16.34.2  ()
+frappe 16.33.1  ()
+```
+
+**Decision:** `ccpcerp:v16.34.0` NOT SUITABLE for Nov23 restore; `ccpcerp:v16.50.0` **VERSION-MATCHING CANDIDATE** for guest-only recovery baseline. It contains all three app directories and matches the reported versions installed in live DEV (**Frappe 16.33.1, ERPNext 16.34.2, CCPC 0.0.1**). The `()` display is not Git HEAD evidence: build stage removes `.git`. The exact DEV commits pinned as Frappe `988e54f3c4c291e2077a83809663f123731abe76`, ERPNext `4048fb70e14d1843956fcdabb7c3cca75a1cbcdd`, CCPC `b0cbe5c13cb68499a7920de2879f65e72cff000a`; build provenance and any ERPNext patch **not yet independently verified for image `v16.50.0`**. Do NOT claim recoverability or exact source parity until a guest restore test. Do not use the active VS Code `vsc-...` image as a stand-in: Frappe apps are bind-mounted via `/workspace` and host SSH path `/home/frappe/.ssh` is also a bind mount.
+
+**Next shortest read-only provenance check on DEVELOPMENT host:** `docker image inspect ccpcerp:v16.50.0` formatted to print only image ID/creation date/architecture/revision label, and `docker history --no-trunc` filtered to show **only SHA-1 pins** matching `EXPECTED_(FRAPPE|ERPNEXT|CCPC)_SHA=[0-9a-f]{40}` if present. Do NOT dump unrestricted image history/ENV/secrets in chat. This check may not expose pins; absent labels != invalid image. If no attestation, use the version-matching candidate on a **disposable guest restore** while clearly recording patch/revision uncertainty, or obtain audited image rebuild once. No export or guest package install authorized in this read-only step.
+
+**Guest remains** persistent Ubuntu 24.04.5 `ccpc-restore`, 7.8Gi RAM, 56Gi free, no NIC, no Docker/MariaDB/Redis. One-time offline dependency/Docker engine image-ingress strategy remains unimplemented. Avoid repeat image download or VM boot tests; favor one bounded guest bootstrap and fast overlay-based per-backup tests. No production or actual private backup import.
