@@ -589,3 +589,23 @@ frappe 16.33.1  ()
 **Next shortest read-only provenance check on DEVELOPMENT host:** `docker image inspect ccpcerp:v16.50.0` formatted to print only image ID/creation date/architecture/revision label, and `docker history --no-trunc` filtered to show **only SHA-1 pins** matching `EXPECTED_(FRAPPE|ERPNEXT|CCPC)_SHA=[0-9a-f]{40}` if present. Do NOT dump unrestricted image history/ENV/secrets in chat. This check may not expose pins; absent labels != invalid image. If no attestation, use the version-matching candidate on a **disposable guest restore** while clearly recording patch/revision uncertainty, or obtain audited image rebuild once. No export or guest package install authorized in this read-only step.
 
 **Guest remains** persistent Ubuntu 24.04.5 `ccpc-restore`, 7.8Gi RAM, 56Gi free, no NIC, no Docker/MariaDB/Redis. One-time offline dependency/Docker engine image-ingress strategy remains unimplemented. Avoid repeat image download or VM boot tests; favor one bounded guest bootstrap and fast overlay-based per-backup tests. No production or actual private backup import.
+
+## 2026-11-23 — Selected image older than mandatory Nov22 CCPC commit; version match is not code match
+
+Owner supplied exact **read-only local Docker image metadata** for selected candidate:
+```text
+=== SELECTED RECOVERY IMAGE ===
+ID=sha256:4580454f7c43dd7c97b41f2fa1ac59b468e7d07759217a2e38e7ee711ee651d8
+CREATED=2026-09-16T15:55:49.950715082+08:00
+ARCH=amd64
+=== SOURCE REVISION LABEL ===
+no revision label
+=== BUILD COMMIT REFERENCES ===
+<none printed>
+```
+
+**New critical provenance finding:** Connected GitHub confirms the required installed custom-app release commit **`b0cbe5c13cb68499a7920de2879f65e72cff000a` was committed November 22, 2026, at 06:08:19 UTC** (merge PR #41). Therefore, the reported image created **September 16, 2026** **cannot include that required Nov22 commit as-built**, despite exact `bench version` strings (Frappe 16.33.1/ERPNext 16.34.2/CCPC 0.0.1). **Do not promote `ccpcerp:v16.50.0` to a version-accurate clean Nov23 recovery baseline as-is.** The `0.0.1` custom app version is non-discriminating; labels/history are absent. The image may still serve as a **runtime/dependency base** after precise latest-app source overlay, or a **new image** may be built once at exact pinned Git commits. Prefer one-time build/overlay over redoing all dependency installation each backup. Exclude `ccpcerp:v16.34.0`: it has Frappe v16.28.0, ERPNext v16.29.0.
+
+**Short critical path decision for operator:** prepare one reusable Frappe 16.33.1/ERPNext 16.34.2/CCPC Nov22 `b0cbe5c` **code-correct image** (using existing GitHub `images/custom/Containerfile` expected-SHA guard or audited source code overlay) on DEVELOPMENT host, confirm that no secrets/volumes from existing live DEV are packaged, then install a guest-only Docker engine and import vetted images into offline 24.04.5 guest. Existing `mariadb:11.8` and `redis:alpine` can be reused. Keep no guest network with confidential data; if temporary guest provisioning NIC is needed, seek one bounded approval and disconnect it before backup ingress. The currently running guest is still only a bare Ubuntu VM, 7.8Gi RAM/56Gi free, no guest DB/Redis/Docker/Frappe installed. No real backup has been restored; NAS 8/8 source checksum PASS remains unaffected. Owner's preference is quick repeatable recovery tests, not further serial metadata-only checks.
+
+**One-time authorization limit:** earlier guest-only baseline setup approved, but a substantial new host Docker build/network change, first private backup copy/restore or any production operation is not implicitly approved. One explicit combined scope is preferable to per-command approvals. No SSH key/secret in guest, GitHub, or ChatGPT. The development `vsc-` image is invalid as complete app source since `/workspace` and `/home/frappe/.ssh` are externally bind-mounted.
