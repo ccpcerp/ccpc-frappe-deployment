@@ -357,3 +357,27 @@ DO NOT RELAUNCH OR DELETE ONE-SHOT FILES
 This verifies reviewed **launcher** path and distinct supervisor PID; **it does not establish detached supervisor actually started QEMU, guest boot success, watchdog clean termination, Docker continuity or database restore**. Runtime artifacts are only visible to the owner on DEVELOPMENT host.
 
 **Immediate one-step read-only verification:** operator inspect `/home/gani/ccpc-restore-labs/ccpc-dev-restore-offline-test2-20261123/status.json` **if present** and private supervisor.log and sanitized serial tail; check `ps -p 2699269 -o pid,ppid,stat,etime,comm,args` and VM-specific QEMU process state without any signal. If status absent, report missing and supervisor state; if error, preserve all files; do not relaunch, kill processes, attach backups, alter network, restart Docker or touch PRODUCTION. Require independent console evidence before declaring Ubuntu boot PASS; `guest_boot_confirmed:false` in script is deliberately unverified.
+
+## 2026-11-23 — Revised detached Ubuntu 24.04 guest kernel and systemd startup verified; watchdog still active at 1:17
+
+Owner provided first **runtime evidence** for the separately authorized revised offline test, following prior GitHub-verified watchdog-launch request PID **2699269**. Read-only inspection returned:
+```text
+=== SUPERVISOR PROCESS ===
+    PID    PPID STAT     ELAPSED COMMAND
+2699269       1 Ss         01:17 python3
+=== WATCHDOG STATUS ===
+STATUS FILE NOT YET PRESENT
+=== SUPERVISOR LOG ===
+=== UBUNTU BOOT INDICATORS ===
+[    0.000000] Linux version 6.8.0-147-generic (... Ubuntu 13.3.0-6ubuntu2~24.04.1) ... #147-Ubuntu ...
+[    0.000000] DMI: QEMU Standard PC (Q35 + ICH9, 2009) ...
+[    0.665232] GPT: Use GNU Parted to correct GPT errors.
+[    2.633881] systemd[1]: systemd 255.4-1ubuntu8.18 running in system mode ...
+Welcome to Ubuntu 24.04.5 LTS!
+[    2.641774] systemd[1]: Hostname set to <ubuntu>.
+Starting grub-initrd-fallback.service - GRUB failed boot detection...
+[  OK  ] Finished grub-initrd-fallback.service - GRUB failed boot detection.
+```
+**Validated user-visible milestone:** actual guest Linux kernel boot + systemd reached Ubuntu 24.04.5 LTS startup banner on serial console, not merely a QEMU launch attempt. Does not yet confirm guest login, a completed login-ready multiuser environment, watchdog status, 180-second shutdown or absence of QEMU afterward. Supervisor `Ss` while only 1:17 elapsed is expected, and `status.json` absent at that observation point does not indicate failure. GPT resize diagnostic and GRUB detection-service name do not alone prove boot failure; do not change staged qcow2 to address these during a smoke test. All original staged images/overlay still expected unchanged under QEMU `-snapshot`.
+
+**Next operator read-only evidence:** re-read the private run `/home/gani/ccpc-restore-labs/ccpc-dev-restore-offline-test2-20261123/status.json` if present; `ps -p 2699269 -o pid,ppid,stat,etime,comm`; check filtered safe boot markers from serial log and `supervisor.log`, report separately QEMU process state. No second launcher invocation, new disk, cloud-init, networking, backup ingress, Docker/DEVELOPMENT DB actions or PRODUCTION operation. If status `TIMEOUT_WINDOW_ELAPSED`, separately verify there is no remaining QEMU/timeout process and inspect final console boot markers before declaring end-to-end smoke test PASS. Restoration remains **UNVERIFIED**.
