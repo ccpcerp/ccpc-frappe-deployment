@@ -21,7 +21,8 @@ grep -w overlay /proc/filesystems
 sudo install -d -m 0700 /opt/ccpc-recovery-docker-static
 sudo tar -xzf "$MEDIA/docker-29.7.2.tgz" \
   -C /opt/ccpc-recovery-docker-static --no-same-owner
-sudo install -m 0755 /opt/ccpc-recovery-docker-static/docker/* /usr/local/bin/
+# The parent directory is root-owned 0700; expand the glob INSIDE sudo, not in the guest shell.
+sudo sh -c 'set -eu; test -x /opt/ccpc-recovery-docker-static/docker/dockerd; test -x /opt/ccpc-recovery-docker-static/docker/docker; install -m 0755 /opt/ccpc-recovery-docker-static/docker/* /usr/local/bin/'
 sudo install -d -m 0755 /etc/docker
 
 sudo tee /etc/docker/daemon.json >/dev/null <<'JSON'
