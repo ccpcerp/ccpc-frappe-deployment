@@ -381,3 +381,23 @@ Starting grub-initrd-fallback.service - GRUB failed boot detection...
 **Validated user-visible milestone:** actual guest Linux kernel boot + systemd reached Ubuntu 24.04.5 LTS startup banner on serial console, not merely a QEMU launch attempt. Does not yet confirm guest login, a completed login-ready multiuser environment, watchdog status, 180-second shutdown or absence of QEMU afterward. Supervisor `Ss` while only 1:17 elapsed is expected, and `status.json` absent at that observation point does not indicate failure. GPT resize diagnostic and GRUB detection-service name do not alone prove boot failure; do not change staged qcow2 to address these during a smoke test. All original staged images/overlay still expected unchanged under QEMU `-snapshot`.
 
 **Next operator read-only evidence:** re-read the private run `/home/gani/ccpc-restore-labs/ccpc-dev-restore-offline-test2-20261123/status.json` if present; `ps -p 2699269 -o pid,ppid,stat,etime,comm`; check filtered safe boot markers from serial log and `supervisor.log`, report separately QEMU process state. No second launcher invocation, new disk, cloud-init, networking, backup ingress, Docker/DEVELOPMENT DB actions or PRODUCTION operation. If status `TIMEOUT_WINDOW_ELAPSED`, separately verify there is no remaining QEMU/timeout process and inspect final console boot markers before declaring end-to-end smoke test PASS. Restoration remains **UNVERIFIED**.
+
+## 2026-11-23 — Revised detached Ubuntu VM reaches multi-user target and login prompt; watchdog 2:37 still pending
+
+**Owner-provided exact read-only evidence from revised detached offline QEMU test at elapsed 02:37:**
+```text
+=== FINAL WATCHDOG STATUS ===
+STATUS STILL PENDING
+=== SUPERVISOR ===
+2699269 1 Ss 02:37 python3
+=== RECOVERY VM PROCESSES ===
+2699271 2699269 Ss 02:37 timeout timeout --signal=TERM --kill-after=10s 180s qemu-system-x86_64 -name ccpc-dev-restore-lab-20261123 ... -nic none -display none -serial stdio -monitor none -snapshot -no-reboot
+2699272 2699271 Sl 02:37 qemu-system-x86 qemu-system-x86_64 -name ccpc-dev-restore-lab-20261123 ... -nic none -display none -serial stdio -monitor none -snapshot -no-reboot
+=== FINAL UBUNTU BOOT MARKERS ===
+[  OK  ] Reached target multi-user.target - Multi-User System.
+ubuntu login:
+```
+
+**Milestone: Ubuntu 24.04.5 LTS VM guest boot PASS** to `multi-user.target` and `ubuntu login:`, not merely kernel/systemd startup. This is real guest serial evidence from owner's private log. Verified process command line for lab QEMU includes **`-nic none`** and **`-snapshot`**, with no host share or port forwarding flags shown. Supervisor `Ss`, timeout `Ss`, QEMU `Sl`: none were stopped/suspended at 2m37s. **Watchdog completion NOT YET VERIFIED:** elapsed < 180-second window, `status.json` absent as expected, child still running. No proof yet of automatic QEMU termination, process reaping, or final status. Do NOT classify full revised boot+cleanup test as PASS until status file and no QEMU process verified. No backup import, cloud-init configuration, guest network, ERPNext restore or production operation. Staged Nov23 signed Ubuntu qcow2 + NAS 8/8 verified checksum backup preserved.
+
+**Next owner step:** one **read-only**, normal-Ubuntu-terminal command to cat final `/home/gani/ccpc-restore-labs/ccpc-dev-restore-offline-test2-20261123/status.json` if it exists, check supervisor/timeout/QEMU PIDs `2699269,2699271,2699272` and display `supervisor.log` if nonempty. After time threshold reached, expect `TIMEOUT_WINDOW_ELAPSED` and no remaining QEMU/timeout, but do not invent result. If still pending beyond window or odd state, investigate instead of relaunching or sending broad signals.
