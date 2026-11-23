@@ -519,3 +519,30 @@ echo "=== DEV CONTAINER NAME/IMAGE ==="
 docker ps --filter 'name=frappe_docker_devcontainer' --format '{{.Names}}  {{.Image}}'
 ```
 Do not run docker save or export until image identities reviewed; preserve running DEVELOPMENT. Goal remains one-time guest stack, then fast disposable COW clones for repeat restore tests, with no default guest networking and no production changes.
+
+## 2026-11-23 — DEVELOPMENT Docker image cache inventory confirmed; check source mounts before offline reuse
+
+Owner provided read-only Docker inventory from DEVELOPMENT host `ccpcerpserver`:
+```text
+frappe_docker_devcontainer-frappe-1
+  tag=vsc-frappe_docker-44f2900ffde10b6c7c15314ded07ccf4b223413d5596194fe5e2842bc75bc1cf-uid
+  image ID=sha256:58db4c81ad96bfa10f37b2cac2f507cd42258db872f5f321875f2438c96953f7
+local vsc-frappe_docker...-uid:latest = 58db4c81ad96 ~3.82GB
+local ccpcerp:v16.50.0 = 4580454f7c43 ~4.11GB
+local ccpcerp:v16.34.0 = 559c36478e9a ~3.82GB
+other ccpcerp:v16.28.0 through :v16.49.0 listed ~3.82GB
+local mariadb:11.8 = efb4959ef2c8 ~470MB
+local redis:alpine = 9d317178ecea ~155MB
+local redis:7-alpine = 7f7d30b7fdd0 ~58.5MB
+local redis:8.6-alpine = 2cc044fc5a07 ~134MB
+live MariaDB container = frappe_docker_devcontainer-mariadb-1 (mariadb:11.8)
+live Redis containers = frappe_docker_devcontainer-redis-cache-1 and -redis-queue-1 (redis:alpine)
+```
+**Meaning:** matched dependency Docker images **exist in host cache**, but **not yet verified suitable** for isolated guest. The active development image's `vsc-` tag may contain tooling rather than bundled app code, which may instead be bind-mounted from host VS Code workspace; **do not assume `docker image save` includes actual Frappe/ERPNext/ccpcerp apps**. Nor does `ccpcerp:v16.34.0` tag alone prove it contains the exact current Frappe `988e54f3c4c291e2077a83809663f123731abe76`, ERPNext `4048fb70e14d1843956fcdabb7c3cca75a1cbcdd` and CCPC `b0cbe5c13cb68499a7920de2879f65e72cff000a`. Do not export images yet; no guest Docker executable is installed, and guest NIC is disabled. Exporting full live containers, filesystems, guest configs, secrets and NAS backups is out of scope.
+
+**Fastest verified next *read-only* check on host:** inspect only container mount destination/type and immutable image metadata (without printing ENV, source mount paths or private data):
+```bash
+docker inspect --format '{{range .Mounts}}{{printf "%s %s\n" .Type .Destination}}{{end}}' frappe_docker_devcontainer-frappe-1
+docker image inspect sha256:58db4c81ad96bfa10f37b2cac2f507cd42258db872f5f321875f2438c96953f7 --format 'image_id={{.Id}} workdir={{.Config.WorkingDir}}'
+```
+If app code resides only on mounted workspace and not in image, prefer reviewed fully-built `ccpcerp` image matching all revision pins (verified by guest-only environment inspection) or build image once in isolated context. Then arrange one bounded dependency/engine transfer path for the *empty guest*, freeze clean baseline and use disposable qcow2 clone per backup. Preserve the already running no-NIC persistent guest, never rerun old G1 staging, do not attach guest network/NAS or change host/PROD.
