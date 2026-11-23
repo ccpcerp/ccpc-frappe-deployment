@@ -546,3 +546,20 @@ docker inspect --format '{{range .Mounts}}{{printf "%s %s\n" .Type .Destination}
 docker image inspect sha256:58db4c81ad96bfa10f37b2cac2f507cd42258db872f5f321875f2438c96953f7 --format 'image_id={{.Id}} workdir={{.Config.WorkingDir}}'
 ```
 If app code resides only on mounted workspace and not in image, prefer reviewed fully-built `ccpcerp` image matching all revision pins (verified by guest-only environment inspection) or build image once in isolated context. Then arrange one bounded dependency/engine transfer path for the *empty guest*, freeze clean baseline and use disposable qcow2 clone per backup. Preserve the already running no-NIC persistent guest, never rerun old G1 staging, do not attach guest network/NAS or change host/PROD.
+
+## 2026-11-23 — Live development app sources are bind-mounted; select self-contained image via offline disposable inspection
+
+Owner ran read-only `docker inspect` and reported:
+```text
+=== DEVELOPMENT CONTAINER MOUNTS ===
+bind /home/frappe/.ssh
+volume /vscode
+bind /workspace
+=== DEVELOPMENT IMAGE METADATA ===
+image_id=sha256:58db4c81ad96bfa10f37b2cac2f507cd42258db872f5f321875f2438c96953f7 workdir=/home/frappe
+```
+Thus the active VS Code development container **uses external bind mounts**, including **`/workspace` where live application code was verified** and **`/home/frappe/.ssh` which must never be transferred**. Do not package/export a running container or claim that saving its base image captures the active code or credentials (the base image alone would omit mounted paths). No change to the host, live DB, credentials or guest has occurred in this inspection. This supersedes the earlier candidate inference that exporting the `vsc-frappe_docker...` image would provide full app code.
+
+**GitHub source inspection:** `images/custom/Containerfile` on branch `review/dev-restore-vm-staging-2026-11-23` builds a complete `/home/frappe/frappe-bench` in its builder, verifies `EXPECTED_FRAPPE_SHA`, `EXPECTED_ERPNEXT_SHA`, `EXPECTED_CCPC_SHA` at build time, then **removes all `.git` folders** and copies the bench into the final backend image. Consequently, local `ccpcerp:v16.34.0` (~3.82GB) and `ccpcerp:v16.50.0` (~4.11GB) are *potentially reusable complete app images*, but **their tags/size alone do not establish their actual app versions or SHA pins**. Image history/git metadata may be absent. Any necessary Frappe/ERPNext/CCPC image verification should use immutable source/build attestation and read-only app version checks before doing an offline export; note Docker images often define anonymous `VOLUME` locations, which `--rm` cleans up.
+
+**Immediate owner-host next operation (low-impact, disposable, no guest networking or secret access):** inspect `ccpcerp:v16.34.0` and `ccpcerp:v16.50.0` via `docker run --rm --network none --read-only --user 1000:1000 --cap-drop ALL --security-opt no-new-privileges --pids-limit 64 --memory 768m --entrypoint /bin/sh` (no host mounts, no Docker socket and no published ports). Read only app folder presence and `bench version`, if available. No image save, database/volume mount, backup ingress, Docker restart or PRODUCTION changes. If versions match Nov23, plan one-time guest Docker runtime setup and sealed image transfer. If not, build/pin suitable image once using verified app refs, then reuse a guest baseline. Live DEV currently remains Frappe 16.33.1 `988e54f3...`, ERPNext 16.34.2 `4048fb70...`, CCPC 0.0.1 `b0cbe5c...`; restore compatibility not yet proved.
