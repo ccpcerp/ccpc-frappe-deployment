@@ -492,3 +492,30 @@ Next: guest-only one-time package provisioning and matched app revisions: Frappe
 ## 2026-11-23 — Persistent recovery guest interactive login PASS
 
 Owner confirmed an interactive Ubuntu serial console **`ccpc-restore@ccpc-recovery:~$`** after prior `ccpc-recovery login:` prompt on the separate persistent guest (QEMU startup PID 2701670, guest-only qcow2, no NIC). **Guest account console login PASS**; no private credential was shared. The guest OS details and preinstalled dependency inventory are **PENDING**; no Frappe/ERPNext/ccpcerp or MariaDB setup, backup transfer, restore, guest networking or host/prod changes have yet been verified. The next owner action is one read-only guest shell command reporting `whoami`, hostname, `/etc/os-release`, `free -h`, `df -h /`, and presence of python3/node/npm/yarn/mariadb/redis-server/docker/bench/git. The preferred next stage is one-time application/runtime provisioning followed by fast disposable per-backup overlays—never repeat G1 boot smoke tests or official cloud image download. Guest stays running unless explicitly shut down with the reviewed VM controller; persistent guest qcow2 is not yet a clean provisioned ERPNext baseline.
+
+## 2026-11-23 — Persistent recovery guest resource inventory PASS; assess offline image-reuse shortcut
+
+Owner ran read-only guest inventory at `ccpc-restore@ccpc-recovery:~$`:
+```text
+whoami = ccpc-restore
+hostname = ccpc-recovery
+PRETTY_NAME="Ubuntu 24.04.5 LTS"
+Mem: total 7.8Gi, used 395Mi, available 7.4Gi; Swap 0B
+/dev/vda1: size 58G, used 1.7G, avail 56G, use 3%
+python3: INSTALLED; git: INSTALLED
+node, npm, yarn, mariadb, redis-server, docker, bench: NOT INSTALLED
+```
+**Verified:** private Ubuntu persistent guest boots and logs in, with 56GiB guest free disk; **no Frappe/ERPNext/CCPC application yet**. Guest explicitly has **no NIC**; running `apt install` or remote `bench init` would be unproductive without dependency ingress.
+
+**Fast-path candidate before seeking guest networking authorization:** The deployment repo's current `images/custom/Containerfile` constructs Frappe images with Python `3.14.2`, Node `24.13.0`, Bench, Yarn, and many dependencies (declared default build args, not proof exact running container was built with those args). Host's existing `frappe_docker_devcontainer-frappe-1` was previously confirmed to have exactly Frappe 16.33.1, ERPNext 16.34.2, CCPC 0.0.1 and exact Git SHA pins. Determine if exact matching **DEVELOPMENT app image plus MariaDB and Redis images** already exist in owner-host Docker cache, then compare low-impact **offline OCI/Docker image export into an owner-controlled private guest-only volume** against needing guest outbound Internet. No export, external transfer or host Docker change authorized by this read-only inventory. Do not ever export running container rootfs/mounted volumes, SQL, config, NAS credentials, Docker socket or host SSH keys as part of an image bundle. `docker image save` of verified immutable images alone (once approved) excludes writable container filesystem and mounted data, but still audit image for build-time secrets before any transfer. Do not place image archives or source data on GitHub/CircleCI. For guest runtime Docker binaries, would need reviewed one-time offline install or a narrowly scoped empty-guest provisioning network.
+
+**Immediate read-only DEVELOPMENT-host image inventory:** 
+```bash
+echo "=== DEVELOPMENT CONTAINER IMAGE ==="
+docker inspect --format 'container_image_tag={{.Config.Image}} container_image_id={{.Image}}' frappe_docker_devcontainer-frappe-1
+echo "=== LIKELY LOCAL DEPENDENCY IMAGES ==="
+docker image ls --format '{{.Repository}}:{{.Tag}}  {{.ID}}  {{.Size}}' | grep -Ei 'frappe|erpnext|ccpc|mariadb|redis|valkey' | head -n 35 || true
+echo "=== DEV CONTAINER NAME/IMAGE ==="
+docker ps --filter 'name=frappe_docker_devcontainer' --format '{{.Names}}  {{.Image}}'
+```
+Do not run docker save or export until image identities reviewed; preserve running DEVELOPMENT. Goal remains one-time guest stack, then fast disposable COW clones for repeat restore tests, with no default guest networking and no production changes.
