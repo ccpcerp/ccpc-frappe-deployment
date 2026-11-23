@@ -338,3 +338,22 @@ Owner explicitly replied **"Approved"** to the separately requested scope **"exe
 **Verified GitHub source before operator handoff:** branch `review/dev-restore-vm-staging-2026-11-23`, HEAD commit `d7ccb6167d64de3b0c2144ae7436c9f7e3bd0ccc`, exact script `scripts/development/operator/ccpc_dev_restore_vm_offline_watchdog_20261123.py`, blob SHA-1 `fc87b307ebe7c310fb11eb00b21b911d7c3adf86`, SHA-256 `b4324c08039b223bd9733167e5cc72871941fb3707861524c19374bb1c516fb0`. Exact script has preflight checks and 180s watchdog/grace/hard limit and writes one-shot private capped console and JSON status `/home/gani/ccpc-restore-labs/ccpc-dev-restore-offline-test2-20261123`. Original aborted test cleanup is complete (PIDs 2697569/2697587/2697588 absent), but Ubuntu guest boot was **INCONCLUSIVE**. Staged official Ubuntu image SHA256 `04e8f2461a16a44e78a370284471f29616cdd9baf1893df25807b71f985b6c94` was owner-verified.
 
 **Operator step:** fetch exact reviewed GitHub commit/blob with trusted strict hostkey SSH into a newly private temporary repo, verify SHA256, Python AST syntax, confirm `~/ccpc-reviewed-scripts` is private owner 0700, refuse to overwrite `ccpc_dev_restore_vm_offline_watchdog_20261123.py`, then run **once** via `sg kvm -c 'python3 -B /home/gani/ccpc-reviewed-scripts/ccpc_dev_restore_vm_offline_watchdog_20261123.py'` from normal Ubuntu terminal. Launcher should return a supervisor PID and private status/log paths **immediately**; this indicates launch request only, not boot success. User should follow up with a read-only listing of `status.json`, `supervisor.log` and **sanitized** console tail, and `ps` of exact test processes after the watchdog finishes. Do not paste credentials/private backup content. On STOP/error, no automatic rerun or removal of one-shot run folder. If log/JSON absent, inspect supervisor.log before inferring safety; no new VM automatically.
+
+## 2026-11-23 — Revised detached watchdog script verified and launch requested, supervisor PID 2699269
+
+Owner ran pinned revised detached watchdog script (GitHub review branch `review/dev-restore-vm-staging-2026-11-23`, commit `d7ccb6167d64de3b0c2144ae7436c9f7e3bd0ccc`, SHA-256 `b4324c08039b223bd9733167e5cc72871941fb3707861524c19374bb1c516fb0`) from their trusted normal host outside Codex. Owner pasted output:
+```text
+/home/gani/ccpc-reviewed-scripts/ccpc_dev_restore_vm_offline_watchdog_20261123.py: OK
+PYTHON SYNTAX: PASS
+REVISED OFFLINE WATCHDOG: VERIFIED
+DETACHED OFFLINE VM WATCHDOG: LAUNCH REQUESTED
+SUPERVISOR PID: 2699269
+PRIVATE SERIAL LOG: /home/gani/ccpc-restore-labs/ccpc-dev-restore-offline-test2-20261123/serial-console.log
+PRIVATE STATUS FILE (AFTER TEST): /home/gani/ccpc-restore-labs/ccpc-dev-restore-offline-test2-20261123/status.json
+WINDOW: 180s + 10s TERM/KILL GRACE; NOT BOOT PASS
+NO NIC / NO HOST SHARES / GUEST WRITES TEMPORARY
+DO NOT RELAUNCH OR DELETE ONE-SHOT FILES
+```
+This verifies reviewed **launcher** path and distinct supervisor PID; **it does not establish detached supervisor actually started QEMU, guest boot success, watchdog clean termination, Docker continuity or database restore**. Runtime artifacts are only visible to the owner on DEVELOPMENT host.
+
+**Immediate one-step read-only verification:** operator inspect `/home/gani/ccpc-restore-labs/ccpc-dev-restore-offline-test2-20261123/status.json` **if present** and private supervisor.log and sanitized serial tail; check `ps -p 2699269 -o pid,ppid,stat,etime,comm,args` and VM-specific QEMU process state without any signal. If status absent, report missing and supervisor state; if error, preserve all files; do not relaunch, kill processes, attach backups, alter network, restart Docker or touch PRODUCTION. Require independent console evidence before declaring Ubuntu boot PASS; `guest_boot_confirmed:false` in script is deliberately unverified.
