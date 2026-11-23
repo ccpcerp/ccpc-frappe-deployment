@@ -1086,3 +1086,39 @@ sudo docker ps --format '{{.Names}} {{.Status}}'
 This preserves MariaDB's named guest Docker volume and Redis queue AOF volume; does not remove containers. If any `docker stop` fails or requires SIGKILL after timeout, do not assume clean stop: inspect guest state and logs before freezing. **Only after successful stops**, inside guest execute `sudo systemctl poweroff`. Once serial console disconnects, on physical DEVELOPMENT host use `python3 -B /home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_guest_media_control_20261123.py --status` and require `OFFLINE-MEDIA GUEST: NOT RUNNING; REVIEW WITHOUT RERUNNING` before any guest-disk overlay creation. Never reboot host, kill QEMU, use `--start` on one-shot runtime, or create clone from active guest qcow2. The guest test service is explicitly **not** auto-enabled by `ccpc-recovery-docker.service`; new clone startup needs an explicit, documented guest `sudo systemctl start ccpc-recovery-docker.service`, then `sudo docker start` for MariaDB and both Redis. Do not enable auto-start without review.
 
 **Next engineering action after poweroff evidence:** author/review a safe host-only, **new disposable qcow2 overlay** referencing an immutable stopped guest baseline disk `/home/gani/ccpc-restore-labs/ccpc-dev-recovery-baseline-20261123/ubuntu-recovery-baseline.qcow2`, retain the entire backing file chain, install no new guest software, never mutate the baseline in future restore rehearsals, and verify clone boots with `-nic none` and no host sharing. In addition to preserving original backing chain, freezing requires explicit *no future writes* to base and independent QEMU runtime folder for each clone. The first actual confidential backup ingress/restore remains subject to **separate owner authorization**; no approval to copy Nov23 backups has been given.
+
+## 2026-11-24 — All recovery guest containers stopped cleanly; guest poweroff pending
+
+Owner ran the following **inside** the isolated no-NIC QEMU recovery guest:
+```bash
+(
+set -e
+sudo docker stop --time 90 ccpc-recovery-mariadb
+sudo docker stop --time 30 ccpc-recovery-redis-queue
+sudo docker stop --time 15 ccpc-recovery-redis-cache
+echo "=== REMAINING RUNNING CONTAINERS ==="
+sudo docker ps --format '{{.Names}} {{.Status}}'
+echo "RECOVERY SERVICES: STOPPED"
+)
+```
+Reported terminal output:
+```text
+Flag --time has been deprecated, use --timeout instead
+ccpc-recovery-mariadb
+Flag --time has been deprecated, use --timeout instead
+ccpc-recovery-redis-queue
+Flag --time has been deprecated, use --timeout instead
+ccpc-recovery-redis-cache
+=== REMAINING RUNNING CONTAINERS ===
+RECOVERY SERVICES: STOPPED
+ccpc-restore@ccpc-recovery:/mnt/ccpc-recovery-media$
+```
+**G18 guest service clean stop PASS:** MariaDB 11.8, Redis queue, Redis cache each returned container name from `docker stop`; afterwards `sudo docker ps` printed no running containers and `set -e` block reached `RECOVERY SERVICES: STOPPED`. `--time` deprecation warning was benign (future shell scripts should use `--timeout`). Guest's named MariaDB data volume and Redis queue AOF volume were not removed. This is preparation for a cold reusable baseline; **Ubuntu itself/QEMU PID 2717495 is not yet verified stopped**. The reviewed current media controller's QMP `--shutdown` can misread asynchronous events as command errors; avoid it for this stage.
+
+**Immediate owner action while at `ccpc-restore@ccpc-recovery` prompt:** `sudo systemctl poweroff` **INSIDE GUEST ONLY**, not host. After guest console disconnects (Ctrl+] can detach), **on normal DEVELOPMENT host `gani@ccpcerpserver`**:
+```bash
+python3 -B /home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_guest_media_control_20261123.py --status
+```
+Require `OFFLINE-MEDIA GUEST: NOT RUNNING; REVIEW WITHOUT RERUNNING` before any cloning, backup transfer or disk file change. Preserve all private QCOW2 backing-chain layers and QEMU logs and original live DEVELOPMENT services; do not issue forced kill, guest reboot, `--start` again, or host shutdown. Note the current guest Docker service is **not auto-enabled**; future disposable clone will need explicit guest Docker engine and stopped container start procedures. **No Frappe site or actual backup has been imported/restored.** Owner's prior approval covers offline baseline setup only; first confidential backup ingress/restore requires separate scoped approval.
+
+**Latest verified review branch HEAD at this update:** `e89f5222e849fbf7d2b47a6b45270719f89b3f23`.
