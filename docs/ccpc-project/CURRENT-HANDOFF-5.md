@@ -401,3 +401,27 @@ ubuntu login:
 **Milestone: Ubuntu 24.04.5 LTS VM guest boot PASS** to `multi-user.target` and `ubuntu login:`, not merely kernel/systemd startup. This is real guest serial evidence from owner's private log. Verified process command line for lab QEMU includes **`-nic none`** and **`-snapshot`**, with no host share or port forwarding flags shown. Supervisor `Ss`, timeout `Ss`, QEMU `Sl`: none were stopped/suspended at 2m37s. **Watchdog completion NOT YET VERIFIED:** elapsed < 180-second window, `status.json` absent as expected, child still running. No proof yet of automatic QEMU termination, process reaping, or final status. Do NOT classify full revised boot+cleanup test as PASS until status file and no QEMU process verified. No backup import, cloud-init configuration, guest network, ERPNext restore or production operation. Staged Nov23 signed Ubuntu qcow2 + NAS 8/8 verified checksum backup preserved.
 
 **Next owner step:** one **read-only**, normal-Ubuntu-terminal command to cat final `/home/gani/ccpc-restore-labs/ccpc-dev-restore-offline-test2-20261123/status.json` if it exists, check supervisor/timeout/QEMU PIDs `2699269,2699271,2699272` and display `supervisor.log` if nonempty. After time threshold reached, expect `TIMEOUT_WINDOW_ELAPSED` and no remaining QEMU/timeout, but do not invent result. If still pending beyond window or odd state, investigate instead of relaunching or sending broad signals.
+
+## 2026-11-23 — Revised isolated Ubuntu boot-and-watchdog shutdown PASS (restore still UNVERIFIED)
+
+**Final verified owner result** from **second detached, offline, temporary-disks-only** QEMU/KVM smoke test on the separate DEVELOPMENT host `ccpcerpserver`, after reviewer-prepared pinned script in branch `review/dev-restore-vm-staging-2026-11-23` at `d7ccb6167d64de3b0c2144ae7436c9f7e3bd0ccc`:
+```json
+{
+  "backup_restore_executed": false,
+  "console_bytes_observed": 78790,
+  "console_truncated_at_2mib": false,
+  "guest_boot_confirmed": false,
+  "guest_network": "none",
+  "snapshot": true,
+  "state": "TIMEOUT_WINDOW_ELAPSED",
+  "test": "ccpc-dev-restore-offline-test2-20261123",
+  "timeout_returncode": 124
+}
+```
+Owner final `ps -p 2699269,2699271,2699272 -o pid,ppid,stat,etime,comm` showed **only headers**: supervisor, GNU `timeout`, and QEMU original PIDs **all exited**. `supervisor.log` had **NO SUPERVISOR ERRORS RECORDED**. Earlier **actual serial-console** markers included `Welcome to Ubuntu 24.04.5 LTS!`, `[  OK  ] Reached target multi-user.target - Multi-User System.` and `ubuntu login:`, verifying guest OS boot to login. Watchdog's `guest_boot_confirmed:false` means its JSON does not automatically assert boot success; console provides the independent boot evidence.
+
+**Assessment:** first separately authorized isolated VM **boot-and-bounded-shutdown smoke test: PASS** on revised detached watchdog. `timeout_returncode=124` is the expected GNU timeout result, NOT a guest crash by itself. The QEMU invocation was separately shown with `-nic none -snapshot` and no host shares; script's status says `guest_network:none` and `snapshot:true`. This is not proof of active LAN firewall isolation under different future VM arguments; network-off configuration is sufficient for this test. No application restore, guest database, permanent guest identity/provisioning, production transfer or DEV site integration occurred. **Recoverability of Nov23 backup remains UNVERIFIED** despite NAS 8/8 SHA-256 PASS.
+
+**Evidence location:** user-held private `/home/gani/ccpc-restore-labs/ccpc-dev-restore-offline-test2-20261123/status.json`, `serial-console.log` (78,790 bytes observed; not truncated), and empty `supervisor.log`. One-shot logs and 60GiB staged qcow2 MUST remain preserved; do not rerun old test or reset folder. Earlier suspended foreground test was already cleaned up with all old PIDs absent.
+
+**Next stage not yet authorized:** independently plan persistent-but-isolated guest configuration and private guest-only credentials/cloud-init without exposing secrets in GitHub or chat, suitable Frappe/ERPNext versions, and tightly controlled dependency supply that cannot reach existing DEV or PRODUCTION networks. **No guest network, backup copying, DB restore, Docker host actions or production changes without separate explicit approval**. Next verification can be a read-only check of DEVELOPMENT Docker container continuity, lab disk metadata and original NAS artifacts, but avoid unnecessary host probing.
