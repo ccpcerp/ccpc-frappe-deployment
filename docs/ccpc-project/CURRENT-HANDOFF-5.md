@@ -177,3 +177,16 @@ Following read-only Ubuntu 26.04 Apt simulation (`0 upgraded, 25 newly installed
 **Next read-only one-step verification on trusted Ubuntu host**: check all 3 `dpkg-query` installed package states, `qemu-system-x86_64 --version` first line, `systemctl show qemu-kvm.service -p ActiveState -p SubState -p UnitFileState`, `systemctl is-active docker.service`, `docker inspect --format '{{.State.Running}}' frappe_docker_devcontainer-frappe-1`, `id -nG` and `stat -c '%G %a' /dev/kvm`. Do not restart/disable services as a cleanup, alter kernel/packages, add user to kvm group, launch guest, enable bridges/NAT, or restore NAS backup. Independently isolated VM network and access are yet unproven. All persistent DEVELOPMENT sites and PRODUCTION remain protected.
 
 **Source:** Owner-pasted local apt output, not independently run by ChatGPT; retain output as owner-reported evidence. The explicit package-only approval is now **consumed** for this exact installation; any additional host mutation needs separate scoped authorization.
+
+## 2026-11-23 — Operator verified QEMU installation and persistent DEVELOPMENT continuity
+
+**Owner-provided read-only post-install verification, normal host `ccpcerpserver`:**
+- `dpkg-query`: `cloud-image-utils`, `qemu-system-x86`, `qemu-utils` each `install ok installed`.
+- QEMU emulator **10.2.1** (`1:10.2.1+ds-1ubuntu3.3`).
+- `systemctl show qemu-kvm.service`: `ActiveState=active`, `SubState=exited`, `UnitFileState=enabled`. This service state does not attest a VM is running and alone is not evidence of a fault.
+- `systemctl is-active docker.service`: **active**; `docker inspect --format '{{.State.Running}}' frappe_docker_devcontainer-frappe-1`: **true**. No runtime Docker disruption observed in this check.
+- `id -nG`: `gani adm cdrom sudo dip plugdev users lxd docker`; `/dev/kvm` group **kvm**, mode **660**, so `gani` does not have normal group-based KVM access. Supplemental access-control-list access not checked; direct KVM access not yet demonstrated.
+
+**Next scoped approval choice:** Recommend `sudo usermod -aG kvm gani` **only with the owner's separate explicit authorization for modifying host user group membership**, preserving all existing groups via `-aG`; then start a fresh login/session and read-only verify `id -nG` plus `test -r /dev/kvm && test -w /dev/kvm`. Do not run `newgrp` automatically in shared shells, `chmod 666 /dev/kvm`, launch VM as root, or grant Codex broad `sudo`/libvirt. This group membership persists across reboots; although user already belongs to `sudo` and `docker`, it remains a discrete host security change. Do not create/run a VM, change networking, copy NAS confidential data, perform restore, or touch PRODUCTION under this approval. VM isolation and guest bootstrap require separately reviewed actions.
+
+**Status:** Packages installed, Docker and persistent DEVELOPMENT site container running; no guest created; no logical restore rehearsal attempted; NAS copies preserved.
