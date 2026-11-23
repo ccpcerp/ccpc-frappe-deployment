@@ -845,3 +845,31 @@ No Docker socket
 **Developer research:** Official Docker static binary install guide https://docs.docker.com/engine/install/binaries/ supports offline extraction/installation for **testing**, cautions not production; daemon flags described at https://docs.docker.com/reference/cli/dockerd/ support `--bridge=none`, `--iptables=false`, `--ip6tables=false`, `--ip-forward=false`, `--ip-masq=false`. Docker 29 defaults containerd image store for new installs (https://docs.docker.com/engine/storage/containerd), so approved lab config uses `"features":{"containerd-snapshotter":false}` and `"storage-driver":"overlay2"` to keep storage predictable and reduce compressed layer duplication on 58G guest.
 
 **One-time guest-only Docker test setup prepared and GitHub-refetched:** `scripts/development/operator/ccpc_dev_recovery_guest_install_docker_20261123.sh` on review branch `review/dev-restore-vm-staging-2026-11-23`, commit **`0b475922b564b27addace1b5c27f54d240389005`**, blob SHA-1 **`61fc40b5cee0a2b150c21a1d15582abf3ad08cd4`**. It must be pasted/transferred **inside** the networkless guest because guest cannot fetch GitHub, then run as `ccpc-restore`; preflight hostname, mounted read-only ISO and both manifest SHA256 files, absent previous Docker installation/socket/systemd unit, basic `git/ps/xz`; then `sudo modprobe overlay` and require overlay in `/proc/filesystems`, expand official Docker 29.7.2 binaries from ISO under guest-only `/opt/ccpc-recovery-docker-static`, install into guest `/usr/local/bin`, create guest-only `/etc/docker/daemon.json` with no default bridge, no iptables/ip-forward/masq/proxy, legacy overlay2 storage under guest `/var/lib/ccpc-recovery-docker` and bounded logs; create a uniquely named `ccpc-recovery-docker.service` (not host Docker.service) and `systemctl start` without enabling on boot until verified; `sudo docker info` reports runtime. Owner has previously approved this combined isolated guest installation. User operation **PENDING**; no guest Docker runtime success yet. If it fails, stop and review guest `sudo systemctl status ccpc-recovery-docker.service --no-pager`; no automatic rerun/cleanup.
+
+## 2026-11-23 — Guest Docker bootstrap stopped at root-only glob expansion; reviewed script repaired, resume pending
+
+Owner pasted reviewed guest Docker install bash into **ISO-only Ubuntu recovery guest**, then executed; output:
+```text
+docker-29.7.2.tgz: OK
+images.tgz.part-000: OK
+nodev   overlay
+install: cannot stat '/opt/ccpc-recovery-docker-static/docker/*': No such file or directory
+```
+Original installer `scripts/development/operator/ccpc_dev_recovery_guest_install_docker_20261123.sh` installed `/opt/ccpc-recovery-docker-static` as **root-owned mode 0700** and then tried `sudo install -m 0755 /opt/ccpc-recovery-docker-static/docker/* /usr/local/bin/`. Bash glob expansion happens in the **non-root calling shell**, which cannot traverse the parent directory; the literal `*` reaches sudo's `install`, yielding this error even when `tar` extraction succeeded. Since `set -e` stopped on that line, service/systemd/daemon.json operations after it **were not executed by the intended script**. User's pasted terminal echo appeared partially interleaved; exact guest file contents are not yet independently inspected. Do not assume successful Docker install.
+
+**Fix committed/refetched on GitHub** review branch `review/dev-restore-vm-staging-2026-11-23`, path `scripts/development/operator/ccpc_dev_recovery_guest_install_docker_20261123.sh`, commit **`e5c89509cd358f624591280429bf2b2d8b614601`**, blob `dbd0b5c6af7489c259a3bf0dfbd3acdc3ad32d78`. Fix is `sudo sh -c 'set -eu; test -x /opt/ccpc-recovery-docker-static/docker/dockerd; test -x /opt/ccpc-recovery-docker-static/docker/docker; install -m 0755 /opt/ccpc-recovery-docker-static/docker/* /usr/local/bin/'`; now `*` expands under privileged shell only. ISO remained mounted and checksum verification PASS, kernel overlay module loaded (`nodev overlay`). Guest remains QEMU PID 2717495 and `-nic none`. No backup or PRODUCTION changed.
+
+**Minimal safe owner recovery (inside guest only, no rerun of entire script):**
+```bash
+sudo sh -c '
+set -eu
+D=/opt/ccpc-recovery-docker-static/docker
+test -x "$D/dockerd"
+test -x "$D/docker"
+test ! -e /usr/local/bin/dockerd
+install -m 0755 "$D"/* /usr/local/bin/
+'
+/usr/local/bin/docker --version
+/usr/local/bin/dockerd --version
+```
+This resumes **only the previously failed binary copy** after checking archive extraction; no host/guest Docker daemon changes and no service yet. After version output, inspect/recreate the intended guest-only `/etc/docker/daemon.json` and `ccpc-recovery-docker.service` cleanly and start it once. Never re-run the full installer automatically because the guest now has partially installed prerequisites; preserve guest evidence. No confidential Nov23 backup restore approval yet.
