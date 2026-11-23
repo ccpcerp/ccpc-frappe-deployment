@@ -435,3 +435,24 @@ Owner explicitly approved continuing after successful G1 Ubuntu boot-and-clean-s
 **Immediate one safe step:** obtain actual running DEVELOPMENT bench app versions and exact Frappe/ERPNext/CCPC commits using only **read-only** `docker exec frappe_docker_devcontainer-frappe-1 bash -lc 'cd /workspace/development/frappe-bench; bench version; for app in frappe erpnext ccpcerp; do git -C apps/$app rev-parse HEAD; done'`. This does not connect to any DB, install anything, or reveal credentials. Once pinned, prepare **one** guest bootstrap with private cloud-init login, guest-only MariaDB/Redis and version-compatible Frappe/ERPNext/ccpcerp, then save baseline for repeated snapshot overlays.
 
 **Approval boundary:** Owner's G2 approval authorizes one-time guest setup *planning/read-only version inspection* and standing preference for normal low-risk steps without repetitive prompts. It does **not** authorize unspecified host firewall/port changes, unrestricted guest Internet routing or live DEVELOPMENT/PRODUCTION DB edits. Consolidate subsequent significant network/backup import/first guest restore into **one clearly scoped approval** after exact method documented, rather than individual per-command approvals. Real confidential SQL/config/files stay on owner-controlled host/guest, not GitHub/Codex/public CI. PRODUCTION categorically excluded.
+
+## 2026-11-23 — Running DEV source pins verified; reusable VM guest baseline staging script ready
+
+**Owner read-only Docker/bench output from live DEVELOPMENT `frappe_docker_devcontainer-frappe-1`:**
+```text
+ccpcerp 0.0.1 HEAD (b0cbe5c)
+erpnext 16.34.2 version-16 (4048fb7)
+frappe 16.33.1 version-16 (988e54f)
+frappe: 988e54f3c4c291e2077a83809663f123731abe76
+erpnext: 4048fb70e14d1843956fcdabb7c3cca75a1cbcdd
+ccpcerp: b0cbe5c13cb68499a7920de2879f65e72cff000a
+```
+The matching custom app `ccpcerp` release source HEAD was separately checked in GitHub. **Pin these exact app revisions** in any reusable recovery environment for the Nov23 backup.
+
+**Owner preference (explicit):** recovery tests should be fast and reusable, without repeated image downloads, approval ceremonies or install loops. A one-time guest-only baseline setup is already approved for planning and non-disruptive staging, but any route from the guest to sensitive DEV/PROD/NAS, first import of actual private SQL/config/attachments, or material host changes still require a specific bounded review.
+
+**New reviewed one-shot stage script on GitHub:** `ccpcerp/ccpc-frappe-deployment`, review branch `review/dev-restore-vm-staging-2026-11-23`, at commit **`e69ceb9c15e680f15b9ad134f78b4c9a624d20c5`**, path `scripts/development/operator/ccpc_dev_recovery_baseline_seed_20261123.py`, blob `fc2b4efdbe1c51c7d840c22d10ce155797006c55`, SHA-256 `57ed6745a32fdf0fe8576bca2e38960df3cefd95acb52c73a6accfa06afb5860` (refetched/sha-selftested). Creates guest-only **new** 60GiB persistent qcow2 backing existing verified image and offline `cloud-init` NoCloud seed with user `ccpc-restore` and random serial-console password stored **only** in 0600 private local operator file. Does not start QEMU or enable guest/host network, install packages, read actual NAS archives or alter active DEV/PROD, and refuses duplicate output folder. Syntax AST must be checked on exact operator-fetched source before execution. User has **NOT YET RUN** the script; staging result remains unverified. User must not post local secret password or cloud-init user-data.
+
+**Documentation:** updated reusable lab plan at docs commit `4db745033c7b11d2daea2144113bf6e6eef1af8b`. Current official Frappe v16 guidance expects modern MariaDB/Python/Node toolchain, but do not assume these docs prove the already-running DEV container's dependency versions. Avoid unnecessary version polling: target exact pinned app commits, install guest dependencies once, and use reusable qcow2 clones in later tests.
+
+**Immediate operator step:** fetch GitHub source pinned by commit/blob/SHA256 into `~/ccpc-reviewed-scripts`, AST parse, run once outside Codex as gani. Next is guest-only version-compatible Frappe bootstrap/first persistent guest boot, not an automatic repeat of the already completed G1 Ubuntu smoke test. Confidential backup restore still PENDING. The Nov23 NAS backup 8/8 SHA256 PASS remains intact and unchanged on existing owner evidence.
