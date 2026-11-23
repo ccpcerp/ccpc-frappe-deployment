@@ -76,3 +76,37 @@ These tests establish log/status control flow only; they do **not** verify runti
 **Watchdog real shutdown evidence:** one-shot private result `/home/gani/ccpc-restore-labs/ccpc-dev-restore-offline-test2-20261123/status.json` returned `state: TIMEOUT_WINDOW_ELAPSED`, `timeout_returncode:124`, `console_bytes_observed:78790`, `console_truncated_at_2mib:false`, `guest_network:none`, `snapshot:true`, `backup_restore_executed:false`. Normal read-only `ps` for supervisor PID2699269, timeout PID2699271 and QEMU PID2699272 showed only header (all absent), and supervisor log was empty. **G1 PASS** for offline guest boot **and** watchdog-bounded shutdown. Script automatically left `guest_boot_confirmed:false` as a conservative status field; separate console text confirms real login prompt. The test ran using `-nic none` and `-snapshot` with no guest-mounted host directories and was a **temporary disk-write smoke test**; owner did not report any restore operation. Earlier stopped foreground test (first attempt) was inconclusive, cleaned up, and superseded by this successful revised attempt.
 
 **Next gate G2** is **NOT yet authorized**. Work needed before a meaningful backup restore: independently verify target application version compatibility; plan guest-only persistent identity/credentials and cloud-init seed, preserved without logging secrets; devise tightly bounded offline dependency transfer or audited network access that blocks existing DEVELOPMENT and PRODUCTION/NAS and email/webhooks; check guest-only DB/Redis and a uniquely named test Frappe site. Restore input and schema changes must stay VM-local. Original private Nov23 NAS snapshot remains an 8/8 verified checksum backup but **a recoverability test has NOT yet occurred**. No current consent for extra QEMU boot, guest provisioning, network changes, copying confidential backup contents or restoring DB. G1 log bundle should be preserved as audit evidence.
+
+## 2026-11-23 — Owner-approved streamlined reusable recovery lab (G2 preparation)
+
+Owner explicitly approved continuing after G1 boot + shutdown PASS and added: **"dont make it to strick that it will takes a lot of time every recovery test"**. This replaces an unnecessarily repetitive approval/runbook pattern with a **one-time baseline setup and repeatable fast rehearsal**. Do **not** treat this as blanket permission for live DEVELOPMENT database overwrite, host firewall/Docker changes, real backup import, external network access, cleanup of original assets, or PRODUCTION.
+
+**Practical fast path — one-time only:**
+1. Read the running DEVELOPMENT Frappe/ERPNext/CCPC versions and three Git revisions using a **read-only** Docker `exec` (no DB access). Match the recovery guest's application versions to the archive's source, not simply upstream latest; the Nov23 custom app was confirmed as `b0cbe5c13cb68499a7920de2879f65e72cff000a` at the time of source backup.
+2. Configure an isolated guest-only admin identity/cloud-init and guest-only database; no host Docker socket, host paths, source DB, NAS mount or production accounts. Use the already staged signed Ubuntu image and 60GiB disk. **Do not rerun G0 image staging or the G1 boot smoke test.**
+3. Provision Frappe/ERPNext/CCPC and MariaDB/Redis **once** in that guest. Use one explicitly reviewed dependency-ingress method during **empty guest provisioning**, then turn all guest networking **off before real archived data enter**. Avoid requiring independent time-consuming approvals for each ordinary guest-only package/config step once the bounded provisioning command and networking scope are approved. No mail, scheduled jobs, webhooks, hostfwd or inbound ports.
+4. Verify the guest baseline only once, stop, then preserve a clean read-only guest image/checkpoint for fast clone-based restore rehearsals. Never use `-snapshot` for initial persistent provisioning (it discards guest changes); use disposable overlays for each future restore.
+
+**Repeat for each new backup:** take a **disposable copy-on-write guest overlay** from the clean baseline, prove VM-local MariaDB/site target, load only the owner-approved four components (database `sql.gz`, site config, public `tar`, private `tar`) through a reviewed private, checksum-verified transfer, run `bench --site <guest-only-site> restore ... --with-public-files ... --with-private-files ...`, then inspect **database, installed apps, critical DocTypes, representative record counts, public/private files and a small read-only application check**. Produce one concise PASS/FAIL report and retain only necessary sanitized evidence. A restored site must get a guest-only site config/encryption key handling without publishing real credentials. Subsequent tests must never repeat package installs, official image downloads, or G1 smoke tests. Prefer same-day operator review rather than numerous unrelated preflights.
+
+**Safety minimum retained:** target the isolated QEMU guest only; prevent accidental connection to running DEVELOPMENT/PRODUCTION MariaDB and to Synology; restrict real backup access; verify source checksums, DB+files completeness and version compatibility; deny guest outbound access whenever confidential data are present; preserve original backup, clean baseline, and active DEVELOPMENT dirty work; do not use forceful DB changes on live services. These checks are brief and automated where feasible, not separate manual approval stages each time.
+
+**Current G2 authorization:** approved to prepare/review guest-only recovery baseline and inspect non-sensitive app versions with read-only commands. A first real backup **ingress + restore** and any guest Internet/LAN egress should be included in **one clearly scoped operator approval** after the exact method is known; thereafter repeat only the already-approved restore flow in the disposable guest without repeated infrastructure setup. PRODUCTION always requires separate explicit permission and is categorically out of scope for these tests.
+
+**Immediate verified next operator check (read only, in current DEVELOPMENT container only):**
+
+```bash
+docker exec frappe_docker_devcontainer-frappe-1 bash -lc '
+set -e
+cd /workspace/development/frappe-bench
+echo "=== APPLICATION VERSIONS ==="
+bench version
+echo "=== SOURCE COMMITS ==="
+for app in frappe erpnext ccpcerp; do
+  printf "%s: " "$app"
+  git -C "apps/$app" rev-parse HEAD
+done
+'
+```
+
+This does not print database credentials, restore anything, or modify the container. Use the returned revisions to pin a baseline and plan the shortest safe package/bootstrap process. Current Frappe documentation: https://docs.frappe.io/framework/user/en/bench/reference/restore . The official command supports both public and private file archive flags, and warns against downgrades; never force an unverified version mismatch.
