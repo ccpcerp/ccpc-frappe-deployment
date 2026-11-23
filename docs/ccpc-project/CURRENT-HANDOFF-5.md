@@ -729,3 +729,32 @@ QEMU MONITOR DISABLED: True
 Owner reported **`PERSISTENT GUEST: STOPPED; PID NO LONGER EXISTS`** from original reviewed `ccpc_dev_recovery_guest_control_20261123.py --status` after the fallback for QMP ACPI error. **Shutdown verified by original controller's process/PID check; guest disk and Nov23 private ISO remain preserved.** Owner's exact shutdown mechanism (guest-native `sudo systemctl poweroff` vs asynchronously completed QMP request) was not separately observed; do not overclaim its cause. Do not run old `--start` again; its one-shot runtime folder exists.
 
 **Next authorized one-time host step:** use the GitHub-reviewed media controller `scripts/development/operator/ccpc_dev_recovery_guest_media_control_20261123.py` from immutable commit `285d4e03e1903ba354035f5883617776021bde11` on branch `review/dev-restore-vm-staging-2026-11-23`, blob `73d1182b160fbbf94d5860ecc25009c0a1d1052d`, source SHA-256 `eea589ee27ea7d80780c145113064058917fd10abaf564c41ebafde52c509211`. Operator should fetch pinned file into **new** `/home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_guest_media_control_20261123.py`, confirm exact Git blob and SHA256, `python3 -m ast` or `ast.parse` preflight, then `sg kvm -c 'python3 -B ... --start'`. This creates separate private runtime but boots the **same previously shut down persistent guest qcow2**, with validated ISO `32ac13073a0383a75c6bc0df7b93a8b7995750cfa0406e05133084aad9eb84b4` read-only, `-nic none`, no host files/DB/secrets mounted. It cannot run if original matching guest still running and refuses repeated one-shot runs. Expected `RECOVERY GUEST WITH OFFLINE MEDIA: START REQUESTED`, not proof guest boot/login/media mount until guest follow-up verification. No image import, guest Docker runtime install or confidential backup restore has yet occurred. Do not delete old runtime evidence, original dev container, or production.
+
+## 2026-11-23 — Offline ISO recovery guest QEMU start PASS, guest mount pending
+
+Owner executed exact pinned `ccpc_dev_recovery_guest_media_control_20261123.py --start` using KVM group on the normal DEVELOPMENT host. Terminal output:
+```text
+/home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_guest_media_control_20261123.py: OK
+PYTHON SYNTAX: PASS
+OFFLINE MEDIA GUEST CONTROLLER: VERIFIED
+RECOVERY GUEST WITH OFFLINE MEDIA: START REQUESTED; QEMU PID: 2717495
+ISO SHA256 VERIFIED: 32ac13073a0383a75c6bc0df7b93a8b7995750cfa0406e05133084aad9eb84b4
+OFFLINE MEDIA: READ-ONLY VIRTIO DRIVE
+NETWORK: NONE; LIVE DEVELOPMENT / PRODUCTION: UNTOUCHED
+NO CONFIDENTIAL BACKUP TRANSFER OR RESTORE
+GUEST LOGIN: ccpc-restore (original private host-only password)
+GUEST CONSOLE: python3 -B <this-script> --console
+GUEST SHUTDOWN: python3 -B <this-script> --shutdown
+```
+**G5 startup PASS:** reviewed Python guest media script SHA and syntax checked on owner host; requested QEMU start returned PID **2717495** with already verified private **1,127,800,832-byte ISO** checksum, `-nic none`, ISO read-only drive, and same persistent Ubuntu guest disk. This does **not yet** verify Ubuntu guest login, ISO9660 recognition/mount, guest Docker installation, loading three images, or restored backup. Original persistent guest QEMU PID `2701670` had previously been verified stopped; do not run it concurrently with new QEMU. No PRODUCTION or live DEVELOPMENT services/volumes operated on.
+
+**Immediate next host step:** 
+```bash
+python3 -B /home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_guest_media_control_20261123.py --console
+```
+Log into `ccpc-restore` with original private local-only password (do not share). **Inside the guest** run:
+```bash
+echo "=== OFFLINE RECOVERY MEDIA ==="
+lsblk -o NAME,SIZE,RO,FSTYPE,LABEL,MOUNTPOINTS
+```
+Confirm separate read-only `iso9660` VirtIO device label `CCPCRECOVERY2026`. Do not assume `/dev/vdc` until verified; original cloud-init ISO may occupy `/dev/vdb`. After guest media recognition, perform source checksum verification and guest-only Docker runtime prerequisites/installation and `docker load` with no network. Guest ACPI QMP `--shutdown` uses same vulnerable simplistic response reader as old controller; may incorrectly reject an asynchronous event; use guest-native `sudo systemctl poweroff` if appropriate, and verify stopped before any guest disk clone. No confidential backup ingress or actual restore authorized.
