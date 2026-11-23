@@ -677,3 +677,31 @@ OFFLINE MEDIA SCRIPT: VERIFIED
 **GitHub fix committed and verified**, branch `review/dev-restore-vm-staging-2026-11-23`, path `scripts/development/operator/ccpc_dev_recovery_offline_media_20261123.sh`, commit **`9f30830565feeaa08067cb3b43db88bc5b293501`**, new blob SHA-1 **`eaa06809b5d84b5f110f65697e219efc34a73550`**, full script SHA-256 **`f765d08f2390c98f6a508050a45478f13516a70b9248108f1158ae2ca14e03d6`** (JS hash algorithm known-vector verified). Fixed by explicit `if test "$(docker image inspect ...label...)" != "b0cbe5c..."; then stop ...; fi`, no split test operands. Only source repair, original active DEV and guest unaffected.
 
 **Next owner action**, normal host only: verify original local script hash `a35ddbc348b19badbf855df64586c6826875c8a43c86d4e084a31bab1039e9b9`, fetch corrected exact GitHub commit and blob into private temp directory, verify new SHA256 and `bash -n`, atomically replace prior local reviewed script, verify one-shot media directory absent, execute **only corrected ISO/media script** again. The original code-correct application Docker build should **never be repeated**. As yet no corrected media run result or guest VM import. If one-shot folder exists unexpectedly, STOP and inspect rather than delete. No PRODUCTION or private backup.
+
+## 2026-11-23 — Offline ISO media creation PASS; controlled guest ISO restart helper ready
+
+Owner ran the SHA/pinned fixed `ccpc_dev_recovery_offline_media_20261123.sh` on `gani@ccpcerpserver` and verified **PASS**:
+```text
+/home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_offline_media_20261123.sh: OK
+/home/gani/.ccpc-media-fix.ooqzXe2B/fixed.sh: OK
+/home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_offline_media_20261123.sh: OK
+CORRECTED OFFLINE MEDIA SCRIPT: VERIFIED
+RECOVERY OFFLINE MEDIA: downloading official Docker static testing runtime 29.7.2 on host
+RECOVERY OFFLINE MEDIA: exporting exactly 3 pre-validated immutable images (no live container or volume)
+RECOVERY OFFLINE MEDIA: app=ccpc-recovery:dev-nov23-b0cbe5c; db=mariadb:11.8; redis=redis:alpine
+RECOVERY OFFLINE MEDIA: constructing read-only ISO from non-secret Docker images and testing runtime
+RECOVERY OFFLINE MEDIA: PASS
+ISO PATH: /home/gani/ccpc-restore-labs/ccpc-recovery-offline-media-20261123/ccpc-recovery-offline.iso
+ISO SHA256: 32ac13073a0383a75c6bc0df7b93a8b7995750cfa0406e05133084aad9eb84b4
+ISO SIZE BYTES: 1127800832
+DOCKER RUNTIME VERSION: 29.7.2
+APP IMAGE: ccpc-recovery:dev-nov23-b0cbe5c
+NO BACKUP DATA OR HOST FILES EXPORTED
+GUEST VM: NOT TOUCHED; NO GUEST NETWORK OR IMAGE IMPORT
+```
+
+**Verified G4 milestone: PASS offline non-backup media exported on DEVELOPMENT host only** (app image source-pinned `sha256:f53cc9ee...`, exact existing `mariadb:11.8`, `redis:alpine`, official Docker 29.7.2 guest-only test runtime; ISO exists with owner-reported byte count and SHA256). **No guest disk media attached, Docker runtime installed, services running, or backup restored yet.** Do not confuse host Docker engine with guest Docker. Original immutable backup still untouched; no PRODUCTION action.
+
+**Next reviewed approach:** controlled ACPI graceful shutdown **of only the isolated guest**, verify old process exited, then restart same persistent qcow2 with the SHA-verified ISO added as a read-only third `if=virtio` block drive. This avoids unverified QMP PCIe hotplug on Q35 without preconfigured root ports. Do not restart or change Docker or host. Original reviewed guest controller `python3 -B /home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_guest_control_20261123.py --shutdown` only sends ACPI powerdown; then check same script `--status` for STOPPED. If original guest still running, do NOT launch duplicate or force-kill. Console previous connection Ctrl+] detach only. Shut down guest only, not DEVELOPMENT host.
+
+**New reviewed media guest control script created and GitHub-refetched** branch `review/dev-restore-vm-staging-2026-11-23`, file `scripts/development/operator/ccpc_dev_recovery_guest_media_control_20261123.py`, commit **`285d4e03e1903ba354035f5883617776021bde11`**, blob `73d1182b160fbbf94d5860ecc25009c0a1d1052d`, source SHA256 `eea589ee27ea7d80780c145113064058917fd10abaf564c41ebafde52c509211` (JS known-vector verified). **Not yet fetched or AST-checked on operator host.** Controls `--start` via `sg kvm`, `--status`, `--console`, `--shutdown`. It verifies old guest no longer running; checks original Ubuntu + layered guest disk backing chain, private file modes, new media SHA+size, host/dev identity, KVM, 11GiB free RAM, Docker DEV container running and no one-shot runtime folder collision, before launching new separate private VM runtime at `/home/gani/ccpc-restore-labs/ccpc-dev-recovery-media-runtime-20261123`. New QEMU uses same 8GiB/4 CPU guest disk, original cloud-init ISO, **new read-only Docker media ISO**, `-nic none`, private Unix serial/QMP, no host shares, no Docker mounts, no guest network. It does not touch old runtime evidence or backups. **Host execution pending**; do not claim guest restart PASS until owner confirms console boot and guest reads /dev/vd* media. Once guest media attached, inspect `lsblk -f` + guest package prerequisites read-only; then implement one-time guest Docker testing runtime from ISO and three image import.
