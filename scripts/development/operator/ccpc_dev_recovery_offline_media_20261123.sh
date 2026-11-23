@@ -36,9 +36,11 @@ test "$(docker image inspect --format '{{.Id}}' "$DB" | cut -c1-19)" = "sha256:e
   stop "MariaDB image changed since owner inventory"
 test "$(docker image inspect --format '{{.Id}}' "$REDIS" | cut -c1-19)" = "sha256:9d317178ecea" ||
   stop "Redis image changed since owner inventory"
-test "$(docker image inspect --format '{{index .Config.Labels "org.ccpc.recovery.ccpcerp-sha"}}' "$APP")" =
-  "b0cbe5c13cb68499a7920de2879f65e72cff000a" ||
+# Keep the comparison and expected SHA in one shell compound condition.
+# A newline immediately after '=' would execute 'test' with a missing operand.
+if test "$(docker image inspect --format '{{index .Config.Labels "org.ccpc.recovery.ccpcerp-sha"}}' "$APP")" != "b0cbe5c13cb68499a7920de2879f65e72cff000a"; then
   stop "app commit image label mismatch"
+fi
 
 LAB="$HOME/ccpc-restore-labs"
 test -d "$LAB" && test "$(stat -c '%u:%a' "$LAB")" = 1000:700 ||
