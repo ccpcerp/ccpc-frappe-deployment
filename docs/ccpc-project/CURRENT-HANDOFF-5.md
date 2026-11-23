@@ -987,3 +987,25 @@ ccpc-restore@ccpc-recovery:/mnt/ccpc-recovery-media$
 **G13 guest app smoke PASS:** `sudo docker run --rm --network none --read-only --user 1000:1000 --cap-drop ALL --security-opt no-new-privileges --pids-limit 64 --memory 768m --entrypoint /bin/sh ccpc-recovery:dev-nov23-b0cbe5c -c '... test -d apps/frappe/apps/erpnext/apps/ccpcerp; bench version'` returned all three exact versions; container auto-removed, no guest DB required, no backup import, no guest networking. The `()` fields in `bench version` are blank version/hash decoration, not a failure of the version smoke test. Image IDs after save/load still differ from host and are **not cryptographically reconciled** (labels/bench version match).
 
 **Reviewed GitHub next step:** New one-shot guest-only empty MariaDB 11.8 setup script `scripts/development/operator/ccpc_dev_recovery_guest_start_mariadb_20261123.sh`, branch `review/dev-restore-vm-staging-2026-11-23`, commit **`73ef72870aff0d8a31651bbfbad2e00f004da4f0`**, blob **`814bad21b24c2d35ea093d8ce987c3b1692df3d1`**. Code refetched and verified. Guards guest hostname/user, only interface `lo`, active guest Docker service and exact guest Docker root, **no preexisting containers or volumes**, loaded MariaDB image, no preexisting guest password file. Generates random 32-byte root password as 64 hex digits to a **root-only 0600 file in root-owned 0700 guest dir** `/var/lib/ccpc-recovery-secrets/mariadb-root`, never logs/transfers password. Creates guest-only named volume `ccpc-recovery-mariadb-data`; launches `mariadb:11.8` **from loaded local image only** (`--pull=never`), `--network host` in the **guest** QEMU network namespace (guest has no NIC), passes password as `MARIADB_ROOT_PASSWORD_FILE` with **read-only guest-only secrets-dir mount**, binds server strictly `127.0.0.1`, 2GiB/pids limit, no restart. Docker official `--network host` shares only the network namespace of the Docker daemon host—which is **isolated QEMU guest**, not physical DEVELOPMENT host; QEMU remains `-nic none`, no port forward, no host Docker share. MariaDB docs support `MARIADB_ROOT_PASSWORD_FILE`. Does not create or restore site/company/business data. User's one-time isolated lab setup authorization already covers this. **Owner has NOT executed script yet; no MariaDB service or container startup verified**. After running it once, verify container readiness with guest-only `docker inspect`/readiness query, then configure separate guest Redis cache and queue on loopback. Never rerun if partial failure; inspect guest-only state without deleting it.
+
+## 2026-11-24 — Guest-only MariaDB started, healthcheck and localhost binding pending
+
+Owner executed the one-shot isolated guest MariaDB 11.8 setup with reviewed script from `review/dev-restore-vm-staging-2026-11-23`, initial commit `73ef72870aff0d8a31651bbfbad2e00f004da4f0`, on QEMU guest `ccpc-recovery` with `-nic none`. Reported:
+```text
+[sudo] password for ccpc-restore: [not disclosed]
+[64-hex Docker container ID; omitted here]
+GUEST MARIADB: ccpc-recovery-mariadb Up Less than a second
+GUEST MARIADB: START REQUESTED
+```
+**G14 MariaDB container startup PASS, database readiness still PENDING.** Image was pulled from the already imported guest-only `mariadb:11.8` tag with `--pull=never`; configured to bind `127.0.0.1` **inside isolated QEMU guest** and uses `--network host` only within that guest, **not the DEVELOPMENT host**. New named guest Docker volume `ccpc-recovery-mariadb-data`; root password was generated locally into guest root-owned, private file `/var/lib/ccpc-recovery-secrets/mariadb-root`; its contents have **not** been shared. No backup imports/restores, no database/site data restored, no PRODUCTION or live DEVELOPMENT services operated on. Initial container status `Up Less than a second` is not evidence of SQL readiness.
+
+**Next one-step read-only health test inside guest:**
+```bash
+(
+set -e
+sudo docker exec ccpc-recovery-mariadb healthcheck.sh --connect --innodb_initialized
+echo 'MARIADB HEALTHCHECK: PASS'
+sudo ss -lnt '( sport = :3306 )'
+)
+```
+Official MariaDB image provides `healthcheck.sh --connect --innodb_initialized` (https://mariadb.com/docs/server/server-management/automated-mariadb-deployment-and-administration/docker-and-mariadb/using-healthcheck-sh); it verifies TCP connectivity and InnoDB initialization without printing root password. The `ss` output should show listening **127.0.0.1:3306**, not `0.0.0.0` or IPv6 all-address. If healthcheck returns nonzero, preserve guest logs/state and diagnose rather than rerunning one-shot script. **No Redis yet** until MariaDB readiness and listener scope verified.
