@@ -1055,3 +1055,34 @@ echo 'REDIS CONNECTIVITY CHECKS: PASS'
 )
 ```
 Expected `PONG` twice, all three listening addresses exactly `127.0.0.1` at ports 3306, 11000 and 13000. Note the displayed `Peer Address:Port=0.0.0.0:*` under `LISTEN` is not a wildcard local bind. On any failure do not rerun one-shot Redis script or delete containers/volumes; inspect the stopped container and logs without secrets. A healthy Redis check alone does not complete Frappe site creation or independently validate backup restore. Once cache and queue pass, prepare clean reusable recovery baseline with appropriate guarded guest shutdown and qcow2 snapshot overlay workflow; user's approval **excludes confidential backup transfer and restoration**.
+
+## 2026-11-24 — Guest MariaDB and both Redis localhost services PASS; graceful baseline shutdown next
+
+Owner ran guest-only Redis health and scope tests from the QEMU/KVM recovery console:
+```text
+=== REDIS CACHE ===
+PONG
+=== REDIS QUEUE ===
+PONG
+=== LOCAL LISTENING PORTS ===
+LISTEN 0 511 127.0.0.1:11000 0.0.0.0:*
+LISTEN 0  80 127.0.0.1:3306  0.0.0.0:*
+LISTEN 0 511 127.0.0.1:13000 0.0.0.0:*
+REDIS CONNECTIVITY CHECKS: PASS
+```
+**G17 guest service readiness PASS:** MariaDB 11.8 had previously returned `healthcheck.sh --connect --innodb_initialized` PASS, and two independently started Redis containers respond `PONG` at guest `127.0.0.1:13000` (cache) and guest `127.0.0.1:11000` (queue). Guest sockets all bound strictly to loopback at 3306, 11000, 13000; the displayed `Peer 0.0.0.0:*` is wildcard peer placeholder only. QEMU `-nic none` launched, no host shares or host Docker socket. Exact-source container `bench version` previously PASS (CCPC 0.0.1, ERPNext 16.34.2, Frappe 16.33.1), though post-`docker save/load` image ID differences from host remain unexplained. **No Frappe site restored or created; no confidential backup ingress, no actual restore test, no production changes**.
+
+**Next stage — freeze clean guest baseline via graceful shutdown, NOT YET EXECUTED.** Owner may run **INSIDE the guest**:
+```bash
+(
+set -e
+sudo docker stop --time 90 ccpc-recovery-mariadb
+sudo docker stop --time 30 ccpc-recovery-redis-queue
+sudo docker stop --time 15 ccpc-recovery-redis-cache
+echo 'RECOVERY SERVICES: STOPPED CLEANLY'
+sudo docker ps --format '{{.Names}} {{.Status}}'
+)
+```
+This preserves MariaDB's named guest Docker volume and Redis queue AOF volume; does not remove containers. If any `docker stop` fails or requires SIGKILL after timeout, do not assume clean stop: inspect guest state and logs before freezing. **Only after successful stops**, inside guest execute `sudo systemctl poweroff`. Once serial console disconnects, on physical DEVELOPMENT host use `python3 -B /home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_guest_media_control_20261123.py --status` and require `OFFLINE-MEDIA GUEST: NOT RUNNING; REVIEW WITHOUT RERUNNING` before any guest-disk overlay creation. Never reboot host, kill QEMU, use `--start` on one-shot runtime, or create clone from active guest qcow2. The guest test service is explicitly **not** auto-enabled by `ccpc-recovery-docker.service`; new clone startup needs an explicit, documented guest `sudo systemctl start ccpc-recovery-docker.service`, then `sudo docker start` for MariaDB and both Redis. Do not enable auto-start without review.
+
+**Next engineering action after poweroff evidence:** author/review a safe host-only, **new disposable qcow2 overlay** referencing an immutable stopped guest baseline disk `/home/gani/ccpc-restore-labs/ccpc-dev-recovery-baseline-20261123/ubuntu-recovery-baseline.qcow2`, retain the entire backing file chain, install no new guest software, never mutate the baseline in future restore rehearsals, and verify clone boots with `-nic none` and no host sharing. In addition to preserving original backing chain, freezing requires explicit *no future writes* to base and independent QEMU runtime folder for each clone. The first actual confidential backup ingress/restore remains subject to **separate owner authorization**; no approval to copy Nov23 backups has been given.
