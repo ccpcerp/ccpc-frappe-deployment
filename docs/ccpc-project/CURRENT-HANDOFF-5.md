@@ -2,6 +2,14 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — MAIN DEVELOPMENT Maintenance Department Center Scope exists exactly once
+
+Owner executed the previously reviewed **read-only Frappe mapping scope count** on MAIN DEVELOPMENT `development.localhost`, filtering `CCPC Center Mapping Scope` with `company="Cagayan Corn Products Corporation"`, `beneficiary_department="Maintenance Department - CCPC"`, and `selector_kind="Department Only"`. Output: **`MAINTENANCE CENTER SCOPE COUNT: 1`**. The corresponding Cost Center mapping scope exists exactly once; do **not** create a duplicate. This does **not** establish the associated `CCPC Center Mapping Revision` approval state, cost center correctness, effective dates, or independent Finance preparer/checker signatures.
+
+Existing independently confirmed live MAIN DEVELOPMENT prerequisites: exact CCPC Company exists; `Bearings` is a leaf Item Group (`is_group=0`); Maintenance Department correctly belongs to CCPC; Expense Mapping Scope exists 1, has **Draft=1 and Approved=0**. `ccpc_material_use` SQL column is absent on MAIN DEVELOPMENT (expected; draft PR43 not deployed). No code checkout, migration, finance record, Stock Entry or PRODUCTION change occurred.
+
+**Next one-step read-only check:** Count `CCPC Center Mapping Revision` records in `approval_state="Approved"` for the canonical existing Department-only CCPC + Maintenance scope resolved through `frappe.db.get_value("CCPC Center Mapping Scope", {...}, "name")`; display numeric count only. If 0, check Draft count separately, then stop for Finance maker/checker approval; never auto-approve.
+
 ## 2026-11-24 — MAIN DEVELOPMENT CCPC Bearings Draft Expense revision count one
 
 Owner executed prior reviewed **read-only** `frappe.db.count("CCPC Expense Mapping Revision", {"mapping_scope": exact_CCPC_Bearings_scope, "approval_state": "Draft"})` on actual MAIN DEVELOPMENT `development.localhost`; output **`DRAFT BEARINGS EXPENSE REVISIONS: 1`**. Separate query for the same unique Company + `Bearings` scope found **`APPROVED BEARINGS EXPENSE REVISIONS: 0`**, and scope itself exists exactly once. This confirms an existing draft for Finance to review, **not** a signed/approved accounting mapping. Do not create duplicate scope/revision, approve or activate it automatically. No Expense Account identifier or owner information was displayed; exact draft account/master validity, preparer/checker and supporting decision remain unverified. Same-company CCPC and leaf Bearings and named Maintenance Department/company were independently verified.
