@@ -2,6 +2,10 @@
 
 **Evidence type:** GitHub source, open PR states and branch heads, verified GitHub Actions run metadata, plus operator-reported isolated guest restore tests recorded in the current handoff. This is not a live production or main DEVELOPMENT host inspection, nor a signoff for deployment. Read alongside [CURRENT-HANDOFF-5](CURRENT-HANDOFF-5.md) and [GitHub-first workflow](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md).
 
+## Recovery milestone addendum — 2026-11-24
+
+**Newer milestone supersedes the partial-recovery row in this assessment:** the previously pending Integration2 SQL/application/attachment checks completed to a **scoped two-site offline recovery PASS**. Both backed-up DEVELOPMENT sites' Frappe runtimes connected to the cloned databases, applications registered and sample metadata queried; the first site's one private attachment passed SHA256, while Integration2 had zero archived and zero restored public/private regular attachment files. The Integration2 original `bench restore` finish banner was not captured because terminal paste/echo interleaved, and its last SLE count of `1` appeared embedded in echo. Both sites' archive configs still lack `encryption_key`; full encrypted-value, ledger, browser and production recovery acceptance remain pending. See [final scoped recovery report](DEVELOPMENT-TWO-SITE-OFFLINE-RESTORE-RESULT-2026-11-24.md) and [latest handoff](CURRENT-HANDOFF-5.md). With this backup restore gate materially strengthened, the Phase 1 critical path is PR #42 safe policy integration, real Finance/Stockroom UAT, signed mappings, release review and explicitly approved production readiness—not further recovery VM provisioning.
+
 ## Scope and target
 
 The **limited, same-Company Phase 1** target in [app PR #35](https://github.com/ccpcerp/ccpcerp/pull/35) is **2026-12-17**, expressly conditional on real DEVELOPMENT acceptance, named Finance/Stockroom users, verified backup and restore, security, rollback and separately approved PRODUCTION deployment. On 2026-11-24 this is 23 calendar days away. This is **not** a date for completing every ERPNext function or custom intercompany billing.
