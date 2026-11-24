@@ -2,6 +2,16 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — clone guest MariaDB and Redis clean shutdown PASS ahead of private ISO attach
+
+Owner reattached the existing isolated disposable QEMU clone 01 console and ran guest-only `sudo docker stop --time 90 ccpc-recovery-redis-queue ccpc-recovery-redis-cache ccpc-recovery-mariadb`. The Docker CLI printed a nonfatal deprecation warning (`--time` → `--timeout`) followed by all three container names. A subsequent guest `sudo docker inspect --format '{{.Name}} {{.State.Status}} Exit={{.State.ExitCode}}'` showed **each of the three named containers `exited Exit=0`**, and the script printed **`RECOVERY CONTAINERS: STOPPED`** after an empty `sudo docker ps` check. **PASS (owner-reported):** clean guest container stops without loss of persisted guest Docker volumes or changes to host services. The confidential 3,272,704-byte private two-site backup ISO is still only on the normal host and is not yet attached.
+
+**Next one safe guest step:** while still INSIDE guest prompt `ccpc-restore@ccpc-recovery:~# CCPC ERPNext — CURRENT HANDOFF 5
+
+**Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
+
+, run `sudo systemctl poweroff`. Console may disconnect; `Ctrl+]` detaches and returns to normal host. Once returned to normal `gani@ccpcerpserver`, use existing clone-only `python3 -B /home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_clone01_control_20261124.py --status` to verify **NOT RUNNING** before any new one-shot restore-media controller launch. Do not shut down/alter host Docker or QEMU unrelated to clone, modify frozen baseline chain, attempt QEMU startup while old clone active, transfer confidential backup to any external service, or restore any site before exact guest-only verification. Prefer `docker stop --timeout` for future calls.
+
 ## 2026-11-24 — private two-site backup ISO preparation PASS
 
 Owner executed exact reviewed private backup ISO one-shot script on the **normal host** `gani@ccpcerpserver`, after SHA256 of staged script `06563d7fc5ecd1bd3ca7438b579a4e9bda3309176e54e0e92b5109d79db0e62e` passed. Owner's output:
