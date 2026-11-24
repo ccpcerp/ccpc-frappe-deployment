@@ -2,6 +2,16 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — disposable clone MariaDB start command PASS; health pending
+
+Owner ran `sudo docker start ccpc-recovery-mariadb` **inside isolated disposable clone 01** at `ccpc-restore@ccpc-recovery:~# CCPC ERPNext — CURRENT HANDOFF 5
+
+**Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
+
+. Docker returned `ccpc-recovery-mariadb` with no reported error. **PASS: existing guest-only MariaDB container accepted start request.** MariaDB readiness / InnoDB initialization remain **UNVERIFIED** until healthcheck; no restored database, new guest site, backup ingress, source baseline write or live environment change is claimed.
+
+**Next single guest-only verification:** `sudo docker exec ccpc-recovery-mariadb healthcheck.sh --connect --innodb_initialized`. Expect exit zero (may have no stdout). On failure do not recreate volumes or containers; collect sanitized container status or error for review. Do not start Redis or transfer/restore confidential backups before checking MariaDB.
+
 ## 2026-11-24 — three existing guest recovery containers present and stopped
 
 Owner confirmed the recovery Docker daemon active **inside disposable clone 01** and ran guest-only `sudo docker ps -a --format 'table {{.Names}}\\t{{.Status}}\\t{{.Image}}'`. Reported container inventory: `ccpc-recovery-redis-queue` `Exited (0) About an hour ago` on `redis:alpine`; `ccpc-recovery-redis-cache` `Exited (0) About an hour ago` on `redis:alpine`; `ccpc-recovery-mariadb` `Exited (0) About an hour ago` on `mariadb:11.8`. **PASS: three existing guest containers present, all stopped cleanly**. The transcript's mangled adjacent header/command text did not affect the three readable container rows. No new container, MariaDB startup, volume change or backup restore has been reported.
