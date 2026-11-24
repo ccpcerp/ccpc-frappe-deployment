@@ -2,6 +2,23 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — first DEVELOPMENT source files privately staged into isolated restore target
+
+Owner ran a guarded guest-only `ccpc-restore@ccpc-recovery` first-site staging command against read-only Nov23 ISO after backup 8/8 SHA256 PASS and two recovery-only DB/site targets had been verified absent. New source-to-target private copied inputs (mode intended 0600): `/var/lib/ccpc-recovery-frappe-restore-20261124/input-development/dev.sql.gz`, `public.tar`, `private.tar`. Each byte-for-byte `cmp -s` versus read-only original passed; `gzip -t` and `tar -tf` of both copied archives passed. New guest-only target site configuration `/var/lib/ccpc-recovery-frappe-restore-20261124/sites/ccpc-restore-dev-20261124.localhost/site_config.json` was created with exclusive path/mode0600, database `ccpc_restore_dev_20261124`, DB user same, random fresh guest-only DB password, `127.0.0.1:3306`, `mariadb`, scheduler paused and maintenance enabled. Exact operator report:
+
+```text
+DEVELOPMENT GUEST SITE CONFIG: PREPARED
+BACKUP INPUTS: COPIED AND VERIFIED
+RECOVERY SITE: ccpc-restore-dev-20261124.localhost
+DATABASE TARGET: ccpc_restore_dev_20261124
+FIRST SITE RESTORE STAGING: PASS
+DATABASE RESTORE: NOT YET EXECUTED
+```
+
+**PASS for staged, integrity-verified private guest restore inputs, but not SQL import or restored site**. Guest QEMU is `-nic none`, backup ISO attached read-only. No original source DB/password/user/host data was imported from site config, and no secret was printed or sent to GitHub/ChatGPT.
+
+**Frappe v16 pinned-source restore safety:** `frappe/commands/site.py` invokes `restore_backup` using `frappe.conf.db_name`, and `frappe/installer.py` `_new_site` with `force=True` may drop/recreate that exact target DB. `frappe/database/mariadb/setup_db.py` `get_root_connection` reads `frappe.conf.mariadb_root_password` or `root_password`. The **only** guest root secret is at `/var/lib/ccpc-recovery-secrets/mariadb-root` (root-only, never echo). `frappe/database/db_manager.py` / `frappe/database/__init__.py` issue native SQL-import client with target user's password in subprocess argv inside isolated guest; no external process or host network should access this guest. Plan root secret delivery via `/run` (guest tmpfs) ephemeral common config injected into isolated Frappe Docker container through a *read-only nested bind mount* over its normal common config; create temporarily and clean up even if restore fails. Never write root credential into persistent sites/common config, shell history, GitHub or chat. Native `bench --site ccpc-restore-dev-20261124.localhost restore --with-public-files ... --with-private-files ... /mnt/ccpc-restore-input/dev.sql.gz` runs as guest uid1000 with app image `ccpc-recovery:dev-nov23-b0cbe5c`, explicit guest sites/logs mounts, input read-only, user namespace guest-only `--network host` with QEMU no NIC, process cap/readonly rootfs. Preflight must ensure target site config exact and target DB absent before first mutation. No force override/downgrade if version mismatch; no migration or scheduler, SMTP/webhooks. If partial import occurs on failure STOP; do not automatically rerun or drop DB. Verify result in separate guest-only read-only audit step.
+
 ## 2026-11-24 — two guest restore database/site identities verified absent
 
 Owner ran the guarded read-only preflight **inside** `ccpc-restore@ccpc-recovery` clone, with only loopback interface and guest-only Docker root `/var/lib/ccpc-recovery-docker`. Authenticated to guest-only MariaDB as root via `MYSQL_PWD` read privately **inside the MariaDB container** from `/run/secrets/mariadb-root` (source host-guest secret `/var/lib/ccpc-recovery-secrets/mariadb-root`, never output) and queried `information_schema.SCHEMATA` for exclusively named recovery schemas `ccpc_restore_dev_20261124` and `ccpc_restore_int2_20261124`. Query returned zero; both new site directories `ccpc-restore-dev-20261124.localhost` and `ccpc-restore-int2-20261124.localhost` were also absent. Exact final markers `GUEST DATABASE TARGETS: BOTH AVAILABLE`, `GUEST FRAPPE SITE TARGETS: BOTH AVAILABLE`, `RESTORE TARGET PREFLIGHT: PASS`. MariaDB client warned `option --ssl-verify-server-cert is disabled, because of an insecure passwordless login`; query succeeded; warning is not a reason to claim TLS or passwordless security, but QEMU has **no NIC** and MariaDB listens only to guest loopback.
