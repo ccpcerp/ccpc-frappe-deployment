@@ -2,6 +2,18 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — Integration2 zero-file public and private archive counts match restored trees
+
+Owner remained inside the isolated QEMU recovery guest at `.../sites/ccpc-restore-int2-20261124.localhost` and ran these **read-only** checks one at a time:
+- `find private/files -type f | wc -l` reported **0** regular files.
+- `tar -tvf ../../input-integration2/private.tar | awk '$1 ~ /^-/{n++} END{print n+0}'` reported **0** regular archive files, albeit with console text interleaving; zero was clearly visible.
+- `find public/files -type f | wc -l` reported **0** regular files.
+- `tar -tvf ../../input-integration2/public.tar | grep -c '^-' ` reported **0** archived regular files, again with slight command echo interleaving.
+
+**Attachment-level result: PASS for empty regular-file trees (0/0 each).** No nonempty attachment bytes are present to hash or recover. Both target attachment directories exist (owner-verified), and the TAR inputs previously passed `tar -tf` staging checks. This does not yet certify absence of unusual TAR entry types or linked objects; no filenames or real contents were printed.
+
+**Still NOT yet final Integration2 recovery PASS:** Earlier database table counts `759` and `765` appeared in garbled terminal output, and native restore finish marker was not captured. Next: query representative restored Frappe DocType/app metadata and ERPNext records read-only within the unique isolated Integration2 schema `ccpc_restore_int2_20261124`, then run one guarded Frappe Python `frappe.init/connect` installed apps check inside exact offline recovery image. Do not rerun `bench restore`, change schema, start scheduler, or touch MAIN DEVELOPMENT/PRODUCTION. First DEVELOPMENT recovery remains PASS for restored SQL and actual private SHA256.
+
 ## 2026-11-24 — Integration2 restored attachment directories confirmed present
 
 Following interrupted/mangled terminal paste during native Integration2 restore, target isolated guest DB `ccpc_restore_int2_20261124` exists (count 1), and owner-supplied interleaved SQL outputs plausibly show **759 BASE TABLE** and **765 ALL TABLE** counts, but these cannot yet prove full success. Owner then navigated to **guest-only** `/var/lib/ccpc-recovery-frappe-restore-20261124/sites/ccpc-restore-int2-20261124.localhost` and ran read-only `ls -ld public/files private/files`. Actual output:
