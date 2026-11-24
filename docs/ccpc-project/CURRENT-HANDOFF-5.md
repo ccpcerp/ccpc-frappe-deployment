@@ -2,6 +2,16 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — recovery guest poweroff / QEMU stop reported PASS
+
+Owner-provided continuation from the preceding chat reports **inside the offline recovery guest** `[51501.004073] reboot: Power down` followed by console detachment, then **on the normal DEVELOPMENT host**:
+```text
+OFFLINE-MEDIA GUEST: NOT RUNNING; REVIEW WITHOUT RERUNNING
+```
+**Operator-reported QEMU exit PASS** following the separately verified clean stop of guest MariaDB and two Redis containers. The message `CONSOLE DETACHED; VM REMAINS RUNNING` was generic console-disconnect output, superseded by the host-side controller `--status` result. ChatGPT has no direct host shell; do not represent this as independently re-read remote process state.
+
+**Immediate next action:** perform a read-only host inspection of `/home/gani/ccpc-restore-labs/ccpc-dev-recovery-baseline-20261123/ubuntu-recovery-baseline.qcow2` with `qemu-img info --backing-chain`, inspect each expected backing layer, and then review a **new, exclusive, disposable qcow2 overlay** in an independent private runtime folder. The stopped provisioned guest disk and all upstream backing files must remain unchanged; never start the original baseline as a writable guest after freezing. Subsequent clone launch must retain `-nic none`, no host shared paths or Docker socket, and no automatic service start. **No confidential DEVELOPMENT backup transfer or restore has been authorized.** Main DEVELOPMENT and PRODUCTION remain untouched.
+
 ## TOP: MAIN DEVELOPMENT source synchronized to Phase 1 release SHA; persistent acceptance pending
 
 **Completed and independently verified on 2026-11-22 using the GitHub connector:**
