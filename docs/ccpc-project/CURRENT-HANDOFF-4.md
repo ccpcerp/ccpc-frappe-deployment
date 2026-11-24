@@ -1,222 +1,461 @@
 # CCPC ERPNext — Current DEVELOPMENT handoff (continuation 4)
 
-**Checkpoint: 2026-11-02, Asia/Manila.** This is the latest concise status after the oversized `CURRENT-HANDOFF-3.md`. Read that file for historical milestones; do not interpret its old final "next action" as current. Operational policy remains `GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md`.
+## 2026-11-21 — Expanded PR42 GitHub-hosted MariaDB acceptance COMPLETE: 29 offline + 10 real SQL passed
 
-## Immutable scope / source
+**Independent GitHub-hosted CI proof:** [Run 44884746256](https://github.com/ccpcerp/ccpcerp/actions/runs/44884746256) **SUCCESS**, inspecting exact app head `33e2729d6ed010d25f0e38857e541e48c1c72faa`. Retrieved logs explicitly report `Ran 29 tests ... OK` for offline policy/static/CI-safety tests, and `Ran 10 tests ... OK` for all real MariaDB 11.8 Frappe/ERPNext v16 tests, with each ten method marked green. This extends prior six-case signed synthetic Expense/Center posting and maintenance-only denials with: (g) fault injection after actual stock/GL posting and transaction savepoint rollback; (h) native cancellation with real reversing SLE/GL, restored Bin quantity/value and Slip status; (i) real role denial for creator/Guest/Administrator with no financial changes; and (j) two independent MariaDB/Frappe issuer processes competing on the unchanged original `SELECT ... FOR UPDATE` row lock, exactly one submitted Material Issue/SLE and balanced GL and one rejection. This is **real synthetic-site database integration**, not a mock or real CCPC master-data UAT.
 
-- Source of truth: `ccpcerp/ccpcerp` PR **#32**, review branch `review/four-day-one-reports-integration-2026-10-29`, **draft/open/unmerged** at exact head `532a28d99bd0548241854495156a61f94eb1ac6b` (reconfirmed through connected GitHub on Nov 2).
-- Installed code in **DEVELOPMENT only**: Docker container `frappe_docker_devcontainer-frappe-1`, bench `/workspace/development/frappe-bench`, app `apps/ccpcerp`, detached HEAD pinned to that SHA; only `?? AGENTS.md` untracked and protected. Avoid checkout or cleanup.
-- DEVELOPMENT sites: synthetic `ccpc-integration2.localhost` and MAIN `development.localhost`, distinct databases. **PRODUCTION has not been touched** and requires separate explicit approval for any change.
-- Protected Nov 2 four-part snapshots (do not clean up) at `/workspace/development/frappe-bench/.ccpc-pr32-snapshots/`: `ccpc-integration2.localhost-20261102T001358Z-00771ef0fbcf` and `development.localhost-20261102T002314Z-7dc759b9afc9`. Verified SHA256 copies on Synology `/mnt/erpnext_backups/ccpc-development-pr32-20261102T003434Z-237495dd9a3d4061`. No full isolated restore test.
-- DEV Honcho/web/workers/scheduler were gracefully stopped for migrations and remain **not restarted** as of this checkpoint; earlier process sweep found 4 idle shells that must remain untouched. No broad Docker/host restarts.
+**Failed first expanded run [44884053661](https://github.com/ccpcerp/ccpcerp/actions/runs/44884053661):** First nine tests passed. Concurrency worker crashed during spawn importing heavyweight ERPNext test utilities before Frappe init, `AttributeError: new_doc_templates`. Corrected in **CI test-only** helper `ccpcerp/ccpc_erp/ci_pr42_concurrent_issue_worker.py` with exact GitHub PR/ref/site/runner guards and no heavy imports at module-load; the final full run is green. New cheap CI [44884687586](https://github.com/ccpcerp/ccpcerp/actions/runs/44884687586) also passed. Run trigger label `ccpc-run-pr42-db` removed from PR42 to preserve future manual opt-in. No app production/runtime source modifications in this test expansion.
 
-## Owner-run verified outcomes
+**GitHub record:** App branch `feature/phase1-maintenance-only-2026-11-21` latest **`3fa7c6c81b148dab870949b970e7a19f82ca6b2e`** is documentation-only after the tested code commit. [Draft PR #42](https://github.com/ccpcerp/ccpcerp/pull/42) body updated with complete actual test evidence. Repository currently **public** by owner preference, security audit deferred per owner; do not commit credentials/real business data or automatically run more CI. Keep old production retired; both legacy archives preserved.
 
-1. Source switch to exact pinned PR32 SHA, with worktree guard and untouched `AGENTS.md`: **PASS**.
-2. Both **sequential** owner-approved DEVELOPMENT migrations (`bench --site ccpc-integration2.localhost migrate`, then `bench --site development.localhost migrate`): **PASS**, exit 0. Schema/data/backfill migration was an approved DB write; no PRODUCTION migration.
-3. Postmigration metadata validation on **both sites**: Role `CCPC Group Executive Reporting`, standard Page `ccpc-group-executive-reporting` with exclusive Role, four standard native Script Reports each restricted to `System Manager`, reference DocTypes, and **0 users assigned** the new executive role: **PASS**.
-4. Synthetic Integration2 lacks `tabStock Entry.department` and `tabStock Entry Detail.department`; **MAIN has both**. Department source SQL on synthetic Integration2 is not compatible and must not be represented as tested; do not manually add columns.
-5. MAIN six raw underlying report SQL statements on October 1–31, 2026, explicit read-only transaction and bounded rows: **6/6 PASS**. Counts: Dept material 2, equipment material 2, equipment job 0, intercompany CCPC/RMC 1, stock source 2, P&L GL 2. Zero equipment jobs means Job Order row presentation still lacks coverage.
-6. Initial standalone full-report test failed at `frappe.connect()` with `FileNotFoundError: database.log` because Python was launched from bench root while Frappe expected the sites working directory. Exact mistaken target: `/workspace/development/logs/database.log` (missing parent). Correct real bench logger: `/workspace/development/frappe-bench/logs/database.log` (present and writable). **Resolved by changing diagnostic working directory**, not by creating new directories or modifying code/database.
-7. **Most recent owner-run corrected MAIN real Frappe runtime test PASS, exit 0**: run from `/workspace/development/frappe-bench/sites` with `frappe.init(site="development.localhost", sites_path=".")`, `frappe.connect()`, `START TRANSACTION READ ONLY`, Administrator diagnostic identity. Four full report `execute()` functions succeeded: Department **19 columns / 2 rows**, Equipment Material & Job **24 / 2**, Intercompany Billing **22 / 1**, Stock & P&L GL **17 / 4**. Guest and Administrator invoking `run_group_report` were **both denied** by `frappe.PermissionError`. Transaction explicitly rolled back, destroyed Frappe session, no business records/roles changed. DEVELOPMENT services **NOT RESTARTED**, PRODUCTION **NOT TOUCHED**.
+**Next high-priority gate:** Actual CCPC DEVELOPMENT environment UAT and Finance signed Expense/Center mapping remain **NOT APPROVED**. Before any DEV deployment/pull/migrate inspect `frappe_docker_devcontainer` host and in-container branch/HEAD, `git status` (including untracked), existing custom-app worktree, backup recovery, schema migration impact and exact approval. Owner prefers one safe read-only command at a time. No DEV or separate LIVE PROD access was used by CI. LIVE PRODUCTION requires its own explicit approval and release plan; PR42 remains Draft.
 
-## Pending / limitations
+---
 
-- Positive authorized executive gateway test **not performed**: new Role assigned to zero named users, and do not assign roles or create fake accounts merely for testing without approval. Further named nonexec denial, cross-company and role/DocPerm isolation, source-quality flags, row-level permissions, and web/browser UX remain pending. Historical pre-migration test found some named System Managers lacked all underlying source DocType read permissions, so do not broaden those grants automatically.
-- Report outputs successfully render in Administrator diagnostic context; that does **not** certify financial totals, posted accounting balances, original source quality, or production release readiness. Original SLE, P&L GL and billing values must not be incorrectly aggregated as one cost.
-- Review guarded DEV-only service restoration procedure and current stopped process status before starting services; verify exact Docker container, bench Procfile and ensure no duplicate Honcho or shared-infrastructure impact. **Do not blindly run `docker restart`, `bench start` in the background, or signal unrelated processes.** If owner authorizes the narrow service start, restore only DEVELOPMENT processes and confirm both sites and reporting browser paths. No PRODUCTION activity. No PR merge/release yet.
+## 2026-11-21 — Expanded PR42 GitHub Actions: rollback/cancel/roles pass, concurrency rerun pending
 
-## Immediate next safe action
+**Owner direction:** Prioritize comprehensive disposable GitHub-hosted tests; public app repository visibility is an explicitly accepted temporary risk. Do not change GitHub visibility or risk-mitigating workflow behavior without separate owner direction. Keep ephemeral CI only; no MAIN DEVELOPMENT pull/migration or LIVE PROD changes.
 
-Perform a **read-only DEVELOPMENT service-start readiness audit**: inspect Procfile, process/listener inventory, process manager and exact launch mechanism from deployment docs/current environment, without starting/stopping anything. Separately decide whether to perform remaining security tests before/after DEV service restoration. Preserve protected recovery snapshots and untracked `AGENTS.md`. Update this handoff with verified results during active conversation.
+**Expanded tests added to app PR42:** Test-only commits on branch `feature/phase1-maintenance-only-2026-11-21` added new actual MariaDB scenarios for intentionally injected failure *after* real Stock Entry submission then savepoint rollback, real stock/GL cancellation and reversal, denial of non-stockroom/creator, and two-process row-lock contention for single-issue guarantee. Initial expanded GitHub-hosted [run 44884053661](https://github.com/ccpcerp/ccpcerp/actions/runs/44884053661) reported **28 offline checks PASS**, then **9 of 10 database methods PASS**; the first nine include all new rollback, cancellation and permission checks. Last concurrent test did not reach its target SQL race: spawn worker import of heavyweight ERPNext test fixtures before Frappe initialization crashed with `AttributeError: new_doc_templates` and a coordinator timeout, **test infrastructure failure, not proven duplicate issue**.
 
-## Key pointers
+**Corrective test-harness work:** Moved worker to lightweight `ccpcerp/ccpc_erp/ci_pr42_concurrent_issue_worker.py` with exact repo/ref/event/workflow/site checks and child-side process-local synthetic pilot constants. Existing test module now imports the lightweight helper; CI safety source checks extended. All changed files are test-only. App PR42 head **`33e2729d6ed010d25f0e38857e541e48c1c72faa`**. New cheap [run 44884687586](https://github.com/ccpcerp/ccpcerp/actions/runs/44884687586) **passed** after this fix; expensive test workflow manually rearmed, creating [run 44884746256](https://github.com/ccpcerp/ccpcerp/actions/runs/44884746256), queued as of checkpoint. Must inspect real runner logs and wait for test 10 results before claiming concurrency safety; re-run expense must remain deliberate, no automated recurring runs.
 
-- Prior history: `docs/ccpc-project/CURRENT-HANDOFF-3.md`.
-- Workflow: `docs/ccpc-project/GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md`.
-- Code PR: https://github.com/ccpcerp/ccpcerp/pull/32 .
+**After pass:** Record exact GitHub job/log test count, remove `ccpc-run-pr42-db` trigger label to leave future runs opt-in, mark results in PR/handoff, review code access/finance approval, then request separate DEV preflight approval. PR42 remains Draft. Public repository security audit postponed per owner; do not commit real credentials/data.
 
+---
 
-## 2026-11-02 — DEVELOPMENT-only service restart readiness PASS (owner output)
+## 2026-11-21 — PR42 real GitHub-hosted MariaDB + SLE/GL acceptance PASSED; app repo public
 
-**Owner-reported read-only service-start audit after both DEV site migrations and successful four native report executions:**
-```text
-PINNED SOURCE AND AGENTS.md: PASS
-PROCFILE SERVICES: web, socketio, watch, schedule, worker
-PROCFILE FIVE SERVICES: PASS
-DEVELOPMENT SITE CONFIGURATIONS: PASS
-BENCH LOG DIRECTORY: PASS
-LIVE SERVICE CANDIDATES: 0
-ZOMBIE PROCESSES IGNORED: 48
-DEVELOPMENT SERVICE LISTENERS: []
-SERVICE RESTART READINESS: PASS
-NO PROCESSES SIGNALED
-NO SERVICES STARTED
-NO DATABASE CHANGES
-READINESS_AUDIT_EXIT_CODE=0
-```
-**Interpretation:** exact pinned detached PR32 source `532a28d99bd0548241854495156a61f94eb1ac6b` and protected `?? AGENTS.md` intact. The named DEV container has exactly the expected five bench Procfile labels; both DEV site configs and bench log directory present. No matching active service processes or listeners were found. **48 zombies are dead process entries, not services to signal or delete**. No files, Docker state, site DB, application code, scheduled queue state, or PRODUCTION changed by this audit. Connected GitHub reconfirms PR #32 draft/open/unmerged and head unchanged.
+**Verified GitHub Actions integration result:** [Run 44882706418](https://github.com/ccpcerp/ccpcerp/actions/runs/44882706418) `CCPC PR42 - manual Bearings MariaDB acceptance` ended **SUCCESS** on GitHub-hosted Ubuntu runner, testing exact private-then-public app branch commit `ff7129f3271b73a2922a6d214f698a77eb9d439a`. The real run logs were inspected: **28 offline Python policy/static/CI safety tests — OK**, and **six dedicated real MariaDB 11.8/Frappe v16/ERPNext v16 integration tests — OK**, not skipped. CI installed the apps and fresh `ci-pr42-maintenance.localhost`, tested signed synthetic Finance Expense/Center mapping, real submitted Material Issue → Stock Ledger and balanced General Ledger, sequential duplicate prevention, negatives capital/other/blank, wrong beneficiary, mixed Item Groups, direct native bypass and postapproval request-use immutability. The new GHA test label `ccpc-run-pr42-db` was removed after the successful run to preserve explicit opt-in for a next expensive run. This is a genuinely executed synthetic database acceptance, **not** real CCPC finance sign-off or DEVELOPMENT UAT.
 
-**Previously owner-approved next controlled action:** re-guard source, backups, exact DEV container, Procfile labels, absence of active managers/workers/web/scheduler/watch/socketio/listeners; then launch exactly one detached DEV-only Honcho `/home/frappe/.local/bin/honcho start` from `/workspace/development/frappe-bench`, using a private non-clobber log there. Verify one live Honcho manager and pinned SHA after launch. Do not restart containers, affect shared host/PRODUCTION, clear zombie entries, rerun migrations, alter roles, merge PR or automatically retry a failed launch. Manager PASS alone does not establish site HTTP readiness; separately test both sites and queue/worker/scheduler on next operator step. Retain all local+Synology snapshots and original `AGENTS.md`.
+**Previous runner issue now understood as transient/recoverable:** The initial rerun [44881701981](https://github.com/ccpcerp/ccpcerp/actions/runs/44881701981) acquired a runner and exposed a test-only Python syntax error; fixed at app commit `ff7129f`. The subsequent existing cheap CI [44882657682](https://github.com/ccpcerp/ccpcerp/actions/runs/44882657682) fully passed. Do not cite old zero-step failures as current evidence that Actions is unusable.
 
+**Visibility/security change:** GitHub repository metadata now reports application `ccpcerp/ccpcerp` **PUBLIC**, owner says temporary for development/testing. The publicly available repo history/other branches and CI logs should be treated as published: later re-privatization cannot revoke copies. A broad secret/history scan, credential rotation of anything ever exposed, and review of public Actions permissions are **not yet completed**. Advise making private as soon as possible if not intending open source; CI success is not a reason to keep private business logic published. Public infrastructure docs `ccpc-frappe-deployment` and sandbox `ccpc-ci-sandbox` are separate. No actual LIVE PRODUCTION credentials or records added to CI.
 
-## 2026-11-02 — Honcho restart blocked by overrestrictive socketio Procfile preflight; no launch
+**Remaining release gates:** PR42 Draft head after docs update `947232f8af84eb8b43253463b2dad2f3309849b1`, with **application runtime code unchanged** since tested `ff7129f` (docs-only tip). Further review for concurrent competing stock issuers, transactional rollback/posting failure, cancellation/reversal, permission boundaries and accounting authorization; broaden disposable CI coverage as appropriate. Subsequently verify DEV checkout/dirty state/backups before any separate, approved DEVELOPMENT pull and UAT. Finance Expense mapping remains Draft/unapproved. PRODUCTION untouched and requires new explicit authorization. No broad GitHub runner schedules or unattended test automation.
 
-**Owner-reported output from step 23, the guarded DEVELOPMENT-only postmigration Honcho startup attempt:**
-```text
-PROTECTED SYNOLOGY BACKUPS: PASS
-PINNED SOURCE AND LOCAL BACKUPS: PASS
-STOP: Review Procfile command socketio
-DEVELOPMENT_START_EXIT_CODE=1
-STOP: Do not automatically retry startup
-```
-The script exited during **read-only Procfile validation**, before reaching its `docker exec -d` Honcho launch. Thus this attempt **did not start** a new DEVELOPMENT Honcho manager, run a migration, change code, or touch PRODUCTION. The preflight used the predicate `'socketio.js' in command` and rejected any `;\`, `&&`, `||`, `|`, or backtick; actual Socket.IO Procfile line was not printed, so it is **unknown whether the problem was the expected path fragment, a forbidden operator, or both**. Earlier read-only readiness audit found exactly five labels `web, socketio, watch, schedule, worker`, zero live service candidates, no DEV listeners, and 48 zombie process entries (defunct, do not signal). Nov2 NAS and local backup manifests and exact pinned source guards passed in the attempted restart. Full Frappe MAIN four-report execution and Guest/Admin gateway denial previously PASS; no positive executive user test. PR #32 remains draft/open/unmerged at pinned SHA `532a28d99bd0548241854495156a61f94eb1ac6b`.
+---
 
-**Next one safe diagnostic:** read only the `socketio` entry in exact DEV bench `Procfile`; print its literal command after redacting any env-like secrets, and individual pass/fail booleans for `socketio.js` path fragment and each forbidden shell operator. Guard exact app SHA, detached status and protected sole `?? AGENTS.md`. No service launch or file modification. Then revise *the temporary startup guard*, not the app Procfile, based on its actual safe command; re-run full guarded DEV-only startup once after review, with no automatic retries. MAIN/Integration2 and PRODUCTION remain unchanged.
+## 2026-11-21 — GitHub Actions runner recovered; PR42 real MariaDB job explicitly launched
 
+**Owner request in current conversation:** "try to run again in github." Retried previous failed lightweight GHA run [44881701981](https://github.com/ccpcerp/ccpcerp/actions/runs/44881701981); GitHub successfully allocated Ubuntu hosted runner and performed checkout/compiler. It exposed a real **syntax defect in newly authored PR42 test**: literal `\\n` strings at line 64 of `test_phase1_maintenance_real_integration.py`; this was fixed on the private app PR42 feature branch in commit `ff7129f3271b73a2922a6d214f698a77eb9d439a`. Subsequent automatically triggered lightweight [run 44882657682](https://github.com/ccpcerp/ccpcerp/actions/runs/44882657682) **PASSED**, with successful source `compileall` and pre-existing offline policy/static tests. Do not claim it ran the newly added database tests or the separate 4 static CI-safety unit tests.
 
-## 2026-11-02 — Socket.IO Procfile confirmed `bench socketio`; adjust only temporary Honcho guard
+**Manually opt-in full database test (owner explicitly approved retry):** Same-repo private draft [PR42](https://github.com/ccpcerp/ccpcerp/pull/42) was reverified at head `ff7129f3271b73a2922a6d214f698a77eb9d439a`. Applied exact opt-in label `ccpc-run-pr42-db` through connected GitHub tool; API reported success. GitHub created [run 44882706418](https://github.com/ccpcerp/ccpcerp/actions/runs/44882706418) for workflow `CCPC PR42 - manual Bearings MariaDB acceptance`. First poll showed job `isolated-pr42-ledger` **in_progress**, with `Set up job` successful and Docker MariaDB/Redis **Initialize containers** in progress. This **is a launch, not a test pass**, and run may later fail. The workflow must only use disposable GitHub-hosted services, never MAIN DEVELOPMENT or separate LIVE PRODUCTION.
 
-**Owner-run read-only exact DEVELOPMENT Procfile inspection after preflight-only startup block:**
-```text
-PINNED SOURCE: PASS
-PROCFILE SERVICE LABELS: PASS
-SOCKETIO COMMAND: bench socketio
-CONTAINS socketio.js: False
-CONTAINS realtime: False
-CONTAINS SHELL MARKER ';': False
-CONTAINS SHELL MARKER '&&': False
-CONTAINS SHELL MARKER '||': False
-CONTAINS SHELL MARKER '|': False
-CONTAINS SHELL MARKER '`': False
-SOCKETIO PROCFILE INSPECTION: COMPLETED
-NO FILES MODIFIED
-NO SERVICES STARTED
-SOCKETIO_INSPECTION_EXIT_CODE=0
-```
-**Established:** the prior startup preflight incorrectly hardcoded an old Socket.IO launch fragment (`socketio.js`). The actual valid current Procfile line is **`socketio: bench socketio`** without forbidden shell operators, and exactly the five labels `web, socketio, watch, schedule, worker` remain. Do **not** modify the Procfile, app or site databases to satisfy the previous test. Source stays detached pinned at `532a28d99bd0548241854495156a61f94eb1ac6b` with only protected untracked `AGENTS.md`. Previous startup attempt stopped **before launch**. No services started, no production change. All four MAIN complete report executions and Guest/Admin gateway-denial tests already PASS; positive named executive viewer not tested because role has 0 assignments. Connected GitHub PR32 rechecked still draft/open/unmerged with exact SHA.
+**Next:** Inspect real GH Actions [run 44882706418](https://github.com/ccpcerp/ccpcerp/actions/runs/44882706418) conclusion and individual step logs after the run progresses, correct any failures on PR42 GitHub branch (retest) and document independently whether real SQL, Stock Ledger and GL acceptance passed. If the job fails or does not finish, retain draft PR and no release. No DEVELOPMENT pull, migration or production change authorized. Existing CircleCI unchanged. Avoid silently spending repeated hosted minutes without user approval for additional costly reruns.
 
-**Next authorized one action:** after repeating strict backup and process guards, modify only startup validation to accept `bench socketio` (exact command), and launch exactly one DEV-only Honcho process with non-clobber private bench log; verify single live manager and unchanged Git source. Fail closed on unexpected other Procfile commands, existing service processes/listeners or ambiguous launch state. No automatic retry, broad container restart, migrations, user-role edits, PR merge or PRODUCTION activity. If successful, next separate HTTP site and worker/scheduler health checks.
+---
 
+## 2026-11-21 — PR42 manual GitHub Actions head verified; hosted runner still not assigning
 
-## 2026-11-02 — Corrected DEV startup preflight stops at worker command; no Honcho launch
+**Verified GitHub branch:** Private app draft PR42 `feature/phase1-maintenance-only-2026-11-21` now at `1c5231a9166571d8ea979cb50f97a71523f4a7f3`. Changes since previously tested code: added manual `pull_request:labeled` Actions workflow, 6 real MariaDB test cases against signed synthetic mappings, 4 offline CI safety assertions, and private design notes. No application production runtime source modifications in this CI preparation. New source inspection of workflow, test paths and PR-only gates passed 10/10 textual checks, but **new suites not executed**.
 
-**Owner report from second guarded startup attempt:**
-```text
-PROTECTED SYNOLOGY BACKUPS: PASS
-PINNED SOURCE AND LOCAL BACKUPS: PASS
-STOP: Review Procfile worker
-DEVELOPMENT_START_EXIT_CODE=1
-STOP: Do not automatically retry startup
-```
-This exited at read-only Procfile validation, **before** the one detached Honcho launch instruction. The previous Socket.IO mismatch was fixed in the temporary script: actual Procfile entry `socketio: bench socketio`. The worker failed because the script requires `shlex.split(command)[:2] == ['bench','worker']` and disallows certain shell metacharacters, but the actual worker command and precise failed predicate were not printed. It is **not** evidence that the worker is misconfigured. Earlier Procfile inspection verified five entries: web, socketio, watch, schedule, worker. The pinned source/AGENTS and NAS/local backup presence guards passed on attempted launch. Both DEV migrations, MAIN 6/6 raw SQL, four real report `execute()` functions and Guest/Admin gateway denial PASS. No service launch, code/schema/data change or PRODUCTION modification from this attempt. PR32 remains draft/open/unmerged at `532a28d99bd0548241854495156a61f94eb1ac6b` per connected GitHub.
+**GitHub-hosted runner remains blocked/not assigned:** At PR head GitHub Actions run [44881701981](https://github.com/ccpcerp/ccpcerp/actions/runs/44881701981) for the existing cheap maintenance policy workflow was marked `failure` with **no runner / no steps**. This is **not** a code-test failure; the GitHub Actions billing policy, private-repo spending limits, Actions setting or runner assignment cause is unverified. New *expensive* `CCPC PR42 - manual Bearings MariaDB acceptance` workflow was **not started** and must not be misrepresented as passing. GitHub-hosted runner time/billing is independent of ChatGPT Plus token allowance. Review repository Actions/owner Billing & licensing limits before explicitly applying `ccpc-run-pr42-db` label.
 
-**Next one read-only action:** inspect all five exact DEV `Procfile` commands, their tokenized command heads, and whether the current start-script validation would reject each, redacting sensitive assignments. Avoid repeating blind startup attempts. Then revise **only the temporary validation logic**, not the Procfile, to match reviewed safe commands; recheck live processes/listeners before any authorized DEV-only single-Honcho launch. No automatic retry, migrations, Docker restart, role edits, PR merge or PRODUCTION action.
+**Next:** For assurance, owner can fetch current PR42 into isolated clean Codex worktree and execute Python compileall and four original + new source-only safety test modules (expected total 28). Then separately approve PR label for actual hosted MariaDB acceptance **only when runner can run**. No CircleCI changes or runs; MAIN DEVELOPMENT unchanged, Expense mapping remains Draft, separate LIVE PRODUCTION untouched.
 
+---
 
-## 2026-11-02 — All five DEVELOPMENT Procfile commands inventoried; worker redirects explain startup preflight stop
+## 2026-11-21 — PR42 GitHub Actions manual disposable MariaDB gate prepared; not run
 
-**Owner-reported read-only full Procfile diagnostic (`PROCFILE_DIAGNOSTIC_EXIT_CODE=0`)** verified pinned source and all five labels and commands:
-```text
-web:      bench serve  --port 8000
-socketio: bench socketio
-watch:    bench watch
-schedule: bench schedule
-worker:   bench worker 1>> logs/worker.log 2>> logs/worker.error.log
-```
-All five tokenize correctly; service heads match expected `bench serve/socketio/watch/schedule/worker`. The only shell marker across these commands is the expected worker log append redirection `>`; the previous temporary launch script rejected that marker globally, resulting in `STOP: Review Procfile worker` **before Honcho startup**. Worker redirection syntax is normal for this bench Procfile and is not proof of misconfiguration. The operator confirmed `NO FILES MODIFIED`, `NO SERVICES STARTED`, `NO DATABASE CHANGES`, `PRODUCTION: NOT TOUCHED` from diagnostic. App still pinned exact detached PR32 SHA `532a28d99bd0548241854495156a61f94eb1ac6b` with sole protected untracked `AGENTS.md`. GitHub PR32 remains draft/open/unmerged. Earlier successful MAIN postmigration metadata, 6/6 SQL, four real Frappe execute reports and Guest/Admin gateway denials remain valid.
+**Owner-approved CI preference:** Prepare the next Bearings maintenance safeguard integration tests using **GitHub Actions rather than CircleCI**. Completed private application branch additions on PR42: new manually label-gated `.github/workflows/phase1-maintenance-mariadb-manual.yml`, six real MariaDB test methods in `ccpcerp/ccpc_erp/test_phase1_maintenance_real_integration.py`, and four new source-only gating/wiring regression checks in `test_phase1_maintenance_actions_static.py`. Existing CircleCI job left unchanged. Additional CI documentation committed to the private app. PR42 remains **draft**, latest commit to be verified below; no job label applied / no hosted real-DB test run executed.
 
-**NEXT operator action under previously approved DEV maintenance:** launch **one** DEV-only Honcho manager after rechecking NAS+local snapshot manifests, correct app pinned source + sole AGENTS, no existing active DEV managers/services or listeners and Procfile **exact known five definitions**. Use corrected validator which allows **only** exact `worker: bench worker 1>> logs/worker.log 2>> logs/worker.error.log`, not arbitrary shell redirection or other unreviewed commands; preserve existing Procfile. Use a new unique non-clobber bench log and `docker exec -d` inside the single named DEV container; postcheck one live manager; if anything fails, **never blindly retry**, inspect resulting state first. No broad Docker restarts, Git checkout, data mutations, process signals, PR merge or PRODUCTION action. Following startup, verify both DEV sites HTTP health and workers/scheduler in separate step.
+**Safety design:** No push/synchronize/schedule/dispatch. A maintainer must explicitly apply label `ccpc-run-pr42-db` to the exact private same-repo PR **#42** into the existing release branch. Job verifies label, PR identity, PR source SHA and release ancestry before provisioning an isolated `ubuntu-24.04` runner (maximum 65 minutes) with MariaDB 11.8, Redis, Frappe v16 and ERPNext v16. Only synthetic test masters and independent synthetic Finance mapping approvals are used. Real locked SQL, actual original Withdrawal → Stock Entry → Stock Ledger/GL, failed capital/unclassified/blank/other-beneficiary/mixed-group/direct native route, duplicate and immutable request use are targeted. Synthetic test fixtures patch the CCPC pilot-label constants only in test process memory; exact real policy literals retain the six existing pure policy tests. No connection to MAIN DEV, LIVE PROD or real Finance approvals; no app merge, DEV migration or Expense mapping signing.
 
+**Review/testing status:** Previous owner-run **24 offline tests passed** at earlier PR42 code SHA. New workflow and 6 real-DB tests have **NOT been executed**. Connected GitHub read-only inspection confirmed 10/10 textual event/scoping/runner/site assertions for new workflow (not Python AST execution, YAML lint or database posting proof). Earlier GitHub-hosted Actions attempts failed before acquiring a runner with no steps; cause still unverified. Before applying label, check repository Actions availability, private-repo hosted minutes/billing and perform offline syntax/static check of latest PR42 code. If Actions is unavailable, do not imply DB acceptance; preserve CircleCI as a separate owner-approved fallback only.
 
-## 2026-11-02 — Third DEV Honcho startup preflight stops at strict exact-two site inventory
+**Owner action gate:** Do not apply `ccpc-run-pr42-db`, run expensive hosted CI, merge code, pull/migrate DEVELOPMENT or activate Expense mapping without further explicit authorization. Keep old-production archive retention and separate LIVE PRODUCTION policy unchanged.
 
-**Owner's result from re-guarded DEVELOPMENT-only startup attempt with five exact verified Procfile commands:**
-```text
-SYNOLOGY RECOVERY MANIFESTS: PASS
-PINNED SOURCE AND LOCAL BACKUPS: PASS
-VERIFIED FIVE PROCFILE COMMANDS: PASS
-WORKER LOG REDIRECTIONS: PASS
-STOP: Unexpected DEVELOPMENT bench sites
-DEVELOPMENT_START_EXIT_CODE=1
-STOP: Inspect state before any further startup attempt
-```
-**Scope and interpretation:** The temporary startup script's Python preflight compared every directory under the DEV bench `sites/*/site_config.json` to an **exact** set containing only `development.localhost` and `ccpc-integration2.localhost`. The strict set-equality failed. This can indicate additional legitimate site configs, a missing named config, or another filesystem issue; do not infer any particular third site without an inventory. Earlier audits confirmed both named DEV site configs exist, so additional site(s) are plausible. The script exited **before** the `docker exec -d` Honcho launch, with no startup/migration/code or production operation from this attempt. NAS/local recovery manifest and pinned source+AGENTS, five Procfile commands and worker append redirection guards passed. No PR merge; GitHub confirms PR32 draft/open/unmerged at `532a28d99bd0548241854495156a61f94eb1ac6b`.
+---
 
-**NEXT safe step:** read-only exact DEVELOPMENT bench site_config inventory from the named DEV container, guard pinned app SHA and protected AGENTS, print site directory names and classify expected/extra, detect symlinks and anonymous distinct DB checks without printing credentials, DB names or contents; do not mutate files. **Before starting Honcho**, review whether any extra site is potentially PRODUCTION or otherwise a workload not authorized to restart, since a bench-wide scheduler/worker can operate on all configured sites and DEV and PROD may share host infrastructure. Do not merely relax the set to allow arbitrary sites, and do not rerun startup until scope is understood. If all extras are verified DEV-only, change the startup guard to check both approved sites are present and no production/unknown sites would be acted on. All previous migrations and MAIN reporting tests remain PASS; web/workers/scheduler still down as of last verified inspection.
+## 2026-11-21 — Final operator readback confirms OLD PRODUCTION Docker retirement
 
+**Owner-provided final read-only Docker inventory after exact old-resource deletion:** `docker ps -a --filter label=com.docker.compose.project=frappe_docker` returned **no legacy containers**. All three targeted legacy named volumes reported **REMOVED** (`frappe_docker_db-data`, `frappe_docker_sites`, `frappe_docker_redis-queue-data`). Legacy network `frappe_docker_default` reported **REMOVED**. All four MAIN DEVELOPMENT containers (`frappe_docker_devcontainer-frappe-1`, its Redis cache and queue, and MariaDB) remained `Up 5 weeks`. **OLD PRODUCTION Docker project retirement is complete and owner-verified**; actual LIVE PRODUCTION is on a different physical server as clarified by owner. This is container availability evidence, not a Frappe HTTP/DB health test.
 
-## 2026-11-02 — Three DEV bench site configs found; third known broken integration site excluded from rollout
+**Important retention:** Previously integrity-checked NAS/CIFS and secure local cold volume archives are outside deletion scope. Their checksums and tar readability were verified; **restore operability has not been tested**. Preserve `/home/gani/deployments/frappe_docker` (DEV's live `/workspace` bind mount), all `frappe_docker_devcontainer_*` and `ccpc_codex_dev_agent` services, and both archive copies. Don't prune unknown anonymous logs/images without separate inventory.
 
-**Owner's read-only exact DEV bench inventory after third guarded Honcho preflight stop:**
-```text
-PINNED SOURCE: PASS
-SITE CONFIGURATION COUNT: 3
-EXPECTED SITES PRESENT: True
-ADDITIONAL SITE COUNT: 1
-SITE: ccpc-integration.localhost
-CLASSIFICATION: ADDITIONAL - REVIEW REQUIRED
-SITE DIRECTORY SYMLINK: False
-CONFIGURATION SYMLINK: False
-SITE: ccpc-integration2.localhost
-CLASSIFICATION: EXPECTED DEVELOPMENT
-SITE DIRECTORY SYMLINK: False
-CONFIGURATION SYMLINK: False
-SITE: development.localhost
-CLASSIFICATION: EXPECTED DEVELOPMENT
-SITE DIRECTORY SYMLINK: False
-CONFIGURATION SYMLINK: False
-SITE INVENTORY: COMPLETED
-NO CONFIGURATION CONTENTS DISPLAYED
-NO FILES OR DATABASES MODIFIED
-NO SERVICES STARTED
-PRODUCTION: NOT TOUCHED
-SITE_INVENTORY_EXIT_CODE=0
-```
-**Important GitHub reconciliation:** Earlier authoritative `CURRENT-HANDOFF-3.md`, `DEVELOPMENT-CONTROLLED-INTEGRATION-PLAN.md` and `PR32-DEVELOPMENT-READ-ONLY-PREFLIGHT-2026-10-29.md` explicitly call `ccpc-integration.localhost` a **known incomplete/failed/broken integration site excluded from the approved two-site migration/recovery scope**. Thus the third site is **not an unknown PRODUCTION site on existing documentary evidence**, but it is explicitly **not part of the tested/migrated rollout**, and its lingering `site_config.json` might still be enumerated by bench-wide scheduler/web workers on a Honcho start. Do not simply relax the startup guard and treat all three as valid; do not remove, rename, migrate, restore or alter the broken site without separate review/authorization. The strict exact-two check correctly stopped before launch and exposed this latent topology risk. HEAD still pinned `532a28d99bd0548241854495156a61f94eb1ac6b`, only protected `?? AGENTS.md`; NAS/local backups and five exact Procfile commands passed previously. Both approved DEV migrations, MAIN metadata, 6/6 raw SQL, all four native report `execute()`, and Guest/Admin gateway-denials PASS. DEVELOPMENT services remain down at last observed audit. PRODUCTION untouched; PR32 draft/open/unmerged.
+**Development continuation:** Return to private app draft [PR42](https://github.com/ccpcerp/ccpcerp/pull/42) (currently head `5fb0651d919ca55fff9ab61f22fcb26b54983c53`, last app-code/test commit `43609f1e185d328cc4626d5acb6f413176a0ae4a`). Operator previously reported all 24 offline unittests passing and compileall success. **Real disposable Frappe/MariaDB integration still pending**. Existing CircleCI disposable integration exists but exact branch guard currently expects `review/circleci-isolated-erpnext-phase2-2026-10-26`, so a PR42-specific reviewed, opt-in configuration change is needed before using it; do not run its existing job blindly against PR42. No PR42 merge, DEV pull/migration, Expense mapping signature, or LIVE PRODUCTION change authorized by this retirement operation.
 
-**NEXT safe owner action:** one read-only targeted three-site configuration/scheduler-scope check inside named DEV container: compare database names for 3/3 distinctness **without printing names, secrets, or hostname**, inspect site-level `disable_scheduler` and `maintenance_mode` flags, and report whether the known broken site's config is complete or points to any approved DEV DB. Avoid contacting/writing the broken site DB, changing any files or starting services. Depending on evidence, review Frappe's actual bench-wide scheduler site-selection behavior before the next DEV Honcho start. Full launch requires explicit scoped decision to keep broken site inactive or otherwise safely isolate it; no unapproved changes to site configs or PRODUCTION.
+---
 
+## 2026-11-21 — OLD PRODUCTION targeted Docker retirement complete (owner terminal evidence)
 
-## 2026-11-02 — Three DEV site configs distinct; broken excluded site's scheduler not disabled; hold Honcho startup
+**Owner-reported successful final removal on the DEVELOPMENT host:** Exact-label/preflight-guarded command prompted `DELETE-OLD-PRODUCTION`, owner entered it, and Docker returned successful removals of exactly `frappe_docker_db-data`, `frappe_docker_sites`, `frappe_docker_redis-queue-data` and `frappe_docker_default`, followed by `OLD PRODUCTION NAMED VOLUMES AND NETWORK REMOVED`. The 10 stopped `frappe_docker` containers had already been removed in the previous verified terminal step. The **retired old Docker project resources are removed** per owner terminal output; final independent host readback is still recommended.
 
-**Owner's read-only three-site config/scheduler-scope check output:**
-```text
-PINNED SOURCE: PASS
-SITE CONFIGURATIONS: 3/3 PRESENT
-ALL DATABASE NAMES CONFIGURED: True
-ALL THREE DATABASE NAMES DISTINCT: True
-TWO APPROVED DATABASES DISTINCT: True
-COMMON DISABLE_SCHEDULER: NOT SET
-SITE: development.localhost
-DB CONFIGURED: True
-DB HOST CONFIGURED: True
-SITE DISABLE_SCHEDULER: NOT SET
-SITE MAINTENANCE_MODE: NOT SET
-SITE: ccpc-integration2.localhost
-DB CONFIGURED: True
-DB HOST CONFIGURED: True
-SITE DISABLE_SCHEDULER: NOT SET
-SITE MAINTENANCE_MODE: NOT SET
-SITE: ccpc-integration.localhost
-DB CONFIGURED: True
-DB HOST CONFIGURED: True
-SITE DISABLE_SCHEDULER: NOT SET
-SITE MAINTENANCE_MODE: NOT SET
-CONFIGURATION INSPECTION: COMPLETED
-DATABASE CONNECTIONS: NONE
-NO FILES OR DATABASES MODIFIED
-NO SERVICES STARTED
-PRODUCTION: NOT TOUCHED
-SITE_SCOPE_CHECK_EXIT_CODE=0
-```
-**Interpretation:** all three site configs have separate configured database names and database hosts and no explicit site-level scheduler disable or maintenance settings, with no common disable_scheduler flag. The third `ccpc-integration.localhost` is a known incomplete/broken **DEVELOPMENT** site explicitly excluded from owner-approved two-site backup/migration/release testing per `CURRENT-HANDOFF-3.md` and controlled DEV plan. Distinct names rule out *configured aliasing between these three DB names*, not host-level or credentials isolation; they do not guarantee no scheduler activity. No Frappe DB was connected in this check; cannot infer enabled site scheduler from config alone, since database-held scheduler/maintenance state and installed framework code may affect behavior. Starting full bench-wide Honcho without identifying installed scheduler site enumeration could attempt work on broken third site. **Hold DEV startup until verified or explicit safe isolation decision.** Latest operator command was read-only, no server processes launched or PRODUCTION touched. Pinned PR32 `532a28d99bd0548241854495156a61f94eb1ac6b` remains draft/open/unmerged as independently rechecked on connected GitHub. Successful two-site migrations, MAIN metadata, 6/6 raw SQL, four native report `execute()`, Guest/Admin gateway denials unchanged.
+**Preserved backups:** Local secure archive `/home/gani/ccpc-secure-archives/old-production-retirement-20261121T150924/old-production-volumes.tar.gz` (directory 700 / archive 600) and NAS/CIFS source `/mnt/erpnext_backups/old-production-retirement-20261121T150924/old-production-volumes.tar.gz` were verified by source/destination checksum match and archive listing prior to removal. This proves archive integrity **not** demonstrated Frappe/MariaDB restore. Keep both until a separate verified restore/retention decision. No secrets or contents uploaded to GitHub.
 
-**NEXT safe read-only operator action:** inspect the **installed** `apps/frappe` scheduler source around site enumeration, `bench schedule`, and disabled-site checks with bounded excerpts only, using exact DEV container/app source guard; inspect no credentials/DB contents, run no scheduler, Frappe session, migrations or startup. Determine whether shared `bench schedule` will include the broken third site by default. Review site isolation options before any configuration-write authorization; do not rename/delete site, set flags, change Procfile, or start Honcho without appropriate scope.
+**Scope safeguards:** LIVE PRODUCTION is on a separate physical server per owner; **this deleted OLD PRODUCTION on the DEVELOPMENT host only**. Do **not** delete `/home/gani/deployments/frappe_docker`: it is the active DEVELOPMENT Frappe container's `/workspace` bind mount and contains shared Compose files. Neither DEVELOPMENT `frappe_docker_devcontainer_*` resources nor `ccpc_codex_dev_agent` were targeted. Leftover old anonymous log volumes/images may exist; **do not run Docker prune or delete unverified volumes**. Post-removal DEV health and exact absence of deleted resources still require operator read-only confirmation.
 
+**Next development priority:** Return to CCPC Bearings draft app PR42; its 24 offline tests passed in operator terminal, but disposable Frappe/MariaDB integration acceptance remains outstanding. Keep Finance Expense mapping Draft and avoid DEV pulls/migrations or production changes without specific separate authorization.
 
-## 2026-11-02 — Installed Frappe scheduler discovery includes broken third integration site; full Honcho startup held
+---
 
-**Owner-run read-only source inspection of installed DEVELOPMENT Frappe code (exit=0):** `get_sites` traverses `os.listdir(sites_path)`, accepts directory not symlink and containing `site_config.json`, and appends each site. `enqueue_events_for_all_sites` calls `get_sites()`, loops over returned sites and calls `enqueue_events_for_site(site=site)`; that function performs `frappe.init(site)`, **`frappe.connect()`**, then `is_scheduler_inactive()` before enqueueing. `is_scheduler_inactive()` checks `maintenance_mode`, `pause_scheduler` and `is_scheduler_disabled()`; disable check reads `frappe.conf.disable_scheduler` and `System Settings.enable_scheduler`. All requested function and pattern checks found (source inspection: completed, no DB connections, no scheduler/Honcho start, no modifications, PRODUCTION not touched). The earlier three-site inventory found `ccpc-integration.localhost` as a **real non-symlink directory with site_config.json**; prior GitHub docs classify it as a known broken/incomplete integration site **excluded** from approved migrations. Three site configs reference distinct database names and no disable or maintenance flags are set. **Inference from installed source:** bench-wide `bench schedule` may try initial DB connection on excluded site even if scheduler is subsequently found inactive, so blindly starting full Honcho risks unintended interaction with broken site. Explicitly HOLD full DEV Honcho startup and do not delete/rename site or change config without separate review/approval. The two migrated intended DEV sites and all four MAIN reports remain PASS; PR32 pinned exact `532a28d99bd0548241854495156a61f94eb1ac6b`, draft/open/unmerged.
+## 2026-11-21 — Legacy resources preserved after container removal; DEV remains running
 
-**Next read-only operator step:** inspect the installed CLI declaration of `bench schedule` (path `apps/frappe/frappe/commands/scheduler.py`) and the scheduler's site-specific options plus runtime `start_scheduler` loop (path `apps/frappe/frappe/utils/scheduler.py`) using small AST/source excerpts; do not start scheduler, connect to DB, change site files/Procfile or execute CLI with write effects. Determine if any actual `--site` selector truly constrains `get_sites()` for background scheduling. Public Frappe CLI documents `schedule` as **bench-wide**, while other scheduler management commands have per-site options; do not assume a generic `bench --site X` context constrains this scheduler. Based on evidence, propose DEV-only minimal safe isolation, or deliberate no-start pending scope confirmation. PRODUCTION untouched.
+**Operator-provided post-removal Docker checks:** Exact legacy named volumes `frappe_docker_db-data`, `frappe_docker_sites`, and `frappe_docker_redis-queue-data` still exist at their corresponding `/var/lib/docker/volumes/.../_data` paths. Legacy network `frappe_docker_default` remains with **0 attached containers**. Four MAIN DEVELOPMENT containers (`frappe_docker_devcontainer-frappe-1`, `frappe_docker_devcontainer-redis-cache-1`, `frappe_docker_devcontainer-redis-queue-1`, `frappe_docker_devcontainer-mariadb-1`) continue running (reported `Up 5 weeks`). Live production is on a separate server per owner statement. These checks confirm legacy containers were removed without stopping DEV containers, but do not establish DEV application health or a successful legacy database restore.
+
+**Before irreversible deletion of named volumes:** Preserve both verified archive copies (secure native local mode 600 and NAS), independently check archive manifest coverage and exact project labels/consumers, and explicitly acknowledge that cold archive checksum/integrity does not prove successful MariaDB restore. A disposable MariaDB restore test is preferred if data recovery guarantee matters; owner has approved removing OLD PRODUCTION only, never active DEV or the host path `/home/gani/deployments/frappe_docker`. No volumes/network removed as of this checkpoint.
+
+---
+
+## 2026-11-21 — Legacy OLD PRODUCTION containers removed; volumes still pending verification
+
+**Operator-reported execution (not independently inspected on host):** After verifying a separate secure local archival copy (file mode 600, directory mode 700; SHA matched NAS copy), operator ran exact-name, project-label-guarded `docker rm` of the 10 stopped `frappe_docker` **OLD PRODUCTION** containers with **no `-v` and no `-f`**. Terminal output: `=== REMAINING OLD CONTAINERS ===` followed by no names, then `OLD CONTAINER REMOVAL COMPLETED`. This supports that old containers were removed successfully; named legacy volumes and network **should remain**, but are not yet re-inspected after removal. No DEV containers, shared host Compose path or separate-server LIVE PRODUCTION intentionally touched.
+
+**Next read-only gate:** Check three named old data volumes (`frappe_docker_db-data`, `frappe_docker_sites`, `frappe_docker_redis-queue-data`), old network (`frappe_docker_default`), and active DEV container health. Before irreversible volume deletion, assess recoverability with a disposable restore or record explicitly accepted archival-only tradeoff; archive checksum alone does not prove a working MariaDB/Frappe restore. Preserve both backups. **Never delete `/home/gani/deployments/frappe_docker`**, which is DEV's `/workspace`.
+
+---
+
+## 2026-11-21 — Secure local legacy archive verified; exact-container retirement next
+
+**Operator-reported successful archive copy:** Native Linux local secure copy `/home/gani/ccpc-secure-archives/old-production-retirement-20261121T150924/old-production-volumes.tar.gz` exists. On-owner-host offline verification of source/destination hash equality and tar readability ended with `SECURE LOCAL COPY VERIFIED`. `stat` reported containing directory mode **700**, archive mode **600**. Network CIFS backup copy remains at `/mnt/erpnext_backups/old-production-retirement-20261121T150924/old-production-volumes.tar.gz`. No live restore yet; thus archive integrity is proven but full service recoverability not proven. No Docker resources removed as of checkpoint.
+
+**Owner intent:** Remove obsolete legacy Compose project `frappe_docker` on the DEVELOPMENT host (real production is elsewhere). **Immediate next safe operation:** remove only the **10 explicitly named, stopped** legacy Docker containers with exact project label preflight and backup-existence check, using `docker rm` **without `-v` or `-f`** so all old data volumes remain intact for a later restore test. Do not use `docker compose down` or remove any Compose config/source file: host `/home/gani/deployments/frappe_docker` is active DEV's bind-mounted workspace. Separate approval/verification required before volume/network retirement; preserve both backup copies. No container removal was executed by ChatGPT.
+
+---
+
+## 2026-11-21 — Legacy backup uses CIFS; chmod modes not authoritative
+
+**Operator-reported post-backup permissions:** `chmod 700` on the archival directory and `chmod 600` on archive and checksum returned success but subsequent `stat` reported **755 for all three**. `df -T` reveals that `/mnt/erpnext_backups` is mounted from a **CIFS/SMB NAS share**. CIFS client file modes can be defined by mount settings and may not reflect server-side ACLs; **NAS backup confidentiality cannot be established from this client mode view**. Backup archive integrity remains verified via `sha256sum -c` output `OK`, but that is not a successful Frappe/MariaDB restore test. Do not change mount options or ACLs blindly.
+
+**Next safe step:** Create a separately permission-restricted copy of the verified `old-production-volumes.tar.gz` on a confirmed native local Linux filesystem (such as ext4/xfs/btrfs) with adequate free space. Verify its checksum and 600 file / 700 directory permissions. Keep NAS copy until its server-side access can be verified and backup retention decided. No legacy container/volume deletion authorized or performed by assistant; host working directory `/home/gani/deployments/frappe_docker` remains essential for DEVELOPMENT and must not be removed.
+
+---
+
+## 2026-11-21 — Owner-verified legacy cold archive; file-mode anomaly before deletion
+
+**Operator-reported archive milestone:** After stopping the legacy `frappe_docker-db-1` and planned legacy Redis services, a cold `tar.gz` of the old project's `frappe_docker_db-data`, `frappe_docker_sites`, and `frappe_docker_redis-queue-data` volumes was created under `/mnt/erpnext_backups/old-production-retirement-20261121T150924/`. Operator output showed a **33 MB compressed archive**, a SHA-256 sidecar, and `BACKUP VERIFIED` after tar-listing and checksum verification. This verifies readability/checksum, **not successful restore or completeness of a full Frappe recovery**. No destructive cleanup has been performed yet.
+
+**Security anomaly to resolve first:** The displayed `ls -lh` file modes were `-rwxr-xr-x` for both archive and checksum file, despite `sudo chmod 600` in the command. Need to verify and enforce backup-directory mode 700 and archive/manifest modes 600, and whether the underlying filesystem honors mode changes. If not, copy to a secure filesystem with enforced permissions, verify checksum, and only then proceed to precisely scoped deletion. Avoid deleting shared host path `/home/gani/deployments/frappe_docker`, used as DEV `/workspace`.
+
+---
+
+## 2026-11-21 — Legacy database stopped cleanly for archival retirement
+
+**Owner-reported execution:** `docker stop --time 60 frappe_docker-db-1` completed successfully; Docker displayed a harmless deprecation warning recommending `--timeout`, and subsequent `docker inspect` reported **OLD PRODUCTION database status: exited**. This stops only legacy MariaDB in Compose project `frappe_docker`. No DEV database stop, volume deletion, compose teardown or host-path cleanup has occurred. The legacy DB volume remains 349 MB and old site volume remains 3.2 MB according to earlier read-only size checks. Next action: optionally stop only remaining legacy Redis services, make a checksum-verified and access-restricted cold archive of exact old DB/sites/Redis queue volumes in `/mnt/erpnext_backups`; then verify archive before any irreversible removal. Avoid `/home/gani/deployments/frappe_docker` because it is DEVELOPMENT's bind mount.
+
+---
+
+## 2026-11-21 — Verified DB endpoint separation before legacy shutdown
+
+**Owner-supplied read-only evidence:** `docker port frappe_docker-db-1` returned no published mappings. In MAIN DEVELOPMENT Frappe site configuration, both common and `development.localhost` configurations returned `db_host: mariadb` and default DB port. Coupled with earlier `docker inspect` evidence of separate DEV `frappe_docker_devcontainer_default` and OLD/LEGACY `frappe_docker_default` networks and distinct database volumes, this strongly supports DB separation. It does not conclusively rule out every external dependency. No credentials were displayed.
+
+**Safe retirement plan:** Owner wishes to delete only OLD PRODUCTION. After verification, stop **only legacy MariaDB container** to obtain a consistent cold backup of legacy database and sites volumes, verify archive integrity/checksums and preserved location, then request precise scope approval before irreversible removal of legacy Docker containers, network and volumes. DEV host working directory `/home/gani/deployments/frappe_docker` is bind-mounted by DEV and MUST NOT be deleted. No shutdown/removal executed or independently verified by ChatGPT.
+
+---
+
+## 2026-11-21 — Legacy volume size and Compose-path inventory; archival backup needed
+
+**Owner-supplied inspection (read-only):** Legacy Compose project `frappe_docker` has configuration file locations `/home/gani/deployments/frappe_docker/compose.yaml`, `overrides/compose.mariadb.yaml`, `overrides/compose.redis.yaml`, and `overrides/compose.noproxy.yaml`, working directory `/home/gani/deployments/frappe_docker`. **Preserve this whole host directory** because the active MAIN DEVELOPMENT container bind-mounts it at `/workspace`. The legacy named volume sizes reported by `sudo du -sh`: `frappe_docker_db-data` **349 MB**, `frappe_docker_sites` **3.2 MB**, `frappe_docker_redis-queue-data` **8 KB**.
+
+**Backup status:** `/mnt/erpnext_backups` contains recent `development.localhost` and older `ccpcerp.local` database SQL.gz backups. Their provenance and whether they fully cover OLD PRODUCTION remain **unverified**; filenames alone are not sufficient. Plan a **new explicitly labeled, recoverable legacy database/sites archival backup** before volume deletion, ideally a cold copy after stopping only the known retired legacy containers and confirming that DEV does not use the legacy DB via published ports. Record backup file and verification, then require final exact-resource removal confirmation. No stop, backup, Compose teardown, volume removal or PRODUCTION change executed by ChatGPT at this checkpoint.
+
+---
+
+## 2026-11-21 — Legacy Docker volume-consumer inventory (read-only)
+
+**Owner-reported read-only `docker ps -aq | docker inspect` inventory:** Every container shown using network `frappe_docker_default` or named volumes `frappe_docker_db-data`, `frappe_docker_sites`, `frappe_docker_redis-queue-data` belongs to the **legacy** Compose project `frappe_docker`. The matching 10 observed containers are legacy frontend, queue-short, backend, queue-long, websocket, scheduler, configurator, redis-queue, redis-cache and DB. Several legacy application containers also hold distinct **anonymous logs volumes**; these must not be discarded inadvertently if preserving historic logs is required. The user did not report a DEVELOPMENT container consuming those old named volumes/network. This supports Docker-resource separation but does **not** prove host-path or operational independence, backup restorability, or that legacy data is expendable.
+
+**Hold:** No services or volumes have been removed. Next check legacy Compose config path, old database/sites volume sizes and verified backups before final scope confirmation. **Never delete** host `/home/gani/deployments/frappe_docker`: DEVELOPMENT bind-mounts it as `/workspace`. Live PRODUCTION is on a separate server per owner; `frappe_docker` here is retired OLD PRODUCTION only.
+
+---
+
+## 2026-11-21 — Read-only legacy/DEV Docker separation evidence before retirement
+
+**Operator-supplied Docker inspect results (not independently executed against host):** legacy `frappe_docker-db-1`, old Redis services and stopped `frappe_docker-backend-1` are attached to network `frappe_docker_default`, with named volumes `frappe_docker_db-data` at `/var/lib/mysql`, `frappe_docker_redis-queue-data` at `/data`, `frappe_docker_sites` at `/home/frappe/frappe-bench/sites`, plus an anonymous backend logs volume. DEV `frappe_docker_devcontainer-frappe-1` and DEV MariaDB/Redis use network `frappe_docker_devcontainer_default`; DEV MariaDB uses `frappe_docker_devcontainer_mariadb-data`. **Crucial overlap in naming, NOT storage identity:** DEV Frappe bind-mounts host `/home/gani/deployments/frappe_docker` into `/workspace`; do not delete, rename, recursively clean or alter this host path just because its basename is `frappe_docker`. DEV also mounts `/home/gani/.ssh` and `vscode`, which are out of old-stack removal scope.
+
+**Assessment:** These selected containers show distinct networks and DB data volumes, but full cross-container dependencies, existing backups and safe deletion scope are **not verified yet**. No container stop/removal, volume deletion or Docker Compose teardown authorized/executed as of this note. Check volume consumers and backups; explicitly reconfirm exact resources and backup evidence before any irreversible cleanup. Live PRODUCTION is owner-reported on a separate server.
+
+---
+
+## 2026-11-21 — Host roles clarified: legacy `frappe_docker` is NOT live production
+
+**Owner clarification (reported, not independently verified by host access):** Actual **live PRODUCTION runs on a different physical server**. On the server currently used for MAIN DEVELOPMENT and Codex review, the Docker Compose project named `frappe_docker` is **OLD/LEGACY PRODUCTION**, **NOT LIVE PRODUCTION**. A user-provided `docker ps -a --filter label=com.docker.compose.project=frappe_docker` showed legacy application containers exited, while legacy MariaDB and Redis containers remain running. MAIN DEVELOPMENT is `frappe_docker_devcontainer`, and `ccpc_codex_dev_agent` is a separate observed container project with DB/Redis (actual test-site isolation unverified). **Never describe `frappe_docker-db-1` as the live production database.**
+
+**Owner intent:** Retire and remove the legacy `frappe_docker` stack to prevent confusion and release resources. This is **not authorization for an unchecked destructive removal**: first inventory legacy vs DEV mounts, networks, dependencies and any valuable legacy data; confirm recoverable backup and exact deletion scope before any container/volume removal. No deletion or changes performed as of this checkpoint. Separate-server LIVE PRODUCTION remains outside this task.
+
+---
+
+## 2026-11-21 — PR42 full offline Python suite passed (operator terminal evidence); DB gate pending
+
+**Confirmed operator terminal output, not witnessed GitHub-hosted CI:** Clean detached offline checkout `~/ccpc-codex-work/ccpcerp-pr42-offline` at exact app PR42 code SHA `43609f1e185d328cc4626d5acb6f413176a0ae4a`. Owner ran `python3 -m compileall -q ccpcerp` followed by the four offline unittest modules (`test_phase1_maintenance_use`, `test_phase1_maintenance_wiring_static`, `test_phase1_release_scope`, `test_phase1_release_wiring_static`); pasted terminal output showed **Ran 24 tests in 0.079s; OK**. `git status --short` had no reported changes. GitHub Actions remains unsuccessful before execution / runner steps (independent CI pass not claimed).
+
+**GitHub bookkeeping:** Private app PR42 design/checkpoint updated, now at documentation-only head `5fb0651d919ca55fff9ab61f22fcb26b54983c53`, PR body verified updated. PR42 remains draft and remains based on PR35 release branch. GitHub's new commit records results but does not mean additional code tests were executed on that updated doc-only commit.
+
+**Hold:** No Frappe/MariaDB or real stock/GL acceptance; no Development pull or schema migration; no Expense mapping signature or activation; no PRODUCTION changes. Next: prepare *disposable isolated site* test plan, verify safety/isolation and backups before authorizing any operations that might affect a shared bench or company data. Negative paths must leave database inventory and accounting intact; review capital material route before wider rollout.
+
+---
+
+## 2026-11-21 — PR42 browser intent lock fixed; pure policy tests passed locally; DEV still on hold
+
+**Verified private app GitHub update:** Draft app [PR42](https://github.com/ccpcerp/ccpcerp/pull/42) now includes a browser-side request-intent lock for new Withdrawal Slip material-use selector (commit `96e2589b104760951371e726a4afbaaeade14316`) and a static regression assertion for that lock (commit `52aa26886cf6dbb565ef6942480480dfe5a6272a`). Private app design/validation note updated on branch at `43609f1e185d328cc4626d5acb6f413176a0ae4a`. Original release PR35 remains separate; PR42 remains draft and targets the same Phase 1 review/release branch.
+
+**Verified local test evidence:** Copied exact GitHub-source versions of pure policy and its six-test unit module into isolated local Python; Git blob SHA matches were checked for `phase1_maintenance_use.py` (`4f8b6f0e7e5efb57d1a77bf5025e726ff8fa29ea`) and `test_phase1_maintenance_use.py` (`f214a1db3f912a3023f50dba2ce8308bc0d155b4`). **All six pure offline unit tests PASSED.** A separate read-only connected-GitHub source inspection produced **10/10 textual presence/wiring assertions true**. This is **not** full app Python compilation, AST-test execution, disposable ERPNext/MariaDB ledger acceptance, or MAIN DEV UAT.
+
+**GitHub CI remains unreliable:** Latest observed workflow attempts failed with no assigned runner and zero steps. Do not equate that with a code test failing or passing; cause unresolved.
+
+**Next safe tasks:** independently run full reviewed-checkout offline compilation and AST smoke tests; review potential effect of blocking legitimate native Bearings direct Material Issues; run disposable Frappe/MariaDB tests (successful same-Company routine issue, capital/unclassified/mixed/wrong beneficiary rejection, direct bypass rejection, unchanged stock/GL on failed issue, concurrency and role controls, non-pilot regression). No DEVELOPMENT pull, DocType migration, Expense mapping activation, stock/GL posting, or PRODUCTION changes are authorized or performed yet. Do not request redoing previously completed DEV Finance user creation / Center mapping.
+
+---
+
+## 2026-11-21 — PR42 GitHub Actions runner unavailable; no code tests executed
+
+**Verified GitHub CI evidence:** Private app draft PR42 head `48782da6fab87835aaeda6108989f9c5ef92d431` launched GitHub Actions attempt [run 44867185905](https://github.com/ccpcerp/ccpcerp/actions/runs/44867185905) for the new 5-minute offline maintenance-use review. GitHub marked the run `failure`, but the job data show **runner_id 0, empty runner name, no steps, ~3-second duration**. Log download returned `BlobNotFound`; **the Python code was not executed and neither compileall nor unit tests ran**. The runner provisioning cause is **not verified**; do not diagnose as code-test failure or assert tests passed. PR description updated with this limitation.
+
+**Hold:** Do not merge PR42, pull to MAIN DEVELOPMENT, run schema migrations, activate Expense mapping or post materials based on this CI. Need an independently executed isolated source checkout `python3 -m compileall -q ccpcerp` and `python3 -m unittest -v ccpcerp.ccpc_erp.test_phase1_maintenance_use ccpcerp.ccpc_erp.test_phase1_maintenance_wiring_static ccpcerp.ccpc_erp.test_phase1_release_scope ccpcerp.ccpc_erp.test_phase1_release_wiring_static` or working GitHub CI, **plus** disposable MariaDB acceptance for all negative/positive paths. The new Slip field is schema-changing and requires separate migration authorization; deploying app code without field migration makes locked Slip SQL fail, intentionally fail-closed but potentially disrupts unrelated issue workflows.
+
+---
+
+## 2026-11-21 — Owner-approved maintenance-only Bearings safeguard implemented in GitHub draft PR42
+
+**Owner approval:** Following independent DEV Checker review of the proposed maintenance-parts Expense mapping, owner explicitly **approved implementing the capital/non-maintenance safeguard in GitHub**, and asked for a reminder about Expense Account Mapping. Explanation given: approved Item Group→Expense Account determines **expense nature** on a posted original Material Issue, while Department is beneficiary and Cost Center is a separate financial allocation dimension. A group-wide mapping is not in itself proof of routine expense versus capitalization.
+
+**Verified private app GitHub work:** New branch `feature/phase1-maintenance-only-2026-11-21`, derived from release head `034afb116cf3fe0e3f9315b932eceba6dc961ce6`; draft [app PR #42](https://github.com/ccpcerp/ccpcerp/pull/42) targets `release/withdrawal-department-phase1-2026-11-17`. At head `48782da6fab87835aaeda6108989f9c5ef92d431`, 9 changed files: structured blank-by-default Withdrawal Slip material-use choice; request-intent immutability; locked parent snapshot and stale checks; policy enforcing **CCPC + exact Bearings Item Group + same-Company Maintenance beneficiary + Routine Maintenance + no mixed groups** before financial mapping; rejection of unlinked direct CCPC Bearings Material Issues; pure policy/static wiring tests; limited no-DB PR CI; private-repo design/rollout note. **Capital, other and unclassified Bearings requests are blocked**, not silently expensed. Other groups and Companies are intended to retain current behavior.
+
+**Known limitations and risks:** Code cannot verify truth of manually selected Routine Maintenance; supervision and evidence remain required. The direct-issue rule intentionally blocks even legitimate CCPC Bearings native Material Issues until an alternate capital/exception route is separately approved. The new DocType Select field **requires a migration**, which has not been approved or performed. The PR CI was **queued** on creation, not yet passed; full disposable MariaDB and MAIN DEV integration are not performed. No app release merge, DEV Git pull/migration/test posting, Expense mapping activation, or PRODUCTION action. Existing DEV Center mapping remains active; Expense mapping remains Draft. After green CI and review, follow verified safe shared-bench DEVELOPMENT pull/deploy procedure **only after separate operator approval and backup/status check**.
+
+---
+
+## 2026-11-21 — Separate DEV Checker successfully reviewed proposed Expense mapping; unsigned (public-safe)
+
+**Operator-provided MAIN DEV read-only Finance page review:** The newly provisioned separate DEV Accounting Checker (whose access was corrected by removing the conflicting Stockroom Personnel role) can open the exact **Expense Account** mapping Draft. The review shows the exact issuing Company, candidate maintenance-part **Item Group**, intended eligible repairs-and-maintenance Expense Account, a draft revision, a **different recorded preparer**, `Status: Draft`, and `Effective from: At approval`. This verifies the displayed business proposal and maker/checker distinction, **not** a signed/active approval or historical role audit. Exact User emails/revision identifiers omitted from this public repository. The DEV-only Center mapping previously showed active.
+
+**Remaining blocking design decision:** Current pinned issue path constructs Withdrawal Slip Material Issue and resolves Expense Account by Item Group. No explicit server-side check was located distinguishing routine maintenance from capital-project or other uses in this flow. Signing the draft `At approval` would activate the group mapping, not merely the singled-out pilot Item. Treat Expense activation as **HOLD pending a separately authorized capital-exception control**, e.g. server-enforced maintenance-only eligibility with explicit fail-closed handling of other purposes, independently reviewed/tested on DEV; or a formal documented alternative finance governance decision. Avoid a mere UI warning or manual-only distinction for a generally active mapping. Do not modify or reclassify any posted historical transactions.
+
+**Suggested next active-development task:** Obtain owner authorization for a narrow GitHub branch implementation of the purpose/exception guard, with negative tests proving that capital/non-maintenance requests cannot post via routine expense mapping, then review and follow safe checked DEV pull/test procedure before signing and issuing a one-unit pilot. No mapping signature, application code change, DEVELOPMENT pull, stock/GL posting or PRODUCTION operation executed by assistant in this turn.
+
+---
+
+## 2026-11-21 — DEV Checker Stockroom-role conflict corrected by operator (public-safe)
+
+**Operator report:** The new separate DEV Accounting Checker test account initially received `An explicit Finance mapping role is required` on the pilot Finance page. The operator subsequently **unchecked the conflicting `Stockroom Personnel` role** and reports access is now okay. Current pinned GitHub code's `phase1_finance_onboarding._actor_roles` explicitly rejects Stockroom Personnel even when a Finance role is assigned; this explains the role gate without granting System Manager/Administrator privileges. This is an operator-reported fix, not an independent DB audit of final roles and Company User Permission.
+
+**Next safe step:** Using the separate DEV checker session, perform **read-only Review draft** for the existing same-Company maintenance-parts Expense Account proposal. Verify Company/source/value/revision/maker/effective timestamp and keep `Sign and approve` on HOLD while capital versus ordinary-maintenance policy enforcement is unresolved. The Center mapping is already active in DEV, and the Expense mapping is still Draft. No stock issue or PRODUCTION action.
+
+---
+
+## 2026-11-21 — New DEV Checker login fails Finance role gate; read-only Has Role diagnostic pending
+
+**Operator-provided MAIN DEV observation:** A newly created separate Finance Checker test user has been saved, and the operator reports that the `CCPC Accounting Mapping Approver` role is displayed on that user's User form and a Company User Permission is saved with `Apply To All Document Types` checked. After login, visiting `/app/ccpc-phase1-finance` fails at `An explicit Finance mapping role is required.` **Do not assert successful role persistence or Company authorization from the UI alone.**
+
+**GitHub pinned code inspection:** `phase1_finance_onboarding._actor_roles()` reads exact `tabHas Role` children for the current session User where `parenttype='User'`, demands at least one of `CCPC Mapping Preparer`/`CCPC Accounting Mapping Approver`, and blocks `Stockroom Personnel`. This error is emitted before checking the Company grant. Next safe operator action is a **read-only** query of exact new test user's enabled flag, direct Has Role rows for checker/preparer/Stockroom, and exact Company User Permission. Interpret results before changing roles and retrying login; no privilege broadening, no Administrator/System Manager grant, no automatic account regeneration. Exact login ID omitted because deployment documentation repository is currently public.
+
+**Finance status:** Cost Center mapping active in MAIN DEV under test maker/checker; Expense mapping still Draft and on HOLD due capital-use exception control, no Stock Entry posting or PRODUCTION action.
+
+---
+
+## 2026-11-20 — Bearings Expense proposal is Draft only; capital-use guard still unresolved (public-safe)
+
+**Operator-provided MAIN DEV Finance page result:** For the owner-approved same-Company Bearings-like maintenance-parts leaf Item Group to eligible repairs-and-maintenance Expense Account, `Active mapping: No active mapping` and `Draft revision` populated. This is evidence of an **Expense proposal Draft**, not proof of exact stored target or authenticated Checker review/approval. Revision ID and sensitive financial master identifiers omitted from this still-public repository. Prior Center mapping is separately effective under a DEV test approval. **No expense mapping activated** and no pilot stock/GL posting verified.
+
+**GitHub source check:** Current pinned `withdrawal_slip_stock._build_material_issue` resolves financial values through `assign_original_issue_b_c` after applying beneficiary Department, and `bc_issue_runtime` resolves Expense scopes by Item Group. The inspected posting sequence does **not show a purpose-specific capital-use block** that would stop this group mapping being used for capitalized / non-maintenance Bearings issues. User business consent to ordinary repairs classification does not constitute blanket capitalization-policy approval. **Keep signed Expense activation on HOLD** pending a verified exception-control plan or further code/data validation. Do not silently generalize from the one-unit pilot to every use of the whole group.
+
+**Next safe step:** Distinct authenticated DEV Accounting Checker uses Desk `/app/ccpc-phase1-finance` Expense type and candidate Item Group, clicks **Check coverage → Review draft** (read only), and verifies exact Company/source/target/revision/preparer/effective time; **do not click Sign and approve** yet. No PRODUCTION changes.
+
+---
+
+## 2026-11-20 — Center mapping active in DEV after independent test approval (public-safe)
+
+**Owner-provided MAIN DEVELOPMENT ERPNext Desk validation after signed test approval:** For the initial Company-scoped pilot Maintenance beneficiary Department, **Active mapping = the existing main leaf Cost Center** and **Active revision shown** (identifier omitted from this public repository). This is verified by operator screen output, **not** by direct access from assistant to the live DEV DB. In the currently inspected application onboarding code, `get_pilot_coverage` requires an approved, effective revision and enforces approval provenance before returning it as active. This confirms the initial test Center mapping appears active and the configured Company's normal downstream resolution can rely on it, subject to integrated stock/GL UAT.
+
+**Accounting control:** Authenticated DEV maker/checker accounts use test email identities; their signing is DEVELOPMENT validation, not PRODUCTION finance appointment. Separate **Expense mapping is still not active**; its initial proposed maintenance-part group → eligible repairs Expense Account remains business-approved for ordinary maintenance consumption only. Do not activate until capital/other-use exception gate and Finance test reviewer scope are acceptable. **No stock entry, SLE/GL issue, DEV app code deployment or PRODUCTION change was performed by this conversation.**
+
+**Immediate next supervised action:** Finance preparer in MAIN DEV opens `/app/ccpc-phase1-finance`, selects `Expense Account`, exact same-Company pilot source group, and existing repairs expense account; use `Check coverage` for any existing active/draft mapping, then `Propose mapping` **Draft only** if no scope conflict. A distinct Checker must review exact proposal without approving until the exception gate is resolved.
+
+---
+
+## 2026-11-20 — Owner confirms DEV Finance roles use test identities; initial Center signing authorized for DEV verification
+
+**Owner clarification:** Current MAIN DEVELOPMENT Finance preparer and distinct approver accounts are **deliberately test-email identities**, not actual production email addresses. Owner confirms Finance-preparer/independent-approver arrangement, and offers more test users if needed. For **DEV UAT only**, existing separately enabled, exact-Company-permitted test accounts can execute the normal maker/checker workflow; extra accounts are unnecessary if distinct-authority requirements are met. ERPNext authenticated test approvals are development test evidence **only**, not production Accounting staff appointment, real Finance signoff, or authorization for PRODUCTION migrations/deployment.
+
+**Next delegated operator step:** With the **different** authorized DEV Finance Checker, independently re-review exact existing Center Draft (same-Company Maintenance beneficiary → existing Company main leaf Cost Center, effective at approval), then click **Sign and approve** for the **Center mapping only**, and **Check coverage** afterward. This is an explicitly owner-approved supervised DEV financial configuration write; test identity and signed ERPNext decision provenance must still pass server checks. Do **not** approve/activate the separate Expense mapping, issue any materials, or modify PRODUCTION. Assistant has not executed any ERPNext API actions or independently observed activation; owner should provide resulting actual active revision for verification.
+
+---
+
+## 2026-11-20 — Independent Center draft review matches business proposal; personnel authorization still pending
+
+**Owner-provided review-screen facts (public-safe and deliberately de-identified):** The Expense/Center onboarding page's **Center** Draft review has exactly the intended issuing Company, an eligible same-Company Maintenance beneficiary Department, the existing Company main leaf Cost Center as proposed target, `Draft` status, and effective timing **At approval**. Screen revealed a named maker account, omitted from this public handoff. Revision identifier also omitted. **Technical proposal values matched** the owner's approved business policy, but this is not verification that the preparer belongs to formally appointed Accounting staff, nor that a distinct human Checker has been assigned by authorized Accounting management. The policy requires real two-person Company-scoped maker/checker authority: application role access is necessary but not proof of staff delegation. **STOP before Sign and approve** until named maker and different Checker have actual Finance appointments/Company permissions. Approval would make this mapping effective immediately, not merely mark it reviewed. Expense Account mapping remains separate/not created or signed; capital-use exception must be controlled before release.
+
+**No signed approval, mapping activation, inventory issue, GL posting, DEV deployment, or PRODUCTION changes have been verified.**
+
+---
+
+## 2026-11-20 — First Phase 1 Center mapping draft visible (unapproved; public-safe)
+
+**Operator-provided ERPNext Desk result:** After selecting the same-Company pilot's Maintenance beneficiary Department under `Cost Center` mapping, the Phase 1 Finance screen displayed `Active mapping: No active mapping` and a **Draft revision identifier**. This indicates a **Center mapping draft exists, not that it is signed, effective, or correct**. The displayed draft identifier and user identities are deliberately omitted from this public repository. Earlier owner authorization selected the existing main Company Cost Center as the pilot proposal; the actual stored revision's target, Company, source, maker identity, and version remain **unverified by an independent Accounting reviewer**.
+
+**Next controlled step:** The separately authorized, named Company-scoped Accounting Checker (a different user from the preparer) selects the exact Company and Maintenance Department on `/app/ccpc-phase1-finance`, clicks **Check coverage → Review draft**, and verifies proposed target, source, maker, revision, and effective timing. **Do not click Sign and approve** before confirming those exact values, independent authority, and Company scope. No signed Finance decision, active mapping, new Stock Entry/GL, DEVELOPMENT environment change outside the operator's draft proposal, or PRODUCTION action has been verified.
+
+---
+
+## 2026-11-20 — Owner approved Phase 1 pilot policy; authenticated Finance approval remains gated
+
+**Owner authorization:** Immediately after review of every **19 real Items** in a single maintenance-parts leaf Item Group, the owner replied **"aPPROVED"** to the explicit proposed **same-Company Phase 1 Expense mapping** into an eligible repairs-and-maintenance Expense Account and **beneficiary Maintenance Department → currently configured main leaf Cost Center**. This is explicit business-policy agreement for a narrowly controlled maintenance-consumption pilot; do **not** infer that capital improvements, production capitalization, or unrelated uses of that Item Group qualify for repairs-and-maintenance expense. The full Item Group mapping applies to all 19 Items; there is no verified purpose-specific accounting override. **Before actual activation, Finance must confirm that exceptions are operationally excluded or separately controlled**; otherwise a grouping/purpose redesign is required.
+
+**This owner approval is not an ERPNext signed approval record:** Current pinned Finance module exposes a named-user Company-scoped preparer `propose_pilot_mapping` and a separate Checker `sign_and_approve_initial_mapping` on Desk page `ccpc-phase1-finance`, with server-signed exact-revision decision; checker must not be original preparer. The page is role-restricted; the exact app/source pinned by prior checkout remains on MAIN DEV. Approval flow can create persistent Financial mapping data, so only authenticated specifically authorized actual Finance actors should initiate proposals and signatures, after exception policy review. **No new mapping scope/revision, signed decision, Stock Entry/SLE/GL, schema/config, app code change, migration, or PRODUCTION operation was performed by this chat**.
+
+**Next supervised action:** Named Finance Preparer opens `/app/ccpc-phase1-finance` on MAIN DEV, selects exact same-Company and mapping type, and **first checks coverage** of candidate source (existing scopes previously counted zero). Provide only a safe read-only page/navigation step first; do not click `Propose mapping` or `Sign and approve` until roles, capital-use exception policy, and write scope are explicitly confirmed. Then proceed with independent signed Finance flow and separately approved one-unit same-Company DEV UAT. Public docs repository: omit sensitive detailed financial/stock identifiers, voucher numbers, amounts and user identity.
+
+---
+
+## 2026-11-20 — Full pilot Item Group name review completed; Finance approval still required (public-safe)
+
+**Operator-provided MAIN DEV read-only Item master list:** The candidate pilot's exact leaf Item Group has **19 enabled stock Items**; the operator provided all 19 names, and each is an identifiable bearing variant (ball, double-row, angular-contact, spherical/tapered roller or thrust bearing). This confirms consistent **naming/product type**, **not** that every issue has the same accounting purpose; some bearing usage could relate to capital projects, production, service contracts or routine equipment maintenance. No new Item records, accounting mappings or stock entries were created.
+
+**Proposed but not authorized:** A narrow **same-Company maintenance Department pilot** may use the existing repairs-and-maintenance expense Account for the **whole exact leaf Item Group** and an existing eligible central Company Cost Center, but first requires a real Finance decision on **all 19 Items' permissible issue purposes**, expense versus capital policy, and the accepted centralized Cost Center allocation. Mapping at exact Item Group level is broad, not single-Item: if mixed financial treatment is required, stop and design a governed more granular categorization/exception before activation. Maker and distinct Accounting Checker must sign exact Company, Item Group→Expense and beneficiary Department→Center revisions under current controls; user approval of architecture in chat is not a substitute. No posting UAT, financial crosswalk activation, inventory consumption or PROD changes. Current GitHub docs repository is public: retain financial master IDs, voucher IDs and quantitative stock data out of this handoff.
+
+**Next milestone:** Finance returns explicit written policy suitability/decision for both proposed maps, then determine separately authorized DEV-only draft/signature/posting procedure with validation of full Department dimension in GL, original Stock Entry/SLE, source-quality report and transaction integrity. Pending signed Accounting decision: **POSTING NO-GO**.
+
+---
+
+## 2026-11-20 — Historical cross-Company beneficiary/company ownership verified; Phase 1 remains same-Company
+
+**Operator-provided MAIN DEVELOPMENT read-only follow-up (public-safe abstract, no voucher IDs or financial amounts):** The older Withdrawal Slip's `requesting_company` was confirmed to be a **different legal Company** from its issuing Company; both requesting and beneficiary Departments were verified against live `tabDepartment` to belong to that requesting Company, not the issuer. This corroborates the previous legacy cross-Company attribution exception and explains why it cannot be classified as same-Company Department consumption. The current Slip field values are not immutable issue-time attribution evidence. No inference has been made that the beneficiary Company has recognized matching GL expense or payable.
+
+**Scope disposition:** Preserve all historical Stock Entry/GL/Slip records unchanged. The Phase 1 application `require_same_company_issue` and beneficiary Department validation aim to block such new transactions; separately verify in integrated UAT. Defer historic intercompany correction/billing to an explicitly authorized Accounting workstream. For first-release next action, return to narrow same-Company materials pilot: review **all** currently eligible real `Bearings` Item names (19) before any Company+Item Group→Expense Account business crosswalk decision, then have separately authorized independent Accounting maker/checker sign the exact Expense/Center revisions. Current one-unit DEV issue candidate is a stock balance observation only; no stock/GL posting authorization. **No confidential identifying voucher numbers, exact GL amounts, secrets, or employee details reproduced in this public handoff**.
+
+---
+
+## 2026-11-20 — Legacy cross-Company issue exception and GL sign semantics confirmed (public-safe summary)
+
+**Operator-provided MAIN DEVELOPMENT read-only investigation (redacted for public repository):** Three legacy Expense-root GL entries previously found without a Department have been traced to Stock Entries. Two are **Material Receipt** offsets posting **CREDIT** to a Stock Adjustment Expense-root Account with no source row/header Department. The third is a submitted **Material Issue** posting a **DEBIT** to a maintenance-related expense Account and linked to a Withdrawal Slip whose **issuing Company and current beneficiary Department's Company differ**. The linked Slip currently identifies a different-Company requester and beneficiary, has no equipment, is still a Draft DocType (`docstatus=0`) while workflow status reads `Fully Issued`; the posted Stock Entry is `docstatus=1`. No historical beneficiary issue-time snapshot has been established from these mutable Slip fields. **Do not treat this historical cross-Company issue as a same-Company Department cost or assume RMC posted a matching expense; never backfill a foreign Department onto the issuer's GL.**
+
+**Verified code inspection:** Current pinned DEV app source `phase1_release_scope.py` checks exact equality of issuing and requesting Company in `require_same_company_issue`; `withdrawal_slip_stock.py` calls this for normal authorized issue and linked Stock Entry validation. `withdrawal_issue_beneficiary.py` independently validates that the actual Work-for/Equipment beneficiary belongs to the issuing Company. The current Phase 1 source therefore **intends to fail closed on newly requested cross-Company stock issues**, without rewriting older records; code inspection does not substitute for actual DEV posting/negative tests. The legacy Draft/Fully Issued combination alone is not an accounting error; confirm custom lifecycle before evaluating status.
+
+**Accounting/reporting implications:** Expense-root GL inclusion does not imply a positive Department cost: credits and debits must be **netted** with appropriate ERPNext accounting signs, and stock receipts must not be counted as gross material consumption. Retain the historic missing-Department items as an explicit reconciliation exception pending authorized Accounting review. The future Department Expense Statement is based on posted expense GL with an unassigned/invalid bucket; the operational Material Consumption report remains separate gross SLE. No financial master, Expense mapping, Stock Entry, GL, roles, deployment, PROD or DEV transactional changes.
+
+**Next read-only check:** Verify the historical Slip's `requesting_company` and registered Company ownership of its requesting and Work-for Departments (without publishing source IDs or amounts). Then resume Phase 1 **same-Company** Finance crosswalk approval and integrated DEV UAT; do not let deferred intercompany history derail this scope.
+
+---
+
+## 2026-11-20 — Three CCPC expense GL lines without Department traced to Stock Entry vouchers
+
+**Operator-supplied MAIN DEV read-only `tabGL Entry` detail for the three missing Department expense GL lines (no amounts displayed):**
+
+| Posted | Voucher | Expense Account | Cost Center |
+| --- | --- | --- | --- |
+| 2026-09-12 | `Stock Entry MAT-STE-2026-00007` | `5400 - Stock Adjustment - CCPC` | `Main - CCPC` |
+| 2026-09-12 | `Stock Entry MAT-STE-2026-00009` | `5400 - Stock Adjustment - CCPC` | `Main - CCPC` |
+| 2026-10-06 | `Stock Entry MAT-STE-2026-00019` | `5140 - Repairs & Maintenance - CCPC` | `Main - CCPC` |
+
+All three missing-Department expense GL rows are sourced from **Stock Entry** vouchers, not from the examined Purchase Invoice or Journal Entry sources; **Stock Entry purpose, submitted status, Withdrawal Slip linkage, header/item Department, other balanced ledger entries, and historical accounting intent have not yet been inspected**. `5400 - Stock Adjustment` is not authorized as the current controlled withdrawal category mapping merely because it appears historically; `5140` also remains only a proposed `Bearings` candidate. These are postings dated before this Nov20 inspection, but chronology alone does not establish that they predate code fixes, arose from the current custom route, or require correction.
+
+**Next safe diagnostic:** Read-only query of just these three exact `tabStock Entry` headers and `tabStock Entry Detail` rows, listing Company, posting date, purpose, docstatus, Withdrawal Slip linkage, header/row Department, Item and expense account/Cost Center (no amounts or sensitive personal fields). If the original source also lacks Department, investigate transaction provenance/intent; if its header/items contain beneficiary Department but GL lacks it, investigate native GL dimension propagation or customization. Neither finding authorizes historic edits. Keep **Unassigned Department** as a separate reconciliation bucket until Accounting approves explicit treatment. No master-data edit, finance mapping, GL adjustment, transaction cancellation or PRODUCTION operation.
+
+---
+
+## 2026-11-20 — Live expense-GL Department coverage: CCPC 9/12; RMC no expense rows
+
+**Operator-supplied MAIN DEV read-only `tabGL Entry` counts** joined to exact-Company Expense-root Accounts, excluding canceled entries: **CCPC: 12 expense GL rows = 9 with eligible exact-Company enabled leaf Department (75%), 3 blank Department (25%), 0 invalid nonblank**. **Ricor: 0 matching expense GL rows**, so Department coverage **not yet measurable**, not demonstrably fully compliant. Note row coverage is not value-weighted and does not prove correct attribution for valid Department labels or successful current withdrawal→GL pilot. There are three unassigned CCPC expense rows to investigate; **no automatic reallocation, GL edit, or retrospective Department rewrite**.
+
+**Operational next step:** ONE narrow, read-only command to list the three missing CCPC rows by date, voucher type/no, Account and Cost Center, without values or employee details; determine whether legacy posting, intentionally shared expenses or a missing dimension in a source process. Maintain an Unassigned Department bucket in future Department Expense Statement; do not drop these rows from the Company expense reconciliation. Confirm Company-specific Accounting policy before any correction and test real controlled stock issue only after independent signed mapping decision and separate DEV write authorization. The [Departmental Expense Architecture](DEPARTMENTAL-EXPENSE-ACCOUNTING-ARCHITECTURE-2026-11-20.md) now includes exact coverage baseline, commit `6de5c05e5a7f140ff6224aa0883895a36200f75f`. Nothing touched MAIN DEV data, Git checkout, PRODUCTION, mappings, or postings.
+
+---
+
+## 2026-11-20 — Required Department Accounting Dimension metadata PASS; future payroll/claims DocTypes not found
+
+**Owner-provided read-only `development.localhost` results (2026-11-20):** ERPNext `get_accounting_dimensions()` included `department` (**registered PASS**). Frappe metadata `department` field exists in all Phase 1 relevant doctypes: `Stock Entry` **PASS**, `Stock Entry Detail` **PASS**, `GL Entry` **PASS**. Future expense sources `Purchase Invoice Item` and `Journal Entry Account`: Department field **PRESENT**. `Expense Claim Detail` and `Salary Slip`: DocType **NOT FOUND** on this DEV site; these are Phase 2 discovery gaps, not blockers for initial withdrawal. Do not assume HRMS is uninstalled without checking installed apps. Field existence is **NOT evidence** Department is correctly filled in actual posted GL or that historical expense lines are clean.
+
+**Next shortest safe step:** Read-only count of noncanceled, posted expense-Account `tabGL Entry` rows per Company with valid same-Company eligible Department, blank Department and nonblank invalid/wrong-Company Department. Query only aggregates, no amounts or confidential payroll; if zero GL rows, mark coverage untested and proceed to separately approved UAT. Later verify signed maker/checker expense + center mapping and actual Stock Entry→SLE→Expense GL Department and native report in a narrowly controlled, separately authorized DEV pilot. No manual master changes, mappings, transaction postings, Git source pull/restart/migration or PRODUCTION actions.
+
+**Documentation verified:** The selected [Department Expense Accounting Architecture](DEPARTMENTAL-EXPENSE-ACCOUNTING-ARCHITECTURE-2026-11-20.md) Gate 1 was updated for these exact observed checks on docs branch `review/pr33-dev-acceptance-2026-11-16` at commit `4c96681df9172de3c047601a6a33fcf0a39b20b2`.
+
+---
+
+## 2026-11-20 — Owner-approved Department-first all-expense architecture documented
+
+**Business authorization:** Owner said **"Approved, you can design it yourself"** after confirming long-term management need for **all Company/Department expenses** (stock materials, salaries/payroll, electricity/utilities, maintenance/services and other operating expenses). This approval was applied to **architecture and project documentation**, not authorization for specific Account/Cost Center financial crosswalks, Finance decision signatures, actual source/backend application code changes, new master records, mapping activation, transaction posting, payroll configuration, database migration, DEVELOPMENT checkout/restart, or PRODUCTION action.
+
+**Design delivered and independently refetched:** [DEPARTMENTAL-EXPENSE-ACCOUNTING-ARCHITECTURE-2026-11-20.md](DEPARTMENTAL-EXPENSE-ACCOUNTING-ARCHITECTURE-2026-11-20.md), created on docs branch `review/pr33-dev-acceptance-2026-11-16` in commit `746e08a63567c34385d8fbf38649c3f4e8df8fe4`. Chosen strategy: exact Company plus **beneficiary Department as canonical management dimension**, Expense Account as nature of cost, and approved same-Company eligible leaf Cost Center as separate ERPNext GL/budget allocation dimension. Initially **retain** existing `Main - CCPC`/`Main - RMC` without creating speculative 16 new centers. Any Department→Main mapping requires real signed maker/checker authorization under prior approved Decision C; no automatic fallback or mass-map. Later dedicated departmental centers may be proposed for native budgets/payroll if management accounting needs justify and independent Accounting approves.
+
+**Reports/controls:** Phase 1 existing material register remains **gross original issue SLE value** and not a net or GL expense report. Future Department Expense Statement should aggregate posted noncanceled **expense GL** by Company/Department/Account/date, show separately unassigned/invalid Department, drill to vouchers, and explicitly **not sum SLE to GL**. Later include payroll, utilities, Purchase Invoice services, Expense Claims, Journal Entries and approved shared-cost allocations only after per-document GL Department propagation and permissions/integrity testing. Enforce Company boundaries, source/GL reconciliation, no duplicate returns, and no hidden shared costs.
+
+**Next actual DEVELOPMENT step (read-only):** Under named DEV container, inspect registered ERPNext `department` accounting dimension and Doctype metadata `department` fields for `Stock Entry`, `Stock Entry Detail`, and `GL Entry`; optionally report informational native `Purchase Invoice Item`, `Journal Entry Account`, `Expense Claim Detail` field presence. **Field presence is not proof of actual GL posting**. No live mapping/ledger write. Next gate remains real Accounting sign-off of `Bearings`→proposed `5140 - Repairs & Maintenance - CCPC` and `Maintenance Department - CCPC`→proposed `Main - CCPC`, with independent named user signature and a separate DEV issuance authorization. The 1-unit `ITEM-00004` pilot is not yet executed.
+
+---
+
+## 2026-11-20 — Owner confirmed eventual all-department expense reporting goal
+
+**Owner's business objective (explicit clarification):** Eventually report **all expenses by actual beneficiary Department**, including stock materials, salaries/payroll, electricity/utilities, outside maintenance/service charges and other operating costs, with separate Company filters for Cagayan Corn Products Corporation and Ricor Mills Corporation. Phase 1 remains same-Company withdrawal → stock ledger → expense GL → Department material consumption report; do not turn Phase 2 aspiration into authorization to enable payroll, generate other expenses, create new Cost Centers or change accounting defaults today.
+
+**Verified current app behavior at MAIN DEV pin `55eb10b86a57de55a97e293a78228d9dd17b809a`:** `withdrawal_issue_beneficiary.py` requires a valid same-Company actual beneficiary Department (explicit Work-for or nonconflicting Equipment Department) and Department Accounting Dimension configured on Stock Entry, Stock Entry Detail and GL Entry; `withdrawal_slip_stock.py` stamps Department on the original Material Issue and resolves signed mapping values. The `CCPC Department Material Consumption` report currently provides source-linked **gross SLE issue valuation**, with Department evidence and quality exceptions, **not** posted expense GL totals, returns/net consumption, salary, electricity or all operating costs. A later controlled summary must distinguish source consumption and GL postings and avoid double-counting stock issue vs GL expense.
+
+**Recommended architecture, pending Accounting governance:** Keep the existing Department Accounting Dimension as the canonical cross-transaction beneficiary; retain a clean nature-of-expense chart (do not duplicate 5140/other Accounts per Department). ERPNext native Department dimension supports General Ledger/P&L filtering, but a missing dimension on a posting yields gaps and is not backfilled retroactively. Cost Center is a separate GL allocation/budget dimension; dedicated Department Cost Centers **may** make payroll, budgets and native cost-center reports easier, but the current only-leaf `Main - CCPC` and `Main - RMC` should not be mass-remapped nor expanded without review. Before real Phase 1 GL posts, jointly test actual Department propagation and decide desired cost-center policy/effective date. For future Payroll, Purchase Invoices, utility allocations, Expense Claims and Journal Entries, verify the Department and/or cost-center fields appear in posted GL and source, company and shared-cost allocation rules; native payroll may rely on a Department's Payroll Cost Center and should be independently tested. The long-term report should group verified actual GL **expenses** by Company, beneficiary Department, nature of expense and month; separately reconcile gross/net stock withdrawal consumption to expense postings to avoid duplication. Allocation of shared electricity, Admin/HR overhead must use an approved documented driver, not an arbitrary default.
+
+**Current state:** `ITEM-00004` at `Warehouse 1 - CCPC`: 8 Nos, reserved 0, valuation 12,000, stock value 96,000, Company perpetual inventory enabled; **no posting**. Proposed `Bearings`→`5140 - Repairs & Maintenance - CCPC` and `Maintenance Department - CCPC`→`Main - CCPC` remain unapproved candidates, signed independent Finance authorization not yet obtained. Keep PRODUCTION completely untouched, no new master or accounting writes.
+
+---
+
+## 2026-11-20 — ITEM-00004 stock valuation and CCPC Perpetual Inventory read-only checks PASS
+
+**Operator-supplied MAIN DEV live read-only SQL:** Exact `development.localhost` `tabBin` join `tabItem`/`tabWarehouse`/`tabCompany` reported `ITEM-00004`, name `Bearing, 6406 Z Ball Dg`, `item_group=Bearings`, `stock_uom=Nos`, `is_stock_item=1`, `item_disabled=0`, `warehouse_disabled=0`, warehouse `Warehouse 1 - CCPC`, `actual_qty=8.0`, `reserved_qty=0.0`, `valuation_rate=12000.0`, `stock_value=96000.0`, and `enable_perpetual_inventory=1` for `Cagayan Corn Products Corporation`. Thus one unit is a technically plausible DEV issue subject to fresh checks and authorization, with **illustrative** valuation 12,000 units of Company accounting currency (not independently verified here) and hypothetical 8→7 quantity; actual stock/GL effect not tested.
+
+**Next gating business decision (do not treat as approved):** CCPC designated Accounting maker/checker must determine whether **the entire leaf Item Group `Bearings` (all 19 enabled stock Items)** belongs to `5140 - Repairs & Maintenance - CCPC` for CCPC issue treatment, and whether beneficiary `Maintenance Department - CCPC` should map to shared `Main - CCPC` (aggregates ERPNext Cost Center GL; custom Department field/report may retain Department granularity), or approved separate center. These are candidates only; no signed decision/proposal/approval, no Item Group relabeling, no Cost Center addition, no Stock Entry/SLE/GL record creation. Approval requires actual authenticated independent named Finance maker/checker and signed exact-revision Accounting decision; user chat approval alone is not a substitute. After policy decision and separate DEVELOPMENT-only posting authorization, execute narrowly one unit and reconcile Stock Entry→SLE→Expense GL→Department report with pre/post evidence; restore test still not performed.
+
+**Controls:** Current DEV app clean detached HEAD `55eb10b86a57de55a97e293a78228d9dd17b809a`, both DEV sites share app checkout; no code pull needed for this inspection; main four-part local and independent NAS copy byte-verified 2026-11-20, integration2 Nov19 two-site checkpoint independently present. No PRODUCTION changes.
+
+---
+
+## 2026-11-20 — CCPC positive Bearings stock located; RMC positive Bearings stock absent
+
+**Operator-supplied read-only `development.localhost` Bin/Warehouse/Item SQL:** In enabled non-group CCPC `Warehouse 1 - CCPC`, positive `Bearings` bin stock was observed for `ITEM-00004` **8 actual / 0 reserved**, `ITEM-00010` **8 / 0**, `ITEM-00008` **1 / 0**, and `ITEM-00018` **1 / 0**, total **18 observed units across four Items**. In `Ricor Mills Corporation`, same query returned **no positive Bearings stock** in eligible warehouses. Query was bounded to ten Bin rows per Company, so do not interpret it as exhaustive inventory for other Item Groups/warehouses or proof of issueable stock; any concurrent changes after query remain possible.
+
+**Practical same-Company DEV pilot candidate:** `ITEM-00004` (previous Item master sample name `Bearing, 6406 Z Ball Dg`) in `Warehouse 1 - CCPC`, consider **one unit** only after Company perpetual inventory, current valuation and permissions validation, actual business approved source/Expense mapping and beneficiary Department/Cost Center selection, and separate operator consent for real stock/GL writes. `5140 - Repairs & Maintenance - CCPC` is merely a plausible **Accounting-review candidate** for the **entire Bearings Item Group**, not an authorized mapping; `Maintenance Department - CCPC`→`Main - CCPC` likewise awaits a central-vs-departmental Cost Center decision. Never automatically propose or approve mappings; avoid Company/billing scope leakage. Next read-only query: exact `ITEM-00004` Bin valuation/current quantity, Company `enable_perpetual_inventory`, and Item/Warehouse eligibility. No Stock Entry or financial data changes yet. Restore test remains unperformed. PRODUCTION not touched.
+
+---
+
+## 2026-11-20 — Bearings stocked Item pilot inventory confirmed; Consumable group empty
+
+**Operator-provided MAIN DEV read-only results:** Query against `development.localhost` site `tabItem` found exact leaf Item Group `Bearings`: **19 total Items, all 19 enabled stock Items**; bounded first 12 sample were `ITEM-00001` through `ITEM-00012` and named industrial bearing stock (ball, roller, spherical/taper). `Consumable` Item Group: **0 total Items**, SQL SUM returned `None` due to empty set (not an error), no enabled stock Items. These are Item *master counts*, **not** evidence of positive stock balance, a successful withdrawal or a finance-approved account map.
+
+**Decision gate:** `Bearings` is a plausible first maintenance-issue Item Group for Accounting review of `5140 - Repairs & Maintenance` in the same Company, conditional on real item intended use, policy and stock valuation. A mapping applies to the entire leaf Item Group; it must not be approved merely from a 12-item sample. `Consumable` cannot currently supply a real stock-item issue pilot. Next fast read-only step: query `tabBin` joined to Company-scoped eligible `tabWarehouse` and `tabItem`, count positive `actual_qty` bearing stock per Company and display a bounded inventory sample; distinguish existing inventory from reserved stock. If there is no available bearing stock, choose a different genuinely stocked Item Group or separately approve a controlled DEVELOPMENT-only stock receipt fixture rather than inventing a balance. No real mapping proposal/approval, Cost Center creation, Stock Entry, SLE/GL write, git checkout, service restart or PRODUCTION operation authorized or performed.
+
+---
+
+## 2026-11-20 — Candidate Expense accounts identified; no mapping or classification approved
+
+**Operator-provided read-only MAIN DEV SQL output:** Searching enabled non-group `root_type='Expense'` Account names with the keyword pattern `consum|suppl|maint|repair|spare|material` returned the following for BOTH Companies, with respective suffixes `- CCPC` and `- RMC`: `5112 - Client Service & Maintenance`, `5140 - Repairs & Maintenance`, `5146 - Stationery & Supplies`, `5149 - Laboratory Supplies`, `5150 - Intercompany Materials Expense`. Initial MySQLdb query with unescaped `%...` LIKE patterns failed before execution due to parameter-format string mismatch; corrected parameterized REGEXP query succeeded. These are **keyword-filtered candidates**, NOT a complete account inventory or Accounting-approved mappings. No financial data write.
+
+**Interpretation:** A narrowly defined maintenance `Bearings` Item Group and `5140 - Repairs & Maintenance - CCPC` may be a candidate for Accounting review, but correctness depends on the real items, issue purpose, capitalization/valuation, and CCPC accounting policy; `Consumable` can contain materials with different economic uses and mapping at exact Item Group level risks overgeneralization. `5146` and `5149` may suit their named uses only if the actual Item Group and expense policy agree. `5150 - Intercompany Materials Expense` is NOT suitable for the **same-Company-only Phase 1 pilot**; intercompany billing is deferred. Real crosswalk, signed Accounting authority and central-vs-departmental Cost Center policy remain pending.
+
+**Next action:** Read-only inventory of real enabled stock Items in `Bearings` and `Consumable` Item Groups (group totals and bounded samples) to select a narrow credible same-Company test scope, then obtain Accounting's exact source/value and Cost Center attribution decision before any Draft/approval or real financial posting. Do not create additional Cost Centers or choose a broad mapping automatically. No Git switch/pull, migrate/restart, PROD action or mapping writes occurred.
+
+---
+
+## 2026-11-20 — CCPC Cost Center hierarchy and ten Department names verified; both Companies' mapping master inventories complete
+
+**Operator-supplied MAIN DEVELOPMENT read-only SELECT:** `Cagayan Corn Products Corporation - CCPC` is the enabled group/root Cost Center, with `Main - CCPC` as the sole enabled non-group leaf child and therefore the only currently eligible CCPC Cost Center mapping value. Ten eligible CCPC Departments: `Accounts - CCPC`; `Admin Department - CCPC`; `Cogen Plant Department - CCPC`; `Dry Mill Plant - CCPC`; `Feed Mill Plant - CCPC`; `Human Resources - CCPC`; `Logistics Department - CCPC`; `Maintenance Department - CCPC`; `QA/QC Department - CCPC`; `Wet Mill Plant - CCPC`. This completes the previously missing CCPC master detail. See immediately preceding RMC record: `Main - RMC` is RMC's only eligible leaf center, six eligible Departments. Both Company mappings remain zero scopes/revisions as of the prior live query.
+
+**Accounting design gate:** Distinguish technical eligibility from approved expense attribution. Mapping every Department into `Main - CCPC` or `Main - RMC` would create Company-aggregated ERPNext Cost Center attribution; departmental provenance/report may still be available through custom Stock Entry Department fields, but do not represent that as automatically equivalent to Department-level Cost Center GL reporting. Per-Department leaf center creation is **not automatic or authorized**. Owner/Accounting must confirm intended treatment and exact account/cost center values; the custom app requires exact leaf enabled Company master. Prior source/role checks proved 1 eligible preparer, 1 eligible approver, 0 overlap in each Company—not actual business authorization. Four `_Test...` Item Groups should be excluded from a real pilot absent confirmation that they represent genuine business item groups.
+
+**Next quickest read-only Finance step:** Inspect the actual eligible Expense-root Account names for a narrow first pilot (e.g., bona fide `Consumable` or `Bearings` Item Group and `Maintenance Department - CCPC`, not test groups). Draft proposed crosswalk(s) for signed Accounting review, using the existing one-leaf-center structure only if Accounting approves centralized GL allocation. Do not propose/approve/alter master data or do financial posting before separate authorization. No Git pull, migration, restart or PRODUCTION action.
+
+---
+
+## 2026-11-20 — RMC Finance master detail confirmed; CCPC detail not yet supplied
+
+**Operator-provided read-only output (MAIN DEV `development.localhost`):** For **Ricor Mills Corporation**, `tabCost Center` showed `Ricor Mills Corporation - RMC` as enabled group/root and `Main - RMC` as the sole enabled non-group child (parent `Ricor Mills Corporation - RMC`). Six eligible leaf enabled RMC Departments: `Accounts - RMC`; `Glucose Plant - RMC`; `Human Resources - RMC`; `Maintenance Department - RMC`; `Oil Refinery Plant 1 - RMC`; `Oil Refinery Plant 2 - RMC`. Eleven leaf Item Groups: `_Test Item Group`; `_Test Item Group B - 3`; `_Test Item Group Desktops`; `_Test Item Group Tax Child Override`; `Bearings`; `Consumable`; `Office Supplies`; `Products`; `Raw Material`; `Services`; `Sub Assemblies`. **No Cagayan Corn Products Corporation detailed Cost Center/Department output was included in the pasted result**, though prior counts establish 1 eligible CCPC leaf Cost Center and 10 eligible CCPC Departments.
+
+**Interpretation/gate:** `Main - RMC` is a technically eligible target; the group/root is not. The actual accounting decision is whether to map different beneficiary Departments into that shared cost center or establish approved separate leaf centers; do NOT create centers or mass-map from counts alone. Department dimension may remain in custom provenance/report while ERPNext GL cost-center allocation remains aggregated—verify the business reporting requirements. `_Test...` Item Groups are test-like names; exclude them from any real pilot absent explicit evidence they are intended business sources. Next read-only query should retrieve only missing **CCPC** Cost Center hierarchy and Department names to avoid re-running or republishing RMC data. No source switch, master creation, approval, migration, restart or PRODUCTION operation.
+
+---
+
+## 2026-11-20 — MAIN DEVELOPMENT Finance mapping master inventory: zero scopes, one eligible Cost Center per Company
+
+**Operator-provided read-only SQL result (site `development.localhost`):** A `SELECT COUNT` inventory of current eligible Finance masters and existing mapping scope/revisions returned **11 leaf Item Groups** shared as potential Expense mapping sources. **Cagayan Corn Products Corporation:** 60 enabled non-group Expense-root Accounts; 10 enabled non-group Company Departments; **1** enabled non-group Company Cost Center; 0 Expense mapping scopes / revisions; 0 Center mapping scopes / revisions. **Ricor Mills Corporation:** 60 enabled non-group Expense-root Accounts; 6 enabled non-group Company Departments; **1** enabled non-group Company Cost Center; 0 Expense mapping scopes / revisions; 0 Center mapping scopes / revisions. No mapping proposal, decision, approval, Company/master/role write, Git operation, migration or PRODUCTION action occurred in this step.
+
+**Implication:** Both Companies have enough potentially eligible Account/Department categories to investigate mappings, but **no custom Finance mapping scopes or revisions currently exist**. The single leaf Cost Center per Company may be an intentionally centralized destination, an incomplete departmental cost-center hierarchy, or another business-design choice; the count **does not prove which**. Do not assume all 10/6 Departments need individual centers, map them all to the sole center, or create centers without reviewed Accounting authorization. Project [Finance Accounting authority policy](FINANCE-MAPPING-ACCOUNTING-AUTHORITY-DECISION-2026-10-28.md) keeps actual source/value crosswalk and signed decisions under independent named maker/checker responsibility. App `bc_mapping_workflow._master_validated` requires same-Company enabled leaf Cost Center and Expense-root leaf Account.
+
+**Next read-only step:** List existing Cost Center names, enabled/group status, parent hierarchy and eligible Department names per Company, and the 11 exact leaf Item Groups (no Account master changes). Then choose **one narrow pilot** based on the actual Department/Item Group and Accounting-signed eligible Expense Account/Cost Center crosswalk, rather than mass-entering mappings. No production or live Finance transaction activity.
+
+---
+
+## 2026-11-20 — Finance maker/checker role overlap verified zero in both Companies
+
+**Operator-provided read-only MAIN DEV results:** Follow-up SQL on `development.localhost` counted **enabled, non-Guest/non-Administrator, Company-authorized named users who held BOTH** `CCPC Mapping Preparer` and `CCPC Accounting Mapping Approver` and lacked `Stockroom Personnel`. For **Cagayan Corn Products Corporation** the count was **0**, `Independence: PASS`; for **Ricor Mills Corporation** the count was **0**, `Independence: PASS`. In combination with the previous 1 eligible preparer and 1 eligible approver **per Company**, this establishes distinct eligible maker and checker users **within each Company**, as of the query. It does not prove different users across Companies, formal Accounting business appointments, any signed decision, or backend transaction acceptance. Only counts printed; no identities, secrets, or financial mappings.
+
+**Next action (read-only):** Inspect actual master eligibility and existing Expense/Center mapping scope/Revision status in MAIN DEV without using `get_pilot_coverage` (which locks rows) or invoking proposal/approval. Applicable Finance source contract: a non-group Item Group → same-Company non-group enabled Expense-root Account; or a same-Company non-group enabled beneficiary Department → same-Company non-group enabled Cost Center. Protect exact real financial source/value crosswalk until human Accounting sign-off. No Git pull/switch, migration/restart, user/role grants, financial mapping writes, or PRODUCTION actions authorized.
+
+---
+
+## 2026-11-20 — MAIN DEVELOPMENT Finance role and Company eligibility counts: 1 preparer / 1 approver per Company
