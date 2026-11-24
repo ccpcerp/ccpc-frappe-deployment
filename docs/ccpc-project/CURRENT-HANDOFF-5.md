@@ -2,6 +2,32 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — restored DEVELOPMENT database read-only acceptance PASS
+
+Owner reran **only the previously failed nonmutating database audit**, not `bench restore`, inside the offline disposable `ccpc-restore@ccpc-recovery` guest QEMU. The exact Frappe image `ccpc-recovery:dev-nov23-b0cbe5c` ran a one-off `--read-only --network host` guest container with `FRAPPE_STREAM_LOGGING=1`, fixing earlier missing `/home/frappe/logs/database.log` audit-container path without modifying the original site or rerunning import. `frappe.init` used the verified new guest-only site config `ccpc-restore-dev-20261124.localhost` with database `ccpc_restore_dev_20261124`, host guest loopback `127.0.0.1`, scheduler paused and maintenance enabled. `frappe.connect()` worked. Installed apps exactly `ccpcerp`, `erpnext`, `frappe`, satisfying expected app registration.
+
+Owner's read-only audit output:
+
+```text
+RECOVERED DATABASE CONNECTION: PASS
+INSTALLED APPLICATIONS: ccpcerp, erpnext, frappe
+APPLICATION VALIDATION: PASS
+DATABASE TABLE COUNT: 759
+tabDocType: 832 records
+tabUser: 38 records
+tabFile: 3 records
+tabCompany: 25 records
+tabItem: 42 records
+tabSales Invoice: 1 records
+tabGL Entry: 88 records
+tabStock Ledger Entry: 69 records
+RECOVERED DATABASE READ-ONLY AUDIT: PASS
+```
+
+**Verified within operator-reported disposable guest:** recovered DEVELOPMENT site SQL is queryable, its Frappe/ERPNext/custom apps are installed, and representative ERPNext records/tables exist. Counts are audit indicators, not a source-vs-restored exhaustive checksum or proof of functionality, financial reconciliation, encryption-key recovery, scheduler operation, HTTP startup or production readiness. Archived site configs lacked `encryption_key`. No DEV host/PROD writes, migrations, network access or rerestore.
+
+**Next single guest-only step:** validate public/private restored attachment trees independently against corresponding staged TAR inputs `/var/lib/ccpc-recovery-frappe-restore-20261124/input-development/public.tar` and `private.tar`. From exact pinned Frappe code at `frappe/utils/backups.py` `backup_files` builds TAR of the site `public/files` or `private/files`, and `frappe/installer.py` `extract_files` uses `tar ... --strip 2` into the target site. Use pure Python tarfile to compare **file counts and SHA256 content by canonical member path after stripping two components**, requiring expected `public/files` or `private/files` prefix, no symlink paths, and no display of filenames/content. Run as non-root guest account in isolated QEMU, no network, no writes; compare stored originals to restored files and disclose only PASS/FAIL and counts. If archive count=0 report zero transparently. Then stage unique Integration2 guest site/DB and restore separately with strict reviewed no-secret mechanism. Keep main DEVELOPMENT/PRODUCTION untouched.
+
 ## 2026-11-24 — first DEVELOPMENT read-only audit blocked by missing log directory, not restore failure
 
 After first native DEVELOPMENT site restore reported **`Site ccpc-restore-dev-20261124.localhost has been restored with files`**, owner ran the **separate** read-only Python audit via a one-off `--read-only --user1000` exact-image Docker container, mounting guest `sites/` and `logs/` as before. Frappe `frappe.init` reached `frappe.connect`, but the audit failed **before DB connection/queries** with:
