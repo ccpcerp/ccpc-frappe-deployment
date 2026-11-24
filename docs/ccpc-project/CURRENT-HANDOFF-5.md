@@ -2,6 +2,12 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — restored-media clone guest services restarted and loopback checks PASS
+
+Owner executed bounded guest-only restart of already-existing services **inside `-nic none` disposable clone 01 with the read-only confidential backup ISO mounted and 8/8 SHA256 verified**. `sudo systemctl start ccpc-recovery-docker.service` activated the dedicated guest Docker daemon; `sudo docker start ccpc-recovery-mariadb` returned its name and a bounded `healthcheck.sh --connect --innodb_initialized` reported `MARIADB: READY`. Existing `ccpc-recovery-redis-cache` and `ccpc-recovery-redis-queue` restarted and both `redis-cli PING` checks returned `PONG`, reporting `REDIS CACHE: PASS` and `REDIS QUEUE: PASS`. Exact guest `ss -lntH` checks for **127.0.0.1:3306**, **127.0.0.1:11000**, **127.0.0.1:13000** all passed; final marker `GUEST DATABASE AND REDIS: PASS`. All runtime service checks are **operator-reported PASS**. Guest containers use guest-only Docker volumes, no host Docker daemon/network, no live DEV/PROD contact. No Frappe site or DB restored yet.
+
+**Next bounded step:** verify guest application image's Frappe v16 `bench new-site` / `bench restore` CLI compatibility and backup site_config key **names only** (never values) before generating separately named guest test site roots. Keep the archived encrypted config data inside isolated guest; avoid exposing original DB passwords/API keys, changing current business data, activating scheduler/jobs/mail or connecting host/NAS. Review exact guest-only MySQL credential injection and existing image's `VOLUME sites` semantics. No extra image reimport/reinstall necessary. Owner's explicit one-time approval covers private two-site test restore only. Preserve baseline and host recovery assets.
+
 ## 2026-11-24 — confidential backup ISO mounted read-only and guest SHA256 8/8 PASS
 
 Owner entered the isolated, `-nic none` restore-media QEMU clone at `ccpc-restore@ccpc-recovery:~# CCPC ERPNext — CURRENT HANDOFF 5
