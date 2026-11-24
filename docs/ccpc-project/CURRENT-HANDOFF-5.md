@@ -2,6 +2,12 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — Integration2 recovered DocType count 832 PASS
+
+Operator in **offline disposable** `ccpc-restore@ccpc-recovery` guest ran private guest-only MariaDB read-only command against recovered `ccpc_restore_int2_20261124` schema, counting rows in \`tabDocType\`. Terminal result **832**, matching the first main DEVELOPMENT site read-only audit. This is meaningful evidence that Integration2 SQL imported its DocType data despite earlier terminal paste corruption; combined with apparent 759 base tables and 765 total table/view query results and zero public/private archive-to-restored file counts, the site is likely recoverable. **Do not claim final native restore PASS or full Frappe acceptance yet**; successful `bench restore` marker was never captured, and Frappe installed app registration plus real connection/read-only representative records remain pending.
+
+**Next single step:** read-only SQL `SELECT app_name FROM \`tabInstalled Application\` ORDER BY app_name` against only `ccpc_restore_int2_20261124` in guest MariaDB. Exact pinned Frappe source `frappe/core/doctype/installed_application/installed_application.json` at `988e54f3...` confirms `Installed Application` is an `istable=1` child DocType with `app_name` field; parent `Installed Applications` is a Single DocType. This is metadata, not Company/business data. Then verify Frappe connection at same recovered site using exact offline image and read-only runner and inspect records if needed. No rerun of restore, production changes or guest network.
+
 ## 2026-11-24 — Integration2 zero-file public and private archive counts match restored trees
 
 Owner remained inside the isolated QEMU recovery guest at `.../sites/ccpc-restore-int2-20261124.localhost` and ran these **read-only** checks one at a time:
