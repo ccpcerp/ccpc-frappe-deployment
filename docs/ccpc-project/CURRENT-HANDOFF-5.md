@@ -2,6 +2,24 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — Integration2 isolated backup staging PASS; native restore pending
+
+Owner executed the reviewed guest-only preflight/staging block in the same isolated QEMU `ccpc-restore@ccpc-recovery` clone with **only guest loopback**. Confirmed the `ccpc_restore_int2_20261124` database is **absent** from guest-only MariaDB; MariaDB CLI emitted the prior SSL verify/passwordless warning but the SQL query completed successfully. The read-only ISO remained `iso9660 ro` and guest Docker root was `/var/lib/ccpc-recovery-docker`. Verified the first successfully restored DEVELOPMENT site's config still exists and both Integration2 input/site target paths were absent.
+
+Created exclusively new `/var/lib/ccpc-recovery-frappe-restore-20261124/input-integration2` and `.../sites/ccpc-restore-int2-20261124.localhost` with private permissions. Copied only the **Nov23 Integration2** staged `database.sql.gz`, `files.tar`, `private-files.tar` from the checksum-verified read-only backup ISO into guest-private `input-integration2/{int2.sql.gz,public.tar,private.tar}`. All byte-for-byte `cmp -s` source-vs-staged checks, `gzip -t`, and both `tar -tf` checks passed. New exclusive site `site_config.json` targets exactly isolated guest `ccpc_restore_int2_20261124`, DB user same, freshly generated random DB password, host `127.0.0.1` port 3306, paused scheduler and maintenance enabled, without importing any original archived host/user/password.
+
+Exact owner terminal output:
+```text
+WARNING: option --ssl-verify-server-cert is disabled, because of an insecure passwordless login.
+INTEGRATION2 DATABASE TARGET: AVAILABLE
+INTEGRATION2 GUEST SITE CONFIG: PREPARED
+INTEGRATION2 BACKUP INPUTS: VERIFIED
+INTEGRATION2 RESTORE STAGING: PASS
+INTEGRATION2 DATABASE RESTORE: NOT YET EXECUTED
+```
+
+**PASS (owner-reported): second site's staged backup inputs are intact.** SQL database restoration has **NOT** been executed for Integration2. Next one-shot **guest-only** native Frappe `bench --site ccpc-restore-int2-20261124.localhost restore --with-public-files ... --with-private-files ...` with the new input paths `input-integration2`, after repeat schema-absent / config guards and temporary root-only guest MariaDB credential injection via guest `/run` tmpfs as for successful first DEVELOPMENT site. No original site DB identities/config/host secrets reused. Do not rerun first site, restore to live DEV/PROD or enable guest networking. On Integration2 restore error preserve partial guest site and report; no automatic retry. Then independent database/app/file checks and final two-site recovery report. `encryption_key` absent in both archived site configs remains a limitation.
+
 ## 2026-11-24 — DEVELOPMENT private attachment exact SHA256 PASS; first site recovery validated
 
 Owner executed corrected, read-only, sanitized **per-file SHA-256 comparison** between staged Nov23 `development.localhost` TAR inputs and the offline disposable guest's restored files using actual `./...` archive component layout matching Frappe `tar --strip 2`. Exact observed result:
