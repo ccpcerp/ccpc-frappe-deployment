@@ -2,6 +2,20 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — restore-media clone runtime status confirms isolation
+
+After the approved restore-media clone QEMU startup at PID **2739977**, owner ran the new staged restore-only controller's `--status` on normal DEVELOPMENT host `gani@ccpcerpserver`. Exact results:
+
+```text
+DISPOSABLE CLONE 01 RESTORE MEDIA: RUNNING; PID: 2739977
+QEMU NETWORK: NONE; BOTH ISO MEDIA AND SEED: READ-ONLY (launch argument)
+NO HOST SHARES / PORT FORWARDS
+```
+
+**PASS (owner-reported):** new QEMU clone remains alive with `-nic none`, approved read-only media and guest seed drives, no host share or exposed ports. This confirms **QEMU launch arguments** but not guest mount integrity or restored ERPNext data. The private backup ISO host-side checksum was `b25a64ed447a0b28a8fb01217d2acddb9ae4c4e6b72e546ac98fd3d24153075e`, 3,272,704 bytes; source manifest previously had 8/8 SHA256 OK. Frozen backing chain remains exclusively input to writable disposable clone, and no live DEVELOPMENT/PRODUCTION operation is in scope.
+
+**Next approved guest-only step:** on normal host attach only `python3 -B /home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_clone01_restore_control_20261124.py --console`; at `ccpc-restore@ccpc-recovery`, enforce guest hostname/user and loopback-only interface, locate backup ISO via unique volume label `CCPCDEV23` (`sudo blkid -L CCPCDEV23`), require block device and `iso9660`, create exact **new** guest mount path `/mnt/ccpc-dev-backup-20261123`, mount `ro,nosuid,nodev,noexec`, confirm read-only `findmnt` filesystem/options, then `sudo sha256sum -c SHA256SUMS` on ISO, exactly eight manifest entries. Expected `GUEST BACKUP ISO: 8/8 PASS`. On any error STOP, do not auto-rerun/force mount or touch host. This is file integrity only; guest MariaDB/Redis remain stopped after clean shutdown, and no Frappe site/DB restore has occurred yet. Owner's explicit authorization covers isolated two-site transfer and test restore but not live environments.
+
 ## 2026-11-24 — confidential backup ISO attached to disposable clone QEMU start requested
 
 After successful private ISO creation and exact source/SHA256/syntax-staged restore-media controller, owner invoked **on normal host only** the reviewed `sg kvm -c 'python3 -B /home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_clone01_restore_control_20261124.py --start'` through host-identity guard and previous original clone controller **NOT RUNNING** check. Actual operator output included:
