@@ -2,6 +2,16 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — first DEVELOPMENT read-only audit blocked by missing log directory, not restore failure
+
+After first native DEVELOPMENT site restore reported **`Site ccpc-restore-dev-20261124.localhost has been restored with files`**, owner ran the **separate** read-only Python audit via a one-off `--read-only --user1000` exact-image Docker container, mounting guest `sites/` and `logs/` as before. Frappe `frappe.init` reached `frappe.connect`, but the audit failed **before DB connection/queries** with:
+```text
+FileNotFoundError: [Errno 2] No such file or directory: '/home/frappe/logs/database.log'
+```
+This is a **container logging-path precondition**, not evidence of failed SQL restore, corruption, or bad DB credentials. The audit mounted `/home/frappe/frappe-bench/logs`, whereas the pinned Frappe source at `frappe/frappe` commit `988e54f3c4c291e2077a83809663f123731abe76`, `frappe/utils/logger.py` lines 13, 16–35 explicitly writes to `../logs/database.log` relative to bench (`/home/frappe/logs/database.log`) by default. No main or recovered database change is justified; **do not rerun native restore, remove site or drop schema**.
+
+**Reviewed minimal workaround:** Set container-only `-e FRAPPE_STREAM_LOGGING=1` for the one-off read-only validation container, which the pinned `frappe/utils/logger.py` uses as its default `stream_only` setting. Then `create_handler` uses `logging.StreamHandler` rather than opening `../logs/database.log` or the per-site log. This avoids touching the guest's persistent site files or host and permits the same read-only audit. After verified database audit, separately count restored public/private files against archives. Preserve the guest unchanged if a *new* error appears; never retry destructive restore. Existing backup ingress 8/8 checksum PASS and QEMU no-NIC isolation remain unaffected.
+
 ## 2026-11-24 — first actual DEVELOPMENT SQL and attachments native restore PASS
 
 Owner ran reviewed guest-only `bench --site ccpc-restore-dev-20261124.localhost restore` with explicit `--with-public-files` and `--with-private-files` from previously byte-for-byte checked private guest staging `input-development`. Guest `ccpc-recovery:dev-nov23-b0cbe5c` image mounted **only guest-local** new `sites/` and `logs/` directories, guest backup inputs read-only; QEMU has **`-nic none`**, Docker run `--network host` applies only inside the isolated Ubuntu guest. Preflight checked the site's config target **`ccpc_restore_dev_20261124`**, random guest-only DB password, guest loopback DB `127.0.0.1:3306`, disabled scheduler and maintenance mode; verified the target DB schema remained absent before import. Root-only MariaDB credential was read only inside clone from `/var/lib/ccpc-recovery-secrets/mariadb-root`, injected into a temporary **guest `/run` tmpfs** common site config mounted read-only into the Frappe container, with EXIT trap cleanup. No secret string appeared in operator report.
