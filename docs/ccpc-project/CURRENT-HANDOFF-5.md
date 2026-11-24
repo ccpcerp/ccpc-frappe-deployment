@@ -2,6 +2,16 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — clone guest Docker manual-start baseline verified inactive disabled
+
+Owner ran read-only checks **inside disposable clone 01** at `ccpc-restore@ccpc-recovery:~# CCPC ERPNext — CURRENT HANDOFF 5
+
+**Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
+
+: `systemctl is-active ccpc-recovery-docker.service` returned **`inactive`**; `systemctl is-enabled ccpc-recovery-docker.service` returned **`disabled`**. This is the intended no-autostart state after cold clone boot, not a service failure; the clone guest login and previous `-nic none` host process checks already passed.
+
+**Next operator guest-only operation:** `sudo systemctl start ccpc-recovery-docker.service`, then read-only `sudo systemctl is-active ccpc-recovery-docker.service` expecting `active`. Do **not** enable Docker on boot, start MariaDB/Redis containers, import DEVELOPMENT backup material, run migrations, or modify original baseline/host DEVELOPMENT/PRODUCTION as part of this service check. The user has not reported this start yet; do not mark it complete.
+
 ## 2026-11-24 — disposable clone 01 Ubuntu shell login PASS; guest Docker read-only check next
 
 Owner attached to isolated disposable clone 01 through its dedicated `--console` after QEMU PID `2737679` and `-nic none` runtime status PASS. Owner supplied actual Ubuntu shell prompt `ccpc-restore@ccpc-recovery:~# CCPC ERPNext — CURRENT HANDOFF 5
