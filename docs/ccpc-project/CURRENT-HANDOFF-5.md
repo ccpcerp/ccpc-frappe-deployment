@@ -2,6 +2,14 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — MAIN DEVELOPMENT CCPC Bearings Expense Mapping Scope count exactly one
+
+Owner ran the previously reviewed **read-only Frappe SQL-backed mapping-scope count** in normal MAIN DEVELOPMENT site `development.localhost`: `frappe.db.count("CCPC Expense Mapping Scope", {"company": "Cagayan Corn Products Corporation", "item_group": "Bearings"})`. Terminal output: **`BEARINGS EXPENSE SCOPE COUNT: 1`**. There is exactly one current `CCPC Expense Mapping Scope` record matching Company+Bearings, so do **not** create a duplicate mapping scope. This existence check does **not** confirm an Approved mapping revision, its Expense Account validity, dates or independent checker signoff.
+
+Previously verified live read-only: CCPC Company exists, exact leaf `Bearings` Item Group (`is_group=0`) exists, `Maintenance Department - CCPC` belongs to CCPC, and new PR43 `ccpc_material_use` column is absent at release checkout `b0cbe5c...`. [Draft PR #43](https://github.com/ccpcerp/ccpcerp/pull/43) unchanged, no DEV code/migration or financial record write.
+
+**Next one read-only step**: count `CCPC Expense Mapping Revision` with `approval_state='Approved'` whose `mapping_scope` is the canonical existing Company+Bearings scope obtained via `frappe.db.get_value("CCPC Expense Mapping Scope", {"company":..., "item_group":"Bearings"}, "name")`. Numeric count only, never display actual account or financial data. If 0, determine whether Draft exists later and request Finance decisions; if >=1, separately inspect signed effective dates and approval identity without exposing sensitive entries. No automatic approval, mapping mutation, migration, or PRODUCTION action.
+
 ## 2026-11-24 — MAIN DEVELOPMENT Maintenance Department and CCPC Company binding verified
 
 Owner ran the previously reviewed **read-only Frappe exact Department lookup** on `development.localhost` in the ordinary DEVELOPMENT container, and returned `MAINTENANCE DEPARTMENT: {'name': 'Maintenance Department - CCPC', 'company': 'Cagayan Corn Products Corporation'}`. Exact `Maintenance Department - CCPC` exists and is bound to CCPC; earlier exact `Bearings` Item Group exists (`is_group = 0`), CCPC Company exists, and `ccpc_material_use` SQL column is absent under currently checked-out Phase 1 release HEAD `b0cbe5c...`. Thus all three named basic master prerequisites for draft PR43's maintenance pilot are confirmed **by live MAIN DEV read-only query**, but this is not validation of account/cost center mappings, user authority or approvals.
