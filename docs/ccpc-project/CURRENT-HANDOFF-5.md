@@ -2,6 +2,16 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — disposable clone recovery Docker active PASS
+
+Owner reported running `sudo systemctl start ccpc-recovery-docker.service` **inside disposable clone 01** at `ccpc-restore@ccpc-recovery:~# CCPC ERPNext — CURRENT HANDOFF 5
+
+**Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
+
+; subsequent `sudo systemctl is-active ccpc-recovery-docker.service` returned **`active`**. This verifies the guest-only Docker daemon started manually; no service autostart enablement, guest container start, backup transfer or restored site is claimed. The clone QEMU launch, `-nic none` runtime and Ubuntu shell login were previously operator-verified. Nothing in this report indicates MAIN DEVELOPMENT or PRODUCTION was changed.
+
+**Next single read-only guest command:** `sudo docker ps -a --format 'table {{.Names}}\\t{{.Status}}\\t{{.Image}}'`; check that `ccpc-recovery-mariadb`, `ccpc-recovery-redis-cache`, and `ccpc-recovery-redis-queue` are present before any controlled start. Do not recreate/delete containers, volumes, baseline layers or import confidential backups. Keep the first backup transfer/restore separately gated.
+
 ## 2026-11-24 — clone guest Docker manual-start baseline verified inactive disabled
 
 Owner ran read-only checks **inside disposable clone 01** at `ccpc-restore@ccpc-recovery:~# CCPC ERPNext — CURRENT HANDOFF 5
