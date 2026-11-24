@@ -154,7 +154,7 @@ def preflight_start() -> None:
             if (item.stat().st_uid != UID):
                 continue
             parts = [v.decode("utf-8", "replace") for v in
-                     (item / "cmdline").read_bytes().split(b"\\0") if v]
+                     (item / "cmdline").read_bytes().split(b"\0") if v]
             if (parts and Path(parts[0]).name == "qemu-system-x86_64"
                     and any(str(path) in argument for argument in parts for
                             path in (BASELINE_DISK, ORIGINAL_DISK, DISK))):
@@ -319,7 +319,7 @@ if __name__ == "__main__":
             status()
         elif sys.argv[1] == "--console":
             console()
-         else:
+        else:
             stop("unsupported control mode")
     except (OSError, RuntimeError, ValueError, KeyError, IndexError, json.JSONDecodeError) as exc:
         print("STOP: " + str(exc), file=sys.stderr, flush=True)
