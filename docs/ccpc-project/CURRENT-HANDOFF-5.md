@@ -2,6 +2,12 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — Integration2 installed apps output interleaved, one app visible; repeat count read-only
+
+Owner ran guest-only read-only SQL `SELECT app_name FROM \`tabInstalled Application\` ORDER BY app_name` targeting isolated `ccpc_restore_int2_20261124`. Returned terminal paste/echo is partly corrupted (`erpnext-root)...`) but clearly displays one standalone application name `frappe` before the prompt. It does **not** establish that `ccpcerp` or `erpnext` were absent: prior console echoes repeatedly overwrote leading lines and counts. No SQL/restore/attachments write occurred during this metadata read.
+
+**STATUS: installed apps metadata INCONCLUSIVE; not final success or proof of damage.** Avoid any install-app, migration, repeated bench restore or credential changes. Next shortest guest-only read-only check: SQL **integer count** `SELECT COUNT(*) FROM \`tabInstalled Application\`` for this target DB via guest MariaDB secret inside its container. If the count is three, compare exact names in a later safer diagnostic; if less, inspect restored site metadata/restore method and Frappe read-only site connection before considering any remedial action. Retain the validated main DEVELOPMENT recovery and preserve Integration2 site/DB as-is. Both sites remain in offline disposable guest.
+
 ## 2026-11-24 — Integration2 recovered DocType count 832 PASS
 
 Operator in **offline disposable** `ccpc-restore@ccpc-recovery` guest ran private guest-only MariaDB read-only command against recovered `ccpc_restore_int2_20261124` schema, counting rows in \`tabDocType\`. Terminal result **832**, matching the first main DEVELOPMENT site read-only audit. This is meaningful evidence that Integration2 SQL imported its DocType data despite earlier terminal paste corruption; combined with apparent 759 base tables and 765 total table/view query results and zero public/private archive-to-restored file counts, the site is likely recoverable. **Do not claim final native restore PASS or full Frappe acceptance yet**; successful `bench restore` marker was never captured, and Frappe installed app registration plus real connection/read-only representative records remain pending.
