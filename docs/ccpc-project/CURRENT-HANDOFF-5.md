@@ -2,6 +2,27 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — private attachment TAR layout and 1:1 file count verified; checksum pending
+
+Owner ran the subsequent **guest-only, read-only TAR layout diagnostic** after the earlier audit script rejected a path due to an overstrict `PurePosixPath`-based length assumption. Actual sanitized result:
+
+```text
+ARCHIVED PRIVATE FILES: 1
+RESTORED PRIVATE FILES: 1
+ARCHIVE DIRECTORY ENTRIES: 1
+ARCHIVE LINK ENTRIES: 0
+OTHER ARCHIVE ENTRIES: 0
+PATHS WITH LEADING DOT: 1
+ARCHIVE PATH DEPTH COUNTS: [(5, 1)]
+EXPECTED RESTORE LAYOUT: 1
+UNSAFE PATH COUNT: 0
+PRIVATE ARCHIVE STRUCTURE INSPECTION: COMPLETE
+```
+
+**Interpretation:** one archive regular file, one restored regular private file, and the actual TAR path has exactly 5 raw components including literal leading dot, with the expected `private/files` layout after stripping the first two components just as the pinned Frappe `frappe/installer.py` restores. This validates the **count and layout only**; SHA256 content comparison remains pending, and no contents or names were printed. Previous public check reported **0 archived public files and 0 restored public files, PASS**. No schema/data changes, native re-restore, live DEVELOPMENT/PRODUCTION operation or network egress.
+
+**Recovery rehearsal goal status as of Nov24:** one of two archived sites, `development.localhost`, now has native SQL + public/private TAR restore PASS and separate successful read-only Frappe DB audit (759 tables; apps frappe, erpnext, ccpcerp; representative counts). Finish the private file's per-byte SHA256 verification, then stage, restore and validate `ccpc-integration2.localhost` in separately named guest `ccpc_restore_int2_20261124`; synthesize an honest two-site recovery PASS/PARTIAL/FAIL report, noting missing archived site_config `encryption_key` for both. Current workflow and restore plan specify acceptance checks but **do not establish a dated deadline/time budget**, so don't claim on-time relative to a specific date without an independently specified target. Fast path is continue in existing clone, not reinstall/reboot or repeat the first restore.
+
 ## 2026-11-24 — public attachment empty PASS; private audit archive-path assumption failed
 
 After **restored DEVELOPMENT SQL/database read-only acceptance PASS** (759 base tables, all Frappe/ERPNext/CCPC apps, representative record counts), owner ran only a **read-only guest-side** attachment SHA256 audit against `/var/lib/ccpc-recovery-frappe-restore-20261124/input-development/public.tar` / `private.tar` and target `sites/ccpc-restore-dev-20261124.localhost`. Actual output:
