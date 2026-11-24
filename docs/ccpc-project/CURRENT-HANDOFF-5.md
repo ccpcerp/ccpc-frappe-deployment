@@ -2,6 +2,10 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — MAIN DEVELOPMENT CCPC Company existence verified
+
+Owner executed previously reviewed **read-only** Frappe query on normal DEVELOPMENT container `frappe_docker_devcontainer-frappe-1`, site `development.localhost`: `bool(frappe.db.exists("Company", "Cagayan Corn Products Corporation"))`. Reported output: **`CCPC COMPANY EXISTS: True`**. No Company record or other data was modified. This is existence only; not verification of default warehouse/accounts, mappings, or company permissions. New PR43 schema column remained absent in previous independent read-only check; app checkout reported `b0cbe5c13cb68499a7920de2879f65e72cff000a`. **Next read-only check**: official exact `Bearings` Item Group exists and is a leaf (`is_group=0`), then verify actual `Maintenance Department - CCPC` record and company binding. No PR43 pull, migration, active Finance maps, financial transactions or PRODUCTION operations authorized.
+
 ## 2026-11-24 — MAIN DEVELOPMENT PR43 schema field confirmed absent (read-only)
 
 Owner reported read-only, existing MAIN DEVELOPMENT container Frappe query from `development.localhost`, using Frappe `frappe.init`/`frappe.connect` and `frappe.db.has_column("Withdrawal Slip", "ccpc_material_use")`. Output: **`MATERIAL USE FIELD EXISTS: False`**. Python emitted `RuntimeWarning: Unexpected value in sys.prefix/sys.exec_prefix` because the Python binary was invoked via the relative sites/`../env` path; the Frappe SQL query still completed. Previous owner-reported code checkout `HEAD=b0cbe5c13cb68499a7920de2879f65e72cff000a` matches current GitHub Phase 1 release tip. User's output from that checkout did not include pending `git status --porcelain` entries; treat as *apparently clean* (not a substitute for future pre-pull recheck).
