@@ -2,6 +2,16 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — disposable clone MariaDB healthcheck completed without error
+
+Owner executed `sudo docker exec ccpc-recovery-mariadb healthcheck.sh --connect --innodb_initialized` **inside isolated clone 01** and reported a prompt return with no stderr/output or error: `ccpc-restore@ccpc-recovery:~# CCPC ERPNext — CURRENT HANDOFF 5
+
+**Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
+
+. **PASS based on operator command transcript:** MariaDB connectivity / InnoDB health check apparently succeeded; the shell exit code was not separately echoed. This is guest-only service readiness, NOT restored data or a verified Frappe site.
+
+**Next bounded guest-only action:** start the two existing stopped Redis containers (cache `ccpc-recovery-redis-cache`, queue `ccpc-recovery-redis-queue`) then use `redis-cli` within each to require `PONG` at guest loopback ports **13000** (cache) and **11000** (queue). Use `set -e` to stop on error; do not recreate containers, enable guest networking or auto-start, modify baseline, import DEVELOPMENT backup contents, or restore any site. Prior no-NIC QEMU status and host share absence remain unchanged.
+
 ## 2026-11-24 — disposable clone MariaDB start command PASS; health pending
 
 Owner ran `sudo docker start ccpc-recovery-mariadb` **inside isolated disposable clone 01** at `ccpc-restore@ccpc-recovery:~# CCPC ERPNext — CURRENT HANDOFF 5
