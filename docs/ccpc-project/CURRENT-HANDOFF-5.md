@@ -2,6 +2,17 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — Integration2 restored attachment directories confirmed present
+
+Following interrupted/mangled terminal paste during native Integration2 restore, target isolated guest DB `ccpc_restore_int2_20261124` exists (count 1), and owner-supplied interleaved SQL outputs plausibly show **759 BASE TABLE** and **765 ALL TABLE** counts, but these cannot yet prove full success. Owner then navigated to **guest-only** `/var/lib/ccpc-recovery-frappe-restore-20261124/sites/ccpc-restore-int2-20261124.localhost` and ran read-only `ls -ld public/files private/files`. Actual output:
+
+```text
+drwxr-xr-x 2 ccpc-restore ccpc-restore 4096 Oct 13 04:31 private/files
+drwxr-xr-x 2 ccpc-restore ccpc-restore 4096 Oct 13 04:31 public/files
+```
+
+**PASS:** both destination file directories exist and are owned by the guest's designated recovery account. The Oct13 directory mtime is compatible with preserved archive metadata; it does not establish Nov24 backup freshness or file identity. **Still pending:** counts of actual regular files, side-by-side private/public TAR SHA256 checks, restored Frappe initialization/DB connection/app registration and representative data acceptance. Do not print confidential names/content or source config secrets. **Next one-command-at-a-time** guest inspection to avoid paste corruption: `find public/files -type f | wc -l` and `find private/files -type f | wc -l` separately; then inspect archived counts and design one-shot SHA read-only integrity audit, retaining initial main DEVELOPMENT restore PASS. No rerun of the native restore because target database already exists; no live MAIN DEV/PRODUCTION changes.
+
 ## 2026-11-24 — Integration2 table-check output likely 759/765 but terminal interleaved
 
 After the Integration2 native restore command was pasted with terminal display corruption and no explicit success marker, owner confirmed with guest-only MariaDB that the new isolated schema `ccpc_restore_int2_20261124` exists (query returned `1`). Subsequent owner output from two attempted **read-only** guest-local MariaDB `information_schema.TABLES` counts was visibly interleaved and malformed by console paste/echo. The string began `759c-restore@...` after a `TABLE_TYPE = BASE TABLE` query, and later `765c-restore@...` after a `TABLE_SCHEMA=DATABASE()` query. These are **plausible** counts of 759 base tables and 765 all tables+views, consistent with a materially populated restored SQL schema and with earlier MAIN DEV restore count, but console mixing means exact attribution is **not yet completely independently established**. The transcript is **not** evidence of the native restore's successful archive extraction or full Frappe acceptance.
