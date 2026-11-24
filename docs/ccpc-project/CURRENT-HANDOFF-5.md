@@ -2,6 +2,23 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — confidential backup ISO attached to disposable clone QEMU start requested
+
+After successful private ISO creation and exact source/SHA256/syntax-staged restore-media controller, owner invoked **on normal host only** the reviewed `sg kvm -c 'python3 -B /home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_clone01_restore_control_20261124.py --start'` through host-identity guard and previous original clone controller **NOT RUNNING** check. Actual operator output included:
+```text
+/home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_clone01_restore_control_20261124.py: OK
+DISPOSABLE CLONE 01 RESTORE MEDIA: START REQUESTED; QEMU PID: 2739977
+ISO SHA256 VERIFIED: 32ac13073a0383a75c6bc0df7b93a8b7995750cfa0406e05133084aad9eb84b4
+SOURCE BASELINE: READ-ONLY BACKING; WRITES ONLY TO: /home/gani/ccpc-restore-labs/ccpc-dev-recovery-clone-01-20261124/recovery-clone.qcow2
+ORIGINAL ISO, CLOUD-INIT SEED, PRIVATE BACKUP ISO: READ-ONLY VIRTIO DRIVES
+BACKUP MEDIA: ATTACHED READ-ONLY; GUEST SHA256 VERIFICATION PENDING
+NETWORK: NONE; LIVE DEVELOPMENT / PRODUCTION: UNTOUCHED
+CONFIDENTIAL BACKUP PRESENT INSIDE CLONE, NOT RESTORED
+```
+**PASS (operator-reported):** the separate restore-media controller started the intended disposable clone QEMU with confidential ISO passed as a read-only virtio disk, no guest network, no host shares/forwards, and backing layers preserved as inputs. The controller preflight verified backup ISO digest against private SHA receipt `b25a64ed447a0b28a8fb01217d2acddb9ae4c4e6b72e546ac98fd3d24153075e`. **NOT YET PROVEN:** QEMU remains running after startup, Ubuntu guest login/ISO mount, guest SHA256 of 8 components, guest Docker readiness, Frappe site/DB, or actual two-site restore. Avoid confusing attached media with a recovered site.
+
+**Next one-step normal host check:** `python3 -B /home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_clone01_restore_control_20261124.py --status`; require `DISPOSABLE CLONE 01 RESTORE MEDIA: RUNNING; PID: 2739977`, `QEMU NETWORK: NONE; BOTH ISO MEDIA AND SEED: READ-ONLY (launch argument)`, and `NO HOST SHARES / PORT FORWARDS`. After PASS, attach ONLY this new controller's `--console`, then identify guest read-only backup ISO by its unique volume label `CCPCDEV23` and mount read-only with safe guarded procedure; compare guest manifest/8 SHA256 before any guest site/database creation. No live DEVELOPMENT, PRODUCTION, network, or existing baseline operations.
+
 ## 2026-11-24 — restore-media clone controller staged and syntax verified
 
 The owner reported successful **normal DEVELOPMENT host** GitHub staging of `scripts/development/operator/ccpc_dev_recovery_clone01_restore_control_20261124.py` into private `/home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_clone01_restore_control_20261124.py`: `/home/gani/ccpc-reviewed-scripts/.stage.XFQztFcE: OK`, `RESTORE CONTROLLER PYTHON SYNTAX: PASS`, `RESTORE CONTROLLER: STAGED AND VERIFIED`, `VM NOT STARTED`. Pinned review branch `review/dev-restore-vm-staging-2026-11-23`, commit `e5266c20bf8b339011baab8e34805e8814b91b57`, source SHA256 `d9faf3af407c5f00c57a6a50b1176d71ced860ae629f0359397cd04db2496e58`, blob `3cd6b66635a08f0b7357e081c582348d04971caa`. This verifies operator-reported staging/syntax, **not** QEMU start or guest ISO access.
