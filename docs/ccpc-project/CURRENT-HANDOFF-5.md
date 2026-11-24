@@ -2,6 +2,16 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — cold recovery baseline QCOW2 backing chain verified
+
+Owner ran read-only host `qemu-img info --backing-chain` against `/home/gani/ccpc-restore-labs/ccpc-dev-recovery-baseline-20261123/ubuntu-recovery-baseline.qcow2` after operator-reported QEMU shutdown. Output verified **three linked QCOW2 files**, all `corrupt: false` in reported metadata:
+
+1. Provisioned baseline: `/home/gani/ccpc-restore-labs/ccpc-dev-recovery-baseline-20261123/ubuntu-recovery-baseline.qcow2` — **60 GiB virtual**, **5.02 GiB allocated**, backing the intermediate QCOW2.
+2. Intermediate layer: `/home/gani/ccpc-restore-labs/ccpc-dev-restore-lab-20261123/ccpc-dev-restore-lab-20261123.qcow2` — **60 GiB virtual**, **196 KiB allocated**, backing the original Ubuntu image.
+3. Original Ubuntu 24.04 image: `/home/gani/ccpc-restore-labs/ccpc-dev-restore-lab-20261123/ubuntu-24.04-server-cloudimg-amd64.img` — **3.5 GiB virtual**, **593 MiB allocated**, no backing file.
+
+**PASS:** QEMU image format, exact absolute backing chain, and reported `corrupt:false` metadata. **Not tested:** guest filesystem consistency or real backup restore. Keep all three layers in place and never write to or rebase the stopped baseline. Next: prepare a unique private directory and **new QCOW2 disposable overlay referencing the baseline**, guarding against collision; then separately review/verify its QEMU launch (`-nic none`, no host shares). No confidential backup ingress, database restore, production action or DEV service modification authorized by this metadata check.
+
 ## 2026-11-24 — recovery guest poweroff / QEMU stop reported PASS
 
 Owner-provided continuation from the preceding chat reports **inside the offline recovery guest** `[51501.004073] reboot: Power down` followed by console detachment, then **on the normal DEVELOPMENT host**:
