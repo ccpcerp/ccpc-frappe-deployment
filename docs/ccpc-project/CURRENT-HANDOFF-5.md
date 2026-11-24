@@ -2,23 +2,23 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — both guest Redis PONG health checks PASS
+
+Owner ran a `set -e` block **inside isolated disposable recovery clone 01**. Existing Redis cache and queue were started through `sudo docker start`, returning `ccpc-recovery-redis-cache` and `ccpc-recovery-redis-queue`. The `redis-cli` checks on guest loopback returned `PONG` for **cache 127.0.0.1:13000** and **queue 127.0.0.1:11000**, ending in `REDIS HEALTH: PASS`. The previously restarted guest MariaDB 11.8 passed its `--connect --innodb_initialized` healthcheck; Docker service is active. **PASS (operator-reported):** guest MariaDB and Redis runtime health, without a backup import or restored Frappe site.
+
+**Next efficient guest-only read-only verification:** check `ss -lnt` shows ports 3306, 11000 and 13000 bound only to guest `127.0.0.1`, and inventory the already-loaded exact-source CCPC Docker image before planning a unique VM-only Frappe restore target. No guest NIC, shared host folders, source database access, confidential backup copy/restore, persistent MAIN DEVELOPMENT changes or PRODUCTION actions have been approved or reported. The next actual private backup ingress/restore will require a single explicit, bounded owner authorization after reviewing the exact transfer/restore plan.
+
+**Handoff maintenance:** repaired five malformed recent shell-prompt excerpts that had accidentally expanded the handoff introduction into the text; historical facts, other checkpoint sections and code remain unchanged.
+
 ## 2026-11-24 — disposable clone MariaDB healthcheck completed without error
 
-Owner executed `sudo docker exec ccpc-recovery-mariadb healthcheck.sh --connect --innodb_initialized` **inside isolated clone 01** and reported a prompt return with no stderr/output or error: `ccpc-restore@ccpc-recovery:~# CCPC ERPNext — CURRENT HANDOFF 5
-
-**Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
-
-. **PASS based on operator command transcript:** MariaDB connectivity / InnoDB health check apparently succeeded; the shell exit code was not separately echoed. This is guest-only service readiness, NOT restored data or a verified Frappe site.
+Owner executed `sudo docker exec ccpc-recovery-mariadb healthcheck.sh --connect --innodb_initialized` **inside isolated clone 01** and reported a prompt return with no stderr/output or error: `ccpc-restore@ccpc-recovery:~$`. **PASS based on operator command transcript:** MariaDB connectivity / InnoDB health check apparently succeeded; the shell exit code was not separately echoed. This is guest-only service readiness, NOT restored data or a verified Frappe site.
 
 **Next bounded guest-only action:** start the two existing stopped Redis containers (cache `ccpc-recovery-redis-cache`, queue `ccpc-recovery-redis-queue`) then use `redis-cli` within each to require `PONG` at guest loopback ports **13000** (cache) and **11000** (queue). Use `set -e` to stop on error; do not recreate containers, enable guest networking or auto-start, modify baseline, import DEVELOPMENT backup contents, or restore any site. Prior no-NIC QEMU status and host share absence remain unchanged.
 
 ## 2026-11-24 — disposable clone MariaDB start command PASS; health pending
 
-Owner ran `sudo docker start ccpc-recovery-mariadb` **inside isolated disposable clone 01** at `ccpc-restore@ccpc-recovery:~# CCPC ERPNext — CURRENT HANDOFF 5
-
-**Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
-
-. Docker returned `ccpc-recovery-mariadb` with no reported error. **PASS: existing guest-only MariaDB container accepted start request.** MariaDB readiness / InnoDB initialization remain **UNVERIFIED** until healthcheck; no restored database, new guest site, backup ingress, source baseline write or live environment change is claimed.
+Owner ran `sudo docker start ccpc-recovery-mariadb` **inside isolated disposable clone 01** at `ccpc-restore@ccpc-recovery:~$`. Docker returned `ccpc-recovery-mariadb` with no reported error. **PASS: existing guest-only MariaDB container accepted start request.** MariaDB readiness / InnoDB initialization remain **UNVERIFIED** until healthcheck; no restored database, new guest site, backup ingress, source baseline write or live environment change is claimed.
 
 **Next single guest-only verification:** `sudo docker exec ccpc-recovery-mariadb healthcheck.sh --connect --innodb_initialized`. Expect exit zero (may have no stdout). On failure do not recreate volumes or containers; collect sanitized container status or error for review. Do not start Redis or transfer/restore confidential backups before checking MariaDB.
 
@@ -30,31 +30,19 @@ Owner confirmed the recovery Docker daemon active **inside disposable clone 01**
 
 ## 2026-11-24 — disposable clone recovery Docker active PASS
 
-Owner reported running `sudo systemctl start ccpc-recovery-docker.service` **inside disposable clone 01** at `ccpc-restore@ccpc-recovery:~# CCPC ERPNext — CURRENT HANDOFF 5
-
-**Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
-
-; subsequent `sudo systemctl is-active ccpc-recovery-docker.service` returned **`active`**. This verifies the guest-only Docker daemon started manually; no service autostart enablement, guest container start, backup transfer or restored site is claimed. The clone QEMU launch, `-nic none` runtime and Ubuntu shell login were previously operator-verified. Nothing in this report indicates MAIN DEVELOPMENT or PRODUCTION was changed.
+Owner reported running `sudo systemctl start ccpc-recovery-docker.service` **inside disposable clone 01** at `ccpc-restore@ccpc-recovery:~$`; subsequent `sudo systemctl is-active ccpc-recovery-docker.service` returned **`active`**. This verifies the guest-only Docker daemon started manually; no service autostart enablement, guest container start, backup transfer or restored site is claimed. The clone QEMU launch, `-nic none` runtime and Ubuntu shell login were previously operator-verified. Nothing in this report indicates MAIN DEVELOPMENT or PRODUCTION was changed.
 
 **Next single read-only guest command:** `sudo docker ps -a --format 'table {{.Names}}\\t{{.Status}}\\t{{.Image}}'`; check that `ccpc-recovery-mariadb`, `ccpc-recovery-redis-cache`, and `ccpc-recovery-redis-queue` are present before any controlled start. Do not recreate/delete containers, volumes, baseline layers or import confidential backups. Keep the first backup transfer/restore separately gated.
 
 ## 2026-11-24 — clone guest Docker manual-start baseline verified inactive disabled
 
-Owner ran read-only checks **inside disposable clone 01** at `ccpc-restore@ccpc-recovery:~# CCPC ERPNext — CURRENT HANDOFF 5
-
-**Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
-
-: `systemctl is-active ccpc-recovery-docker.service` returned **`inactive`**; `systemctl is-enabled ccpc-recovery-docker.service` returned **`disabled`**. This is the intended no-autostart state after cold clone boot, not a service failure; the clone guest login and previous `-nic none` host process checks already passed.
+Owner ran read-only checks **inside disposable clone 01** at `ccpc-restore@ccpc-recovery:~$`: `systemctl is-active ccpc-recovery-docker.service` returned **`inactive`**; `systemctl is-enabled ccpc-recovery-docker.service` returned **`disabled`**. This is the intended no-autostart state after cold clone boot, not a service failure; the clone guest login and previous `-nic none` host process checks already passed.
 
 **Next operator guest-only operation:** `sudo systemctl start ccpc-recovery-docker.service`, then read-only `sudo systemctl is-active ccpc-recovery-docker.service` expecting `active`. Do **not** enable Docker on boot, start MariaDB/Redis containers, import DEVELOPMENT backup material, run migrations, or modify original baseline/host DEVELOPMENT/PRODUCTION as part of this service check. The user has not reported this start yet; do not mark it complete.
 
 ## 2026-11-24 — disposable clone 01 Ubuntu shell login PASS; guest Docker read-only check next
 
-Owner attached to isolated disposable clone 01 through its dedicated `--console` after QEMU PID `2737679` and `-nic none` runtime status PASS. Owner supplied actual Ubuntu shell prompt `ccpc-restore@ccpc-recovery:~# CCPC ERPNext — CURRENT HANDOFF 5
-
-**Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
-
-, establishing **successful guest boot/interactive login (operator-reported)**. The prompt hostname is inherited from the guest baseline and does **not** indicate the original baseline host disk was booted: the reviewed clone launch command targeted `.../ccpc-dev-recovery-clone-01-20261124/recovery-clone.qcow2` with original disk read-only as backing input.
+Owner attached to isolated disposable clone 01 through its dedicated `--console` after QEMU PID `2737679` and `-nic none` runtime status PASS. Owner supplied actual Ubuntu shell prompt `ccpc-restore@ccpc-recovery:~$`, establishing **successful guest boot/interactive login (operator-reported)**. The prompt hostname is inherited from the guest baseline and does **not** indicate the original baseline host disk was booted: the reviewed clone launch command targeted `.../ccpc-dev-recovery-clone-01-20261124/recovery-clone.qcow2` with original disk read-only as backing input.
 
 **Next read-only guest step:** inspect recovery Docker service state with `systemctl is-active ccpc-recovery-docker.service || true` and `systemctl is-enabled ccpc-recovery-docker.service || true`. No Docker or guest MariaDB/Redis startup, Frappe site setup, confidential backup import, restore or guest changes yet. Only after review decide whether to start the guest-only recovery Docker engine and stopped containers. Original baseline/backing chain, current MAIN DEVELOPMENT and PRODUCTION remain outside scope.
 
