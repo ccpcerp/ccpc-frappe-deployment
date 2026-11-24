@@ -2,6 +2,12 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — Integration2 installed application count 3 reported; confirm identities
+
+Owner ran read-only guest-local SQL `SELECT COUNT(*) FROM \`tabInstalled Application\`` targeting only offline recovery guest's `ccpc_restore_int2_20261124`, using guest root credential within `ccpc-recovery-mariadb`. **Visible numeric result: `3`**, interleaved amid terminal paste echo (`3ariadb-root)...`). This agrees with the expected number of three apps and strengthens evidence that the Integration2 archived database has restored. But the prior names listing visibly showed only `frappe` due to terminal corruption, so exact `frappe, erpnext, ccpcerp` membership is **still to be conclusively demonstrated**. Previous independent `tabDocType` count was 832, private/public restored and archived regular file counts each 0/0, site directories exist, and table count outputs likely 759 base and 765 tables+views.
+
+**Next one short, read-only check:** query `GROUP_CONCAT(app_name ORDER BY app_name)` for `tabInstalled Application` into a single output line, expecting `ccpcerp,erpnext,frappe`, reducing terminal output fragility. Then verify that restored Integration2 can actually connect under its saved unique guest-only site config via pinned Frappe image, with `FRAPPE_STREAM_LOGGING=1`, no backups or root pass mounted in the read-only check. Do not reinstall apps, migrate, or rerun restore. Only after runtime connection and representative counts may the two-site recovery milestone be recorded as database/attachments PASS, with encryption-key and functional caveats.
+
 ## 2026-11-24 — Integration2 installed apps output interleaved, one app visible; repeat count read-only
 
 Owner ran guest-only read-only SQL `SELECT app_name FROM \`tabInstalled Application\` ORDER BY app_name` targeting isolated `ccpc_restore_int2_20261124`. Returned terminal paste/echo is partly corrupted (`erpnext-root)...`) but clearly displays one standalone application name `frappe` before the prompt. It does **not** establish that `ccpcerp` or `erpnext` were absent: prior console echoes repeatedly overwrote leading lines and counts. No SQL/restore/attachments write occurred during this metadata read.
