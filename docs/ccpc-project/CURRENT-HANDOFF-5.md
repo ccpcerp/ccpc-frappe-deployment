@@ -2,6 +2,16 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — disposable clone 01 Ubuntu shell login PASS; guest Docker read-only check next
+
+Owner attached to isolated disposable clone 01 through its dedicated `--console` after QEMU PID `2737679` and `-nic none` runtime status PASS. Owner supplied actual Ubuntu shell prompt `ccpc-restore@ccpc-recovery:~# CCPC ERPNext — CURRENT HANDOFF 5
+
+**Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
+
+, establishing **successful guest boot/interactive login (operator-reported)**. The prompt hostname is inherited from the guest baseline and does **not** indicate the original baseline host disk was booted: the reviewed clone launch command targeted `.../ccpc-dev-recovery-clone-01-20261124/recovery-clone.qcow2` with original disk read-only as backing input.
+
+**Next read-only guest step:** inspect recovery Docker service state with `systemctl is-active ccpc-recovery-docker.service || true` and `systemctl is-enabled ccpc-recovery-docker.service || true`. No Docker or guest MariaDB/Redis startup, Frappe site setup, confidential backup import, restore or guest changes yet. Only after review decide whether to start the guest-only recovery Docker engine and stopped containers. Original baseline/backing chain, current MAIN DEVELOPMENT and PRODUCTION remain outside scope.
+
 ## 2026-11-24 — disposable clone 01 runtime status PASS; console login pending
 
 Owner supplied the actual read-only `--status` output from the dedicated clone-only controller:
