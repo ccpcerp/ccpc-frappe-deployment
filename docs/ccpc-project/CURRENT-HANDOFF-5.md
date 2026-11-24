@@ -2,6 +2,21 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — isolated guest Frappe site volume and application image PASS
+
+Owner reported successfully running the guest-only guarded storage preparation, inside `ccpc-restore@ccpc-recovery` and `-nic none`, for new directory `/var/lib/ccpc-recovery-frappe-restore-20261124` (owner 1000, intended mode 0700), subdirectories `sites/` and `logs/`, `sites/apps.txt` containing `frappe`, `erpnext`, `ccpcerp`, and `sites/common_site_config.json` with **127.0.0.1:3306**, Redis guest ports **13000/11000**, `pause_scheduler:1`, and `maintenance_mode:1`. A one-off **`--network none --read-only --user 1000:1000`** guest Docker smoke command, with exact new sites/log bind mounts, image `ccpc-recovery:dev-nov23-b0cbe5c`, printed:
+```text
+ccpcerp 0.0.1  ()
+erpnext 16.34.2  ()
+frappe 16.33.1  ()
+ISOLATED FRAPPE SITE STORAGE: PREPARED
+```
+**PASS (owner-reported):** pinned app image and isolated storage are functional. The empty revision suffixes in `bench version` reflect stripped `.git` metadata in the built image; prior OCI provenance/source-build checks are separate. No restored databases/sites, app migrations, scheduler, email/webhooks, host Docker or PRODUCTION changes.
+
+**Relevant verified implementation details:** The exact guest MariaDB bootstrap on review branch at `scripts/development/operator/ccpc_dev_recovery_guest_start_mariadb_20261123.sh` created guest root-only private credential file `/var/lib/ccpc-recovery-secrets/mariadb-root` (`0700` directory, `0600` file) and mounted it read-only inside the **guest-only MariaDB container** as `/run/secrets/mariadb-root`. The container uses `MARIADB_ROOT_PASSWORD_FILE` pointing at this file and only guest loopback MariaDB. **Do not display the secret**. This is the correct source for authentication during private guest restore.
+
+**Next one-step guest-only nonmutating gate:** confirm two named new recovery target site directories do not exist in `/var/lib/ccpc-recovery-frappe-restore-20261124/sites`, and two unique destination DB schemas `ccpc_restore_dev_20261124` and `ccpc_restore_int2_20261124` do not exist **inside the isolated MariaDB container**. Connect using `MYSQL_PWD` populated only inside guest MariaDB container from its own root-only mounted `/run/secrets/mariadb-root`, never put secret in CLI argv, command transcript or GitHub. Require absent schemas, verified service readiness, isolated guest Docker root `/var/lib/ccpc-recovery-docker`, guest no-NIC state, and private storage. Stop without mutating if unexpected existing target. On PASS, use reviewed one-time guest-only Frappe site/DB create + SQL and file restore, with scheduler/egress disabled and protected credential handling. No live DEVELOPMENT or PRODUCTION database connection.
+
 ## 2026-11-24 — two archived config key sets inspected without disclosing values
 
 Owner executed the reviewed **guest-only**, read-only JSON key-name inspection of the two archived site_config backups on the SHA256-verified read-only ISO, with no raw config/credential output. `development.localhost` keys: `allow_tests`, `db_host`, `db_name`, `db_password`, `db_type`, `db_user`, `installed_apps`; `ccpc-integration2.localhost` keys: `db_host`, `db_name`, `db_password`, `db_type`, `db_user`, `installed_apps`. Both `ENCRYPTION KEY: ABSENT`, `DATABASE NAME: PRESENT`; output `BACKUP CONFIG INSPECTION: PASS`. Existing guest Docker volumes exactly `ccpc-recovery-mariadb-data` and `ccpc-recovery-redis-queue-data`, with **no existing Frappe sites volume**. No database/site restoration yet.
