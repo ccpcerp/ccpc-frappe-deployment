@@ -2,6 +2,18 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — disposable clone 01 runtime status PASS; console login pending
+
+Owner supplied the actual read-only `--status` output from the dedicated clone-only controller:
+```text
+DISPOSABLE CLONE 01: RUNNING; PID: 2737679
+QEMU NETWORK: NONE; ISO: READ-ONLY (launch argument)
+NO HOST SHARES / PORT FORWARDS
+```
+**PASS (operator-reported):** the disposable clone QEMU process remains running, the controller identifies its exact reviewed clone PID/arguments and no NIC, and the offline ISO is configured read-only. This is runtime process/config verification only: Ubuntu guest console login, guest-only Docker and MariaDB/Redis startup, actual Frappe/site presence and backup restore are **not yet verified**. Original baseline remains the intended immutable backing file; no confidential backup ingress or DEV/PRODUCTION operations have been authorized or reported.
+
+**Immediate next operator step:** from normal host `gani@ccpcerpserver`, attach only `python3 -B /home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_clone01_control_20261124.py --console` and report whether the Ubuntu guest reaches `ccpc-restore` login or shell prompt. Password is held privately on host; never paste it in chat. If serial empty, press Enter once. Ctrl+] detaches console; it does not shut down VM. Avoid the original baseline controller's `--start`, any backup import/restore, host Docker changes or PRODUCTION.
+
 ## 2026-11-24 — disposable clone 01 QEMU launch requested, runtime check pending
 
 Owner ran `sg kvm -c 'python3 -B /home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_clone01_control_20261124.py --start'` on normal DEVELOPMENT host, after the exact controller was verified and syntax-parsed. Operator output included `DISPOSABLE CLONE 01: START REQUESTED; QEMU PID: 2737679`, `ISO SHA256 VERIFIED: 32ac13073a0383a75c6bc0df7b93a8b7995750cfa0406e05133084aad9eb84b4`, `SOURCE BASELINE: READ-ONLY BACKING; WRITES ONLY TO: /home/gani/ccpc-restore-labs/ccpc-dev-recovery-clone-01-20261124/recovery-clone.qcow2`, `OFFLINE MEDIA AND CLOUD-INIT SEED: READ-ONLY VIRTIO DRIVES`, `NETWORK: NONE; LIVE DEVELOPMENT / PRODUCTION: UNTOUCHED`, and `NO CONFIDENTIAL BACKUP TRANSFER OR RESTORE`. This is verified **controller startup/guard output supplied by operator**, not independent live host access. The clone boot, runtime persistence, serial login, guest Docker/DB/Redis services and recovery acceptance remain **UNVERIFIED**.
