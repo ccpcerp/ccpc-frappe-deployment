@@ -2,6 +2,21 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — public attachment empty PASS; private audit archive-path assumption failed
+
+After **restored DEVELOPMENT SQL/database read-only acceptance PASS** (759 base tables, all Frappe/ERPNext/CCPC apps, representative record counts), owner ran only a **read-only guest-side** attachment SHA256 audit against `/var/lib/ccpc-recovery-frappe-restore-20261124/input-development/public.tar` / `private.tar` and target `sites/ccpc-restore-dev-20261124.localhost`. Actual output:
+```text
+PUBLIC ARCHIVED FILES: 0
+PUBLIC RESTORED FILES: 0
+PUBLIC ATTACHMENT INTEGRITY: PASS
+Traceback (most recent call last):
+  File "<stdin>", line 35, in <module>
+RuntimeError: Invalid archive file path
+```
+**Interpretation:** public tree has zero archived and zero restored regular files (no nonempty public-file recovery claim). The private audit's **local path-validation assumption** `len(PurePosixPath(member.name).parts) >= 5` is not established by the backup format; `PurePosixPath` removes leading `./`, reducing the path-component count, while pinned Frappe `frappe/installer.py` lines 820–849 uses OS TAR `tar xvf ... --strip 2` relative to restored site's root. The private audit halted before reporting count or SHA and thus neither proves missing/corrupted files nor private attachment integrity. **Do not rerun the original native `bench restore`, drop the restored DB, edit archive, or change Frappe data.**
+
+**Next single guest-only read-only diagnostic:** open only the small already-staged `input-development/private.tar` in Python `tarfile`; print number of file entries, directory entries, symlinks/hardlinks, raw path-component **length distribution**, count of entries beginning literal `./`, and count of regular members whose path **after preserving literal component positions and stripping first 2 TAR components** begins `private/files/`, along with count of currently restored regular private files. **Never print any member path, attachment name, customer/financial content, plaintext password or SQL.** Use this to author a corrected per-file SHA256 comparison reproducing Frappe `--strip 2` semantics; no database operations or archive extraction. Failure of corrected comparison would require inspection, not automatic restore retry. Then Integration2 remains pending independently.
+
 ## 2026-11-24 — restored DEVELOPMENT database read-only acceptance PASS
 
 Owner reran **only the previously failed nonmutating database audit**, not `bench restore`, inside the offline disposable `ccpc-restore@ccpc-recovery` guest QEMU. The exact Frappe image `ccpc-recovery:dev-nov23-b0cbe5c` ran a one-off `--read-only --network host` guest container with `FRAPPE_STREAM_LOGGING=1`, fixing earlier missing `/home/frappe/logs/database.log` audit-container path without modifying the original site or rerunning import. `frappe.init` used the verified new guest-only site config `ccpc-restore-dev-20261124.localhost` with database `ccpc_restore_dev_20261124`, host guest loopback `127.0.0.1`, scheduler paused and maintenance enabled. `frappe.connect()` worked. Installed apps exactly `ccpcerp`, `erpnext`, `frappe`, satisfying expected app registration.
