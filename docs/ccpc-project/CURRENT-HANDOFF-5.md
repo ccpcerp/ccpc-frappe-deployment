@@ -2,6 +2,27 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — private two-site backup ISO preparation PASS
+
+Owner executed exact reviewed private backup ISO one-shot script on the **normal host** `gani@ccpcerpserver`, after SHA256 of staged script `06563d7fc5ecd1bd3ca7438b579a4e9bda3309176e54e0e92b5109d79db0e62e` passed. Owner's output:
+
+```text
+PRIVATE DEVELOPMENT BACKUP ISO: PREPARED
+SOURCE NAS MANIFEST: 8/8 VERIFIED BEFORE AND AFTER COPY
+ISOLATED ISO BYTES: 3272704
+ISO SHA256: b25a64ed447a0b28a8fb01217d2acddb9ae4c4e6b72e546ac98fd3d24153075e
+PRIVATE ISO: /home/gani/ccpc-restore-labs/ccpc-dev-backup-media-20261124/ccpc-development-backup-20261123.iso
+PRIVATE SHA256 RECEIPT: /home/gani/ccpc-restore-labs/ccpc-dev-backup-media-20261124/ccpc-development-backup-20261123.iso.sha256
+NO QEMU/DOCKER OPERATION; NO BACKUP RESTORE; NO DEV/PROD MODIFICATION
+CONFIDENTIAL FILES: KEEP HOST-PRIVATE; NO PUBLIC UPLOAD OR AUTO CLEANUP
+```
+
+**PASS based on owner terminal evidence:** verified eight-file private offline ISO and same-host receipt, actual confidential bytes NEVER transferred to GitHub/ChatGPT, and source NAS remained unchanged. ISO remains **only in normal host private directory**, not attached to clone and not yet imported/restored into guest. Guest clone 01 had previously passed DB/Redis readiness; it remains running as of last guest session, but latest runtime state must be established by reviewed controller.
+
+**Next safely bounded operator step:** At normal host `gani@ccpcerpserver`, reattach existing clone-only serial console with `python3 -B /home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_clone01_control_20261124.py --console` (which checks clone status and `-nic none`). Inside `ccpc-restore@ccpc-recovery` guest, gracefully stop only `ccpc-recovery-redis-queue`, `ccpc-recovery-redis-cache`, `ccpc-recovery-mariadb`, verify exited normally, then separately guest `sudo systemctl poweroff`. On host, old clone-only `--status` must show NOT RUNNING before new controller launch. Do not stop/start host Docker or other QEMU, terminate process forcibly, alter original baseline, connect network, or import archive during shutdown.
+
+**Following controlled shutdown:** stage pinned review controller `scripts/development/operator/ccpc_dev_recovery_clone01_restore_control_20261124.py` at GitHub review commit `e5266c20bf8b339011baab8e34805e8814b91b57`, blob `3cd6b66635a08f0b7357e081c582348d04971caa`, SHA256 `d9faf3af407c5f00c57a6a50b1176d71ced860ae629f0359397cd04db2496e58`; it verifies private ISO receipt and immutable guest backing chain, then starts same **disposable clone** using separate runtime with backup ISO readonly, no NIC. Owner has already explicitly approved the one-time two-site isolated backup transfer+restore, so no repetitive approval gate, but all actual commands and results must remain human supervised. After guest ISO SHA verification, verify uniquely named test Frappe site/DB and restore SQL/public/private/config safely; no recovered site asserted yet.
+
 ## 2026-11-24 — private backup ISO script staged and syntax verified
 
 Owner reported host-only **reviewed source staging** from GitHub for `scripts/development/operator/ccpc_dev_recovery_backup_media_20261124.py` into `/home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_backup_media_20261124.py`. The terminal returned `/home/gani/ccpc-reviewed-scripts/.stage.tO3rm6uv: OK`, `BACKUP MEDIA PYTHON SYNTAX: PASS`, `PRIVATE BACKUP MEDIA SCRIPT: STAGED AND VERIFIED`, and `SCRIPT NOT YET EXECUTED`. The staged content's pinned SHA256 is `06563d7fc5ecd1bd3ca7438b579a4e9bda3309176e54e0e92b5109d79db0e62e`, the GitHub review source blob is `3dba57f7ba7542fb3a018541487565f14a12a10e`, and fetched review commit was `e5266c20bf8b339011baab8e34805e8814b91b57`. This is **owner-reported fetch+syntax PASS**, not evidence that the script executed or that the private ISO exists.
