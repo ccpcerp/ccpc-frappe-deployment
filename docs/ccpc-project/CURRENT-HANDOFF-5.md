@@ -2,6 +2,12 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — disposable clone 01 QEMU launch requested, runtime check pending
+
+Owner ran `sg kvm -c 'python3 -B /home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_clone01_control_20261124.py --start'` on normal DEVELOPMENT host, after the exact controller was verified and syntax-parsed. Operator output included `DISPOSABLE CLONE 01: START REQUESTED; QEMU PID: 2737679`, `ISO SHA256 VERIFIED: 32ac13073a0383a75c6bc0df7b93a8b7995750cfa0406e05133084aad9eb84b4`, `SOURCE BASELINE: READ-ONLY BACKING; WRITES ONLY TO: /home/gani/ccpc-restore-labs/ccpc-dev-recovery-clone-01-20261124/recovery-clone.qcow2`, `OFFLINE MEDIA AND CLOUD-INIT SEED: READ-ONLY VIRTIO DRIVES`, `NETWORK: NONE; LIVE DEVELOPMENT / PRODUCTION: UNTOUCHED`, and `NO CONFIDENTIAL BACKUP TRANSFER OR RESTORE`. This is verified **controller startup/guard output supplied by operator**, not independent live host access. The clone boot, runtime persistence, serial login, guest Docker/DB/Redis services and recovery acceptance remain **UNVERIFIED**.
+
+**Next one-step host read-only check:** `python3 -B /home/gani/ccpc-reviewed-scripts/ccpc_dev_recovery_clone01_control_20261124.py --status`. Confirm PID and `QEMU NETWORK: NONE; ISO: READ-ONLY`; if running, separately attach the controller's clone-only `--console` and check guest prompt. Do not start original baseline controller, transfer confidential DEVELOPMENT backups, restore database, restart live services, or touch PRODUCTION. No retries after STOP without review.
+
 ## 2026-11-24 — clone-only controller safely staged and syntax verified
 
 Owner reports successful trusted-host read-only fetch/staging of exact GitHub review commit `d039cba5fcb1b497c0e433231a9df8914fbc2e45`, Git blob `c9aa212e31f151da502939696462a8c60d5292fa`, for `ccpc_dev_recovery_clone01_control_20261124.py` outside protected DEVELOPMENT source checkout. Python `ast.parse` passed. Exact returned lines: `CLONE CONTROLLER PYTHON SYNTAX: PASS` and `CLONE CONTROLLER: STAGED AND VERIFIED`. This is operator-reported local staging, not evidence of QEMU launch or complete dynamic testing.
