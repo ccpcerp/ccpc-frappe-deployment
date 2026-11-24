@@ -2,6 +2,12 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — Integration2 recovery target DB now exists; completeness uncertain
+
+After malformed console paste during the reviewed Integration2 `bench restore` command, owner ran a **single read-only guest-local MariaDB schema existence query** against the unique disposable QEMU guest database target `ccpc_restore_int2_20261124`. Root credential was read privately **within** the isolated `ccpc-recovery-mariadb` container; no credential printed. **Output: `1`**. The schema now EXISTS whereas it was confirmed ABSENT at staging time, so **some restore-side action apparently created the target DB**, but no final native Frappe `Site ... has been restored with files` or `INTEGRATION2 GUEST RESTORE COMMAND: PASS` marker was obtained, and the earlier paste was visibly interrupted.
+
+**Do not rerun** original native restore, drop/recreate schema, overwrite saved site config or discard files. Treat Integration2 SQL import and attachments as **PARTIAL/UNKNOWN** pending independent read-only inspection. First read-only check: count BASE TABLE rows in `information_schema.TABLES` only for this unique guest database; do not inspect/print business records, secrets, table names or archive content. If meaningful tables exist, next check recovery site configuration integrity and Frappe read-only connection/apps/table/record-count audit, then restored file SHA256 against staged TAR archive. If table count zero or incomplete, preserve state and diagnose before any intervention. First DEVELOPMENT site's restore and attachment SHA256 audit already PASSED and must remain untouched. QEMU offline guest `-nic none`, no authorized MAIN DEV/PROD operations.
+
 ## 2026-11-24 — Integration2 restore invocation console paste interrupted; do not rerun
 
 Following owner-reported **Integration2 guest backup staging PASS** (confirmed new `ccpc_restore_int2_20261124` schema absent before staging), the reviewed **native Integration2 SQL/files restore** command was supplied. Owner's next terminal transcript showed truncated/malformed paste rather than execution success:
