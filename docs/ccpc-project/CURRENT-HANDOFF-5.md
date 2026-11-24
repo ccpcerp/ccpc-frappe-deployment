@@ -2,6 +2,18 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — Integration2 restore invocation console paste interrupted; do not rerun
+
+Following owner-reported **Integration2 guest backup staging PASS** (confirmed new `ccpc_restore_int2_20261124` schema absent before staging), the reviewed **native Integration2 SQL/files restore** command was supplied. Owner's next terminal transcript showed truncated/malformed paste rather than execution success:
+```text
+test "$(sudo docker info --format '{{.DockerRootDir}}')" = \
+)cho "INTEGRATION2 POST-RESTORE VALIDATION: PENDING"rivate.tar \get=/home/frappe
+ccpc-restore@ccpc-recovery:~$
+```
+This output **does not prove** that the intended restore command reached Docker or ran, nor does it prove the schema remains absent. **No `INTEGRATION2 GUEST RESTORE COMMAND: PASS` marker or native Frappe `Site ... has been restored with files` was observed.** No automatic retry, delete, schema drop, or production/DEVELOPMENT operation authorized or attempted. Preserve all first-site recovered artifacts and guest VM unchanged.
+
+**Next one short, read-only guest-only diagnostic only:** Verify hostname/user, then query guest-local MariaDB `information_schema.SCHEMATA` for **only** the unique `ccpc_restore_int2_20261124` schema, reading guest root credential only inside `ccpc-recovery-mariadb`. Report 0/1; no root credential print, no Frappe restore or SQL writes. If exists, inspect guest schema tables and target site file state before deciding whether import was complete or partial; if absent, assess whether previously staged site config remains and separately prepare shorter command delivery to avoid truncated console paste. No retry until interpreted.
+
 ## 2026-11-24 — Integration2 isolated backup staging PASS; native restore pending
 
 Owner executed the reviewed guest-only preflight/staging block in the same isolated QEMU `ccpc-restore@ccpc-recovery` clone with **only guest loopback**. Confirmed the `ccpc_restore_int2_20261124` database is **absent** from guest-only MariaDB; MariaDB CLI emitted the prior SSL verify/passwordless warning but the SQL query completed successfully. The read-only ISO remained `iso9660 ro` and guest Docker root was `/var/lib/ccpc-recovery-docker`. Verified the first successfully restored DEVELOPMENT site's config still exists and both Integration2 input/site target paths were absent.
