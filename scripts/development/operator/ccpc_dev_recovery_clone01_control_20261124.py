@@ -135,15 +135,15 @@ def preflight_start() -> None:
     if (stage_info.get("format") != "qcow2"
             or stage_info.get("virtual-size") != VIRTUAL_SIZE
             or stage_info.get("backing-filename") != str(ORIGINAL_IMAGE)
-            or stage_info.get("corrupt") is not False
+            or stage_info.get("format-specific", {}).get("data", {}).get("corrupt") is not False
             or baseline_info.get("format") != "qcow2"
             or baseline_info.get("virtual-size") != VIRTUAL_SIZE
             or baseline_info.get("backing-filename") != str(ORIGINAL_DISK)
-            or baseline_info.get("corrupt") is not False
+            or baseline_info.get("format-specific", {}).get("data", {}).get("corrupt") is not False
             or clone_info.get("format") != "qcow2"
             or clone_info.get("virtual-size") != VIRTUAL_SIZE
             or clone_info.get("backing-filename") != str(BASELINE_DISK)
-            or clone_info.get("corrupt") is not False):
+            or clone_info.get("format-specific", {}).get("data", {}).get("corrupt") is not False):
         stop("clone/baseline/Ubuntu QCOW2 backing chain mismatch or corruption flag")
     # No QEMU may write the baseline while the immutable clone is in use.
     for item in Path("/proc").iterdir():
