@@ -2,6 +2,29 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — first actual DEVELOPMENT SQL and attachments native restore PASS
+
+Owner ran reviewed guest-only `bench --site ccpc-restore-dev-20261124.localhost restore` with explicit `--with-public-files` and `--with-private-files` from previously byte-for-byte checked private guest staging `input-development`. Guest `ccpc-recovery:dev-nov23-b0cbe5c` image mounted **only guest-local** new `sites/` and `logs/` directories, guest backup inputs read-only; QEMU has **`-nic none`**, Docker run `--network host` applies only inside the isolated Ubuntu guest. Preflight checked the site's config target **`ccpc_restore_dev_20261124`**, random guest-only DB password, guest loopback DB `127.0.0.1:3306`, disabled scheduler and maintenance mode; verified the target DB schema remained absent before import. Root-only MariaDB credential was read only inside clone from `/var/lib/ccpc-recovery-secrets/mariadb-root`, injected into a temporary **guest `/run` tmpfs** common site config mounted read-only into the Frappe container, with EXIT trap cleanup. No secret string appeared in operator report.
+
+Actual terminal output:
+
+```text
+RESTORE TARGET CONFIGURATION: VERIFIED
+WARNING: option --ssl-verify-server-cert is disabled, because of an insecure passwordless login.
+RESTORE DATABASE: CONFIRMED NEW GUEST-ONLY TARGET
+TEMPORARY GUEST CREDENTIAL: PREPARED IN MEMORY
+Linking fresh assets to volume...
+App frappe already installed
+*** Scheduler is disabled ***
+Site ccpc-restore-dev-20261124.localhost has been restored with files
+DEVELOPMENT GUEST RESTORE COMMAND: PASS
+POST-RESTORE DATABASE AND FILE VALIDATION: PENDING
+```
+
+**PASS (owner-reported): first actual native Frappe v16 DEVELOPMENT SQL import plus both attachment archive extraction into the strictly isolated disposable restore clone.** The warning comes from guest-only MariaDB client; it does not invalidate the zero-count preflight, but it is not proof of TLS verification. No live DEVELOPMENT/PRODUCTION write, host Docker operation or backup mutation. The `App frappe already installed` line must **not** be taken as verification that `erpnext` and `ccpcerp` are installed from the imported snapshot. The ISO source manifest remained 8/8 verified earlier.
+
+**Next guest-only READ-ONLY acceptance step:** launch one disposable no-pull exact-image `--read-only --user1000 --cap-drop ALL --security-opt no-new-privileges` container with the same private restored sites/logs mounts, `--network host` in the no-NIC QEMU guest and no backup/root-credential mount; use pinned Frappe Python venv to `frappe.init` exact first restored site and `frappe.connect` via **site's new guest-only DB credentials**, confirm `frappe.conf.db_name` and loopback host, query `frappe.get_installed_apps()` (expect `frappe`, `erpnext`, `ccpcerp`), count `information_schema` base tables, `tabDocType` and `tabUser` rows and selected ERPNext business tables as available. Also compare archive file-member counts against restored public/private filesystem counts without exposing filenames, document names, SQL rows or credentials. Keep scheduler paused, no migrations, no outbound integration. If verification fails, preserve partial clone and inspect; never auto-drop/re-restore. Then stage and restore distinct Integration2 database and check separately. Note archived site configs lacked `encryption_key`; encrypted-value recovery is NOT verified.
+
 ## 2026-11-24 — first DEVELOPMENT source files privately staged into isolated restore target
 
 Owner ran a guarded guest-only `ccpc-restore@ccpc-recovery` first-site staging command against read-only Nov23 ISO after backup 8/8 SHA256 PASS and two recovery-only DB/site targets had been verified absent. New source-to-target private copied inputs (mode intended 0600): `/var/lib/ccpc-recovery-frappe-restore-20261124/input-development/dev.sql.gz`, `public.tar`, `private.tar`. Each byte-for-byte `cmp -s` versus read-only original passed; `gzip -t` and `tar -tf` of both copied archives passed. New guest-only target site configuration `/var/lib/ccpc-recovery-frappe-restore-20261124/sites/ccpc-restore-dev-20261124.localhost/site_config.json` was created with exclusive path/mode0600, database `ccpc_restore_dev_20261124`, DB user same, random fresh guest-only DB password, `127.0.0.1:3306`, `mariadb`, scheduler paused and maintenance enabled. Exact operator report:
