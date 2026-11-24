@@ -2,6 +2,16 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — confidential backup ISO mounted read-only and guest SHA256 8/8 PASS
+
+Owner entered the isolated, `-nic none` restore-media QEMU clone at `ccpc-restore@ccpc-recovery:~# CCPC ERPNext — CURRENT HANDOFF 5
+
+**Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
+
+, passed guest host/user/interface guards, located unique backup ISO volume label `CCPCDEV23`, and mounted the extra virtio ISO **`/dev/vdd`** at `/mnt/ccpc-dev-backup-20261123` with **`ro,nosuid,nodev,noexec`**. Guest `findmnt` output showed `SOURCE /dev/vdd`, `FSTYPE iso9660`, and the read-only security mount options. Guest `sha256sum -c SHA256SUMS` reported **all eight `OK`**, four each for `ccpc-integration2.localhost` and `development.localhost`; exact final marker **`GUEST BACKUP ISO: 8/8 PASS`**. This confirms the confidential Nov23 two-site archive bytes remained intact across guest transfer. Existing 3,272,704-byte ISO hash on host is `b25a64ed447a0b28a8fb01217d2acddb9ae4c4e6b72e546ac98fd3d24153075e`. No DB/attachment import, site creation, scheduler/webhook enablement or live DEV/PRODUCTION change has occurred.
+
+**Next scoped guest-only step:** Start `ccpc-recovery-docker.service` manually (not enable), start existing `ccpc-recovery-mariadb`, `ccpc-recovery-redis-cache`, `ccpc-recovery-redis-queue` containers and check MariaDB health and Redis `PONG`, with all ports `127.0.0.1:3306/13000/11000` in guest. Preserve cloned Docker volumes and private read-only backup ISO. Subsequent isolated **two-site** recovery must create unique guest-only target database/site names, avoid importing original site_config's db host/SMTP/webhook/scheduler enabled state or passwords without review, restore exact source app release with SQL plus public/private attachments, then validate representative read-only record counts. No previous fully restored Frappe site exists. Owner's Nov24 explicit approval covers this isolated two-site exercise only, not live DEVELOPMENT or PRODUCTION.
+
 ## 2026-11-24 — restore-media clone runtime status confirms isolation
 
 After the approved restore-media clone QEMU startup at PID **2739977**, owner ran the new staged restore-only controller's `--status` on normal DEVELOPMENT host `gani@ccpcerpserver`. Exact results:
