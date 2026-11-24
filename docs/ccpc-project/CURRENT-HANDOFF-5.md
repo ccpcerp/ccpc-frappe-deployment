@@ -2,6 +2,21 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — Integration2 recovered Frappe runtime connection and version listing PASS
+
+Owner executed a **guest-only, disposable, non-root, read-only Docker** Frappe runtime check in the offline QEMU `ccpc-restore@ccpc-recovery` clone after proving host, user, loopback-only networking, and verified recovered site directory. The reviewed one-off command used exact `ccpc-recovery:dev-nov23-b0cbe5c` image, `--pull=never --network host --read-only --user 1000:1000 --cap-drop ALL --security-opt no-new-privileges`, `FRAPPE_STREAM_LOGGING=1`, a **read-only mount** of the guest's sites root, and `--entrypoint /bin/sh -c 'bench --site ccpc-restore-int2-20261124.localhost list-apps'`, bypassing the regular startup entrypoint. Pinned `frappe/commands/site.py` at `988e54f3...` shows this CLI calls `frappe.init(site)`, `frappe.connect()`, then reads installed apps through Frappe metadata.
+
+**Owner's clean actual output:**
+```text
+frappe  16.33.1 version-16
+erpnext 16.34.2 version-16
+ccpcerp 0.0.1   HEAD
+```
+
+**Integration2 read-only Frappe runtime connection PASS**, installed app versions and registry all match expected pinned recovery image. Other separately verified results: Integration2 isolated DB exists; base table count appears 759 in earlier interleaved query, `tabDocType` precisely 832, `tabInstalled Application` precisely 3 with `ccpcerp,erpnext,frappe`; staged public/private TAR and restored trees each report zero regular files (0/0). Original native Integration2 `bench restore` success marker was lost in malformed console paste, but substantial recovered database records plus Frappe connection now confirm key restore outcomes. **Do not rerun any restore, install or migrate**. Retain both guest site folders, DBs, backup ISO/staging and first site with its private SHA256 pass.
+
+**One final minimal acceptance check:** read-only count selected ERPNext operational tables (`tabCompany`, `tabItem`, `tabSales Invoice`, `tabGL Entry`, `tabStock Ledger Entry`) in Integration2 guest DB; print counts only, no user/business rows, filenames or secrets. If valid, document **two-site SQL+application+attachment recovery validation PASS** with caveats: no postrestore actual stock/GL mutation workflow, full financial reconciliation, source-vs-restored exhaustive DB checksum, user/browser acceptance, complete encrypted data recovery (both site_config backups omit `encryption_key`), or production readiness. This rehearsal is for two protected DEVELOPMENT backup sites, not production deployment. Continue Phase 1 DEC17 plan gates afterward.
+
 ## 2026-11-24 — Integration2 all three app identities verified; Frappe connection pending
 
 Owner executed read-only guest-only MariaDB SQL against restored isolated `ccpc_restore_int2_20261124` table \`tabInstalled Application\` using a **single-line group-concatenated app identity output** to work around terminal paste/echo interleaving. Clear reported result: **`ccpcerp,erpnext,frappe`** at the beginning of the operator transcript, followed by interleaved shell echo. This resolves the previous uncertainty about whether `erpnext` and `ccpcerp` were present: both are recorded, and previously reported `COUNT(*)=3` matches exact expected three apps. Earlier \`tabDocType\` count **832** and public/private archive-to-restored regular file counts **0/0** each were separately observed.
