@@ -2,6 +2,12 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-24 — three existing guest recovery containers present and stopped
+
+Owner confirmed the recovery Docker daemon active **inside disposable clone 01** and ran guest-only `sudo docker ps -a --format 'table {{.Names}}\\t{{.Status}}\\t{{.Image}}'`. Reported container inventory: `ccpc-recovery-redis-queue` `Exited (0) About an hour ago` on `redis:alpine`; `ccpc-recovery-redis-cache` `Exited (0) About an hour ago` on `redis:alpine`; `ccpc-recovery-mariadb` `Exited (0) About an hour ago` on `mariadb:11.8`. **PASS: three existing guest containers present, all stopped cleanly**. The transcript's mangled adjacent header/command text did not affect the three readable container rows. No new container, MariaDB startup, volume change or backup restore has been reported.
+
+**Next operator action:** while still INSIDE `ccpc-restore@ccpc-recovery` guest, run only `sudo docker start ccpc-recovery-mariadb` and report its output; then verify MariaDB health separately before starting Redis. No recreate, Docker enable, guest networking, confidential DEVELOPMENT backup ingress, production contact, or host service modification.
+
 ## 2026-11-24 — disposable clone recovery Docker active PASS
 
 Owner reported running `sudo systemctl start ccpc-recovery-docker.service` **inside disposable clone 01** at `ccpc-restore@ccpc-recovery:~# CCPC ERPNext — CURRENT HANDOFF 5
