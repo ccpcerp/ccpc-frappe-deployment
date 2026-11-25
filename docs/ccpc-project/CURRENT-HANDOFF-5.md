@@ -2,6 +2,17 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-25 — Operator verified site-config DB binding privately; server identity not yet pinned
+
+Owner/human DEVELOPMENT operator returned sanitized terminal output:
+```
+PASS: Private DEVELOPMENT database configuration saved.
+Status: INCOMPLETE — live audit remains blocked.
+```
+This followed the prior trusted-host, fixed-container, read-only Frappe configuration/hostname resolution helper, which atomically updated only `expected_binding.db_host`, `expected_binding.port`, and `expected_binding.schema` inside private 0600 `/home/gani/ccpc-ws-preflight.ib55cS30/dev-pilot-binding.json` after checking host, Docker app identity, no socket/TLS/config override, and exclusive DNS resolution to the previously pinned DEVELOPMENT DB IP. **Reported PASS is operator terminal evidence**; assistant did not read the private file. `operator_acknowledgement` remains **false**. No database connection or query was made by that helper.
+
+Connected GitHub PR #43 still open/DRAFT at tested SHA `be8e90f5ddfe820f5e93aa18f828284fb65c093a`; the README/wrapper's fixed SELECT/read-only transaction path was inspected again. **Next bounded single step:** on trusted operator terminal, use the in-container site credential *without exporting it* to perform a single fixed READ ONLY MariaDB identity query (`DATABASE()`, `CURRENT_USER()`, `@@hostname`, `@@server_id`, `VERSION()`) plus persisted System Settings timezone SELECT. Independently compare DB server hostname against the pinned DB Docker container configured hostname and identity/schema against saved Frappe configuration, then privately populate `principal`, `server_hostname`, `server_id`, and `timezone` in the 0600 file. Fail closed and retain incomplete state if mismatch; print only PASS/STOP. Remaining exact pilot company/requesting/beneficiary/equipment/item/warehouse/signed Finance expense still requires separate verification. No wrapper main entrypoint/live full PR43 audit/approval/stock/GL/PRODUCTION actions.
+
 ## 2026-11-25 — Operator CREATED private sole-admin binding template; STILL INCOMPLETE
 
 Trusted sole-administrator terminal returned `run_dev_ws_preflight.py: OK`, `ws_readiness_audit.py: OK`, `PASS: Private DEVELOPMENT binding template created.`, `Status: INCOMPLETE — live audit remains blocked.` from the approved manual script. The private 0600 template resides under `/home/gani/ccpc-ws-preflight.ib55cS30/dev-pilot-binding.json` (not inside checkout, not in GitHub). The script populated pinned Docker identifiers/DEVELOPMENT network/IP from read-only `docker inspect`, fixed host/site/clean-code commit, and pilot slip `WS-2026-00008`, while intentionally retaining `operator_acknowledgement=false` and leaving schema, host, port, MariaDB identity, timezone and other pilot fields unset. No database connection was attempted by the template creation step; no audit or stock posting.
