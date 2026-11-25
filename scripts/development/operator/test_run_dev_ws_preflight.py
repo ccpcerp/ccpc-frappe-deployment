@@ -78,6 +78,9 @@ class BindingTests(TestCase):
 
     def test_preflight_pins_running_container_and_same_network(self):
         seen = []
+        # Vary only the Docker-reported database name. The wrapper's expected
+        # MARIADB_CONTAINER constant must remain unchanged for this negative test.
+        db_response_name = {"value": "/" + preflight.MARIADB_CONTAINER}
 
         def invoke(args):
             seen.append(args)
@@ -89,7 +92,7 @@ class BindingTests(TestCase):
                 return ""
             cid = args[-1]
             name, ip = ("/" + preflight.FRAPPE_CONTAINER, "192.168.254.4") if cid == TARGET["app_container_id"] else (
-                "/" + preflight.MARIADB_CONTAINER, TARGET["db_ip"],
+                db_response_name["value"], TARGET["db_ip"],
             )
             return "\n".join((cid, name, "true",
                               json.dumps(dict(net=dict(NetworkID=TARGET["network_id"], IPAddress=ip)))))
@@ -100,9 +103,9 @@ class BindingTests(TestCase):
             preflight.host_preflight(TARGET, invoke)
             with self.assertRaises(preflight.Stop):
                 preflight.host_preflight(dict(TARGET, network_id="d" * 64), invoke)
-            with patch.object(preflight, "MARIADB_CONTAINER", "unapproved-db"):
-                with self.assertRaises(preflight.Stop):
-                    preflight.host_preflight(TARGET, invoke)
+            db_response_name["value"] = "/unapproved-db"
+            with self.assertRaises(preflight.Stop):
+                preflight.host_preflight(TARGET, invoke)
         self.assertTrue(all(cmd[0] in ("/usr/bin/docker", "/usr/bin/git") for cmd in seen))
 
 
