@@ -178,6 +178,10 @@ def main():
         else:
             raise RuntimeError("synthetic MariaDB did not become available")
         tests()
+        if Path("/lab/run_dev_ws_preflight.py").is_file():
+            from test_mysqldb_operator import test_operator_path
+
+            test_operator_path(sql_admin, SCHEMA, HOST, PORT, PILOT)
     finally:
         server.terminate()
         server.wait(timeout=15)

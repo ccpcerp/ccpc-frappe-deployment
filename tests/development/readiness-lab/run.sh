@@ -56,6 +56,21 @@ chmod 0755 "$root/init"
 cp "$here/test_mariadb_pr41.py" "$root/lab/"
 cp "$audit" "$root/lab/ws_readiness_audit.py"
 python3 -I -B -m zipfile -e "$assets/pymysql-1.1.2.whl" "$root/lab"
+if (( $# > 3 )); then
+    [[ $# == 6 ]]
+    wrapper=$(realpath "$4")
+    wrapper_sha=$5
+    client=$(realpath "$6")
+    [[ $wrapper_sha =~ ^[a-f0-9]{64}$ ]]
+    [[ $(sha256sum "$wrapper" | cut -d' ' -f1) == "$wrapper_sha" ]]
+    extensions=("$client"/MySQLdb/_mysql.cpython-*.so)
+    [[ ${#extensions[@]} == 1 && -f ${extensions[0]} && -f "$client/libmariadb.so.3" ]]
+    cp -a "$client/MySQLdb" "$root/lab/"
+    install -m 0755 "$client/libmariadb.so.3" "$root/usr/lib/x86_64-linux-gnu/libmariadb.so.3"
+    cp "$wrapper" "$root/lab/run_dev_ws_preflight.py"
+    cp "$here/test_mysqldb_operator.py" "$root/lab/"
+fi
+
 printf 'root:x:0:0:root:/:/bin/sh\nlab:x:1000:1000:synthetic lab:/tmp:/bin/sh\n' > "$root/etc/passwd"
 printf 'root:x:0:\nlab:x:1000:\n' > "$root/etc/group"
 printf '127.0.0.1 localhost synthetic-db-lab\n' > "$root/etc/hosts"
