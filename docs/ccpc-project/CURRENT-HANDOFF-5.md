@@ -2,6 +2,17 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-25 — Private MariaDB identity/timezone saved; exact pilot still INCOMPLETE
+
+Operator reported sanitized result from the trusted `gani@ccpcerpserver` terminal using prior fixed READ ONLY MariaDB identity/timezone helper:
+```
+PASS: DEVELOPMENT MariaDB identity and timezone saved.
+Status: INCOMPLETE — live audit remains blocked.
+```
+The helper compared actual MariaDB `DATABASE()`, `CURRENT_USER()`, `@@hostname`, `@@server_id`, and `VERSION()` to the expected site schema/user and exact Docker database-container hostname inside a server-enforced **READ ONLY snapshot**, retrieved persisted System Settings `time_zone`, and privately saved `expected_binding.principal`, `server_hostname`, `server_id`, `timezone` in 0600 `/home/gani/ccpc-ws-preflight.ib55cS30/dev-pilot-binding.json`. Password stayed inside existing app container. The assistant did not see private config, identity values or JSON. `operator_acknowledgement` remains **false**, pilot fields (except slip) remain empty. No full PR43 audit, stock/GL posting, service or production changes.
+
+**Next step:** one trusted-operator-only fixed READ ONLY MariaDB snapshot of exact persisted Draft `WS-2026-00008` and its single item, independently corroborating previously identified requesting Maintenance, beneficiary Wet Mill Plant, equipment WD-401 Decanter, item ITEM-00010, Warehouse 1, company/master ownership and Bearings group. Quietly populate the *exact* private `pilot.company/requesting/beneficiary/equipment/item/warehouse` only on complete, unambiguous match; keep `pilot.expense` blank pending separate signed Expense Finance mapping verification. Keep acknowledgement false and live preflight blocked. Stop on any mismatch; share only PASS/STOP lines, not private records or secrets. Confirm finance mappings/expense only using approved independent evidence; do not assume a default account is signed. No Codex DB access/PROD/stock posting.
+
 ## 2026-11-25 — Operator verified site-config DB binding privately; server identity not yet pinned
 
 Owner/human DEVELOPMENT operator returned sanitized terminal output:
