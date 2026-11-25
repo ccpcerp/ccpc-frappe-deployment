@@ -40,6 +40,26 @@ class BindingTests(TestCase):
             with self.subTest(path=path), self.assertRaises(preflight.Stop):
                 preflight.validated_binding(spec)
 
+    def test_single_admin_requires_ack_and_distinct_live_checks(self):
+        single = {
+            "verification_mode": "sole-administrator-two-technical-checks",
+            "operator_acknowledgement": True,
+            "expected_binding": deepcopy(TARGET),
+        }
+        self.assertEqual(preflight.validated_binding(single), TARGET)
+        for changes in (
+            {"operator_acknowledgement": False},
+            {"operator_acknowledgement": "yes"},
+            {"verification_mode": "unverified"},
+            {"site_reviewer": "fake second reviewer"},
+            {"database_reviewer": "fake DBA"},
+            {"expected_binding": dict(TARGET, commit="0" * 40)},
+        ):
+            candidate = deepcopy(single)
+            candidate.update(changes)
+            with self.subTest(changes=changes), self.assertRaises(preflight.Stop):
+                preflight.validated_binding(candidate)
+
     def test_config_mismatch_stops_before_address_resolution(self):
         for override in (dict(db_name="other"), dict(extra_config=["unreviewed"]),
                          dict(db_ssl_ca="present"), dict(db_socket="/synthetic")):
@@ -69,7 +89,7 @@ class BindingTests(TestCase):
                 return ""
             cid = args[-1]
             name, ip = ("/" + preflight.FRAPPE_CONTAINER, "192.168.254.4") if cid == TARGET["app_container_id"] else (
-                "/synthetic-db", TARGET["db_ip"],
+                "/" + preflight.MARIADB_CONTAINER, TARGET["db_ip"],
             )
             return "\n".join((cid, name, "true",
                               json.dumps(dict(net=dict(NetworkID=TARGET["network_id"], IPAddress=ip)))))
@@ -80,6 +100,9 @@ class BindingTests(TestCase):
             preflight.host_preflight(TARGET, invoke)
             with self.assertRaises(preflight.Stop):
                 preflight.host_preflight(dict(TARGET, network_id="d" * 64), invoke)
+            with patch.object(preflight, "MARIADB_CONTAINER", "unapproved-db"):
+                with self.assertRaises(preflight.Stop):
+                    preflight.host_preflight(TARGET, invoke)
         self.assertTrue(all(cmd[0] in ("/usr/bin/docker", "/usr/bin/git") for cmd in seen))
 
 
