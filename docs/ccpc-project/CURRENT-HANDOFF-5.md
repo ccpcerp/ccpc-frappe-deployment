@@ -2,6 +2,16 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-25 — Updated PR43 offline gate PASS: 20/20 tests and 2/2 SHA256; stage current commit next
+
+Codex reported the exact GitHub branch/PR DRAFT head **`be8e90f5ddfe820f5e93aa18f828284fb65c093a`**, with corrected mismatched MariaDB-container-name fixture passing and complete offline source-only suite **20 tests passed, 0 failed, exit code 0**, Python **3.14.4**. Strict `sha256sum --check --strict SHA256SUMS-dev-ws-preflight` **2 of 2 matched, exit code 0**:
+- `run_dev_ws_preflight.py`: **`d0a73509474715a600bdb134732edbe4ca0a1f2e0c7db3af08d000722faf89be`**
+- `ws_readiness_audit.py`: **`556a52f95724c34199c8378886909d9f9dbabf25d3b4f35cec6f6d270f4bb927`**.
+
+ChatGPT independently verified **GitHub PR #43 remains open/Draft/unmerged, with exact expected head and matching committed checksum manifest**. Codex's real offline pass and checksums are **operator-relayed Codex evidence**, not independently rerun by ChatGPT. The updated **offline validation gate is satisfied on reported evidence**, but it does **not** verify real DEVELOPMENT application records, runtime named-user permissions, worker state, or stock/GL. Codex did not touch Docker, live DEV database or PRODUCTION; no code/branch changes were made in its latest run.
+
+**Next step (safe staging only):** Human operator on `gani@ccpcerpserver` may clone from pinned GitHub PR43 branch into a **NEW** private directory, require `HEAD == be8e90f5ddfe820f5e93aa18f828284fb65c093a`, extract only `run_dev_ws_preflight.py`, `ws_readiness_audit.py` and `SHA256SUMS-dev-ws-preflight`, then `sha256sum --check --strict`. Do not run either Python entrypoint or connect to Docker/DB during this step. Prior private staging contains obsolete source and must NOT be used. Following verified staging, prepare exact site/server/pilot `expected_binding` privately for true single-administrator dual-technical-check mode, then obtain separate explicit authorization before one fixed READ ONLY live DEV audit. `WS-2026-00008` remains Draft; no posting, restart, migration, merge or PROD operation.
+
 ## 2026-11-25 — PR43 offline 19 PASS / 1 FAIL due to mock bug; test fixture fixed, rerun pending
 
 Codex reported exact PR43 HEAD `7b58ae5602d957c151e31ca3ab8ec202d085941f` offline suite results: **20 run; 19 PASS, 1 FAIL; exit 1; Python 3.14.4**, plus `sha256sum --check --strict` **2/2 PASS, exit 0**. Only failure `test_preflight_pins_running_container_and_same_network` resulted from negative test patching `preflight.MARIADB_CONTAINER`, which was also read by the mocked Docker response; both expected and actual names changed together, so no `Stop` could occur. This is a test fixture issue, not demonstrated runtime access bypass.
