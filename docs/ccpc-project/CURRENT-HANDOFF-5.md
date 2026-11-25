@@ -2,6 +2,10 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-25 — MAIN DEVELOPMENT UAT draft Withdrawal Slip created (owner-reported)
+
+The operator reports one **Draft** Withdrawal Slip, **`WS-2026-00008`**, visible through DEVELOPMENT's `development.localhost:18000` web UI; currently **not approved or issued** according to the reported state. This is the sole candidate for the previously approved one-unit `ITEM-00004` routine-maintenance UAT. The ChatGPT GitHub connector cannot directly verify locally forwarded ERPNext UI data, so **do not claim** the actual Slip's Company, requesting/beneficiary Department, source Warehouse, item/qty, material-use classification, roles, Finance approval or saved child fields have been inspected. Next operator step: inspect/sanitize screenshot or read back the Draft fields and item row. **Stop before approval and before Issue Materials** until current Finance/signed revisions, effective permissions, inventory/valuation and recoverability gates are independently established. No GL/SLE or Material Issue has been verified for this Slip; do not issue twice or create another UAT Slip. DEV and PRODUCTION must remain strictly separated.
+
 ## Pending owner-requested authorization design: decouple Maintenance Supervisor from CCPC Operational Supervisor
 
 **Owner direction (2026-11-25):** `Maintenance Supervisor` **must not automatically assign or require** `CCPC Operational Supervisor` in the eventual role design. **Defer implementation until after the ongoing one-unit DEVELOPMENT acceptance; do not change current DEVELOPMENT User assignments, role hooks, Module Profiles or source code now.**
