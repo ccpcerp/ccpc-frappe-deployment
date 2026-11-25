@@ -2,6 +2,12 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-25 — Operator CREATED private sole-admin binding template; STILL INCOMPLETE
+
+Trusted sole-administrator terminal returned `run_dev_ws_preflight.py: OK`, `ws_readiness_audit.py: OK`, `PASS: Private DEVELOPMENT binding template created.`, `Status: INCOMPLETE — live audit remains blocked.` from the approved manual script. The private 0600 template resides under `/home/gani/ccpc-ws-preflight.ib55cS30/dev-pilot-binding.json` (not inside checkout, not in GitHub). The script populated pinned Docker identifiers/DEVELOPMENT network/IP from read-only `docker inspect`, fixed host/site/clean-code commit, and pilot slip `WS-2026-00008`, while intentionally retaining `operator_acknowledgement=false` and leaving schema, host, port, MariaDB identity, timezone and other pilot fields unset. No database connection was attempted by the template creation step; no audit or stock posting.
+
+**Next step:** solely on trusted human operator terminal, safely and privately read effective Frappe site/common config for DB host/port/schema (not password), compare against pinned Docker address, and atomically fill ONLY those config fields in existing 0600 binding file. Do **not** print DB username/schema/identifiers, read other host credentials, turn acknowledgement true, or run PR43 main entrypoint. After this, independently pin MariaDB READ ONLY identity, timezone and exact persisted pilot including approved expense mapping; no guessed account or fictitious second reviewer. Live PR43 preflight requires separate authorization; PRODUCTION excluded.
+
 ## 2026-11-25 — Owner verified revised sole-admin PR43 staging PASS on DEVELOPMENT
 
 Owner/human operator on `gani@ccpcerpserver` ran the previously reviewed **source-only** exact commit staging script. The pinned branch cloned from GitHub and satisfied `git rev-parse HEAD == be8e90f5ddfe820f5e93aa18f828284fb65c093a`. Terminal output:
