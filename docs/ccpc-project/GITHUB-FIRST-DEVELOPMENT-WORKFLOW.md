@@ -2,6 +2,14 @@
 
 **Adopted 2026-10-12 by the project owner.** This is the current default working rule for the **CCPC custom ERPNext application** and supersedes older proposals to develop primarily inside the Docker DEVELOPMENT container or to restart automatic Codex-reporting work.
 
+## Infrastructure correction and controlled Codex DEVELOPMENT inspection (owner-confirmed 2026-11-25)
+
+The owner explicitly confirmed that **DEVELOPMENT and PRODUCTION use two different physical servers with different credentials**. Do not describe these as separate Docker environments on the same host or assume shared Docker/host root access. Keep PRODUCTION entirely outside Codex's scope. Physical separation does not justify exposing credentials, privileged Docker access, or cross-server network/mounts.
+
+The owner approved **pursuing controlled, DEVELOPMENT-only Codex runtime inspection** so that the remaining Phase 1 Finance authorization, inventory and SLE/GL readiness checks can be consolidated rather than issuing repeated manual SQL commands. This is an authorization for **read-only investigation and assessment of a least-privilege connection approach**, not evidence that Codex has DB access, nor blanket authorization to change accounts, open network ports, install root agents, create persistent test vouchers, deploy or alter either server.
+
+Codex's 2026-11-25 audit verified the DEV source but could not bind to a live DEVELOPMENT DB; the operator subsequently ran several successful site-scoped SELECTs via the existing DEVELOPMENT Docker/bench route. The bench site DB account was **not** established as read-only; require a technically restricted query wrapper or properly reviewed read-only principal and independently verified environment/site/schema before agent access. No new privileges or DB credentials are approved by this direction alone. For specifics see [CODEX-DEVELOPMENT-OPERATING-MODE.md](CODEX-DEVELOPMENT-OPERATING-MODE.md); for operator-reported runtime evidence and outstanding persistent acceptance see [CURRENT-HANDOFF-5.md](CURRENT-HANDOFF-5.md).
+
 ## Owner direction — Codex is a DEVELOPMENT asset, PRODUCTION prohibited (2026-11-21)
 
 **Newer explicit owner decision:** Codex should be used as a first-class engineering/testing assistant on the **DEVELOPMENT server**; the owner reports that **PRODUCTION is physically separate** and strictly out of Codex scope. Do not treat the specifically stopped, incompletely reviewed Docker/Squid lab agent's **NO-GO** as a blanket restriction on ordinary Codex source review, supervised code authoring or tests in a separate unprivileged DEVELOPMENT workspace. Do not require a new VM purchase or completion of every proposed PR #39 firewall milestone before ordinary Codex-assisted source development.
