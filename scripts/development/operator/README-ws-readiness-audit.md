@@ -7,7 +7,7 @@ The policy reference is [CCPC application commit e5c6f4c](https://github.com/ccp
 ## Operator preconditions
 
 1. Independently verify the exact `development.localhost` site, its running application container, the network route to its database, and the schema and existing account. The site operator and DBA must agree on the endpoint and privately pin the single authorized Draft and its master records. Keep actual record identifiers, topology, endpoint values and audit results in operator custody. The script checks the independently supplied binding against the connection. An attestation is not cryptographic proof of reviewer identity or deployment topology.
-2. Use an already approved DEVELOPMENT-only TLS route and an existing direct SELECT-only principal for the literal schema. The DBA must verify no inherited, PUBLIC, proxy or other access and no DEVELOPMENT-to-PRODUCTION route. An active role, broader direct privileges or an unrecognized grant format stops the audit. The script may receive authentication metadata from `SHOW GRANTS` in memory. It does not print that response.
+2. Use an already approved DEVELOPMENT-only TLS route and an existing principal with direct SELECT limited to the exact tables listed below. The DBA must verify no inherited, PUBLIC, proxy or other access and no DEVELOPMENT-to-PRODUCTION route. An active role, broader direct privileges or an unrecognized grant format stops the audit. The script may receive authentication metadata from `SHOW GRANTS` in memory. It does not print that response.
 3. Use the approved operator terminal in the independently verified DEVELOPMENT bench root. Stage this script in a private directory outside the app checkout. Confirm the reviewed GitHub commit and script SHA-256 before running it. PyMySQL 1.1.2 must already be available to the operator's chosen Python. This draft uses that version's TLS upgrade to pin the leaf before sending credentials. Stop if the required route, existing account, driver or verified certificate is unavailable.
 
 ## Private inputs
@@ -50,3 +50,81 @@ Offline tests use fake cursors and synthetic records. Actual MariaDB grant rende
 cd scripts/development/operator
 python3 -B -m unittest -v test_ws_readiness_audit
 ```
+
+## Proposed privilege change for separate approval
+
+Use an already verified principal with these exact effective grants if available.
+The existing operator-run baseline remains available without granting access to
+this Codex session. Before any new principal can be used, verify a dedicated
+runner with the Docker API, SSH material, backups and other host mounts absent.
+Restrict its egress to the independently verified DEVELOPMENT database address
+and port. A host label or missing default-route entry does not establish isolation.
+Keep the credential in the operator's approved secret channel.
+
+If no matching principal exists after that verification, the DEVELOPMENT DBA
+may propose one dedicated, source-host-bound MariaDB account for this single
+audit. The only permitted grant change is the table SELECT set below. Use a
+unique account restricted to the verified runner source address, enforce TLS,
+assign no roles or proxy privileges, and verify effective permissions before
+operator approval to run. Substitute the literal DEVELOPMENT schema and exact
+runner account privately. The following is a review template, not a command
+to paste with placeholder values. Provision the secret via the approved DBA
+mechanism and never put it in shell history, this repository, or the audit bundle.
+
+```sql
+GRANT SELECT ON `DEV_SCHEMA`.`tabAccount` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabAccounting Dimension` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabBin` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabCCPC Accounting Mapping Decision` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabCCPC Center Mapping Revision` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabCCPC Center Mapping Scope` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabCCPC Expense Mapping Revision` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabCCPC Expense Mapping Scope` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabCCPC Mapping Decision Use` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabCCPC Mapping Retirement Event` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabCCPC Mapping Retirement Request` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabCCPC Section` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabCompany` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabCost Center` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabCustom DocPerm` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabDepartment` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabDocPerm` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabEquipment Registry` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabHas Role` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabInstalled Application` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabItem` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabItem Group` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabSingles` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabStock Entry` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabStock Ledger Entry` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabUser` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabUser Permission` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabVersion` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabWarehouse` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabWithdrawal Slip` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabWithdrawal Slip Item` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabWorkflow` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+GRANT SELECT ON `DEV_SCHEMA`.`tabWorkflow Transition` TO 'AUDIT_USER'@'RUNNER_SOURCE';
+```
+
+No database-wide SELECT, write, DDL, role, proxy, grant option, or additional
+listener is requested. MariaDB exposes relevant information_schema column
+metadata through existing table visibility. Table grants still allow reads of
+other rows in those tables to anyone holding the credential. For tighter scope,
+keep the credential operator-side and expose only the fixed audit and sanitized
+statuses through an allowlisted interface.
+
+**Revocation:** After the approved window, the DBA closes any sessions belonging
+to that dedicated account, drops only that audit account with
+`DROP USER 'AUDIT_USER'@'RUNNER_SOURCE';`, removes its secret from the approved
+store, and verifies the account is absent. Remove any temporary runner routing
+rule separately. For a reused account, revoke only the exact temporary grants
+approved for that account. Do not drop the reused account.
+
+**Disposable validation gate:** Before adopting the new grant rendering, use an
+isolated MariaDB 11.8 lab with synthetic schema and TLS to confirm current
+SHOW GRANTS output, exact source-host matching, correct leaf pin, successful
+snapshot startup and rejection of a harmless write attempt. Separately run the
+readiness snapshot against synthetic Frappe/ERPNext records at the pinned
+application commit. Keep this review draft off live DEVELOPMENT until that
+handshake and the independently verified deployment binding pass.

@@ -330,10 +330,14 @@ def run_snapshot(q, result, issuer, timezone_name, pilot, now=None):
                  "A draft, submitted or unexpected linked Stock Entry blocks this issue.")
     if entry_counts.get(2):
         result.emit("UNVERIFIED", "Prior cancelled issue", "Review prior cancellation and issue history before UAT.")
-    dept = single(q("SELECT company,is_group,disabled FROM `tabDepartment` WHERE name=%s", (pilot.beneficiary,)))
+    requesting = single(q("SELECT name,company,is_group,disabled FROM `tabDepartment` WHERE name=%s",
+                          (pilot.requesting,)))
+    result.check(leaf(requesting, pilot) and requesting["name"] == pilot.requesting,
+                 "Requesting Department master", "Missing, disabled, group or foreign requesting Department.")
+    dept = single(q("SELECT name,company,is_group,disabled FROM `tabDepartment` WHERE name=%s", (pilot.beneficiary,)))
     equipment = single(q("SELECT name,company,department,section,status FROM `tabEquipment Registry` WHERE name=%s",
                          (pilot.equipment,)))
-    result.check(leaf(dept, pilot) and equipment and equipment["name"] == pilot.equipment
+    result.check(leaf(dept, pilot) and dept["name"] == pilot.beneficiary and equipment and equipment["name"] == pilot.equipment
                  and equipment["company"] == pilot.company and equipment["department"] == pilot.beneficiary
                  and equipment["status"] == "Active"
                  and (not equipment["section"] or equipment["section"] == slip["work_for_section"]),
@@ -467,13 +471,34 @@ def verified_target(a, b):
     return target, pilot
 
 
+# Direct grants for a new audit principal are limited to these exact tables.
+# The fixed queries access information_schema.COLUMNS through normal metadata
+# visibility, which does not require an explicit grant.
+AUDIT_TABLES = frozenset({
+    "tabAccount", "tabAccounting Dimension", "tabBin",
+    "tabCCPC Accounting Mapping Decision", "tabCCPC Center Mapping Revision",
+    "tabCCPC Center Mapping Scope", "tabCCPC Expense Mapping Revision",
+    "tabCCPC Expense Mapping Scope", "tabCCPC Mapping Decision Use",
+    "tabCCPC Mapping Retirement Event", "tabCCPC Mapping Retirement Request",
+    "tabCCPC Section", "tabCompany", "tabCost Center", "tabCustom DocPerm",
+    "tabDepartment", "tabDocPerm", "tabEquipment Registry", "tabHas Role",
+    "tabInstalled Application", "tabItem", "tabItem Group", "tabSingles",
+    "tabStock Entry", "tabStock Ledger Entry", "tabUser", "tabUser Permission",
+    "tabVersion", "tabWarehouse", "tabWithdrawal Slip", "tabWithdrawal Slip Item",
+    "tabWorkflow", "tabWorkflow Transition",
+})
+
+
 def select_only_grants(rows, target):
     user, host = target["principal"].split("@", 1)
     accounts = (f"`{user}`@`{host}`", f"'{user}'@'{host}'")
-    schema = target["database"].replace("_", r"\_")
-    permitted = {f"GRANT SELECT ON `{schema}`.* TO {a}" for a in accounts}
-    usage = {f"GRANT USAGE ON *.* TO {a}" for a in accounts}
-    found = False
+    schema = target["database"]
+    permitted = {
+        f"GRANT SELECT ON `{schema}`.`{table}` TO {account}": table
+        for table in AUDIT_TABLES for account in accounts
+    }
+    usage = {f"GRANT USAGE ON *.* TO {account}" for account in accounts}
+    granted = set()
     for row in rows:
         if len(row) != 1:
             return False
@@ -481,10 +506,15 @@ def select_only_grants(rows, target):
         if not isinstance(grant, str):
             return False
         if grant in permitted:
-            found = True
-        elif re.sub(r" IDENTIFIED BY PASSWORD '\*[0-9A-Fa-f]{40}'$", "", grant) not in usage:
+            granted.add(permitted[grant])
+            continue
+        # SHOW GRANTS can contain a native-password hash. Keep it out of logs.
+        # Account clauses are allowed only on global USAGE, never on SELECT.
+        grant = re.sub(r" REQUIRE SSL$", "", grant)
+        grant = re.sub(r" IDENTIFIED BY PASSWORD '\*[0-9A-Fa-f]{40}'$", "", grant)
+        if grant not in usage:
             return False
-    return found
+    return granted == AUDIT_TABLES
 
 
 def require_source():
@@ -543,7 +573,7 @@ def inspect_connection(connection, target, issuer, result, pilot):
                      hostname=target["hostname"], server_id=target["server_id"], role=None),
                     "Unexpected DEVELOPMENT schema, principal, server identity or active role.")
             cursor.execute("SHOW GRANTS")
-            require(select_only_grants(cursor.fetchall(), target), "Unsupported or broader direct grants.")
+            require(select_only_grants(cursor.fetchall(), target), "Missing required or broader direct table grants.")
             result.emit("PASS", "DEVELOPMENT connection", "Pinned TLS, server, schema and direct grants matched.")
             cursor.execute(ISOLATION)
             cursor.execute(SNAPSHOT)
