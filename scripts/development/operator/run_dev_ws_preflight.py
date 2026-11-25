@@ -22,6 +22,7 @@ SITE = "development.localhost"
 BENCH = "/workspace/development/frappe-bench"
 HOST_APP = "/home/gani/deployments/frappe_docker/development/frappe-bench/apps/ccpcerp"
 FRAPPE_CONTAINER = "frappe_docker_devcontainer-frappe-1"
+MARIADB_CONTAINER = "frappe_docker_devcontainer-mariadb-1"
 COMMIT = "e5c6f4c7f8f2121b26198bc2ff94d7be42c948b5"
 AUDIT_SHA256 = "556a52f95724c34199c8378886909d9f9dbabf25d3b4f35cec6f6d270f4bb927"
 DOCKER = ("/usr/bin/docker", "--host", "unix:///var/run/docker.sock")
@@ -40,13 +41,25 @@ def require(condition, message):
 
 
 def validated_binding(spec):
-    require(spec["site_reviewer"] and spec["database_reviewer"]
-            and spec["site_reviewer"].strip().casefold() != spec["database_reviewer"].strip().casefold(),
-            "Independent site and database reviewers required.")
-    target = spec["site_binding"]
-    require(target == spec["database_binding"]
-            and (target["host"], target["site"], target["commit"]) == (HOST, SITE, COMMIT),
-            "Independent site, server or commit binding mismatch.")
+    mode = spec.get("verification_mode", "two-human-reviewers")
+    if mode == "sole-administrator-two-technical-checks":
+        # A sole administrator cannot attest to a fictional second human reviewer.
+        # The separate Docker/site and MariaDB checks run below remain mandatory.
+        require(set(spec) == {"verification_mode", "operator_acknowledgement", "expected_binding"}
+                and spec["operator_acknowledgement"] is True,
+                "Sole administrator must explicitly acknowledge technical-only verification.")
+        target = spec["expected_binding"]
+    elif mode == "two-human-reviewers":
+        require(spec["site_reviewer"] and spec["database_reviewer"]
+                and spec["site_reviewer"].strip().casefold() != spec["database_reviewer"].strip().casefold(),
+                "Independent site and database reviewers required.")
+        target = spec["site_binding"]
+        require(target == spec["database_binding"],
+                "Independent site and database input bindings differ.")
+    else:
+        raise Stop("Unrecognized database verification mode.")
+    require((target["host"], target["site"], target["commit"]) == (HOST, SITE, COMMIT),
+            "DEVELOPMENT host, site or commit binding mismatch.")
     for key in ("app_container_id", "db_container_id", "network_id"):
         require(bool(re.fullmatch(r"[0-9a-f]{64}", target[key])), "Exact Docker identities required.")
     require(target["app_container_id"] != target["db_container_id"], "Separate expected app and database containers required.")
@@ -98,8 +111,9 @@ def host_preflight(target, invoke=command):
         return name, list(json.loads(networks).values())
 
     app_name, app_networks = metadata(target["app_container_id"])
-    _, db_networks = metadata(target["db_container_id"])
+    db_name, db_networks = metadata(target["db_container_id"])
     require(app_name == "/" + FRAPPE_CONTAINER
+            and db_name == "/" + MARIADB_CONTAINER
             and any(n["NetworkID"] == target["network_id"] for n in app_networks)
             and any(n["NetworkID"] == target["network_id"] and n["IPAddress"] == target["db_ip"]
                     for n in db_networks),
@@ -171,7 +185,7 @@ def audited_snapshot(connection, audit, target, issuer, lines):
                     "Connected server, schema or authenticated site account did not match.")
             result = audit.Results(lines.append)
             result.emit("PASS", "DEVELOPMENT binding",
-                        "Source, container, database configuration and server identity confirmed.")
+                        "Docker/site configuration and connected MariaDB identity separately matched.")
             audit.run_snapshot(read, result, issuer, target["timezone"], audit.Pilot(**target["pilot"]))
             result.finish()
         finally:
