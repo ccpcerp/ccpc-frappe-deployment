@@ -2,6 +2,19 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-25 — Owner authorizes sole-admin dual TECHNICAL checks; PR43 source updated, tests pending
+
+User explicitly stated they are **the sole administrator, no other person is available**, and **approved** replacing two-person site/DB human review with two separate technical identity checks for the one human-run, read-only DEVELOPMENT preflight. No fictional DBA/reviewer identity or human attestation should be created. This grants **no additional Codex privileges and no PROD work**.
+
+Connected GitHub was reviewed and **DRAFT PR #43** branch `review/ws-dev-operator-preflight-2026-11-25` updated directly, from previous head `28e44dd3fbc6790efc1c20d568d2c660badae50b` to **`7b58ae5602d957c151e31ca3ab8ec202d085941f`** (open/Draft/unmerged, base remains PR42 branch). Updated `scripts/development/operator/run_dev_ws_preflight.py`: explicit `verification_mode="sole-administrator-two-technical-checks"`, `operator_acknowledgement=true`, one `expected_binding={...}` object only; rejects any fake reviewer fields or unknown mode. Legacy two-person mode remains for *genuine* two reviewers at other sites. Guard now also requires exact DB container name `frappe_docker_devcontainer-mariadb-1`, in addition to existing fixed Frappe container, Docker network + private IP, site/config/DNS, clean app SHA and MariaDB READ ONLY transaction server/schema/account identity checks. Tests updated with new single-admin positive/negative cases and wrong database-container rejection; README describes the genuine sole-admin exception rather than two independent human approvals.
+
+The **new wrapper SHA-256** was calculated from its GitHub content and committed to `SHA256SUMS-dev-ws-preflight`:
+- wrapper **`d0a73509474715a600bdb134732edbe4ca0a1f2e0c7db3af08d000722faf89be`**
+- adjacent unchanged audit **`556a52f95724c34199c8378886909d9f9dbabf25d3b4f35cec6f6d270f4bb927`**.
+Updated README and manifest read back and exact draft PR head confirmed. **The operator's prior successful staging under `$HOME/ccpc-ws-preflight.<random>/approved` is pinned to OLD wrapper digest `53500835...` and must NOT be run for the newly approved sole-admin mode.** Re-stage source and manifest from the exact new commit in a new private directory, verify both SHA-256s and do not overwrite the old approved directory.
+
+**Test status:** updated test source inspected, but the post-change Python offline tests and synthetic MySQLdb lab are **not rerun/verified yet** (no GitHub CI run or commit status at this head). Require Codex/operator offline test pass before live execution. Existing operator terminal already reported main DEV containers/network/DNS match and a live **short read-only MariaDB probe PASS** using site connection; this does **not** establish the full pinned server identity or private exact pilot. The two technical crosschecks will be enforced during the final controlled preflight; do not pretend two humans reviewed it. Next fastest safe step: Codex executes **offline tests only** in a nonprivileged isolated clone and reports results, then trusted sole operator privately pins exact DEV target facts/pilot, re-stages exact checked source and executes **one human-operated READ ONLY preflight** after validation. No database accounts/grants, migrations/restarts, stock/GL postings, uncontrolled Docker session access, merge or PRODUCTION touch. `WS-2026-00008` remains Draft.
+
 ## 2026-11-25 — Owner reports live DEV site-to-MariaDB basic connection PASS; independent binding remains
 
 Owner/operator on trusted `gani@ccpcerpserver` terminal provided sanitized outcomes for sequential nonmutating checks:
