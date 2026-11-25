@@ -2,6 +2,18 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-25 — OWNER VERIFIED exact PR43 private staging PASS; live DB binding still UNVERIFIED
+
+Operator on trusted DEVELOPMENT host terminal `gani@ccpcerpserver` ran the previously reviewed **source-only** staging procedure for exact deployment/docs DRAFT PR43 commit **`28e44dd3fbc6790efc1c20d568d2c660badae50b`**. Terminal showed clone of review branch, exact pinned commit check completed, both staged files independently checked against committed checksum manifest:
+```
+run_dev_ws_preflight.py: OK
+ws_readiness_audit.py: OK
+PASS: Exact reviewed audit files staged.
+```
+Private staging path was under the operator's HOME, `ccpc-ws-preflight.<random>/approved`; retain privately, not copy to public GitHub. **This verifies staging and artifact integrity only.** No preflight Python/database query or live issue was run and no new permissions, Docker changes, service migration/restart, PR merge or PRODUCTION access occurred.
+
+**Next step is a narrow human-operated read-only DEVELOPMENT container discovery** to identify currently running app and MariaDB services without reading configuration secrets, followed by genuine independent site operator + DBA verification of the exact live host/container/network/site-to-schema binding and agreed pilot. PR43 requires two distinct reviewers and matching *privately stored* binding objects; do not invent a second reviewer or expose DB credentials, Docker contexts, SSH or backup data to Codex's previously unisolated session. The final read-only operator audit remains **on hold until private binding is verified and execution specifically approved**. `WS-2026-00008` remains Draft/not issued, loaded worker code and effective permissions unverified.
+
 ## 2026-11-25 — Updated PR43 checksum and native MySQLdb source review RESOLVED; private operator/DBA binding next
 
 Codex reported updating DRAFT [PR #43](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/43) to exact **`28e44dd3fbc6790efc1c20d568d2c660badae50b`**, still open/unmerged, with a committed staging checksum manifest and disposable `MySQLdb 2.2.7` / MariaDB `11.8.6` test. ChatGPT independently fetched PR and updated files, **recalculated SHA-256 from exact GitHub file contents** (verified against independent SHA256 algorithm self-test) and confirmed both manifest entries match:
