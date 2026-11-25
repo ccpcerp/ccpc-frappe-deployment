@@ -1,8 +1,20 @@
 # CCPC ERPNext — Codex as an active DEVELOPMENT tool
 
 **Owner decision:** 2026-11-21 (Asia/Manila)  
-**Status:** Authorized **direction and workflow planning**; not a claim that Codex is installed, authenticated or running. No server command, Docker action, firewall change, Codex launch, database migration, pull or deployment has occurred as a result of this document.  
+**Status:** DEVELOPMENT Codex usage is approved in principle, and on 2026-11-25 the owner explicitly approved pursuing a controlled DEVELOPMENT-only runtime investigation route. This approval does **not** prove such a route is configured or authorize credentials exposure, persistent DEVELOPMENT writes, Docker/host privilege changes or PRODUCTION access. Previous Codex CLI/source inspection is independently documented below.  
 **Primary rule:** **Codex may contribute actively to CCPC ERPNext DEVELOPMENT; PRODUCTION is physically separate and explicitly out of scope.**
+
+## 2026-11-25 owner-confirmed physical isolation and scoped Codex investigation approval
+
+**Owner's explicit clarification:** DEVELOPMENT and PRODUCTION run on **two separate physical machines with different credentials** (not merely Docker containers or virtual machines on one host). This corrects previous speculation that both systems may share a host or Docker engine. The DEVELOPMENT host discussed in current Phase 1 work is `ccpcerpserver`; do not infer or publish PRODUCTION address or credentials. Physical separation is an important boundary, **not** evidence that every user, network share, SSH mount or Codex process is restricted correctly.
+
+**Approved scope:** Investigate and, if feasible without privileged changes, establish an operator-reviewed **DEVELOPMENT-only read-only inspection path for Codex**. Begin by identifying the actual Codex execution identity and whether its current unprivileged context can invoke a restricted DEVELOPMENT-only audit command or reach the already verified DEVELOPMENT application/database through a controlled intermediary. Read only the minimum necessary site identity, authorized user/permission data, signed Finance evidence, Bearings Item/Bin/SLE, warehouse account and scoped GL/report baseline. Prefer the existing DEV bench/container query route used by the operator over creating new credentials, extending network exposure or installing a broad agent. A host-based operator-run consolidated SELECT report is the fallback.
+
+**Not authorized by this approval:** Granting Codex unrestricted `docker` group/socket or root access, privileged container launch, secret/SSH mounts, new DB credentials or accounts, cross-environment network routes, service/migration changes, persistent test vouchers, auto-publishing, merging, PRODUCTION access or any write to business records. Escalate only the smallest specific access/permission change for separate approval. Verify host/container/site/database identity and effective *read-only* grants before claiming DB-level automation. Current bench DB principal was observed by the operator as write-capable server-side (`@@read_only=0`); **a SELECT-only intention is not a technical read-only control**. Do not place this privileged site DB principal directly in Codex's unrestricted execution environment.
+
+**Current verification:** The 2026-11-25 Codex audit could read the DEVELOPMENT source checkout and GitHub but reported no SQL client, PyMySQL, independently verified DB endpoint or DB principal; it opened no DB connection. By contrast the owner executed site-scoped read-only SQL via `docker exec` on the DEVELOPMENT server. No Codex direct runtime connection has been set up or verified by this documentation update.
+
+**Acceptance before expanding Codex access:** Confirm exact separate DEVELOPMENT host and non-root process identity; no PRODUCTION keys or reachable mounts in its accessible workspace; least-privilege command scope; independently verify `development.localhost` site identity and its schema; confirm role-based query enforcement instead of trusting prompt instructions; retain useful audit evidence without copying personally identifying records or financial data into GitHub. Keep an operator approval gate for any transition from inspection to actual record-changing tests.
 
 ## 2026-11-21 operator status — Codex CLI installed, signed in, isolated clone created
 
