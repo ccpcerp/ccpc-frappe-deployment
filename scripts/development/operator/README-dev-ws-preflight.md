@@ -7,11 +7,15 @@ Review this wrapper before any run. It adapts the existing operator fixed-query 
 
 ## Boundary and exact inputs
 
-The human operator uses their already authorized DEVELOPMENT terminal on `ccpcerpserver`. Do not run this through an agent, service account, unverified Docker context, or PRODUCTION shell. The fixed Docker invocation verifies both pinned, running container IDs and their common local network using only selected metadata. Host and container CCPC checkouts must be clean at the exact SHA. The configured Frappe socket, configuration hooks, database environment overrides and TLS settings are outside this particular local TCP path and cause a stop. Where one is required, use a separately reviewed connection path and preserve its security requirements.
+The human operator uses their already authorized DEVELOPMENT terminal on `ccpcerpserver`. Do not run this through an agent, service account, unverified Docker context, or PRODUCTION shell. The fixed Docker invocation verifies both pinned, running container IDs, the **expected exact app and MariaDB container names**, and their common local network using only selected metadata. Host and container CCPC checkouts must be clean at the exact SHA. The configured Frappe socket, configuration hooks, database environment overrides and TLS settings are outside this particular local TCP path and cause a stop. Where one is required, use a separately reviewed connection path and preserve its security requirements.
 
-The site operator and DBA independently verify the exact development site, local Docker account and route, the database container and schema, its MariaDB hostname and ID, and the authorized named pilot scope. Use existing trusted admin evidence. Do not copy site configuration, identities, certificate material or credentials into GitHub. Matching input objects record the checks but cannot prove the operator identities or independent verification by themselves.
+**CCPC sole-administrator exception (owner-approved 2026-11-25):** One authorized administrator performs **two technical checks**, not two fictitious human reviews. Check A independently confirms the running app and **named MariaDB DEVELOPMENT** container IDs/network, exact app checkout/commit, and Frappe site's DB configuration/DNS. Check B opens the same pinned database address with the site credential **inside the trusted DEVELOPMENT container**, starts a server-enforced READ ONLY snapshot, then compares MariaDB's actual `DATABASE()`, `CURRENT_USER()`, `@@hostname`, `@@server_id` and version to the privately expected values **before** running application SELECTs. Both checks fail closed on mismatch. This is technical cross-verification, **not an independent second human approval**; it is not proof that the original Codex host session cannot see PRODUCTION.
 
-Create a private input JSON outside the app checkout with `site_reviewer`, `database_reviewer`, and identical `site_binding` and `database_binding` objects. Each binding object has:
+For CCPC, keep **one** `expected_binding` object in a private JSON outside the application checkout. The top-level JSON keys must be exactly `verification_mode` = `"sole-administrator-two-technical-checks"`, `operator_acknowledgement` = JSON boolean `true`, and `expected_binding`. The acknowledgement is your truthful declaration that you are the sole authorized operator and will rely on the two live technical evidence sources; it is not an assertion another DBA reviewed the values. Never invent reviewer identities. Do not expose private identifiers, credentials, site configuration, or the binding JSON to Codex, public GitHub, or this chat.
+
+For other sites with two real people, the earlier input format remains supported: distinct `site_reviewer`/`database_reviewer`, and identical `site_binding`/`database_binding` objects. **Do not use that mode on CCPC without a genuine second reviewer.**
+
+The `expected_binding` object (or both bindings in the two-person format) must contain:
 
 | Field | Required private value |
 |---|---|
@@ -51,10 +55,10 @@ Independently match the expected digests from this reviewed commit. Both staged 
 
 | Staged file | Reviewed SHA-256 |
 |---|---|
-| `run_dev_ws_preflight.py` | `53500835d347e34a5edfc35fdb739802ad5a12eff6de36093257a25db6c09494` |
+| `run_dev_ws_preflight.py` | `d0a73509474715a600bdb134732edbe4ca0a1f2e0c7db3af08d000722faf89be` |
 | `ws_readiness_audit.py` | `556a52f95724c34199c8378886909d9f9dbabf25d3b4f35cec6f6d270f4bb927` |
 
-From that verified staging directory, after the operator and DBA privately confirm the live binding:
+From that verified staging directory, after the sole administrator privately verifies the expected binding with the two technical evidence sources:
 
 ```bash
 sha256sum --check --strict SHA256SUMS-dev-ws-preflight >&2 &&
@@ -73,4 +77,4 @@ Only fixed `PASS | check | explanation`, `FAIL | check | explanation`, or `UNVER
 
 19 offline tests passed. The host Python used for validation was 3.14.4. In the NIC-free, unprivileged disposable guest, MariaDB 11.8.6 and native MySQLdb 2.2.7 accepted the exact wrapper connection arguments, including its timeouts. Native capability flags confirmed that multi-statements and local infile were disabled. The actual wrapper accepted the synthetic server identity and executed a parameterized SELECT in an active READ ONLY snapshot. A synthetic account with UPDATE rights received server error 1792 for an attempted write inside that same transaction mode. The wrapper rejected a wrong server identity before any application read. The PR #42 TLS/grants probe passed in the same disposable run.
 
-The synthetic callback exercises the connection and transaction path. It does not validate live DEVELOPMENT binding, authorization, worker state, full ERPNext records or posting. The site's operator and DBA must verify their binding independently and in private.
+The synthetic callback exercises the connection and transaction path. It does not validate live DEVELOPMENT binding, authorization, worker state, full ERPNext records or posting. On CCPC, the sole administrator must truthfully acknowledge and verify the two technical evidence sources in private. The code independently checks them during the authorized run, but this does not replace a genuine second human review where one exists.
