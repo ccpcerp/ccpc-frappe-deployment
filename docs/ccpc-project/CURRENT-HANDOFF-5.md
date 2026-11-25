@@ -2,6 +2,18 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-25 — PR44 combined Phase 1 disposable Frappe/MariaDB regression GREEN (verified GitHub)
+
+**GitHub verification after owner asked to check result:** [Actions run #45539930177](https://github.com/ccpcerp/ccpcerp/actions/runs/45539930177) on PR #44 head `639fe3974ae1153a765fb071c87037babefba9cc` is **completed / success**. Job `isolated-phase1_integrated-ledger` id `138955689564` is completed/success. The GitHub steps endpoint confirms all **20 job steps successful**, including SHA/PR identity guard, source checkout, test environment creation, 10-case real MariaDB issuance suite, separate PR41 disposable site, cancellation/reissue/report and authenticated WSGI HTTP rollback/retry/replay tests, and container teardown. GitHub decoded job log independently inspected, and showed:
+
+- **30 offline policy, static and CI-safety tests PASS** (`Ran 30 tests ... OK`).
+- **10 real Frappe/ERPNext/MariaDB integrated issue tests PASS** (`Ran 10 tests ... OK`): synthetic signed Finance mappings, Routine Maintenance issuance to SLE/GL, safety and negative scenarios, concurrency.
+- **1 native cancellation/reissue/Department consumption regression PASS** on `ci-phase1-integrated-pr41.localhost` (`Ran 1 test ... OK`).
+- **1 authenticated HTTP/CSRF/post-ledger rollback/retry/replay regression PASS** on the same isolated PR41 site (`Ran 1 test ... OK`).
+- **Total 42 explicit passing tests; 0 failures in these suites.** GitHub job log prints exact source `ccpcerp@639fe3974ae1153a765fb071c87037babefba9cc`. This supersedes prior "in progress / not yet completed" checkpoint, which remains historical below.
+
+**Scope and safety:** GitHub-hosted disposable synthetic CI only, not persistent MAIN DEVELOPMENT acceptance. No deployment, DEV/PRODUCTION operations, stock/GL business posting, branch merge or paid reporter. PR #44 remains an open draft at reviewed head unless later independently verified otherwise. Do not auto-rerun the completed workflow or reapply its label. Future work: consolidate exact DEVELOPMENT named-user permissions, Finance signed approval/event-time provenance and current inventory/GL/report baseline; obtain specific separate approval for **one** DEV `ITEM-00004` Routine Maintenance Withdrawal Slip -> Material Issue -> SLE/GL + report acceptance, without touching dirty ERPNext files. PRODUCTION requires distinct release authorization.
+
 ## 2026-11-25 — PR44 fast-forwarded to combined regression; single disposable CI run triggered
 
 Owner explicitly approved both (a) non-force fast-forward of draft PR #44 review head to the reviewed combined regression commit and (b) **one** conditional opt-in GitHub-hosted disposable Frappe/MariaDB run. Connected GitHub verified `ccpcerp/ccpcerp` is **public**, unarchived, user has push/admin, PR #44 open/draft/unmerged, exact original head `b599395f9c65cc6c6b8cc1b2750bc4559547161a`, and staging candidate `639fe3974ae1153a765fb071c87037babefba9cc` 1 ahead/0 behind, only five reviewed test/guard/workflow files. ChatGPT called `update_ref` with `force:false`, expected old SHA `b599395...` and target `639fe397...`; GitHub returned **success**. Re-fetch of PR #44 verified its new head is **`639fe3974ae1153a765fb071c87037babefba9cc`**; still draft and unmerged, base `review/phase1-maintenance-release-integration-2026-11-24`.
