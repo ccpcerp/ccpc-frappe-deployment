@@ -61,7 +61,10 @@ class SecurityTests(TestCase):
                   timezone="UTC", ca_sha256="a" * 64, leaf_sha256="b" * 64, pilot=vars(PILOT))
     identity = dict(db="synthetic_dev", principal="reader@localhost", hostname="sandbox",
                     server_id=3, role=None)
-    grant = {"grant": r"GRANT SELECT ON `synthetic\_dev`.* TO `reader`@`localhost`"}
+    grants = [
+        {"grant": f"GRANT SELECT ON `synthetic_dev`.`{table}` TO `reader`@`localhost`"}
+        for table in sorted(audit.AUDIT_TABLES)
+    ]
 
     def test_target_requires_independent_site_binding(self):
         a = dict(reviewer_role="site-operator", reviewer="operator", target=self.target,
@@ -76,19 +79,36 @@ class SecurityTests(TestCase):
                 audit.verified_target(a, changed)
 
     def test_broad_grants_rejected(self):
-        self.assertTrue(audit.select_only_grants([self.grant], self.target))
+        self.assertTrue(audit.select_only_grants(self.grants, self.target))
+        self.assertTrue(audit.select_only_grants(self.grants + [{
+            "grant": "GRANT USAGE ON *.* TO `reader`@`localhost` REQUIRE SSL",
+        }], self.target))
+        self.assertFalse(audit.select_only_grants(self.grants[:-1], self.target))
         for grant in (
             "GRANT SELECT ON *.* TO `reader`@`localhost`",
             "GRANT SELECT ON `synthetic_dev`.* TO `reader`@`localhost`",
-            self.grant["grant"] + " WITH GRANT OPTION",
-            self.grant["grant"].replace("SELECT", "SELECT,UPDATE"),
+            self.grants[0]["grant"] + " WITH GRANT OPTION",
+            self.grants[0]["grant"].replace("SELECT", "SELECT,UPDATE"),
             "GRANT some_role TO `reader`@`localhost`",
+            "GRANT SELECT ON `synthetic_dev`.`tabUnrelated` TO `reader`@`localhost`",
+            "GRANT SELECT ON `other_schema`.`tabAccount` TO `reader`@`localhost`",
         ):
-            self.assertFalse(audit.select_only_grants([self.grant, {"grant": grant}], self.target))
+            self.assertFalse(audit.select_only_grants(self.grants + [{"grant": grant}], self.target))
+
+    def test_grant_manifest_matches_query_tables(self):
+        from pathlib import Path
+        import re
+
+        source = Path(audit.__file__).read_text()
+        tables = set(re.findall(r"FROM `(tab[^`{}]+)`", source))
+        tables |= {f"tabCCPC {kind} Mapping {doctype}"
+                   for kind in ("Expense", "Center") for doctype in ("Scope", "Revision")}
+        tables.add("tabCost Center")
+        self.assertEqual(audit.AUDIT_TABLES, tables)
 
     def test_identity_and_grants_fail_before_snapshot(self):
-        for identity, grants in ((dict(self.identity, db="other"), [self.grant]),
-                                 (dict(self.identity, role="writer"), [self.grant]),
+        for identity, grants in ((dict(self.identity, db="other"), self.grants),
+                                 (dict(self.identity, role="writer"), self.grants),
                                  (self.identity, [])):
             conn = Connection(Cursor(identity, grants, []))
             with patch.object(audit, "run_snapshot") as run, self.assertRaises(audit.Stop):
@@ -98,7 +118,7 @@ class SecurityTests(TestCase):
             self.assertNotIn((audit.SNAPSHOT, None), conn.db_cursor.statements)
 
     def test_snapshot_guard_and_cleanup(self):
-        conn = Connection(Cursor(self.identity, [self.grant], []))
+        conn = Connection(Cursor(self.identity, self.grants, []))
 
         def fake_snapshot(q, *_):
             for bad in ("UPDATE t SET a=1", "SELECT x FROM t FOR UPDATE",
@@ -292,6 +312,8 @@ class SnapshotTests(TestCase):
                 return []
             if table[1] == "Warehouse" and sql.startswith("SELECT account"):
                 return []
+            if table[1] == "Department":
+                return [dict(leaf, name=args[0], disabled=int(args[0] == PILOT.requesting))]
             if table[1] == "Has Role":
                 return [{"role": audit.REQUESTOR if args == (sensitive,) else audit.STOCKROOM}]
             return tables.get(table[1], [])
@@ -303,6 +325,7 @@ class SnapshotTests(TestCase):
         self.assertIn("PASS | Persisted item row", output)
         self.assertIn("FAIL | Linked Stock Entries", output)
         self.assertIn("FAIL | Equipment and actual beneficiary", output)
+        self.assertIn("FAIL | Requesting Department master", output)
         self.assertIn("PASS | Stock and valuation", output)
         self.assertIn("UNVERIFIED | Serial/batch eligibility", output)
         self.assertIn("UNVERIFIED | Signed Finance", output)
