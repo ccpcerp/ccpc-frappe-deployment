@@ -129,6 +129,20 @@ def verified_database_config(config, target, resolver=socket.getaddrinfo):
     require(resolved == {target["db_ip"]}, "Site database hostname did not resolve exclusively to the pinned container.")
 
 
+def connect_bound(config, target):
+    """Open the same pinned TCP connection exercised by the disposable lab."""
+    import MySQLdb
+
+    require(MySQLdb.version_info[:3] == (2, 2, 7), "Expected MySQLdb 2.2.7 unavailable.")
+    return MySQLdb.connect(
+        host=target["db_ip"], port=target["port"],
+        user=config.get("db_user") or config["db_name"],
+        passwd=config["db_password"], db=target["schema"],
+        charset="utf8mb4", local_infile=False, multi_statements=False,
+        connect_timeout=5, read_timeout=15, write_timeout=5,
+    )
+
+
 def audited_snapshot(connection, audit, target, issuer, lines):
     with closing(connection), closing(connection.cursor()) as cursor:
         try:
@@ -182,16 +196,7 @@ def guest(payload):
             for file in ("sites/common_site_config.json", f"sites/{SITE}/site_config.json"):
                 config.update(json.loads(Path(file).read_text()))
             verified_database_config(config, target)
-            import MySQLdb
-
-            connection = MySQLdb.connect(
-                host=target["db_ip"], port=target["port"],
-                user=config.get("db_user") or config["db_name"],
-                passwd=config["db_password"], db=target["schema"],
-                charset="utf8mb4", local_infile=False, multi_statements=False,
-                connect_timeout=5, read_timeout=15, write_timeout=5,
-            )
-            audited_snapshot(connection, audit, target, payload["issuer"], lines)
+            audited_snapshot(connect_bound(config, target), audit, target, payload["issuer"], lines)
         except (Stop, audit_stop_type()) as exc:
             lines.append(f"UNVERIFIED | Operator preflight | {exc}")
         except Exception:

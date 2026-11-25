@@ -28,13 +28,40 @@ The guest reads the normal Frappe common and site configuration privately and co
 
 ## Single execution command
 
-After independent review and separate authorization, stage both Python source files from the exact approved deployment repository commit into a new private directory outside the app checkout. Verify the published SHA-256 of the wrapper and the pinned audit digest below. Use the operator's normal approved access and verify the SSH host key if transferring source. Never pipe remote source into a shell.
+After independent review and separate authorization, obtain the exact reviewed deployment repository commit in an already trusted review clone. Stage into a new private directory outside the app checkout. Set `approved` to the exact approved 40-character commit SHA from the PR review and `review_clone` to the trusted clone's absolute path. Never fetch or stage from an unverified moving branch or pipe remote source into an interpreter.
 
 ```bash
-/usr/bin/python3 -I -B /approved/private/run_dev_ws_preflight.py /approved/private/dev-pilot-binding.json
+(
+  set -euo pipefail
+  umask 077
+  [[ $approved =~ ^[a-f0-9]{40}$ ]]
+  test "$(git -C "$review_clone" rev-parse --verify "$approved^{commit}")" = "$approved"
+  stage=$(mktemp -d "$HOME/ccpc-dev-preflight.XXXXXXXX")
+  path=scripts/development/operator
+  for name in run_dev_ws_preflight.py ws_readiness_audit.py SHA256SUMS-dev-ws-preflight; do
+    git -C "$review_clone" show "$approved:$path/$name" > "$stage/$name"
+  done
+  cd "$stage"
+  sha256sum --check --strict SHA256SUMS-dev-ws-preflight
+  printf 'Verified private staging directory: %s\n' "$stage"
+)
 ```
 
-The adjacent `ws_readiness_audit.py` must have SHA-256 `556a52f95724c34199c8378886909d9f9dbabf25d3b4f35cec6f6d270f4bb927`. The wrapper checks this again before Docker access and in the guest. The guest requires the existing MySQLdb driver from the DEVELOPMENT bench Python. No package installs or account changes are part of this operation. If any prerequisite fails, stop and report the sanitized status.
+Independently match the expected digests from this reviewed commit. Both staged files must report OK. Stop if any step rejects the commit, input, or hash. Keep the private directory owner-writable only and check the hashes again immediately before invoking Python.
+
+| Staged file | Reviewed SHA-256 |
+|---|---|
+| `run_dev_ws_preflight.py` | `53500835d347e34a5edfc35fdb739802ad5a12eff6de36093257a25db6c09494` |
+| `ws_readiness_audit.py` | `556a52f95724c34199c8378886909d9f9dbabf25d3b4f35cec6f6d270f4bb927` |
+
+From that verified staging directory, after the operator and DBA privately confirm the live binding:
+
+```bash
+sha256sum --check --strict SHA256SUMS-dev-ws-preflight >&2 &&
+  /usr/bin/python3 -I -B ./run_dev_ws_preflight.py /approved/private/dev-pilot-binding.json
+```
+
+Keep staging and checksum output operator-side. Share only the sanitized Python results. The wrapper rechecks the pinned audit digest before Docker access and inside the guest. The guest requires the existing bench MySQLdb 2.2.7 driver and will stop before opening a database connection if its version differs. No package installs or account changes are part of the live operation.
 
 ## Scope and outcomes
 
@@ -42,4 +69,8 @@ The reused audit checks the persisted Draft and sole one-unit item, requesting a
 
 Only fixed `PASS | check | explanation`, `FAIL | check | explanation`, or `UNVERIFIED | check | explanation` lines leave the preflight. An observed failed check has exit 1. Unresolved evidence without a definite failure has exit 2. No identities, grants, configuration, balances, approval references or exception details belong in shared output.
 
-Offline tests use fake host commands and database handles. The PR #42 MariaDB test exercised a different TLS/SELECT-only adapter. It does not establish real MySQLdb compatibility or live binding for this operator wrapper.
+## Validation evidence
+
+19 offline tests passed. The host Python used for validation was 3.14.4. In the NIC-free, unprivileged disposable guest, MariaDB 11.8.6 and native MySQLdb 2.2.7 accepted the exact wrapper connection arguments, including its timeouts. Native capability flags confirmed that multi-statements and local infile were disabled. The actual wrapper accepted the synthetic server identity and executed a parameterized SELECT in an active READ ONLY snapshot. A synthetic account with UPDATE rights received server error 1792 for an attempted write inside that same transaction mode. The wrapper rejected a wrong server identity before any application read. The PR #42 TLS/grants probe passed in the same disposable run.
+
+The synthetic callback exercises the connection and transaction path. It does not validate live DEVELOPMENT binding, authorization, worker state, full ERPNext records or posting. The site's operator and DBA must verify their binding independently and in private.
