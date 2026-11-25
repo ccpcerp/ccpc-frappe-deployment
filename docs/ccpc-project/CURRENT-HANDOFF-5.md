@@ -2,6 +2,19 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-25 — Owner verified revised sole-admin PR43 staging PASS on DEVELOPMENT
+
+Owner/human operator on `gani@ccpcerpserver` ran the previously reviewed **source-only** exact commit staging script. The pinned branch cloned from GitHub and satisfied `git rev-parse HEAD == be8e90f5ddfe820f5e93aa18f828284fb65c093a`. Terminal output:
+```
+run_dev_ws_preflight.py: OK
+ws_readiness_audit.py: OK
+PASS: Updated sole-administrator scripts staged.
+Private staging directory: /home/gani/ccpc-ws-preflight.ib55cS30/approved
+```
+Latest PR43 remains open/DRAFT and its exact-source README and audit were independently fetched on the connected GitHub tools. This **only verifies staging**; there is no private binding JSON yet, no actual PR43 preflight, no Docker/DB access by Codex, no stock or GL posting, no service change or PRODUCTION interaction. Older `/home/gani/ccpc-ws-preflight.o4hK4i6b/approved` uses obsolete wrapper and must remain unused.
+
+**Next action:** solely on trusted operator terminal, create a new 0600 private `dev-pilot-binding.json` in latest staging directory (not GitHub/Codex), initially with explicit `operator_acknowledgement=false` and missing private schema/account/MariaDB server and pilot values. Safely populate and corroborate Docker/site and MariaDB identity against separate technical sources; verify exact pilot company, requesting Maintenance, beneficiary Wet Mill Plant, equipment, item, warehouse and eligible *signed Finance* expense independently. Only then set acknowledgement true and request separate authorization for a single READ ONLY live DEVELOPMENT operator preflight. `WS-2026-00008` stays Draft; do NOT use an invented second reviewer or sign off stock issue.
+
 ## 2026-11-25 — Updated PR43 offline gate PASS: 20/20 tests and 2/2 SHA256; stage current commit next
 
 Codex reported the exact GitHub branch/PR DRAFT head **`be8e90f5ddfe820f5e93aa18f828284fb65c093a`**, with corrected mismatched MariaDB-container-name fixture passing and complete offline source-only suite **20 tests passed, 0 failed, exit code 0**, Python **3.14.4**. Strict `sha256sum --check --strict SHA256SUMS-dev-ws-preflight` **2 of 2 matched, exit code 0**:
