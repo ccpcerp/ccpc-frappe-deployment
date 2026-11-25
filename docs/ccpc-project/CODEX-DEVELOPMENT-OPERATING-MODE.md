@@ -1,7 +1,7 @@
 # CCPC ERPNext — Codex as an active DEVELOPMENT tool
 
 **Owner decision:** 2026-11-21 (Asia/Manila)  
-**Status:** DEVELOPMENT Codex usage is approved in principle, and on 2026-11-25 the owner explicitly approved pursuing a controlled DEVELOPMENT-only runtime investigation route. This approval does **not** prove such a route is configured or authorize credentials exposure, persistent DEVELOPMENT writes, Docker/host privilege changes or PRODUCTION access. Previous Codex CLI/source inspection is independently documented below.  
+**Status (latest 2026-11-25 owner direction):** Codex is approved as the primary hands-on DEVELOPMENT engineering executor, with PRODUCTION strictly excluded. Source development, disposable tests and prepared DEV-only read-only audits are in scope; privileged host/DB access and irreversible live data changes remain subject to the specific safety and approval gates documented below. No verified Codex-to-live-MariaDB connection exists yet. Previous Codex CLI/source inspection is documented below.  
 **Primary rule:** **Codex may contribute actively to CCPC ERPNext DEVELOPMENT; PRODUCTION is physically separate and explicitly out of scope.**
 
 ## 2026-11-25 owner authorization — Codex primary DEVELOPMENT executor; PRODUCTION excluded
