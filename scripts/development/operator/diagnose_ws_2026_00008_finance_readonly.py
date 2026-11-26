@@ -2,10 +2,12 @@
 """Operator-only, fixed-scope Finance mapping diagnosis. No writes or attestations."""
 import hashlib
 import importlib.util
+import json
 import os
 import stat
 from pathlib import Path
 import sys
+from zoneinfo import ZoneInfo
 
 HERE = Path(__file__).resolve().parent
 PILOT_NAME = "diagnose_ws_2026_00008_readonly.py"
@@ -114,13 +116,13 @@ def diagnose():
                 print('FAIL | OVERALL | pilot changed; no Finance conclusion or posting authorization')
                 return False
             site_zone = mod.single(read("SELECT value FROM `tabSingles` WHERE doctype='System Settings' AND field='time_zone'"))
-            zone_ok = bool(site_zone and site_zone['value'] == TARGET['timezone'])
+            zone_ok = bool(site_zone and site_zone['value'] == EXPECTED_TIMEZONE)
             emit(zone_ok, 'Persisted site timezone')
             if not zone_ok:
                 print('FAIL | OVERALL | timezone mismatch; no Finance conclusion or posting authorization')
                 return False
 
-            zone = ZoneInfo(TARGET['timezone'])
+            zone = ZoneInfo(EXPECTED_TIMEZONE)
             instant = datetime.now(timezone.utc)
             pilot = mod.Pilot(
                 slip=SLIP, company=COMPANY, requesting='Maintenance Department - CCPC',
@@ -203,7 +205,27 @@ def main():
     guard = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = guard
     spec.loader.exec_module(guard)
-    guard.GUEST = 'AUDIT_SOURCE = ' + repr(audit_source) + '\n' + FINANCE_GUEST
+    # The previous pinned host guard forwards a narrow TARGET that intentionally
+    # excludes timezone. Carry the independently saved private timezone in a
+    # separate fixed literal, without editing the guard or the private binding.
+    binding = guard.BINDING
+    bstat = binding.lstat()
+    if not (stat.S_ISREG(bstat.st_mode) and bstat.st_uid == os.getuid()
+            and bstat.st_nlink == 1 and stat.S_IMODE(bstat.st_mode) == 0o600):
+        raise RuntimeError("Private binding not owned or restricted")
+    saved = json.loads(binding.read_text())
+    if not (saved.get('verification_mode') == 'sole-administrator-two-technical-checks'
+            and saved.get('operator_acknowledgement') is False):
+        raise RuntimeError("Private binding in unexpected state")
+    expected = saved['expected_binding']
+    if expected.get('host') != guard.HOST or expected.get('site') != guard.SITE:
+        raise RuntimeError("Private binding not for pinned development site")
+    timezone_name = expected['timezone']
+    if not isinstance(timezone_name, str) or len(timezone_name) > 140:
+        raise RuntimeError("Invalid expected timezone")
+    ZoneInfo(timezone_name)
+    guard.GUEST = ('EXPECTED_TIMEZONE = ' + repr(timezone_name) + '\n' +
+                   'AUDIT_SOURCE = ' + repr(audit_source) + '\n' + FINANCE_GUEST)
     guard.main()
 
 
