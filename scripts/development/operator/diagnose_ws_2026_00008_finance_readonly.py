@@ -215,4 +215,3 @@ if __name__ == '__main__':
     except Exception:
         print('STOP | HOST GUARD | pinned source or DEVELOPMENT identity rejected; details withheld')
         sys.exit(1)
-
