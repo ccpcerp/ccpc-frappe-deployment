@@ -2,6 +2,26 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-27 — TRUSTED OPERATOR LIVE READ ONLY FINANCE: BEARINGS PASS, WET MILL CENTER SCOPE FAIL (HOLD)
+
+Owner pasted sanitized output from trusted DEVELOPMENT terminal executing corrected, hash-pinned Finance diagnostic in deployment/docs DRAFT [PR #45](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/45), still verified at HEAD **`bbda09a9c47a5f386649e5f446fcade6c842ddf0`**, following 6/6 synthetic offline PASS. Exact status lines:
+```text
+PASS: Finance diagnostic source verified.
+PASS | MariaDB identity | independently matched private pin
+PASS | Exact draft item and beneficiary | verified in read-only snapshot
+PASS | Persisted site timezone | verified in read-only snapshot
+PASS | Bearings Expense exact scope | verified in read-only snapshot
+PASS | Bearings Expense signed provenance | verified in read-only snapshot
+PASS | Bearings Expense active master | verified in read-only snapshot
+FAIL | Wet Mill Center exact scope | missing or conflicting live approval evidence
+FAIL | Wet Mill Center signed provenance | missing or conflicting live approval evidence
+FAIL | Wet Mill Center active master | missing or conflicting live approval evidence
+FAIL | OVERALL | signed evidence structure only; private binding and posting remain blocked
+```
+These are **operator-reported live READ ONLY SQL findings**, not ChatGPT's own database execution. The Bearings branch passed the *audit's current signature/provenance and same-Company leaf Expense Account checks*; this does **not** replace independent Finance account purpose/authority sign-off and does **not** authorize use/posting. The Wet Mill result is **exact scope FAIL only**. Audit code `mod.single(...)` searches `tabCCPC Center Mapping Scope` with exact Company `Cagayan Corn Products Corporation`, `beneficiary_department='Wet Mill Plant - CCPC'`, requires **exactly one** row and `selector_kind='Department Only'`, `selector_key='DEPARTMENT_ONLY'`. Scope FAIL could mean zero rows, multiple rows, or incompatible selector fields. **The two subsequent signed provenance / active master FAIL lines are synthesized by the code after scope failure; neither was independently queried/validated.** Do not call them confirmed missing signatures or invalid Cost Center masters. The prior Maintenance cost-center signed evidence is not transferable to Wet Mill.
+
+**Next ONE SAFE STEP:** in **DEVELOPMENT ERPNext UI**, open `CCPC Center Mapping Scope` list and filter exact Company + Beneficiary Department `Wet Mill Plant - CCPC`; without editing, saving, creating or submitting anything, report only the **number of matching records** and **Selector Kind / Selector Key** for each (or a redacted screenshot). Do not create/duplicate/approve mappings to manufacture a PASS. If no scope, determine whether genuine signed Finance authorization for Wet Mill exists before any prospective controlled Finance workflow. If one scope with wrong selector, investigate policy/master setup and keep HOLD. If more than one, identify ambiguity via read-only review. No new live SQL without separate reviewed method. No private binding values or acknowledgment change, no PR43 preflight, no stock/GL, no PRODUCTION. Document one-unit pilot is still Draft and unposted.
+
 ## 2026-11-27 — Finance offline corrected suite 6/6 PASS; eligible for separate trusted READ ONLY LIVE re-check
 
 Owner ran corrected offline synthetic tests from newly pinned deployment/docs DRAFT PR #45 `bbda09a9c47a5f386649e5f446fcade6c842ddf0` at trusted `gani@ccpcerpserver` terminal and pasted:
