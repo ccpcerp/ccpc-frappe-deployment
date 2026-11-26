@@ -2,6 +2,24 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-27 — Finance offline corrected suite 6/6 PASS; eligible for separate trusted READ ONLY LIVE re-check
+
+Owner ran corrected offline synthetic tests from newly pinned deployment/docs DRAFT PR #45 `bbda09a9c47a5f386649e5f446fcade6c842ddf0` at trusted `gani@ccpcerpserver` terminal and pasted:
+```text
+PASS: Corrected test source verified.
+test_changed_beneficiary_fails_closed ... ok
+test_missing_center_approval_fails_closed ... ok
+test_operator_host_handoff_injects_pinned_timezone ... ok
+test_policy_attempt_to_write_is_rejected ... ok
+test_private_timezone_mismatch_fails_closed ... ok
+test_two_mappings_present_in_synthetic_snapshot ... ok
+Ran 6 tests in 0.022s
+OK
+```
+This is **operator-reported offline evidence**, not an assistant-run live check or CI. GitHub independently reconfirmed PR #45 is still open/Draft, HEAD `bbda09a9c47a5f386649e5f446fcade6c842ddf0` (base `df3afcb294546bbf2436e8211d719c0f8b5b4922`). Corrected finance script blob `66f9366acfa2162233e3e43a7491c972c6ed148a`, new test blob `73a7406d994e31773fd378124af7118d60983df8`. The newly tested case covers operator wrapper construction of a separately supplied timezone rather than relying on absent `TARGET['timezone']`.
+
+**Next gate:** A trusted human operator may execute exactly one DEVELOPMENT-only, fixed-scope **server-enforced READ ONLY** Finance query from the freshly staged, exact pinned PR #45 files, after rechecking host, branch SHA and all script hashes. This is continuation of owner-directed investigation, not an approval to mutate or install. Use no Codex agent, production or unreviewed SQL. Paste only sanitized `PASS/FAIL/STOP` check lines. If `STOP`, hold and inspect reviewed code, do not guess or bypass. If `FAIL`, signed mapping is not verified—do not create/approve Finance records automatically. If `PASS`, signed mapping *evidence structure* is verified, but separate human Finance authority/account purpose confirmation is required. Private `operator_acknowledgement=false` and all `pilot` fields unchanged, no PR43 full preflight or posting. Stock/GL/PRODUCTION remain HOLD.
+
 ## 2026-11-27 — Offline test 5/6 PASS; assertion escape bug corrected on draft PR45 (NO LIVE RE-RUN)
 
 Owner ran the six synthetic offline tests from reviewed commit `41c6c79be6dce3865178a70a963515897834dac3` in `/home/gani/ccpc-finance-fix-offline.hlLR76VV`. Terminal reported `Ran 6 tests in 0.022s`, `FAILED (failures=1)`: only `test_operator_host_handoff_injects_pinned_timezone` at line 179, checking the expected payload prefix. Other 5 tests showed no failure. **No Finance database query was performed in this step.**
