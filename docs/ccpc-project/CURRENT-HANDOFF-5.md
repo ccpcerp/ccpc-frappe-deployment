@@ -2,6 +2,20 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-26 — Owner terminal verified Finance diagnostic staging 3/3 OK; LIVE RUN STILL PENDING
+
+Owner pasted trusted `gani@ccpcerpserver` terminal output showing exact staged script checksum results:
+```text
+diagnose_ws_2026_00008_finance_readonly.py: OK
+diagnose_ws_2026_00008_readonly.py: OK
+ws_readiness_audit.py: OK
+PASS: Finance diagnostic source staged and verified.
+Staging directory: /home/gani/ccpc-finance-preflight.JC1Vps2w
+```
+This is **operator-reported staging evidence** from the exact [DRAFT deployment PR #45](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/45) at **`573cfaa1a1b820c755d28a241bbaa323e7cfb3b7`**. GitHub independently confirmed PR45 remains open/Draft and pinned to that SHA, and fetched Finance source matches approved blob `857a62239ff0b845a3de12ea7a2017685dfa8643`. All 3 local SHA256 checks passed in the owner's terminal, but ChatGPT did not inspect filesystem content directly. No Finance query, output, private file edit, accounting-master or stock change is reported. A 3/3 staged source PASS is **not** a live Finance approval.
+
+**Next gated action:** sole trusted operator only, at `ccpcerpserver`, manually reverify exact PR45 HEAD and all three staged SHA256 digests, then (with a separately scoped one-time READ ONLY diagnostic authorization/operator choice) run only `/usr/bin/python3 -I -B ./diagnose_ws_2026_00008_finance_readonly.py` from this staging directory. No PR43 full preflight, private binding update, `operator_acknowledgement=true`, live posting or PROD work. Share sanitized PASS/FAIL/STOP lines only. Pending actual signed Bearings Expense and Wet Mill Department-only Center evidence.
+
 ## 2026-11-26 — Finance evidence diagnostic source prepared, OFFLINE TESTS PASS, LIVE FINANCE UNVERIFIED
 
 Owner replied **“approved”** to preparation and review of a scoped **read-only Finance mapping diagnostic** after the 20/20 operator-reported live saved-pilot PASS. In GitHub, deployment/docs **DRAFT PR #45** [review read-only Finance mapping diagnostic](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/45) was opened on branch `review/ws-pilot-finance-readonly-2026-11-26`, stacked on deployment/docs PR #44 at `df3afcb294546bbf2436e8211d719c0f8b5b4922`. Latest new branch head **`573cfaa1a1b820c755d28a241bbaa323e7cfb3b7`**, 3 ahead / 0 behind relative to PR44; exactly two new files (no edits to prior guard or full PR43 audit):
