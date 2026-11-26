@@ -177,7 +177,7 @@ class SyntheticFinanceTests(unittest.TestCase):
                     sys.modules.pop(stub_spec.name, None)
         self.assertEqual(len(seen), 1)
         self.assertTrue(seen[0].startswith(
-            "EXPECTED_TIMEZONE = 'Asia/Manila'\\nAUDIT_SOURCE = 'synthetic-source-only'\\n"
+            "EXPECTED_TIMEZONE = 'Asia/Manila'\nAUDIT_SOURCE = 'synthetic-source-only'\n"
         ), 'operator handoff must pass pinned timezone independent of TARGET')
         self.assertNotIn("TARGET['timezone']", scope['FINANCE_GUEST'])
 
