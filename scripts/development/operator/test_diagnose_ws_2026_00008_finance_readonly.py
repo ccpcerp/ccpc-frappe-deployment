@@ -84,7 +84,7 @@ class FakeConnection:
     def close(self): self.closed = True
 
 
-def fake_execute(*, deny_center=False, write_attempt=False, altered_slip=False):
+def fake_execute(*, deny_center=False, write_attempt=False, altered_slip=False, wrong_zone=False):
     connection = FakeConnection(altered_slip)
     mysql = types.ModuleType('MySQLdb')
     cursors = types.ModuleType('MySQLdb.cursors')
@@ -99,7 +99,7 @@ def fake_execute(*, deny_center=False, write_attempt=False, altered_slip=False):
         "AUDIT_SHA = '" + digest + "'",
     )
     target = dict(db_host='dbhost', schema='db', port=3306, principal='user@%',
-                  db_ip='172.18.0.2', server_hostname='container', server_id=1, timezone='Asia/Manila')
+                  db_ip='172.18.0.2', server_hostname='container', server_id=1)
     old_read = Path.read_text
     old_dns = socket.getaddrinfo
     old_mysql = sys.modules.get('MySQLdb')
@@ -115,7 +115,8 @@ def fake_execute(*, deny_center=False, write_attempt=False, altered_slip=False):
         with contextlib.redirect_stdout(buf):
             try:
                 exec(compile(guest, '<synthetic finance guest>', 'exec'),
-                     dict(AUDIT_SOURCE=audit, TARGET=target))
+                     dict(AUDIT_SOURCE=audit, TARGET=target,
+                          EXPECTED_TIMEZONE='Etc/UTC' if wrong_zone else 'Asia/Manila'))
             except SystemExit as e:
                 exitcode = e.code
     finally:
@@ -149,6 +150,11 @@ class SyntheticFinanceTests(unittest.TestCase):
 
     def test_changed_beneficiary_fails_closed(self):
         lines = self.verify({'altered_slip': True}, 1, 'FAIL | OVERALL')
+        self.assertFalse(any('signed provenance' in line for line in lines))
+
+    def test_private_timezone_mismatch_fails_closed(self):
+        lines = self.verify({'wrong_zone': True}, 1, 'FAIL | OVERALL')
+        self.assertIn('FAIL | Persisted site timezone', '\n'.join(lines))
         self.assertFalse(any('signed provenance' in line for line in lines))
 
     def test_policy_attempt_to_write_is_rejected(self):
