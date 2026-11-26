@@ -140,6 +140,47 @@ class SyntheticFinanceTests(unittest.TestCase):
                             for q in conn.cursor_obj.queries))
         return lines
 
+    def test_operator_host_handoff_injects_pinned_timezone(self):
+        # Unlike the original fixture, exercise the real Finance wrapper's
+        # construction of the guest payload without a live Docker/DB call.
+        import tempfile
+        from unittest import mock
+
+        scope = {'__name__': '_ccpc_finance_test_module', '__file__': str(SCRIPT)}
+        exec(compile(SCRIPT.read_text(), str(SCRIPT), 'exec'), scope)
+        seen = []
+        with tempfile.TemporaryDirectory() as folder:
+            binding = Path(folder) / 'binding.json'
+            binding.write_text(json.dumps({
+                'verification_mode': 'sole-administrator-two-technical-checks',
+                'operator_acknowledgement': False,
+                'expected_binding': {
+                    'host': 'ccpcerpserver', 'site': 'development.localhost',
+                    'timezone': 'Asia/Manila',
+                },
+            }))
+            binding.chmod(0o600)
+            fake_guard = types.SimpleNamespace(
+                HOST='ccpcerpserver', SITE='development.localhost',
+                BINDING=binding, GUEST=None)
+            fake_guard.main = lambda: seen.append(fake_guard.GUEST)
+            stub_spec = types.SimpleNamespace(
+                name='_ccpc_test_guard_module',
+                loader=types.SimpleNamespace(exec_module=lambda _: None))
+            scope['checked_source'] = lambda name, digest: (SCRIPT, 'synthetic-source-only')
+            with mock.patch.object(scope['importlib'].util, 'spec_from_file_location',
+                                   return_value=stub_spec), mock.patch.object(
+                    scope['importlib'].util, 'module_from_spec', return_value=fake_guard):
+                try:
+                    scope['main']()
+                finally:
+                    sys.modules.pop(stub_spec.name, None)
+        self.assertEqual(len(seen), 1)
+        self.assertTrue(seen[0].startswith(
+            "EXPECTED_TIMEZONE = 'Asia/Manila'\\nAUDIT_SOURCE = 'synthetic-source-only'\\n"
+        ), 'operator handoff must pass pinned timezone independent of TARGET')
+        self.assertNotIn("TARGET['timezone']", scope['FINANCE_GUEST'])
+
     def test_two_mappings_present_in_synthetic_snapshot(self):
         lines = self.verify({}, 0, 'PASS | OVERALL')
         self.assertEqual(sum(x.startswith('PASS | ') for x in lines), 10)
