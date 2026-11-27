@@ -2,6 +2,31 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-27 — Trusted operator staged Wet Mill scope PR46, 3 hash OK and 10/10 OFFLINE PASS (LIVE STILL PENDING)
+
+Owner pasted sanitized trusted `gani@ccpcerpserver` output from new operator-private staging of [deployment draft PR46](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/46):
+```text
+diagnose_ws_2026_00008_wet_mill_scope_readonly.py: OK
+test_diagnose_ws_2026_00008_wet_mill_scope_readonly.py: OK
+diagnose_ws_2026_00008_readonly.py: OK
+PASS: Wet Mill scope diagnostic staged and verified.
+test_changed_beneficiary_stops_before_scope ... ok
+test_inconsistent_aggregate_stops ... ok
+test_missing_draft_stops ... ok
+test_missing_scope_classified ... ok
+test_multiple_eligible_scopes_still_fail ... ok
+test_multiple_mixed_scopes ... ok
+test_one_valid_scope_classified ... ok
+test_one_wrong_selector_key ... ok
+test_one_wrong_selector_kind ... ok
+test_wrong_database_identity_stops ... ok
+Ran 10 tests in 0.010s
+OK
+```
+This is **operator-reported offline run**; ChatGPT did not execute it or access MariaDB. GitHub independently reverified PR46 remains open/Draft with head **`3649a1b26653ab3e9f45ae51fbad46d6dd2c342a`**, base `bbda09a9c47a5f386649e5f446fcade6c842ddf0`, exactly two added files, unchanged blobs `478fac44d5716f97ea540de92959207208c97b52` and `1ab741a79270c51ff404312434b3ea3e4b23eda7`. **No live Wet Mill scope query yet.**
+
+**Next gated operator step:** locate exactly one `$HOME/ccpc-wet-mill-scope-offline.*` private staging directory, confirm trusted DEV hostname and pinned Git HEAD and three source SHA256 digests, then run only `/usr/bin/python3 -I -B ./diagnose_ws_2026_00008_wet_mill_scope_readonly.py`. This reuses existing reviewed host guard (private binding stays ack false/pilot fields blank), runs fixed parameterized **READ ONLY** MariaDB snapshot and outputs sanitized 0/1/2+ plus selector classification. If the diagnostic exits nonzero, retain `FAIL/STOP` lines and **do not rerun automatically**. Do not change permission grants, DocTypes, Finance mappings, Withdrawal Slip, private binding, inventory, GL, Docker environment or PROD; signed Center revision, active master and posting remain unverified even if scope is unique.
+
 ## 2026-11-27 — Approved read-only Wet Mill Center scope classifier PREPARED, 10/10 OFFLINE SYNTHETIC PASS (NO LIVE QUERY)
 
 Owner explicitly approved preparing/reviewing a **fixed read-only diagnostic** to classify why the beneficiary Center scope failed, after confirming even Administrator could not open the review-only `CCPC Center Mapping Scope` DocType. GitHub DRAFT deployment/docs [PR #46](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/46) created on `review/ws-wet-mill-center-scope-readonly-2026-11-27`, stacked on Finance diagnostic PR45 HEAD `bbda09a9c47a5f386649e5f446fcade6c842ddf0` (application PR44 remains a **different repository/PR**). PR46 head **`3649a1b26653ab3e9f45ae51fbad46d6dd2c342a`**, exactly **two additions, zero existing-file edits**:
