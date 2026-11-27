@@ -2,6 +2,19 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-27 — APPROVED DEV Stockroom Company grant attempt STOPPED: FileNotFoundError; NO COMMIT REPORTED
+
+**User/operator terminal output on normal DEVELOPMENT host (not independently accessed by ChatGPT):** pinned GitHub operator script `scripts/development/operator/ccpc_dev_stockroom_company_permission_once_20261127.sh` (GitHub commit `7ebca957f971fc00df29d10cf5fc0238abb0df7e`, SHA256 `61ff2f6a1fa632e2c3be8e03d08083305a08cf50d72211964101737074bfd361`) was successfully staged with SHA256 verified; operator then executed once under separately approved exact DEV-only Company User Permission scope. Output:
+```
+/home/gani/ccpc-reviewed-scripts/ccpc_dev_stockroom_company_permission_once_20261127.sh: OK
+PRECHECK PASS: pinned DEVELOPMENT-only host/container/site/app; prior NAS backup directory present.
+ACTION: exactly one CCPC Company User Permission for stockroom@personnel1.com (not a Finance signing grant).
+STOP: transaction not reported committed; error type=FileNotFoundError
+```
+**Failure status:** precheck passed, but Frappe script reported `FileNotFoundError` and **did not report a successful commit**. Its exception handler attempts `frappe.db.rollback()`; however, before stating definitive no database effect, run an **independent READ ONLY** grant-count query. No PR45 deployment, merge, site migration, signed Finance proposal, stock/GL or PRODUCTION action was reported. Do not rerun the consumed one-shot script, manually grant, or loosen guards.
+
+**Next authorized read-only diagnostic:** verify via site-scoped `bench --site development.localhost mariadb` `START TRANSACTION READ ONLY` exact Stockroom Company User Permission record count/flags and via unprivileged Python `os.path.isdir/isfile` check only the expected Frappe site paths (`sites`, `sites/apps.txt`, `sites/development.localhost/site_config.json`) without printing file content/secrets. Frappe v16 `frappe.init` needs its actual sites path; `FileNotFoundError` may occur before DB connection if a required file is missing, but the specific missing file **is not yet known**. Do not patch/script retry or claim commit until diagnostic is examined. Future correction to the one-shot script should be newly reviewed, separately pinned and checksum-verified; retain original history. Scope remains exactly the owner-approved DEVELOPMENT-only grant.
+
 ## 2026-11-27 — Owner APPROVED exact DEVELOPMENT Stockroom Company User Permission; operator script published, NOT EXECUTED
 
 **Scope approved in current conversation:** Add exactly one `tabUser Permission` for enabled, named `stockroom@personnel1.com`: `allow=Company`, `for_value=Cagayan Corn Products Corporation`, `apply_to_all_doctypes=1`, `applicable_for` empty; do **not** add Accounting Approver, extend another Company, sign Finance decisions, change application code, deploy PR45, post stock/GL or touch PRODUCTION. Existing read-only role audit observed `Stockroom Personnel=1`, `CCPC Mapping Preparer=1`, `CCPC Accounting Mapping Approver=0`, qualifying Company grant 0 and no other Company grants. The owner explicitly replied **"Approved"** to this precise DEVELOPMENT-only addition.
