@@ -2,6 +2,17 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-27 — Operator cannot open Center Mapping Scope in UI, even Administrator; GitHub DocType permissions empty
+
+Owner reports DEVELOPMENT ERPNext UI denies access to `CCPC Center Mapping Scope` even while using Administrator. **No permission change has been authorized or made.** GitHub-first inspection of application review branch `review/phase1-maintenance-integrated-tests-2026-11-24` at verified `e5c6f4c7f8f2121b26198bc2ff94d7be42c948b5` found:
+- `ccpcerp/ccpc_erp/doctype/ccpc_center_mapping_scope/ccpc_center_mapping_scope.json`: `"permissions": []`, no ordinary role grants. Defines `selector_kind` (default `Department Only`) and read-only `selector_key` (default `DEPARTMENT_ONLY`).
+- `ccpc_center_mapping_scope.py`: prohibits unsupported selectors, immutable identity changes, rename/merge and trash; review-only model, explicit selection needs Finance policy approval.
+- `ccpc_expense_mapping_scope.json`, `ccpc_center_mapping_revision.json`, and `ccpc_accounting_mapping_decision.json`: also `"permissions": []` in the GitHub review branch.
+
+This **plausibly explains the UI restriction**; do not claim the GitHub draft branch exactly equals installed DEVELOPMENT metadata or that no additional role/policy differences exist. The source evidence does **not** show whether the actual Wet Mill scope exists. Previous live Finance read-only audit already proved Bears/Bearings Expense signed scope/provenance/account eligibility PASS and `Wet Mill Center exact scope` FAIL; downstream Center signed provenance and master were not queried after failing scope. Wet Mill Center scope FAIL can indicate **0 rows**, **multiple rows**, or **a non-Department Only selector**. Do not infer the Withdrawal Slip is invalid or alter its requesting/beneficiary Department or Section to satisfy mapping checks.
+
+**Next safe decision:** Do **not** add Administrator/other role permissions, disable permission checks, change source, or create/approve a Center Mapping to bypass the blocker. Prepare an independently reviewed **trusted-operator-only, fixed-scope, server-enforced READ ONLY** snapshot of `tabCCPC Center Mapping Scope` limited to exact CCPC Company and `Wet Mill Plant - CCPC`. Return sanitized categories only: count 0, 1 or 2+, and whether all exact selector fields match, without private identifiers. Reuse pinned private Development Docker/MariaDB binding and source guards; no CodeX live DB, no raw secrets, no private binding write. Require separate operator run after source review, no stock/GL/PROD.
+
 ## 2026-11-27 — TRUSTED OPERATOR LIVE READ ONLY FINANCE: BEARINGS PASS, WET MILL CENTER SCOPE FAIL (HOLD)
 
 Owner pasted sanitized output from trusted DEVELOPMENT terminal executing corrected, hash-pinned Finance diagnostic in deployment/docs DRAFT [PR #45](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/45), still verified at HEAD **`bbda09a9c47a5f386649e5f446fcade6c842ddf0`**, following 6/6 synthetic offline PASS. Exact status lines:
