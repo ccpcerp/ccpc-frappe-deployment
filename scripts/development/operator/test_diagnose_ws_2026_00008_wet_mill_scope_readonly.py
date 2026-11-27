@@ -4,8 +4,8 @@ import contextlib
 from decimal import Decimal
 import io
 import json
-from pathlib import Path
 import re
+from pathlib import Path
 import socket
 import sys
 import types
