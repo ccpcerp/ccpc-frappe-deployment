@@ -2,6 +2,21 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-27 — OWNER REQUESTED COST CENTER NECESSITY/SIMPLIFICATION REVIEW; NO DESIGN CHANGE YET
+
+Owner asked whether separate Cost Centers and CCPC Center Mapping Scope approvals are truly needed, and requested verification before adding any new mapping. This is **authorization for read-only investigation and explanation**, **not** to rewrite approval policy, create a Cost Center or post a voucher.
+
+Current app source verified on app DRAFT PR44 at head `e5c6f4c7f8f2121b26198bc2ff94d7be42c948b5`:
+- `ccpcerp/ccpc_erp/report/ccpc_department_material_consumption/ccpc_department_material_consumption.py` reports original gross outbound Stock Ledger valuation by **beneficiary Department recorded on the Stock Entry/Detail**; it is **not** certified Department GL profitability and does not require a one-to-one Department/Cost Center structure for this report.
+- `ccpcerp/ccpc_erp/withdrawal_issue_beneficiary.py` uses actual beneficiary `work_for_department` or consistent Equipment affiliation, and requires Perpetual Inventory plus Department GL dimension for controlled original Material Issue.
+- `ccpcerp/ccpc_erp/bc_issue_runtime.py` currently **explicitly enforces** one exact beneficiary `CCPC Center Mapping Scope`, approved effective signed Center Mapping Revision, eligible same-Company leaf Cost Center; sets `expense_account` and `cost_center` on fresh Stock Entry Detail and stores both revision references for audit. **Removing the custom mapping gate now would change accounting behavior and requires separate owner/Finance design approval, GitHub review, tests and Development validation.**
+- `ccpcerp/ccpc_erp/bc_mapping_workflow.py` supports **separate beneficiary scopes pointing at the same existing valid Cost Center**; no inherent requirement for a dedicated Cost Center per Department.
+- ERPNext standard docs: `https://docs.frappe.io/erpnext/cost-center`, `https://docs.frappe.io/erpnext/accounting-dimensions`, `https://docs.frappe.io/erpnext/item`. Cost Centers support P&L/GL managerial grouping; Department is an independent Accounting Dimension. ERPNext can use a valid existing/default Cost Center on eligible expense transactions; standard ERPNext behavior is not a substitute for CCPC's *current* stricter Material Issue policy.
+
+**Open business design choices, not decisions:** (A) retain current signed Department-to-existing/shared-Cost-Center mapping (minimal code change but administrative Finance setup), (B) propose simplifying the *custom* mapping process to one explicitly Finance-approved Company default/shared Cost Center while retaining beneficiary Department on rows/GL and protected expense mapping (requires policy redesign, source/test migration/record-history audit, sign-off; may reduce per-center P&L detail). Never interpret this review as authorization for option B. A Cost Center master may still be needed for transactions, but not one per Department.
+
+**Next safe verification:** ask owner to open **STANDARD ERPNext Cost Center tree/list** (not the restricted `CCPC Center Mapping Scope` custom DocType) at Accounting → Accounting Masters → Cost Center, select `Cagayan Corn Products Corporation`, and report or screenshot existing leaf/non-group active Cost Centers plus whether Company has a configured Default Cost Center. This is **UI read-only**. Do not invent live Cost Center names or claim current Company default exists until seen. No permissions edits, no Finance approval or binding changes, no GL/stock or PRODUCTION.
+
 ## 2026-11-27 — LIVE DEV WET MILL SCOPE ZERO RECORDS CONFIRMED; FINANCE ONBOARDING REQUIRED (HOLD)
 
 Owner executed the one-time trusted operator-only read-only scope classifier from [deployment/docs DRAFT PR #46](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/46), pinned Git head **`3649a1b26653ab3e9f45ae51fbad46d6dd2c342a`**, after all three source checksum checks and 10/10 offline test PASS. Operator pasted exact sanitized live terminal output:
