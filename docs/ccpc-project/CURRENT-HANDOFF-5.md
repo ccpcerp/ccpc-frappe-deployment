@@ -2,6 +2,14 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-27 — Owner terminal Stockroom Center-only OFFLINE TESTS 16/16 PASS; browser + disposable DB PENDING
+
+Owner pasted a trusted `gani@ccpcerpserver` terminal run of the **exact pinned app review PR45** `48491e934dd182c327b6e1a73b0b697fff501a0e` Frappe-free test staging with `PASS: Seven pinned GitHub source files verified.` followed by all 16 `StockroomCenterMakerPureTests` / `StockroomWiringStaticTests` showing `... ok` and `Ran 16 tests in 0.036s / OK`. Printed summary appeared twice/out of order in user paste but the detailed results are consistent. These tests use fake locked DB and AST source wiring, **not** real ERPNext role records, Frappe, live MariaDB, browser UI, stock/GL or deployment.
+
+Independently verified GitHub [app DRAFT PR #45](https://github.com/ccpcerp/ccpcerp/pull/45) remains **open/draft**, head **`48491e934dd182c327b6e1a73b0b697fff501a0e`**, base app PR44 `e5c6f4c7f8f2121b26198bc2ff94d7be42c948b5`; no branch drift. This clears the **Frappe-free offline static/unit test gate only**. Prior 19/19 GitHub-source checks are not counted as an integration test.
+
+**Next test gate (NO DEVELOPMENT DB):** check `node`/Playwright/Chromium availability for isolated UI tests or run only `node --check` against already pinned staged JS as a safe extra syntax gate. Full Playwright browser tests require an isolated unprivileged browser runner with no DEVELOPMENT credentials. Genuine `test_i_stockroom_center_draft_only_and_independent_finance_approval` requires entirely disposable Frappe/MariaDB site with strict site guard, never the persistent `development.localhost`, and no SSH/production secrets. No GitHub CI execution evidence for the current PR head. Do not assert browser or real DB PASS; do not deploy code, grant roles, create/approve Wet Mill mapping, change binding, issue slip `WS-2026-00008`, touch GL/SLE or PRODUCTION. Owner authorized test execution only.
+
 ## 2026-11-27 — Owner approved isolated TEST EXECUTION for Stockroom Center-only draft PR45; offline Python pending
 
 After GitHub application draft PR #45 (`review/stockroom-center-proposer-2026-11-27` at HEAD `48491e934dd182c327b6e1a73b0b697fff501a0e`) was committed, owner replied **"Approved"** to the next proposed step: run committed tests in an isolated environment, especially genuine disposable Frappe/MariaDB acceptance before planning any separate DEVELOPMENT deployment. Interpret **tests-only authorization**, NOT merge, DEVELOPMENT pull, site mutation, role/Company permission grant, Finance mapping creation/signature, stock/GL posting or PRODUCTION.
