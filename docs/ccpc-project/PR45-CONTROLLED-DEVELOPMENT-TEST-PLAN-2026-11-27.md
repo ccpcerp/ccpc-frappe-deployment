@@ -2,6 +2,15 @@
 
 **Plan prepared 2026-11-27; status: reviewed preparation, NOT deployment authorization.** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) and [CURRENT-HANDOFF-5.md](CURRENT-HANDOFF-5.md) before execution. The owner said "Approved" to preparing the next PR45 controlled DEVELOPMENT testing milestone; this is **not** interpreted as blanket authorization for `bench migrate`, app checkout changes, service restarts, new live Finance mapping decisions, stock posting, or PRODUCTION.
 
+## 2026-11-27 owner decision — skip fresh backup; use existing NAS recovery point with known gaps
+
+The owner explicitly declined a new `development.localhost` backup and directed the PR45 DEVELOPMENT testing preparation to proceed without one. **Respect this decision; do not trigger `bench backup` or an automatic NAS copy.** Existing November 25 Synology backup `/mnt/erpnext_backups/ccpc-dev-preupdate-20261125_143912` contains four nonempty components (operator check total 1,769,258 bytes), with earlier archive readability and 4/4 source/NAS checksum verification, but **it has not been restored in a test**. Critically, it predates the separately approved and independently verified Stockroom Company User Permission; any rollback via this older backup may discard subsequent DEV data/settings. A source-code Git reversal does not reverse database migrations.
+
+**Execution interpretation:** The no-new-backup choice allows moving ahead with **read-only guarded preflight and review of the exact source-only update**. It does **not** waive clean-worktree safeguards, recovery disclosure, current site baseline, or the need for separate explicit approval before the actual checkout change and especially before the much broader `bench migrate` hooks. No migration, restore, restart, Finance mapping proposal/signature, stock, GL, or PRODUCTION action is authorized. If an operation fails, preserve the current database and stop; do not auto-restore November 25 data or rerun consumed scripts.
+
+**Immediate next step:** read-only verify `ccpcerpserver`, host and container app at expected `e5c6f4c...` with zero local changes, canonical GitHub PR45 branch still advertising `afcc7b4...`, and old NAS backup still mounted. If clean, proceed to a reviewed pinned source-only deployment step; migration is a separate gate.
+
+
 ## Source-of-truth pins and completed evidence
 
 - Application: [DRAFT PR #45](https://github.com/ccpcerp/ccpcerp/pull/45), branch `review/stockroom-center-proposer-2026-11-27`, exact tested HEAD **`afcc7b48ff8c664b0b0c781f89864995b9a59691`**, open/draft/unmerged at plan review.
