@@ -1,8 +1,29 @@
 # CCPC ERPNext — Shared Cost Center and Department/Equipment Attribution Proposal
 
-**Status: DESIGN PROPOSAL ONLY — reviewed 2026-11-27 (Asia/Manila). NOT an implementation authorization, Finance approval, deployment instruction, or posting approval.**
+**Status: STAGE A BUSINESS DESIGN APPROVED by owner on 2026-11-27 (Asia/Manila). No live Finance mapping proposal/approval, role grant, ERPNext record mutation, code change, deployment or posting authorized by the business design approval. Stage B remains an unapproved future design option.**
 
 **Owner-selected business objective:** Use **one shared `Main - CCPC` Cost Center** for Cagayan Corn Products Corporation while retaining exact beneficiary **Department** and issue-time **Equipment** attribution of consumed materials. Do not require financial P&L/budgets by individual plant in this design. Keep correct stock valuation and Company accounting and prevent double posting.
+
+## Stage A owner decision and concrete Finance workflow (APPROVED AS DESIGN; OPERATIONS HOLD)
+
+The owner explicitly approved **Stage A**, which keeps the existing signed **Department-only** Center mapping approach, reuses an eligible **`Main - CCPC`** Cost Center for the real Wet Mill beneficiary when Accounting separately signs that exact mapping, and does not change existing source code or create a new plant Cost Center. **The owner's business design approval is not a Finance approval signature.** The precise `Main - CCPC` document ID and named Finance actors are still not independently verified in DEVELOPMENT. Live scope count was zero for Wet Mill.
+
+**The reviewed GitHub application already provides an operator-facing route**: Frappe Page **`Phase 1 Finance Mappings`**, page ID `ccpc-phase1-finance`, defined by `ccpcerp/ccpc_erp/page/ccpc_phase1_finance/ccpc_phase1_finance.js` and `.json`, both on app draft PR44 at `e5c6f4c7f8f2121b26198bc2ff94d7be42c948b5`. This page requires named role `CCPC Mapping Preparer` or `CCPC Accounting Mapping Approver`. **Not proven that this Page, scripts and roles are installed/migrated in the running DEVELOPMENT site.** Do not grant Administrator generic DocType permissions to work around a legitimate gate.
+
+### Exact Stage A page process (do not execute until Finance users and permissions are approved)
+
+| Stage | UI / API behavior | Who / guard |
+| --- | --- | --- |
+| Verify access | Authorized named user navigates to `Phase 1 Finance Mappings`; server method `get_pilot_context` returns granted Company and allowed propose/review capabilities | No Administrator/Guest; enabled named user, explicit Company grant, proper mapping role, no Stockroom Personnel |
+| Check current Wet Mill coverage | Select Company `Cagayan Corn Products Corporation`, Mapping type **Cost Center**, source **Beneficiary Department** `Wet Mill Plant - CCPC`; click **Check coverage** | Server `get_pilot_coverage('Center',...)`; expected no active/draft based on earlier snapshot, but recheck current reality |
+| Prepare proposal | Preparers choose proposed Cost Center **`Main - CCPC`** from authorized master autocomplete and click **Propose mapping** | Only `CCPC Mapping Preparer`, valid Company-owned enabled leaf Department & Cost Center, immutable `Department Only` scope; creates one scope and a `Draft` revision, **NOT** an approved mapping |
+| Independently review | Approver uses the same Company + Cost Center + Wet Mill source, clicks **Check coverage** then **Review draft**; sees Company, Source, value, preparer, revision, effective time | Different named `CCPC Accounting Mapping Approver`, explicit Company grant and no Stockroom role; no same-user self approval |
+| Sign approval | Approver may click **Sign and approve** and confirm exact draft if genuine Finance authority independently accepts shared center | Server creates signed, single-use Accounting decision evidence, checks unchanged revision version, Company/role, conflicts/intervals/master, writes approved state + Version audit in one transaction. **Cannot backdate approval** |
+| Verify effectiveness | Authorized Finance user rechecks **Check coverage** to see an active mapping; separately rerun the reviewed, scope-specific read-only diagnostic and final stock/GL readiness if later authorized | Even a successful approval does **not** issue a Stock Entry or certify Expense account purpose or inventory valuation |
+
+**Safety note:** The initial Finance page's `Review draft` and `Sign and approve` are actual server-backed actions. Do not automate them, use Administrator credentials, create test Finance approvals, or select a different center without independent Finance authorization. Some server methods use POST and locking even for coverage checks; use the documented page and do not improvise API calls.
+
+**Stage B remains NOT approved.** No changes to Department/Equipment reports, revision schemas, GL fields or default Cost Center. The pilot `WS-2026-00008` remains Draft and posting remains blocked.
 
 ## 1. Verified context, and important limits
 
