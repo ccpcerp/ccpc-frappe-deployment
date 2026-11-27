@@ -2,6 +2,26 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-27 — LIVE DEV WET MILL SCOPE ZERO RECORDS CONFIRMED; FINANCE ONBOARDING REQUIRED (HOLD)
+
+Owner executed the one-time trusted operator-only read-only scope classifier from [deployment/docs DRAFT PR #46](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/46), pinned Git head **`3649a1b26653ab3e9f45ae51fbad46d6dd2c342a`**, after all three source checksum checks and 10/10 offline test PASS. Operator pasted exact sanitized live terminal output:
+```text
+diagnose_ws_2026_00008_wet_mill_scope_readonly.py: OK
+test_diagnose_ws_2026_00008_wet_mill_scope_readonly.py: OK
+diagnose_ws_2026_00008_readonly.py: OK
+PASS: Live scope diagnostic source verified.
+PASS | MariaDB identity | matched pinned DEVELOPMENT server
+PASS | Pilot scope | saved Draft beneficiary matched
+FAIL | Wet Mill scope count | zero exact Company and Department records
+FAIL | Wet Mill selector | no matching record to examine
+FAIL | OVERALL | scope classified; signed Finance and posting remain blocked
+```
+**Confirmed by operator-reported live DB read:** exact `tabCCPC Center Mapping Scope` count **zero** for `company='Cagayan Corn Products Corporation'` and `beneficiary_department='Wet Mill Plant - CCPC'` at the snapshot. This rules out duplicate/wrong-selector *within the exact matched scope*: there is **no row** to inspect. The persisted `WS-2026-00008` Draft Company/requester/beneficiary passed. No linked signed Center revision or active Cost Center validation was undertaken; neither can be asserted as passed. Bearings Expense scope/signature/eligible Account checks passed in the preceding Finance audit but do not substitute for Wet Mill Center. No DB writes or side effects are reported. ChatGPT did NOT access DEVELOPMENT DB itself.
+
+**Verified GitHub review code (APP repo draft PR44 `e5c6f4c7f8f2121b26198bc2ff94d7be42c948b5`):** `ccpcerp/ccpc_erp/phase1_finance_onboarding.py` defines a company-scoped initial Finance mapping workflow `propose_pilot_mapping`, `get_pilot_coverage`, `review_pilot_mapping`, `sign_and_approve_initial_mapping`. `bc_mapping_workflow.py` `propose_mapping` creates the scope with exact `selector_kind='Department Only'`/`selector_key='DEPARTMENT_ONLY'` and a Draft only under authenticated `CCPC Mapping Preparer`; independent `CCPC Accounting Mapping Approver` must review/sign/approve. `bc_issue_runtime.py` `_real_authority` requires enabled named account with explicit Company grant, Finance role, and no Stockroom role; **Administrator and Guest excluded**, no shortcut grants. The current Company-selected valid Cost Center and actual named Finance actors are **not independently verified**. The owner previously could not open the DocType in UI; GitHub DocType JSON has `permissions: []`. This is consistent with intended guarded API rather than ordinary Desk list permissions, not a reason to override Administrator or insert scope directly. A signed Center approval **must be a separate, authorized Finance decision**, and a Department may map to an existing valid Cost Center (no automatic creation of a new Center).
+
+**Next owner-facing decision/gate:** Determine **which existing CCPC Cost Center (if any) Accounting authorizes for Wet Mill Plant**; verify named Finance preparer and different named Accounting approver with explicit CCPC grants, and review the controlled Finance-onboarding UI/API workflow and backups before granting authority for a **new proposal** or **approval**. Do not create/approve anything automatically or copy Maintenance mapping. Keep `WS-2026-00008` Draft, private pilot binding incomplete/`operator_acknowledgement=false`, full PR43 preflight, stock/GL and PRODUCTION strictly on HOLD. No permissions/schema/migrations, Docker, Finance or voucher writes approved by the diagnostic.
+
 ## 2026-11-27 — Trusted operator staged Wet Mill scope PR46, 3 hash OK and 10/10 OFFLINE PASS (LIVE STILL PENDING)
 
 Owner pasted sanitized trusted `gani@ccpcerpserver` output from new operator-private staging of [deployment draft PR46](https://github.com/ccpcerp/ccpc-frappe-deployment/pull/46):
