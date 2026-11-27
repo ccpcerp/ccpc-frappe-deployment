@@ -2,6 +2,12 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-27 — FINANCE PAGE COMPANY ACCESS VISIBLE; COVERAGE STILL NOT RUN
+
+Owner provided screenshot of the actual DEVELOPMENT `Phase 1 Finance Mappings` page. It displays **Company=Cagayan Corn Products Corporation** in its dropdown, `Mapping type=Expense Account` by default, an empty `Item Group` field and **Check coverage** button. **No `Propose mapping` button is visible.** Under the reviewed app page/backend code on app draft PR44 `e5c6f4c7f8f2121b26198bc2ff94d7be42c948b5`, this is consistent with `get_pilot_context` returning a Company-specific grant and `can_propose=false` (likely named approver/reviewer), but precise current user/roles not independently inspected; do not claim an exact identity.
+
+The screenshot is **NOT** the requested Wet Mill Cost Center coverage result: current mapping type remains **Expense Account** and Item Group empty. Next ONE non-mutating UI action: select `Mapping type=Cost Center`, source `Beneficiary Department=Wet Mill Plant - CCPC`, then click **Check coverage** once. Report active/draft fields or a sanitized error screenshot. Do not click `Propose mapping` or `Sign and approve`, do not grant roles, and do not create/change ERPNext Finance or stock documents. The previous read-only scoped MariaDB snapshot found zero Wet Mill scopes; current UI status remains unverified.
+
 ## 2026-11-27 — DEVELOPMENT Phase 1 Finance Mappings Page OPEN; read-only UI coverage pending
 
 Owner reports **`Phase 1 Finance Mappings` page opens in DEVELOPMENT** and explicitly requests *read-only access and coverage verification*, **NO proposal or approval**. Verified GitHub app draft PR44 remains HEAD `e5c6f4c7f8f2121b26198bc2ff94d7be42c948b5`. Reviewed `ccpcerp/ccpc_erp/page/ccpc_phase1_finance/ccpc_phase1_finance.js` and `phase1_finance_onboarding.py`:
