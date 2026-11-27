@@ -16,6 +16,7 @@ GUARD_SHA256 = "8f9741b49a691796022a08a525e606cf164f77d8bf7d6308696af5c364d7c04b
 GUEST = r'''
 import json
 import os
+from decimal import Decimal
 from pathlib import Path
 import socket
 import sys
@@ -94,17 +95,18 @@ def diagnostic():
 
             counts = one(
                 'SELECT COUNT(*) AS n,'
-                'COALESCE(SUM(CASE WHEN selector_kind=%s THEN 1 ELSE 0 END),0) AS kinds,'
-                'COALESCE(SUM(CASE WHEN selector_key=%s THEN 1 ELSE 0 END),0) AS keys,'
-                'COALESCE(SUM(CASE WHEN selector_kind=%s AND selector_key=%s THEN 1 ELSE 0 END),0) AS exacts '
+                'COALESCE(SUM(CASE WHEN selector_kind=%s THEN 1 ELSE 0 END),0) AS kind_matches,'
+                'COALESCE(SUM(CASE WHEN selector_key=%s THEN 1 ELSE 0 END),0) AS key_matches,'
+                'COALESCE(SUM(CASE WHEN selector_kind=%s AND selector_key=%s THEN 1 ELSE 0 END),0) AS exact_matches '
                 'FROM `tabCCPC Center Mapping Scope` WHERE company=%s AND beneficiary_department=%s',
                 ('Department Only', 'DEPARTMENT_ONLY', 'Department Only', 'DEPARTMENT_ONLY',
                  COMPANY, BENEFICIARY),
             )
-            n, kinds, keys, exacts = (
-                int(counts[k]) for k in ('n', 'kinds', 'keys', 'exacts')
-            )
-            assert all(type(counts[k]) is int for k in ('n', 'kinds', 'keys', 'exacts'))
+            raw = tuple(counts[k] for k in
+                        ('n', 'kind_matches', 'key_matches', 'exact_matches'))
+            # MySQLdb may return decimal.Decimal for integer SUM expressions.
+            assert all(type(v) in (int, Decimal) and v == int(v) for v in raw)
+            n, kinds, keys, exacts = map(int, raw)
             assert n >= 0 and 0 <= exacts <= kinds <= n and 0 <= exacts <= keys <= n
 
             if n == 0:
