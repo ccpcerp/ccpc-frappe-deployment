@@ -2,6 +2,22 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-27 — LIVE DEVELOPMENT named Finance maker/checker read-only audit: Stockroom Company grant MISSING
+
+**Operator-reported SELECT-only DEVELOPMENT User / Has Role / User Permission audit** via exact pinned app `e5c6f4c7f8f2121b26198bc2ff94d7be42c948b5` in `frappe_docker_devcontainer-frappe-1`, `development.localhost`, `START TRANSACTION READ ONLY` / `ROLLBACK`. Summary flags are **not an effective endpoint authorization test**, and ChatGPT did not query DEVELOPMENT directly.
+
+| Actor ID | enabled | Stockroom Personnel | CCPC Mapping Preparer | CCPC Accounting Mapping Approver | qualifying CCPC Company grants | restricted CCPC grants | other Company grants |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `stockroom@personnel1.com` | 1 | 1 | 1 | 0 | **0** | 0 | 0 |
+| `finance_controller_2@ccpc.com` | 1 | 0 | 0 | 1 | 1 | 0 | 0 |
+| `finance_controller@ccpc.com` | 1 | 0 | 0 | 1 | 1 | 0 | 1 |
+| `purchasing@supervisor1.com` | 1 | 0 | 1 | 0 | 1 | 0 | 1 |
+| `ccpc-billing-checker-dev@testing.invalid` | 1 | 0 | 0 | 1 | 1 | 0 | 1 |
+
+A **qualifying grant** is `tabUser Permission.allow='Company'`, `for_value='Cagayan Corn Products Corporation'`, `apply_to_all_doctypes=1`, and empty `applicable_for`. The intended Stockroom+Preparer is an enabled, separate role-appropriate maker **but lacks any explicit CCPC Company grant**, which is a **fail-closed PR45 proposal authorization blocker**. Two enabled Controller-labelled accounts have the Approver role and qualifying CCPC grants, but their independent real-human designation remains an owner/Finance governance matter; do not use the synthetic `.invalid` test actor as an operational signer. Some actors hold other-Company grants; this audit did not enumerate their target Companies or prove those grants legitimate.
+
+**Next decision/gate:** No grant, account, Company, mapping or deployment changes are approved by this read-only inspection. Owner must separately authorize an exact **DEVELOPMENT-only** User Permission addition for `stockroom@personnel1.com`, CCPC Company, applicable to all DocTypes, no restricted `applicable_for`, after reviewing the security implications. This alone cannot enable the feature: current DEVELOPMENT application is older PR44 commit `e5c6f4...`; [Draft PR45](https://github.com/ccpcerp/ccpcerp/pull/45) remains open/unmerged at `afcc7b48ff8c664b0b0c781f89864995b9a59691` as reverified by GitHub. Separately approve reviewed DEVELOPMENT code pull/migrate/restart and test with current validated backup/rollback plan; do not make live proposal/signature/SLE/GL/PRODUCTION changes. Existing 9 protected Finance DocTypes have zero standard/custom grants; exact `Main - CCPC` master is a valid CCPC leaf in DEV per prior operator-read-only checks.
+
 ## 2026-11-27 — LIVE DEVELOPMENT exact Main - CCPC Cost Center read-only PASS
 
 **Operator-provided read-only SQL evidence, not direct connector access to DEVELOPMENT.** Corrected ERPNext v16 field name in `tabCompany` is `cost_center` (not `default_cost_center`; original SELECT failed `ERROR 1054` before returning a result). After source verification in `frappe_docker_devcontainer-frappe-1` against expected currently installed app commit `e5c6f4c7f8f2121b26198bc2ff94d7be42c948b5`, operator reran `bench --site development.localhost mariadb` inside a `START TRANSACTION READ ONLY` / `ROLLBACK` script. Result: **Company PRESENT** = `Cagayan Corn Products Corporation`; **Company `cost_center`** = `Main - CCPC`; **exact `tabCost Center.name`** = `Main - CCPC`, short `cost_center_name` = `Main`, `company` exact CCPC, parent `Cagayan Corn Products Corporation - CCPC`, `is_group=0`, `disabled=0`, verification **`ELIGIBLE_MASTER_ONLY`**. This resolves exact target master ID and basic eligibility, **not** Finance authorization, effective mapping, issued stock/GL, or deployed PR45 functionality. No new Cost Center required.
