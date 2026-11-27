@@ -2,6 +2,12 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-27 — Cost Center form screenshot shows PARENT GROUP, not Main leaf; no changes
+
+Owner supplied a follow-up DEVELOPMENT ERPNext Cost Center form screenshot. The record shown has Company `Cagayan Corn Products Corporation`, **Is Group checked**, **Disabled unchecked**, Enabled badge, empty Parent Cost Center, and the informational notice **"This Cost Center is a Group. Cannot make accounting entries against groups."** This is **the parent/group Cost Center form** (screen title truncated), **not a verification of child `Main - CCPC`**. The visible `Convert to Non-Group` control is not to be used. No clicks on Save, Convert, permission changes, mapping edits, GL/stock or PROD are approved.
+
+**NEXT read-only UI step:** use `Chart of Cost Centers` and select specifically the **child** `Main - CCPC` (circle/leaf, not a folder); inspect its Company, `Is Group` and `Disabled` status without saving. Only a verified enabled, same-Company, non-group leaf is eligible for an eventual shared-center mapping, and only following human Finance approval. Still zero exact Wet Mill Center Mapping Scopes from prior trusted live DB snapshot; no signed Center revision; Withdrawal Slip Draft remains blocked.
+
 ## 2026-11-27 — User supplied CCPC Cost Center tree and Chart of Accounts; Main shared-center candidate (READ ONLY)
 
 Owner provided screenshot of DEVELOPMENT `Accounts Setup` Cost Center tree with selected `Cagayan Corn Products Corporation`: expanded hierarchy `Cagayan Corn Products Corporation` → `Cagayan Corn Products Corporation - CCPC` → one **visible leaf-indicated** `Main - CCPC`. Screenshot does **not** expose `Main - CCPC` full record ID, `company`, `disabled`, `is_group`, Company Default Cost Center or existence of hidden/unexpanded other records. Treat as **candidate existing shared leaf Cost Center**, NOT yet independently confirmed active, same-Company or Accounting-approved for Wet Mill.
