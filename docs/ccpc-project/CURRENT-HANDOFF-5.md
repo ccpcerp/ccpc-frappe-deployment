@@ -2,6 +2,12 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-28 — DEVELOPMENT container inventory: no separately named scheduler; next inspect processes in Frappe container
+
+**Owner-provided DEVELOPMENT-only `docker ps -a` output on `ccpcerpserver`:** `frappe_docker_devcontainer-frappe-1`, `frappe_docker_devcontainer-redis-cache-1`, `frappe_docker_devcontainer-redis-queue-1`, and `frappe_docker_devcontainer-mariadb-1` are all **Up 6 weeks**. No separately named Frappe scheduler or worker service container appears in this inventory. A scheduler or worker process might run **inside** the main `frappe` container, so absence of a named container alone does not prove process failure. Separate `ccpc_codex_dev_agent-redis-cache-1`, `ccpc_codex_dev_agent-redis-queue-1`, `ccpc_codex_dev_agent-db-1` are Up 10 days; **`ccpc_codex_dev_agent-agent-1` Exited (143) 10 days ago**, and an isolated probe exited 11 days ago. This is separate from the running Frappe site and its Redis services; **do not restart the paused Codex lab agent**. Do not assume Codex agent status caused ERPNext scheduler outage.
+
+**Next safe operator diagnostic:** read-only `docker top frappe_docker_devcontainer-frappe-1 -eo pid,ppid,stat,comm,args` filtered for `schedule|worker|honcho|supervisord` to identify in-container scheduler and worker processes. Do not restart services, enable schedulers, force queued stock reposts, purge RQ tasks, or perform Company transaction deletion until verified. Previously verified DEVELOPMENT `bench doctor` had one online worker but serial `repost_entries` last execution was Nov 2 despite `enable_scheduler=1`, SJT stopped=0, parallel mode disabled and no posting-timeslot limit. Four real Companies and PRODUCTION remain untouched.
+
 ## 2026-11-28 — Read-only scheduler data explains queued synthetic reposts: last dispatcher execution Nov 2
 
 **Operator-provided DEVELOPMENT read-only SQL** ending `CODEX REPOST SCHEDULER DIAGNOSTIC COMPLETE` at ~14:xx Asia/Manila:
