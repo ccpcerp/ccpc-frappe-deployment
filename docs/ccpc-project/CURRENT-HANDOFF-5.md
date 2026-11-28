@@ -2,6 +2,17 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-28 — Post-repost _Test Company stock and accounting verification passed
+
+**Operator's independent read-only DEVELOPMENT site SQL after the successful 2026-11-28 15:39 scheduler dispatch confirms:**
+- `MAT-STE-2026-00012`, `MAT-STE-2026-00013` both `docstatus=2` (Cancelled).
+- Entire `_Test Company` stock ledger: **4 historical SLE rows, 0 active (`is_cancelled=0`), net `actual_qty=0`**.
+- All three `tabBin` rows in test-company warehouses: `ITEM-00034 / _Test Warehouse Group-C1 - _TC`, `ITEM-00022 / _Test Warehouse - _TC`, `ITEM-00023 / _Test Warehouse - _TC`, all **actual_qty=0, reserved_qty=0**.
+- `tabGL Entry` for `_Test Company`: **0**.
+- `tabRepost Item Valuation` for `_Test Company`: **2 Completed, no remaining Queued, In Progress or Failed**.
+
+**Result:** The cancelled receipt valuation dependency is now resolved and stock/accounting balances are clean; **historical cancelled SLEs still exist** and remain links that prevent ordinary Stock Entry/warehouse deletion. No Company or Transaction Deletion Record deletion has yet occurred. Next approved cleanup step is **native ERPNext UI cancellation of synthetic Pending Purchase Material Request `MAT-MR-2026-00006`**, after checking Connections/downstream Purchase Orders; if no links and UI permits, cancel normally, do not directly SQL delete or force-ignore links. Then handle `MAT-MR-2026-00007`, evaluate unused Asset Maintenance Team `Team Awesome`, and undertake a separately scoped approved TDR/disposable restore review before final Company deletion. No automatic scheduler process is running; previous activation was a **one-time, site-pinned dispatch** only. Frappe bench has three DEV site directories, so native `bench schedule` would affect other integration sites and is still not authorized. Production strictly excluded. Backups and seven-day retention verified, backup restore not yet rehearsed.
+
 ## 2026-11-28 — Confirmed site-scoped dispatch ran 79/82 jobs; both synthetic valuation reposts completed
 
 **Operator-provided read-only DEVELOPMENT result after approved `bench --site development.localhost execute frappe.utils.scheduler.enqueue_events`:** 82 enabled Scheduled Job Types, **79 `last_execution >= 2026-11-28 00:00:00`** at readback. Serial valuation repost Scheduled Job Type `34lt6n7bgr` last_execution **2026-11-28 15:39:25.951782**, corresponding most recent `tabScheduled Job Log` **`Complete`**, created `2026-11-28 15:39:25.927084`, modified `15:39:26.060050`. Both synthetic `_Test Company` RIVs are **`docstatus=1`, `status=Completed`, `has_error=0`**:
