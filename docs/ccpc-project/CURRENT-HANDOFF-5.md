@@ -2,6 +2,14 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-28 — Operator reports second synthetic receipt cancelled; SQL confirmation pending
+
+**Owner-reported DEVELOPMENT UI event:** `MAT-STE-2026-00013` now displays **Cancelled**; no fresh independent SQL result yet for `docstatus=2`, 2026-11-28 reverse SLE for `ITEM-00023`, `is_cancelled` flags, active balance, GL or related documents. Earlier independent SQL already confirmed `MAT-STE-2026-00012` cancelled (`docstatus=2`), with original +10 and compensating -10 SLE, both `is_cancelled=1`. Both were synthetic `_Test Company` Material Receipts; do not reverse twice or manually delete their Stock Ledger.
+
+**Next single read-only DEVELOPMENT verification:** SQL `START TRANSACTION READ ONLY`/`ROLLBACK`: exact `tabStock Entry` states for vouchers 00012/00013; all `tabStock Ledger Entry` for these vouchers with `actual_qty`, `is_cancelled`, quantities summed per voucher and `is_cancelled=0` count; check `tabGL Entry` and `tabBin` only for the synthetic test Company/warehouse and two Item codes. Confirm receipt 00013 has expected reversal; `Cancelled` in UI alone is not posted SLE verification.
+
+**Release/cleanup caution:** Frappe's ordinary Delete will still see submitted Stock Ledger Entries linked to cancelled Stock Entries; repeated UI Delete is not appropriate. Upstream ERPNext v16 `Transaction Deletion Record` is a Company-scoped *bulk* deletion workflow that can delete across many DocTypes and update derived stock/other records; its scope and side effects are not equivalent to a single voucher Delete. Never submit this process without reviewing the generated exact DocType list, custom records and cross-company links, fresh DEVELOPMENT full with-files backup with recovery validation, isolated-clone rehearsal, and separate explicit owner authorization. Four business Companies (CCPC/RMC/GSL/WFC) and all real accounting approvals stay protected. No production operations.
+
 ## 2026-11-28 — Synthetic receipt 00012 cancellation independently verified; no retry or ledger deletion
 
 **Operator's live DEVELOPMENT READ-ONLY SQL output** after earlier link-error investigation, ending `STOCK CANCELLATION DIAGNOSTIC COMPLETE`:
