@@ -2,6 +2,12 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-28 — First synthetic Material Request successfully cancelled; auto-reorder source revealed
+
+**Operator supplied ERPNext document JSON from persistent DEVELOPMENT after native UI cancellation:** `MAT-MR-2026-00006` is owned by `_Test Company`, `docstatus=2`, `status=Cancelled`, modified by Administrator at **2026-11-28 15:47:01.004534**. It is a Purchase Material Request created September 16, 2026, with `auto_created_via_reorder=1`; child items `ITEM-00022` (`_Test Warehouse - _TC`) and `ITEM-00034` (`_Test Warehouse Group-C1 - _TC`), both requesting 20 units, with test-only accounts/cost centers. This proves **successful native lifecycle cancellation, not deletion**. Its child document `actual_qty=10` is a historical field snapshot, not a fresh stock balance: the later independent `tabBin`/SLE read was zero. **Important recurrence risk:** test Item Reorder settings may regenerate Material Requests if stock-reordering scheduler resumes; inspect and clear only test Item/warehouse reorder configurations through reviewed ERPNext normal lifecycle before permanent scheduling, without touching real-Company item reorder settings. The user approved site-scoped one-time scheduler dispatch but not a persistent bench-wide scheduler; stock reposts Completed with zero active SLE/GL/Bin balances.
+
+**Next narrow operator action:** open `MAT-MR-2026-00007`, check Connections for downstream PO/other linked documents, then cancel via normal ERPNext UI if clear. Do not delete submitted/cancelled MR rows with SQL or run Company TDR. Following both cancellations, review the test-only auto-reorder source (and potential new requests), `Asset Maintenance Team` `Team Awesome`, and last synthetic transactional links before a separate explicit approved TDR and eventual Company deletion. DEVELOPMENT-only, PRODUCTION excluded. Current milestone documented as operator evidence; no new scheduler run or container changes.
+
 ## 2026-11-28 — Post-repost _Test Company stock and accounting verification passed
 
 **Operator's independent read-only DEVELOPMENT site SQL after the successful 2026-11-28 15:39 scheduler dispatch confirms:**
