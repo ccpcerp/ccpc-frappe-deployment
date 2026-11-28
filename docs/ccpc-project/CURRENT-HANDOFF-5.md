@@ -2,6 +2,12 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-28 — ITEM-00024 test tax row removal reported; ITEM-00035 next
+
+**Operator report:** User replied **"Done"** after instruction to open shared Item `ITEM-00024` in persistent `development.localhost` ERPNext UI, remove only its Taxes child row `f18jlr4pae` referencing `_Test Account Excise Duty @ 10 - _TC`, and Save. Treat as **reported native-UI removal**, not a fresh database readback; Item itself was not authorized for deletion. The one test-only Item Reorder row on `ITEM-00033` was likewise reported removed earlier.
+
+**Current next single operator step:** open shared Item `ITEM-00035`, remove exactly two Taxes rows referencing `_Test Account Excise Duty @ 10 - _TC` (`f18omheq0e`) and `_Test Account Excise Duty @ 12 - _TC` (`f18h33l72s`); Save, preserve other rows and Item master. Afterward `ITEM-00038` has 2 test tax references, then two test-named Item Groups have 3 total. Only after eight tax child references cleared, delete exactly five test Item Tax Template parents via ordinary UI, then verify post-cleanup and use prior separate approval for `_Test Company` master deletion. No SQL deletes, forced deletion, real-company modification, other sites, or PRODUCTION.
+
 ## 2026-11-28 — ITEM-00033 test-only warehouse reorder row removal reported
 
 **Operator report:** User replied **"Done"** immediately after instruction to open `ITEM-00033` in persistent `development.localhost`, remove only Reorder Levels child row `f183ninpsg` (`warehouse='_Test Warehouse - _TC'`, `warehouse_group='_Test Warehouse - _TC'`), and Save. Record as **operator-reported UI cleanup**, not a fresh independent DB readback. Shared Item `ITEM-00033` itself was not authorized for deletion; no new TDR, Company master deletion or PRODUCTION action reported.
