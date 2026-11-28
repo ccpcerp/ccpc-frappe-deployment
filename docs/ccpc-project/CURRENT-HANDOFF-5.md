@@ -2,6 +2,14 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-28 — Corrected Transaction Deletion Record UI flow: no New; Company button auto-submits
+
+**User reports:** On `http://development.localhost:18000/desk/transaction-deletion-record`, no **New** button or selectors. **Root cause confirmed in upstream ERPNext v16 source:** `erpnext/setup/doctype/transaction_deletion_record/transaction_deletion_record.json` permissions specify `System Manager` with read/write but **no `create` permission**; direct list New is not supported. The previous recommendation in this handoff to create a draft from the list is **incorrect** for this version.
+
+**Authoritative navigation:** `erpnext/setup/doctype/company/company.js` displays **Manage → Delete Transactions** when the logged-in user has System Manager role and Company write permission. It verifies password and typed Company name, then calls `create_transaction_deletion_request(company)`. **Critically** in `erpnext/setup/doctype/company/company.py`, this API requires System Manager and Company delete permission and performs `tdr.insert(); tdr.generate_to_delete_list(); tdr.reload(); tdr.submit()` immediately. There is **no editable preview approval step** before the destructive Submit when using the Company button. The TDR client JS warns Submit automatically begins permanent deletion. **Do not click this action merely to see the list.** The button triggers Company-wide transactional deletion, not narrow removal of one Stock Entry.
+
+**Next path:** Preserve the already verified two cancelled `_Test Company` receipts, 0 net/active SLEs, zero affected Bin qty/reserves and 0 GL. A safer option is a **read-only independent DocType/record scope preview** and verified post-cleanup DEVELOPMENT with-files backup, then, only if owner separately authorizes, a documented and isolated-clone-rehearsed narrow cleanup or bounded Company-only TDR operation. No generalized bypass or raw SLE deletions; protect four business Companies. No site deletion operation executed here.
+
 ## 2026-11-28 — Both synthetic receipt cancellations and stock/GL zero verified; review targeted cleanup draft
 
 **Operator-provided DEVELOPMENT read-only SQL output**, ending `TEST COMPANY STOCK REVERSAL VERIFICATION COMPLETE`, independently verifies:
