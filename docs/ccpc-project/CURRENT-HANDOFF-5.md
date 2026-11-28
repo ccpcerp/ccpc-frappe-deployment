@@ -2,6 +2,21 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-28 — Synthetic Company final nonzero dependencies: submitted Purchase MRs, queued Repost Item Valuations, maintenance team
+
+**Owner-supplied read-only DEVELOPMENT results** from query ending `FINAL TEST COMPANY DEPENDENCIES VERIFIED`:
+- `tabMaterial Request` (Company `_Test Company`): **MAT-MR-2026-00006**, **MAT-MR-2026-00007**, both `docstatus=1`, `status=Pending`, `material_request_type=Purchase`.
+- `tabRepost Item Valuation`: **gbf1kdhp9p**, **o2vn6th7h9**, both `docstatus=1`, `status=Queued`, `voucher_type=NULL`, `voucher_no=NULL`. Do NOT assume this means invalid entries: Repost Item Valuation can be `based_on=Item and Warehouse`, with no voucher reference.
+- `tabAsset Maintenance Team`: **Team Awesome**, Company exactly `_Test Company`.
+- `tabBin`: `ITEM-00034` in `_Test Warehouse Group-C1 - _TC`, `ITEM-00022` and `ITEM-00023` in `_Test Warehouse - _TC`; **all `actual_qty=0`, `reserved_qty=0`**.
+- `tabCompany`: `_Test Company`, `parent_company=NULL`, `is_group=0`; no Company child rows returned.
+- No rows returned for `tabSupplier.represents_company` or `tabCustomer.represents_company` against `_Test Company`.
+
+**Critical upstream ERPNext v16 check:** `Repost Item Valuation.before_cancel` calls `check_pending_repost_against_cancelled_transaction()`, which **rejects Cancel when `status` in (`Queued`, `In Progress`)**, message `Cannot cancel as processing of cancelled documents is pending. Please try again in an hour.`. Scheduled `repost_entries` and parallel workers may pick up queued rows; `execute_reposting_entry` runs when status Queued/In Progress. **Do not tell owner to cancel/delete these queued RIV docs through ordinary UI or force SQL status, or start reposting.** Verify `based_on`, item, warehouse, posting date, reference and whether jobs truly active before proceeding with Company-wide Transaction Deletion Record; raw voucher NULL alone is not a proof of staleness.
+- Submitted Pending Purchase Material Requests should be cancelled via normal ERPNext lifecycle only if linked downstream transactions allow it. Asset Maintenance Team is a master explicitly excluded by default TDR, so may need separate safe deletion. Inventory/GL reversal verified prior. No user authorization yet for automatic broad TDR, cancellation of queued jobs, destructive database cleanup, or PRODUCTION modification.
+
+**Next single read-only step:** Inspect exact two queued RIV records' `based_on`, `item_code`, `warehouse`, `posting_date`, `creation`, `reposting_reference`, `repost_only_accounting_ledgers` (no modification). Then decide controlled scheduler/worker-safe cleanup on DEVELOPMENT before any TDR or Company deletion. Retention 168h and new Nov28 with-files backup verified, restore validation pending. Four real Companies remain strictly protected.
+
 ## 2026-11-28 — Final synthetic Company: 192 owned records inventoried; five record classes need careful review
 
 **Operator's new read-only DEVELOPMENT dynamic Company-owning DocType audit** (ending `TEST COMPANY DEPENDENCY INVENTORY COMPLETE`) for exact `_Test Company`: **192 rows across 12 parent DocTypes**: Account **132**, Warehouse **16**, Department **15**, Cost Center **6**, Item Tax Template **5**, Process Deferred Accounting **4**, Stock Ledger Entry **4**, Bin **3**, Material Request **2**, Repost Item Valuation **2**, Stock Entry **2**, Asset Maintenance Team **1**. These counts are current Company-owned records detected by direct `company` Link column only; **not** proof of the absence of other Company references in non-owning fields, children or Dynamic Links.
