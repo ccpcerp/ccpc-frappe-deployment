@@ -2,15 +2,18 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
-## 2026-11-28 — Live Company Cost Center default read-only audit: CCPC PASS; RMC STOP (Company name mismatch)
+## 2026-11-28 — Owner corrects RMC Company spelling; GitHub policy corrected, live RMC default still unverified
 
-**Operator-reported DEVELOPMENT-only SQL result** from the previously reviewed `START TRANSACTION READ ONLY` check on `ccpcerpserver` (`development.localhost`), ending `COMPANY DEFAULT READ-ONLY CHECK COMPLETE`; no data changes:
+**Owner confirmed the authoritative Company name is `Ricor Mills Corporation` (plural Mills)**; earlier `Ricor Mill Corporation` was only an owner's typo in the stated policy. Existing `ccpcerp/setup.py` Department foundation already uses `Ricor Mills Corporation`.
 
-- `Cagayan Corn Products Corporation`: `tabCompany.cost_center = Main - CCPC`; `tabCost Center.name = Main - CCPC` belongs to exact CCPC Company, `is_group=0`, `disabled=0`; **PASS**.
-- `Ricor Mill Corporation`: `tabCompany.cost_center = NULL`. The Cost Center record `Main - RMC` exists as active leaf (`is_group=0`, `disabled=0`) but its `company` is **`Ricor Mills Corporation` (plural `Mills`)**, different from the approved/code-pinned `Ricor Mill Corporation` (singular `Mill`); **STOP**.
-- Hence RMC has **two blockers**, absent Company default and mismatch of Cost Center owning Company; do not automatically fill Company default, relink the Center, rename a Company, change the allowlist, create an alternative Center or use RMC to post stock/GL. A bare Cost Center tree screenshot never proved `Company.cost_center`.
-- **Next single action:** independent read-only query of both exact Company records (including `name`, `abbr`, `cost_center`) and `Main - RMC` master ownership, with any other RMC Centers, to determine whether `Ricor Mills Corporation` is the authoritative registered Company or a separate master. If only plural exists, a separately approved GitHub business-rule/code correction might be appropriate; if both exist, investigate records/transactions before any live master change. Keep CCPC-specific Company-default tests available independently, but do not treat RMC or the new code as accepted.
-- Separate 7-test isolated runner and disposable Frappe/MariaDB integration remain pending; current Company-default app review branch `review/company-default-cost-centers-2026-11-28` at `1046fcb3e2b8fa548bf4561587fc6188c7d5ce53`, not deployed. No new migration, signed mapping modification, real Material Issue, SLE/GL, PRODUCTION, or write authorization.
+**Interpretation of operator's previous read-only DEVELOPMENT query:** `Cagayan Corn Products Corporation → Main - CCPC` satisfied real `tabCompany.cost_center`, matching Company-owned, enabled non-group leaf **PASS**. The RMC row was built from a literal `Ricor Mill Corporation` LEFT JOIN and returned `configured_default=NULL` alongside `Main - RMC` owned by **`Ricor Mills Corporation`** with `is_group=0`, `disabled=0`. This **does not prove** the real *plural* Company has a blank default; an unmatched LEFT JOIN also returns NULL. The original row's `STOP` is a **bad query expected-name mismatch**, not proof of a broken Cost Center or existing RMC default. Neither Company record existence nor `tabCompany.cost_center` for the correct plural name was verified by that query.
+
+**GitHub-only correction made to existing owner-approved Company-default policy review branch** `review/company-default-cost-centers-2026-11-28`:
+- `ccpcerp/ccpc_erp/bc_issue_allocation.py`: allowlist now maps **`Ricor Mills Corporation → Main - RMC`** (commit `69aff4727bf6c623687ad0d9628d37661b32303d`).
+- `ccpcerp/ccpc_erp/test_company_default_cost_centers_pure.py`: test fixture uses exact plural name and asserts erroneous singular Company is rejected (commit `e22506ba51b2ce7de91b61b7cfed558f58b15052`).
+- Branch remains **unmerged/not pulled to DEVELOPMENT**. The seven pure tests and disposable Frappe/MariaDB integration have **NOT been run** on these new commits. Previous `1046fcb3` is a historical pre-correction HEAD, not current app branch tip.
+
+**Next minimal operator gate:** one read-only DEVELOPMENT SQL query for actual `tabCompany.name='Ricor Mills Corporation'`, its `abbr`, `cost_center`, and `tabCost Center.name='Main - RMC'` Company/leaf/enabled validation. Return `PASS` only when the exact Company exists and its default `Main - RMC` matches the correct Company-owned active leaf; otherwise `STOP` and inspect, with **no automatic Company/master write**. No extra departmental proposal or signoff. No PR merge, migration, stock/GL posting, PRODUCTION activity or new financial permission authorized.
 
 ## 2026-11-28 — Company defaults code implemented in separate GitHub review branch; NOT tested/deployed
 
