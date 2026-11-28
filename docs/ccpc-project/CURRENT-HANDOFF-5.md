@@ -2,6 +2,17 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-28 — Fresh read-only investigation identifies newly created MR 00013; Bin and reorder status clear
+
+**Operator-provided SELECT-only DEVELOPMENT result** from site-pinned Python (`START TRANSACTION READ ONLY` and `ROLLBACK`, ending `READ-ONLY CHECK COMPLETE`):
+- `MAT-MR-2026-00006`, `docstatus=2`, `status=Cancelled`, `auto_created_via_reorder=1`, creation 2026-09-16;
+- `MAT-MR-2026-00007`, **independently read back** `docstatus=2`, `status=Cancelled`, `auto_created_via_reorder=1`, creation 2026-09-17;
+- **`MAT-MR-2026-00013`**, `docstatus=1`, `status=Pending`, `auto_created_via_reorder=1`, created **2026-11-28 15:39:31.091598** during the previous one-time scheduler dispatch window. This third MR was not in earlier inventory; it predates later 3 Item Reorder row removals, so does not by itself prove recurrence persists now.
+- `tabBin` exact `_Test Company`: three rows `ITEM-00022/_Test Warehouse - _TC`, `ITEM-00023/_Test Warehouse - _TC`, `ITEM-00034/_Test Warehouse Group-C1 - _TC`; **each `actual_qty=0.0`, `reserved_qty=0.0`**.
+- `tabItem Reorder` rows across these three Items: **none**, read-only confirmed.
+
+**Next single authorized operator action:** In DEVELOPMENT UI, open `MAT-MR-2026-00013`, verify exact Company and no downstream Purchase Orders/other linked transactions, cancel through native document lifecycle if allowed. If link error, stop; no forced SQL edit. After operator cancellation report, need readback and revisit installed-version TDR explicit `Bin` inclusion and any nonowning Company fields before acting on existing approved, Company-only irreversible TDR. No new backup or restore rehearsal required; 16:40 with-files backup completed, owner waived restore test. Do **not** run Company → Manage → Delete Transactions before scope is narrowed and confirmed. PRODUCTION and four real Companies protected.
+
 ## 2026-11-28 — LIVE TDR candidate scan STOP: third Material Request and three Bin candidates
 
 **Operator supplied results from the read-only site-pinned candidate audit** on `development.localhost`, mirroring installed `generate_to_delete_list` direct `DocField` Company fields. Nonzero candidates: `Bin | company | 3`, `Material Request | company | 3`, `Process Deferred Accounting | company | 4`, `Repost Item Valuation | company | 2`, `Stock Entry | company | 2`, `Stock Ledger Entry | company | 4`. It exited at `AssertionError: STOP: Unexpected transaction scope`; checks later in the script (MR cancellation and 0 GL/active SLE) **were not reached**. No TDR was submitted; Company UI Delete Transactions remains **on hold**. All *nonzero reported candidates* used the owning `company` field, so there was no positive non-owning Company-field candidate reported, but this is not proof the destructive task is otherwise safe. The installed exclusion list permits `Bin` into automatically selected candidates unlike the earlier expected current upstream v16 list; investigate exact live Bin values before authorizing it. Three Material Requests now exist rather than the two operator-reported cancelled MRs; **do not infer whether the third is newly generated, cancelled, linked, or submitted without a readback**.
