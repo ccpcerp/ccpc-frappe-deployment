@@ -2,6 +2,12 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-28 — Owner reports all three synthetic Item Reorder rows cleared; Team Awesome review next
+
+**Operator confirmation (not independently re-read from persistent DEVELOPMENT):** owner reported deleting and saving the test-warehouse Reorder Levels row from `ITEM-00022`, then stated **"Done for both"** for `ITEM-00034` and `ITEM-00023` after the same native-UI procedure. Treat three test-only Item Reorder configurations as **operator-reported cleared**, with no post-save JSON/readback yet; do not claim database verification or broader master-data deletion. No real-Company Item Reorder rules were authorized for removal. Prior two Purchase Material Requests have reportedly been cancelled, although `MAT-MR-2026-00007` docstatus remains unverified by readback. No TDR, Company deletion, production action or recurring scheduler start is part of these operations.
+
+**Next one-step DEVELOPMENT action:** Open `Asset Maintenance Team` **`Team Awesome`** and verify its Company remains exactly `_Test Company`; inspect any linked asset/maintenance schedules and team dependencies before normal UI deletion. Upstream ERPNext v16 TDR excludes this DocType by default, so Company transaction cleanup will not reliably remove it. Request a screenshot/document JSON or links evidence; **do not delete if linked**. After clearing this master, prepare separately reviewed `_Test Company`-scoped TDR/deletion with verified with-files backup/recovery and protection for four real Companies. Keep DEVELOPMENT-only scope.
+
 ## 2026-11-28 — Second synthetic Material Request reportedly cancelled; remove test-only Item Reorder rules
 
 **Owner follow-up "Done"** in direct response to instruction to cancel `MAT-MR-2026-00007` in DEVELOPMENT via native ERPNext UI. Treat as **operator-reported successful cancellation**; unlike first `MAT-MR-2026-00006`, no status/docstatus readback has yet been supplied. Both MRs were test-only Pending Purchase Material Requests, with first confirmed `docstatus=2, status=Cancelled, auto_created_via_reorder=1`. User wishes to move directly toward removing `_Test Company` without repeated generic inventories.
