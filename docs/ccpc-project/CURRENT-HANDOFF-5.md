@@ -2,6 +2,12 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-28 — Third test Item Tax Template @ 15 deletion reported; @ 20 next
+
+**Operator report:** User replied **"Done"** after instructions to delete, via ordinary DEVELOPMENT ERPNext UI, only Item Tax Template `_Test Account Excise Duty @ 15 - _TC` with Company `_Test Company`. Record as **operator-reported UI deletion**, not independently read back. Previously reported template deletions were `_Test Account Excise Duty @ 10 - _TC` and `@ 12`. All eight shared Item and Item Group test-tax references, plus test warehouse Item Reorder references, had been independently verified absent before these template deletions.
+
+**Next single operator step:** Open exact Item Tax Template **`_Test Account Excise Duty @ 20 - _TC`** in `development.localhost`, confirm `Company = _Test Company`, and use ordinary **Menu → Delete**. Stop and report link errors, do not force or SQL-delete. Preserve the Account, shared Items/Item Groups, real-Company settings and PRODUCTION. Afterward delete final `_Test Item Tax Template 1 - _TC` through native UI, then verify all five parent templates, seven child details and test reorder references are gone before exercising separate prior authorization for Company master deletion. `TDL0002` Completed and all `_Test Company` transactions had previously been verified zero. No new backup/restore rehearsal needed under explicit owner waiver.
+
 ## 2026-11-28 — Second test Item Tax Template @ 12 deletion reported; @ 15 next
 
 **Operator report:** User replied **"Done"** after ordinary DEVELOPMENT ERPNext UI instruction to delete only Item Tax Template `_Test Account Excise Duty @ 12 - _TC` for `_Test Company`. Record as **operator-reported native UI deletion**, not independently read back. Earlier operator also reported successful removal of test template `_Test Account Excise Duty @ 10 - _TC`; site-scoped read-only `PASS: TEST REFERENCES CLEARED` established zero `Item Tax` references to the five tax templates and zero `Item Reorder` references to test warehouses prior to template deletions.
