@@ -2,6 +2,21 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-28 — Both live DEVELOPMENT Company Cost Center defaults verified PASS; testing next
+
+**Owner-provided read-only SQL output** from `ccpcerpserver` for the corrected exact RMC Company name, ending `RMC DEFAULT VERIFICATION COMPLETE`:
+
+```
+company                  configured_default  expected_center  center_company             result
+Ricor Mills Corporation  Main - RMC          Main - RMC       Ricor Mills Corporation   PASS
+```
+
+The previous separately audited Company row was `Cagayan Corn Products Corporation → Main - CCPC` with matching same-Company enabled leaf `is_group=0, disabled=0` **PASS**. The new RMC `PASS` asserts actual `tabCompany.cost_center = Main - RMC`, the expected Cost Center owned by the exact plural `Ricor Mills Corporation`, active non-group leaf, and existing Company master, using the read-only MariaDB transaction. **Both real Company defaults therefore now pass**, requiring **no master edits, no Department Center mapping proposals or further Finance signoffs solely for identical shared Centers**.
+
+**Verified GitHub source review branch after spelling correction:** `review/company-default-cost-centers-2026-11-28` at `e22506ba51b2ce7de91b61b7cfed558f58b15052` (not merged/deployed), updated allowlist `Ricor Mills Corporation → Main - RMC` and regression rejecting the mistyped singular Company. [App PR45](https://github.com/ccpcerp/ccpcerp/pull/45) remains DRAFT/unmerged at parent `afcc7b48ff8c664b0b0c781f89864995b9a59691`. GitHub Actions reports **zero workflow runs** for the Company-default review branch as checked, so source tests and real integration are **pending**, not PASSED.
+
+**Next engineering test gate:** run the seven `test_company_default_cost_centers_pure.py` tests plus relevant regressions against the *corrected* review HEAD in a disposable/isolated checkout; follow with genuine disposable Frappe v16/MariaDB integration of Company-default source, signed existing Department precedence, required Expense mapping, permission/tamper/replay/duplicate/concurrency and RMC isolation. Do not point this at the persistent DEVELOPMENT site; no CI trigger/cost change or unapproved paid run. After evidence, review Company-default provenance/UI behavior and separately plan protected DEVELOPMENT source pull/migration with fresh backup and recovery review. **No DEVELOPMENT source/migration, Stock Entry/SLE/GL write, PR merge or PRODUCTION operation authorized or performed.**
+
 ## 2026-11-28 — Owner corrects RMC Company spelling; GitHub policy corrected, live RMC default still unverified
 
 **Owner confirmed the authoritative Company name is `Ricor Mills Corporation` (plural Mills)**; earlier `Ricor Mill Corporation` was only an owner's typo in the stated policy. Existing `ccpcerp/setup.py` Department foundation already uses `Ricor Mills Corporation`.
