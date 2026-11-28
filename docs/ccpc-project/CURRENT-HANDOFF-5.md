@@ -2,6 +2,12 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-28 — ITEM-00038 two test tax row removals reported; test Item Groups next
+
+**Operator report:** User replied **"Done"** immediately after instruction to open shared Item `ITEM-00038` on persistent `development.localhost`, remove only two test-only Taxes rows `f18o7u9cea` referencing `_Test Account Excise Duty @ 20 - _TC` and `f180hba605` referencing `_Test Item Tax Template 1 - _TC`, and Save. Record **operator-reported UI cleanup**, without independent database readback. No authorization to delete `ITEM-00038`, other Items, Item Groups, or real Company settings.
+
+**Next single operator action:** Open Item Group `_Test Item Group Tax Child Override` in DEVELOPMENT and remove **only** its Taxes child row `f152ksf8b4` referencing `_Test Account Excise Duty @ 15 - _TC`, Save and report Done. Afterward remove the final two test tax references on `_Test Item Group Tax Parent` (`f15di9458q` to `_Test Account Excise Duty @ 10 - _TC`; `f15k9pfe1d` to `_Test Account Excise Duty @ 12 - _TC`). Preserve Item Group masters and unrelated taxes. Then verify no test-template child references remain, perform ordinary UI deletions of five test Item Tax Template parents (and their seven detail children), and check remaining Company links before executing the already separately approved `_Test Company` master deletion. No forced/SQL deletes or PRODUCTION actions.
+
 ## 2026-11-28 — ITEM-00035 two test tax row removals reported; ITEM-00038 next
 
 **Operator report:** User replied **"Done"** immediately after instructions to open shared Item `ITEM-00035` on `development.localhost`, remove exactly two test-only Taxes child references `f18omheq0e` to `_Test Account Excise Duty @ 10 - _TC` and `f18h33l72s` to `_Test Account Excise Duty @ 12 - _TC`, and Save. Record **operator-reported native UI cleanup**, not fresh database readback; the shared Item and any other child rows should have been preserved. Before this, user similarly reported native UI removal of one test-tax row from `ITEM-00024` and the one remaining test-warehouse reorder row from `ITEM-00033`.
