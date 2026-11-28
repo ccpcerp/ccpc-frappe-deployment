@@ -2,6 +2,16 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-28 — Final synthetic Company: two submitted Material Receipts identified
+
+**Operator-reported read-only DEVELOPMENT MariaDB stock audit** (explicit `START TRANSACTION READ ONLY` / `ROLLBACK`) for last unwanted `_Test Company`, ending `FINAL TEST COMPANY STOCK AUDIT COMPLETE`:
+
+- `MAT-STE-2026-00012`, `company=_Test Company`, `docstatus=1`, `purpose=Material Receipt`, `posting_date=2026-09-15`, parent `from_warehouse=NULL`, `to_warehouse=NULL`; linked active `MAT-SLE-2026-00066`, `ITEM-00022`, warehouse `_Test Warehouse - _TC`, `actual_qty=+10`, `is_cancelled=0`.
+- `MAT-STE-2026-00013`, same Company, `docstatus=1`, `purpose=Material Receipt`, `posting_date=2026-09-15`; active `MAT-SLE-2026-00067`, `ITEM-00023`, same test warehouse, `actual_qty=+10`, `is_cancelled=0`.
+- Grouped `tabGL Entry` query for `_Test Company` returned **no rows**. This establishes no GL entries in the queried Company at the time but does not establish full dependency/stock reservation safety; parent warehouse fields being NULL does not mean the item lines lacked target warehouse.
+- The two submitted Material Receipts are **real positive stock movements**; avoid deleting stock ledger rows or forcing Company deletion. Upstream ERPNext v16 `Stock Entry.on_cancel` runs stock-ledger reversal and related downstream validation/update. Normal UI cancel then delete, under separate scoped operator authorization and fresh **post-cleanup** DEVELOPMENT with-files backup/recovery verification, is the intended candidate path. Cancel one voucher at a time and inspect results; if ERPNext reports linked downstream/dependent docs, STOP. Recheck SLE/GL, warehouses/Company links before final deletion. No cancellation/deletion is verified or executed by ChatGPT.
+- Preserve four business Companies and their records, including CCPC/RMC default Centers and signed Finance approvals. No PRODUCTION involvement.
+
 ## 2026-11-28 — Owner reports five Companies remaining, final synthetic Stock Entry deletion blocked
 
 **Owner-reported DEVELOPMENT UI cleanup:** after normal ERPNext UI deletion of the other sample Companies, only 5 remain: business `Cagayan Corn Products Corporation`, `Ricor Mills Corporation`, `GSL Realty Corporation`, `Woodland Farms Corporation`, and synthetic `_Test Company`. This is **operator-reported UI state**; no independently repeated inventory SQL or new backup proof is available. The immediately previous blocker on `_Test Company with perpetual inventory` was internal Supplier `_Test Internal Supplier 2` (`Supplier.represents_company` and `Allowed To Transact With` same synthetic Company); user later reports the Company deleted. No inference that business data was deleted.
