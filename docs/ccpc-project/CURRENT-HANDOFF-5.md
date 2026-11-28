@@ -2,6 +2,12 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-28 — Test Child Override Item Group tax row removal reported; final Parent group next
+
+**Operator report:** User replied **"Done"** immediately after instruction to open Item Group `_Test Item Group Tax Child Override` in DEVELOPMENT, remove only Taxes child row `f152ksf8b4` referencing `_Test Account Excise Duty @ 15 - _TC`, and Save. Treat as **operator-reported native UI cleanup, not independent database readback**. Preserve Item Group and unrelated configuration. Previous UI removals were also reported for `ITEM-00024` (1 test tax), `ITEM-00035` (2), `ITEM-00038` (2), and `ITEM-00033` (1 last test warehouse Reorder rule).
+
+**Immediate one-step operator instruction:** On persistent `development.localhost`, open **Item Group `_Test Item Group Tax Parent`**, remove only its Taxes rows `f15di9458q` referencing `_Test Account Excise Duty @ 10 - _TC` and `f15k9pfe1d` referencing `_Test Account Excise Duty @ 12 - _TC`, Save and report Done. This should complete the eight identified shared Item/Item Group references to test-only tax templates. **Then** run a narrow read-only verification that no such references remain (plus no test warehouse Reorder rows) before deleting the five test-only Item Tax Template documents normally, and verify safe Company master deletion conditions. Owner already approved `_Test Company` master removal separately, but do not bypass native UI checks. No SQL DELETE, force-delete, new TDR, other-Company edits or PRODUCTION action.
+
 ## 2026-11-28 — ITEM-00038 two test tax row removals reported; test Item Groups next
 
 **Operator report:** User replied **"Done"** immediately after instruction to open shared Item `ITEM-00038` on persistent `development.localhost`, remove only two test-only Taxes rows `f18o7u9cea` referencing `_Test Account Excise Duty @ 20 - _TC` and `f180hba605` referencing `_Test Item Tax Template 1 - _TC`, and Save. Record **operator-reported UI cleanup**, without independent database readback. No authorization to delete `ITEM-00038`, other Items, Item Groups, or real Company settings.
