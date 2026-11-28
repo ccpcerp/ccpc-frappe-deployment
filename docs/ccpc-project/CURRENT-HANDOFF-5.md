@@ -2,6 +2,16 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-28 — Live Company Cost Center default read-only audit: CCPC PASS; RMC STOP (Company name mismatch)
+
+**Operator-reported DEVELOPMENT-only SQL result** from the previously reviewed `START TRANSACTION READ ONLY` check on `ccpcerpserver` (`development.localhost`), ending `COMPANY DEFAULT READ-ONLY CHECK COMPLETE`; no data changes:
+
+- `Cagayan Corn Products Corporation`: `tabCompany.cost_center = Main - CCPC`; `tabCost Center.name = Main - CCPC` belongs to exact CCPC Company, `is_group=0`, `disabled=0`; **PASS**.
+- `Ricor Mill Corporation`: `tabCompany.cost_center = NULL`. The Cost Center record `Main - RMC` exists as active leaf (`is_group=0`, `disabled=0`) but its `company` is **`Ricor Mills Corporation` (plural `Mills`)**, different from the approved/code-pinned `Ricor Mill Corporation` (singular `Mill`); **STOP**.
+- Hence RMC has **two blockers**, absent Company default and mismatch of Cost Center owning Company; do not automatically fill Company default, relink the Center, rename a Company, change the allowlist, create an alternative Center or use RMC to post stock/GL. A bare Cost Center tree screenshot never proved `Company.cost_center`.
+- **Next single action:** independent read-only query of both exact Company records (including `name`, `abbr`, `cost_center`) and `Main - RMC` master ownership, with any other RMC Centers, to determine whether `Ricor Mills Corporation` is the authoritative registered Company or a separate master. If only plural exists, a separately approved GitHub business-rule/code correction might be appropriate; if both exist, investigate records/transactions before any live master change. Keep CCPC-specific Company-default tests available independently, but do not treat RMC or the new code as accepted.
+- Separate 7-test isolated runner and disposable Frappe/MariaDB integration remain pending; current Company-default app review branch `review/company-default-cost-centers-2026-11-28` at `1046fcb3e2b8fa548bf4561587fc6188c7d5ce53`, not deployed. No new migration, signed mapping modification, real Material Issue, SLE/GL, PRODUCTION, or write authorization.
+
 ## 2026-11-28 — Company defaults code implemented in separate GitHub review branch; NOT tested/deployed
 
 **Owner explicitly APPROVED GitHub-first code simplification:** CCPC `Cagayan Corn Products Corporation → Main - CCPC`; RMC `Ricor Mill Corporation → Main - RMC`, all eligible beneficiary Departments inherit their own Company's shared Center. Retain actual beneficiary Department in Withdrawal Slip/Stock Entry header/items/GL. The earlier per-Department signed Wet Mill approval `srq204k4v9` is preserved as immutable audit history and remains eligible under the existing signed Department-specific path.
