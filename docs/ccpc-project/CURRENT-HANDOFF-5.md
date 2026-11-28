@@ -2,6 +2,12 @@
 
 **Active from 2026-11-22 (Asia/Manila).** Read [GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md](GITHUB-FIRST-DEVELOPMENT-WORKFLOW.md) first, then this compact current checkpoint. Older [CURRENT-HANDOFF-3.md](CURRENT-HANDOFF-3.md) and [CURRENT-HANDOFF-4.md](CURRENT-HANDOFF-4.md) remain historical. Always independently verify actual GitHub/DEVELOPMENT state.
 
+## 2026-11-28 — DEVELOPMENT backup retention confirmed 168 hours
+
+**Operator confirmed actual DEVELOPMENT terminal output:** `PASS: DEVELOPMENT backup retention = 168 hours (7 days)`, after running exact site-scoped `bench --site development.localhost set-config keep_backups_for_hours 168 --parse` and reading back the single config key as integer. Hence Frappe's effective automatic backup pruning threshold is now verified as **168 hours** for DEVELOPMENT (on next backup invocation). This is not evidence of a scheduler or restore rehearsal. Prior successful full with-files backup `20261128_132401` is preserved at last observation. No manual old-backup deletion, no code pull, no PRODUCTION change.
+
+**Cleanup continuation:** Final synthetic `_Test Company` still requires reviewed clearing of two cancelled Stock Entry documents and four historical cancelled SLEs, plus master/dependency links, before Company can be removed. Both material receipts already cancelled and independent read-only SQL verified 0 net movement, 0 active SLE, affected Bin quantities/reservations 0 and Company GL 0. Avoid naive Stock Entry Delete (SLE link blocker), SQL delete, or unreviewed `Company → Delete Transactions` (automatically creates/submits broad TDR). Obtain Company-scoped DocType counts and cross-company link preview, confirm fresh backup recovery viability, and proceed only with separately authorized bounded cleanup.
+
 ## 2026-11-28 — Owner approves 7-day DEVELOPMENT backup retention; application pending terminal output
 
 **Explicit owner approval:** After verifying 23-hour default site backup retention and 661G free on DEVELOPMENT, owner answered `Approved` to the proposed **7-day/168-hour DEVELOPMENT-only `keep_backups_for_hours` setting**. Interpret this approval as the scoped retention setting; it is **NOT** authorization to perform `_Test Company` transaction deletion or alter PRODUCTION.
